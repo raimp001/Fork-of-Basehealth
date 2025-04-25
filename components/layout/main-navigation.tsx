@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Home, Search, MessageSquare, Stethoscope, Calendar } from "lucide-react"
+import { Home, Search, MessageSquare, Stethoscope, Calendar, Wallet } from "lucide-react"
 import { useState } from "react"
 
 export function MainNavigation() {
@@ -36,6 +36,11 @@ export function MainNavigation() {
       href: "/appointment/request",
       label: "Appointments",
       icon: Calendar,
+    },
+    {
+      href: "/wallet",
+      label: "Wallet",
+      icon: Wallet,
     },
   ]
 
@@ -72,6 +77,9 @@ export function MainNavigation() {
         <div className="hidden md:flex items-center justify-end space-x-2">
           <Button variant="outline" size="sm" asChild>
             <Link href="/login">Sign In</Link>
+          </Button>
+          <Button size="sm" asChild>
+            <Link href="/register">Sign Up</Link>
           </Button>
         </div>
 
@@ -139,9 +147,12 @@ export function MainNavigation() {
                 )
               })}
             </nav>
-            <div className="mt-4 pt-4 border-t">
+            <div className="mt-4 pt-4 border-t flex gap-2">
               <Button className="w-full" variant="outline" asChild>
                 <Link href="/login">Sign In</Link>
+              </Button>
+              <Button className="w-full" asChild>
+                <Link href="/register">Sign Up</Link>
               </Button>
             </div>
           </div>

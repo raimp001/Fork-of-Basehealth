@@ -1,14 +1,17 @@
 import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
+import { Inter } from "next/font/google"
 import { MainNavigation } from "@/components/layout/main-navigation"
-import Script from "next/script"
+import { ThemeProvider } from "@/components/theme-provider"
+
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "BaseHealth - Healthcare Platform",
   description:
-    "Connect with healthcare providers, schedule telemedicine appointments, and manage your health journey in one place.",
-  generator: "v0.dev",
+    "Connect with healthcare providers, schedule telemedicine appointments, and manage prescriptions securely with cryptocurrency payments.",
+    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -18,15 +21,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.GOOGLE_MAPS_API_KEY}&libraries=places`}
-          strategy="beforeInteractive"
-        />
-        <div className="flex min-h-screen flex-col">
-          <MainNavigation />
-          <main className="flex-1">{children}</main>
-        </div>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="light">
+          <div className="flex min-h-screen flex-col">
+            <MainNavigation />
+            <main className="flex-1">{children}</main>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   )
