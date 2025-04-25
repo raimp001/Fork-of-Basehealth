@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -5,14 +7,24 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Star, MapPin } from "lucide-react"
 import type { Provider } from "@/types/user"
+import { cn } from "@/lib/utils"
 
 interface ProviderCardProps {
   provider: Provider
+  isSelected?: boolean
+  onClick?: () => void
 }
 
-export function ProviderCard({ provider }: ProviderCardProps) {
+export function ProviderCard({ provider, isSelected = false, onClick }: ProviderCardProps) {
   return (
-    <Card className="overflow-hidden">
+    <Card
+      className={cn(
+        "overflow-hidden transition-all",
+        isSelected ? "ring-2 ring-primary" : "",
+        onClick ? "cursor-pointer hover:shadow-md" : "",
+      )}
+      onClick={onClick}
+    >
       <CardContent className="p-6">
         <div className="flex items-start space-x-4">
           <Avatar className="h-12 w-12">

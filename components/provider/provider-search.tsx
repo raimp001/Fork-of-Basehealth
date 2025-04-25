@@ -5,11 +5,13 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ProviderCard } from "@/components/provider/provider-card"
+import { ProviderMap } from "@/components/provider/provider-map"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { MapPin } from "lucide-react"
+import { Slider } from "@/components/ui/slider"
+import { MapPin, List, MapIcon } from "lucide-react"
 import type { Provider, ScreeningRecommendation } from "@/types/user"
 import db from "@/lib/mock-db"
 
@@ -27,6 +29,10 @@ export function ProviderSearch() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [searchPerformed, setSearchPerformed] = useState(false)
+  const [viewMode, setViewMode] = useState<"list" | "map">("list")
+  const [maxDistance, setMaxDistance] = useState<number>(25)
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null)
 
   const specialties = [
     "Family Medicine",
@@ -87,29 +93,28 @@ export function ProviderSearch() {
     setSearchPerformed(true)
 
     try {
-      // Try to get providers from mock DB directly first
-      const mockProviders = await db.searchProviders({
-        zipCode,
-        specialty: specialty !== "all" ? specialty : undefined,
-      })
+      // Build query parameters
+      const queryParams = new URLSearchParams()
+      queryParams.append("zipCode", zipCode)
 
-      if (mockProviders.length > 0) {
-        console.log("Using mock database providers")
-        setProviders(mockProviders)
-        setFilteredProviders(mockProviders)
-      } else {
-        // If no mock providers, try the API
-        console.log("No mock providers found, trying API")
-        const response = await fetch(`/api/providers?zipCode=${zipCode}${specialty ? `&specialty=${specialty}` : ""}`)
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch providers")
-        }
-
-        const data = await response.json()
-        setProviders(data.providers)
-        setFilteredProviders(data.providers)
+      if (specialty && specialty !== "all") {
+        queryParams.append("specialty", specialty)
       }
+
+      if (maxDistance) {
+        queryParams.append("radius", maxDistance.toString())
+      }
+
+      // Call the API route
+      const response = await fetch(`/api/providers/search?${queryParams.toString()}`)
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch providers")
+      }
+
+      const data = await response.json()
+      setProviders(data.providers)
+      setFilteredProviders(data.providers)
     } catch (err) {
       console.error("Search error:", err)
       setError("Unable to find providers. Please try a different search.")
@@ -153,29 +158,28 @@ export function ProviderSearch() {
     setSearchPerformed(true)
 
     try {
-      // Try to get providers from mock DB directly first
-      const mockProviders = await db.searchProviders({
-        zipCode,
-        specialty: specialty !== "all" ? specialty : undefined,
-      })
+      // Build query parameters
+      const queryParams = new URLSearchParams()
+      queryParams.append("zipCode", zipCode)
 
-      if (mockProviders.length > 0) {
-        console.log("Using mock database providers")
-        setProviders(mockProviders)
-        setFilteredProviders(mockProviders)
-      } else {
-        // If no mock providers, try the API
-        console.log("No mock providers found, trying API")
-        const response = await fetch(`/api/providers?zipCode=${zipCode}${specialty ? `&specialty=${specialty}` : ""}`)
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch providers")
-        }
-
-        const data = await response.json()
-        setProviders(data.providers)
-        setFilteredProviders(data.providers)
+      if (specialty && specialty !== "all") {
+        queryParams.append("specialty", specialty)
       }
+
+      if (maxDistance) {
+        queryParams.append("radius", maxDistance.toString())
+      }
+
+      // Call the API route
+      const response = await fetch(`/api/providers/search?${queryParams.toString()}`)
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch providers")
+      }
+
+      const data = await response.json()
+      setProviders(data.providers)
+      setFilteredProviders(data.providers)
     } catch (err) {
       console.error("Search error:", err)
       setError("Unable to find providers. Please try a different search.")
@@ -234,6 +238,52 @@ export function ProviderSearch() {
     }
   }
 
+  const handleGetCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          })
+
+          // Reverse geocode to get ZIP code
+          try {
+            const response = await fetch(
+              `/api/geocode/reverse?lat=${position.coords.latitude}&lng=${position.coords.longitude}`,
+            )
+
+            if (response.ok) {
+              const data = await response.json()
+              if (data.zipCode) {
+                setZipCode(data.zipCode)
+              }
+            }
+          } catch (error) {
+            console.error("Error reverse geocoding:", error)
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error)
+          setError("Unable to get your current location. Please enter a ZIP code manually.")
+        },
+      )
+    } else {
+      setError("Geolocation is not supported by this browser. Please enter a ZIP code manually.")
+    }
+  }
+
+  const handleProviderSelect = (provider: Provider) => {
+    setSelectedProvider(provider)
+    // Scroll to the selected provider card if in list view
+    if (viewMode === "list") {
+      const providerElement = document.getElementById(`provider-${provider.id}`)
+      if (providerElement) {
+        providerElement.scrollIntoView({ behavior: "smooth" })
+      }
+    }
+  }
+
   return (
     <div className="space-y-6">
       {screenings.length > 0 && (
@@ -255,15 +305,21 @@ export function ProviderSearch() {
             <label htmlFor="zipCode" className="text-sm font-medium block mb-1">
               ZIP Code
             </label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="zipCode"
-                placeholder="Enter ZIP code"
-                value={zipCode}
-                onChange={handleZipCodeChange}
-                className="pl-10"
-              />
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="zipCode"
+                  placeholder="Enter ZIP code"
+                  value={zipCode}
+                  onChange={handleZipCodeChange}
+                  className="pl-10"
+                />
+              </div>
+              <Button variant="outline" onClick={handleGetCurrentLocation} type="button">
+                <MapPin className="h-4 w-4 mr-2" />
+                Current
+              </Button>
             </div>
           </div>
 
@@ -293,12 +349,48 @@ export function ProviderSearch() {
           </div>
         </div>
 
-        <div>
-          <Input
-            placeholder="Filter results by name or specialty..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex flex-col md:flex-row gap-4 items-start">
+          <div className="w-full md:w-2/3">
+            <Input
+              placeholder="Filter results by name or specialty..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="w-full md:w-1/3 space-y-2">
+            <div className="flex justify-between items-center">
+              <label htmlFor="distance" className="text-sm font-medium">
+                Max Distance: {maxDistance} miles
+              </label>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={viewMode === "list" ? "bg-muted" : ""}
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={viewMode === "map" ? "bg-muted" : ""}
+                  onClick={() => setViewMode("map")}
+                >
+                  <MapIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <Slider
+              id="distance"
+              min={5}
+              max={50}
+              step={5}
+              value={[maxDistance]}
+              onValueChange={(value) => setMaxDistance(value[0])}
+            />
+          </div>
         </div>
       </div>
 
@@ -321,6 +413,7 @@ export function ProviderSearch() {
               <ul className="list-disc list-inside text-left max-w-md mx-auto">
                 <li>Check if your ZIP code is correct</li>
                 <li>Try a different specialty</li>
+                <li>Increase the maximum distance</li>
                 <li>Expand your search to include providers in nearby areas</li>
               </ul>
             </div>
@@ -333,13 +426,26 @@ export function ProviderSearch() {
             <h3 className="text-lg font-medium">
               {filteredProviders.length} Provider{filteredProviders.length !== 1 ? "s" : ""} Found
             </h3>
-            <div className="text-sm text-muted-foreground">Showing healthcare providers</div>
+            <div className="text-sm text-muted-foreground">
+              {viewMode === "list" ? "Showing list view" : "Showing map view"}
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProviders.map((provider) => (
-              <ProviderCard key={provider.id} provider={provider} />
-            ))}
-          </div>
+
+          {viewMode === "map" ? (
+            <ProviderMap providers={filteredProviders} zipCode={zipCode} onProviderSelect={handleProviderSelect} />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProviders.map((provider) => (
+                <div id={`provider-${provider.id}`} key={provider.id}>
+                  <ProviderCard
+                    provider={provider}
+                    isSelected={selectedProvider?.id === provider.id}
+                    onClick={() => setSelectedProvider(provider)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : null}
     </div>

@@ -77,23 +77,26 @@ export async function GET(request: Request) {
           const providersWithCoordinates = await Promise.all(
             providers.map(async (provider) => {
               const providerCoordinates = await geocodeZipCode(provider.address.zipCode)
-              return {
-                ...provider,
-                coordinates: providerCoordinates,
+
+              if (providerCoordinates) {
+                const distance = calculateDistance(searchCoordinates, providerCoordinates)
+
+                // Only include providers within the specified radius
+                if (distance <= radius) {
+                  return {
+                    ...provider,
+                    coordinates: providerCoordinates,
+                    distance: distance,
+                    distanceFormatted: `${distance.toFixed(1)} miles away`,
+                  }
+                }
               }
+              return null
             }),
           )
 
-          // Sort by estimated distance (if we have coordinates)
-          providers = providersWithCoordinates
-            .filter((p) => p.coordinates)
-            .sort((a, b) => {
-              if (!a.coordinates || !b.coordinates || !searchCoordinates) return 0
-
-              const distA = calculateDistance(searchCoordinates, a.coordinates)
-              const distB = calculateDistance(searchCoordinates, b.coordinates)
-              return distA - distB
-            })
+          // Filter out null values and sort by distance
+          providers = providersWithCoordinates.filter(Boolean).sort((a, b) => a.distance - b.distance)
         }
       } catch (error) {
         console.error("Error sorting providers by distance:", error)
