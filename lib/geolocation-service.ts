@@ -10,15 +10,20 @@ export interface Coordinates {
  */
 export async function geocodeZipCode(zipCode: string): Promise<Coordinates | null> {
   try {
-    // In a real implementation, this would call the Google Maps Geocoding API
-    // For now, we'll return mock coordinates based on the first digit of the ZIP code
-    const firstDigit = Number.parseInt(zipCode.charAt(0))
+    // Use our server-side API route for geocoding
+    const response = await fetch(`/api/geocode?zipCode=${zipCode}`)
 
-    // Generate deterministic but different coordinates based on ZIP code
-    const latitude = 37.0 + firstDigit * 0.5 + Number.parseInt(zipCode.substring(1, 3)) * 0.01
-    const longitude = -122.0 - firstDigit * 0.5 - Number.parseInt(zipCode.substring(3, 5)) * 0.01
+    if (!response.ok) {
+      throw new Error(`Geocoding API returned ${response.status}: ${response.statusText}`)
+    }
 
-    return { latitude, longitude }
+    const data = await response.json()
+
+    if (data.error) {
+      throw new Error(data.error)
+    }
+
+    return data.coordinates
   } catch (error) {
     console.error("Error geocoding ZIP code:", error)
     return null
