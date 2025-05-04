@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Star, MapPin } from "lucide-react"
 import type { Provider } from "@/types/user"
-import { cn } from "@/lib/utils"
 
 interface ProviderCardProps {
   provider: Provider
@@ -17,14 +16,7 @@ interface ProviderCardProps {
 
 export function ProviderCard({ provider, isSelected = false, onClick }: ProviderCardProps) {
   return (
-    <Card
-      className={cn(
-        "overflow-hidden transition-all",
-        isSelected ? "ring-2 ring-primary" : "",
-        onClick ? "cursor-pointer hover:shadow-md" : "",
-      )}
-      onClick={onClick}
-    >
+    <Card className={`overflow-hidden transition-all ${isSelected ? "ring-2 ring-primary" : ""}`} onClick={onClick}>
       <CardContent className="p-6">
         <div className="flex items-start space-x-4">
           <Avatar className="h-12 w-12">
@@ -38,11 +30,18 @@ export function ProviderCard({ provider, isSelected = false, onClick }: Provider
                 <h3 className="font-medium">{provider.name}</h3>
                 <p className="text-sm text-muted-foreground">{provider.specialty}</p>
               </div>
-              {provider.isVerified && (
-                <Badge variant="outline" className="text-xs">
-                  Verified
-                </Badge>
-              )}
+              <div className="flex flex-col items-end gap-1">
+                {provider.isVerified && (
+                  <Badge variant="outline" className="text-xs">
+                    Verified
+                  </Badge>
+                )}
+                {provider.isNearby && (
+                  <Badge variant="secondary" className="text-xs">
+                    Nearby
+                  </Badge>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center text-sm">
@@ -56,11 +55,13 @@ export function ProviderCard({ provider, isSelected = false, onClick }: Provider
               </span>
             </div>
 
-            <div className="mt-2">
-              <p className="text-sm">
-                <span className="font-medium">Fee:</span> ${provider.consultationFee}
-              </p>
-            </div>
+            {provider.distance && (
+              <p className="text-sm text-primary font-medium">{provider.distance.toFixed(1)} miles away</p>
+            )}
+
+            {provider.distanceNote && !provider.distance && (
+              <p className="text-xs text-muted-foreground">{provider.distanceNote}</p>
+            )}
           </div>
         </div>
       </CardContent>

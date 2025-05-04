@@ -66,9 +66,12 @@
     "util": "latest",
     "@modelcontextprotocol/sdk": "latest",
     "@ai-sdk/openai": "latest",
-    "axios": "latest",
     "@ai-sdk/groq": "latest",
-    "uuid": "latest"
+    "uuid": "latest",
+    "@googlemaps/google-maps-services-js": "latest",
+    "@coinbase/onchainkit": "latest",
+    "@headlessui/react": "latest",
+    "@heroicons/react": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

@@ -23,26 +23,17 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
 
   // Load Google Maps script
   useEffect(() => {
-    if (!mapLoaded && mapRef.current) {
+    if (!window.google) {
       const script = document.createElement("script")
-      script.src = `https://maps.googleapis.com/maps/api/js?key=&libraries=places&callback=initMap`
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`
       script.async = true
       script.defer = true
-
-      // Define the callback function
-      window.initMap = () => {
-        setMapLoaded(true)
-      }
-
+      script.onload = () => setMapLoaded(true)
       document.head.appendChild(script)
-
-      return () => {
-        // Clean up
-        delete window.initMap
-        document.head.removeChild(script)
-      }
+    } else {
+      setMapLoaded(true)
     }
-  }, [mapLoaded])
+  }, [])
 
   // Initialize map when loaded
   useEffect(() => {
@@ -62,7 +53,7 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
       }
 
       // Create the map
-      const newMap = new google.maps.Map(mapRef.current, {
+      const newMap = new window.google.maps.Map(mapRef.current, {
         center: mapCenter,
         zoom: 11,
         mapTypeControl: false,
@@ -84,76 +75,74 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
     markers.forEach((marker) => marker.setMap(null))
 
     // Create new markers
-    const newMarkers = providers.map((provider, index) => {
-      // Try to get coordinates from provider address
-      const geocodeAddress = async () => {
-        const fullAddress = `${provider.address.street}, ${provider.address.city}, ${provider.address.state} ${provider.address.zipCode}`
+    const newMarkers: google.maps.Marker[] = []
+    const bounds = new google.maps.LatLngBounds()
+
+    // Add markers for each provider
+    providers.forEach(async (provider) => {
+      // Get coordinates for the provider
+      let position: google.maps.LatLngLiteral
+
+      if (provider.coordinates) {
+        // Use existing coordinates if available
+        position = { lat: provider.coordinates.latitude, lng: provider.coordinates.longitude }
+      } else {
+        // Geocode the provider's address
         const coordinates = await geocodeZipCode(provider.address.zipCode)
+        if (!coordinates) return
 
-        if (coordinates) {
-          const position = { lat: coordinates.latitude, lng: coordinates.longitude }
+        position = { lat: coordinates.latitude, lng: coordinates.longitude }
 
-          // Add a small offset to prevent markers from overlapping
-          position.lat += (Math.random() - 0.5) * 0.01
-          position.lng += (Math.random() - 0.5) * 0.01
-
-          const marker = new google.maps.Marker({
-            position,
-            map,
-            title: provider.name,
-            label: {
-              text: (index + 1).toString(),
-              color: "white",
-            },
-            animation: google.maps.Animation.DROP,
-          })
-
-          // Add info window
-          const infoWindow = new google.maps.InfoWindow({
-            content: `
-              <div style="max-width: 200px">
-                <h3 style="font-weight: bold; margin-bottom: 5px">${provider.name}</h3>
-                <p style="margin: 0">${provider.specialty}</p>
-                <p style="margin: 5px 0">${fullAddress}</p>
-                <p style="margin: 0">Rating: ${provider.rating.toFixed(1)} (${provider.reviewCount} reviews)</p>
-              </div>
-            `,
-          })
-
-          marker.addListener("click", () => {
-            infoWindow.open(map, marker)
-            if (onProviderSelect) {
-              onProviderSelect(provider)
-            }
-          })
-
-          return marker
-        }
-        return null
+        // Add a small offset to prevent markers from overlapping
+        position.lat += (Math.random() - 0.5) * 0.01
+        position.lng += (Math.random() - 0.5) * 0.01
       }
 
-      return geocodeAddress()
-    })
+      // Create marker
+      const marker = new window.google.maps.Marker({
+        position,
+        map,
+        title: provider.name,
+        animation: window.google.maps.Animation.DROP,
+      })
 
-    // Wait for all markers to be created
-    Promise.all(newMarkers).then((resolvedMarkers) => {
-      setMarkers(resolvedMarkers.filter(Boolean) as google.maps.Marker[])
-    })
+      // Add info window
+      const infoWindow = new window.google.maps.InfoWindow({
+        content: `
+          <div style="max-width: 200px">
+            <h3 style="font-weight: bold; margin-bottom: 5px">${provider.name}</h3>
+            <p style="margin: 0">${provider.specialty}</p>
+            <p style="margin: 5px 0">${provider.address.city}, ${provider.address.state}</p>
+            <p style="margin: 0">Rating: ${provider.rating.toFixed(1)} (${provider.reviewCount} reviews)</p>
+            ${provider.distance ? `<p style="margin: 5px 0; color: #2563eb">${provider.distance.toFixed(1)} miles away</p>` : ""}
+          </div>
+        `,
+      })
 
-    // Fit bounds to show all markers
-    if (providers.length > 1) {
-      const bounds = new google.maps.LatLngBounds()
-      markers.forEach((marker) => {
-        if (marker && marker.getPosition()) {
-          bounds.extend(marker.getPosition()!)
+      marker.addListener("click", () => {
+        infoWindow.open(map, marker)
+        if (onProviderSelect) {
+          onProviderSelect(provider)
         }
       })
+
+      // Extend bounds to include this marker
+      bounds.extend(position)
+      newMarkers.push(marker)
+    })
+
+    // Fit map to bounds if we have markers
+    if (newMarkers.length > 0) {
       map.fitBounds(bounds)
+
+      // Don't zoom in too far
+      const listener = window.google.maps.event.addListener(map, "idle", () => {
+        if (map.getZoom()! > 16) map.setZoom(16)
+        window.google.maps.event.removeListener(listener)
+      })
     }
 
-    return () => {
-      markers.forEach((marker) => marker.setMap(null))
-    }
+    setMarkers(newMarkers)
   }, [map, providers, onProviderSelect])
 
   // Get user's current location
@@ -174,11 +163,11 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
           map.setZoom(13)
 
           // Add a marker for the user's location
-          new google.maps.Marker({
+          new window.google.maps.Marker({
             position: userLocation,
             map,
             icon: {
-              path: google.maps.SymbolPath.CIRCLE,
+              path: window.google.maps.SymbolPath.CIRCLE,
               scale: 10,
               fillColor: "#4285F4",
               fillOpacity: 1,
@@ -252,7 +241,6 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
 // Add TypeScript definitions for Google Maps
 declare global {
   interface Window {
-    initMap: () => void
-    google: any // Specify 'any' type to avoid Typescript error
+    google: any
   }
 }

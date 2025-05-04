@@ -39,6 +39,7 @@ export function OnDemandRequest({ patient }: OnDemandRequestProps) {
 
     try {
       // In a real app, we would submit the form data to the server
+      // For now, simulate a delay
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
       // Move to the confirmation step
@@ -57,6 +58,7 @@ export function OnDemandRequest({ patient }: OnDemandRequestProps) {
         <CardDescription>
           Get connected with a healthcare provider quickly for urgent but non-emergency needs
         </CardDescription>
+        {patient && <p className="text-sm text-muted-foreground mt-1">Patient: {patient.name}</p>}
       </CardHeader>
       <CardContent>
         {step === 1 && (

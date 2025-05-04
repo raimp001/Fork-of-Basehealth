@@ -4,14 +4,29 @@ export interface Coordinates {
 }
 
 /**
- * Geocodes a ZIP code to get its coordinates
- * @param zipCode The ZIP code to geocode
+ * Geocodes a location (ZIP code or city) to get its coordinates
+ * @param location The location to geocode (ZIP code or city name)
+ * @param state Optional state for city geocoding
  * @returns Promise resolving to coordinates or null if geocoding fails
  */
-export async function geocodeZipCode(zipCode: string): Promise<Coordinates | null> {
+export async function geocodeLocation(location: string, state?: string): Promise<Coordinates | null> {
   try {
+    // Determine if location is a ZIP code or city
+    const isZipCode = /^\d{5}$/.test(location.trim())
+
+    // Build the query parameters
+    const params = new URLSearchParams()
+    if (isZipCode) {
+      params.append("zipCode", location)
+    } else {
+      params.append("city", location)
+      if (state) {
+        params.append("state", state)
+      }
+    }
+
     // Use our server-side API route for geocoding
-    const response = await fetch(`/api/geocode?zipCode=${zipCode}`)
+    const response = await fetch(`/api/geocode?${params.toString()}`)
 
     if (!response.ok) {
       throw new Error(`Geocoding API returned ${response.status}: ${response.statusText}`)
@@ -25,9 +40,18 @@ export async function geocodeZipCode(zipCode: string): Promise<Coordinates | nul
 
     return data.coordinates
   } catch (error) {
-    console.error("Error geocoding ZIP code:", error)
+    console.error("Error geocoding location:", error)
     return null
   }
+}
+
+/**
+ * Geocodes a ZIP code to get its coordinates
+ * @param zipCode The ZIP code to geocode
+ * @returns Promise resolving to coordinates or null if geocoding fails
+ */
+export async function geocodeZipCode(zipCode: string): Promise<Coordinates | null> {
+  return geocodeLocation(zipCode)
 }
 
 /**
@@ -55,4 +79,31 @@ export function calculateDistance(coord1: Coordinates, coord2: Coordinates): num
   const distance = R * c
 
   return distance
+}
+
+/**
+ * Gets the user's current location
+ * @returns Promise resolving to coordinates or null if geolocation fails
+ */
+export async function getCurrentLocation(): Promise<Coordinates | null> {
+  return new Promise((resolve) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          })
+        },
+        (error) => {
+          console.error("Error getting current location:", error)
+          resolve(null)
+        },
+        { enableHighAccuracy: true },
+      )
+    } else {
+      console.error("Geolocation is not supported by this browser")
+      resolve(null)
+    }
+  })
 }
