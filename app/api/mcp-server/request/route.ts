@@ -1,4 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { handleMcpServerRequest } from "@/lib/mcp-server"
+import { logger } from "@/lib/logger"
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,13 +11,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Input is required" }, { status: 400 })
     }
 
-    // Dynamically import to avoid server component issues
-    const { handleMcpServerRequest } = await import("@/lib/mcp-server")
+    logger.info("Received MCP request:", input)
     const result = await handleMcpServerRequest(input)
 
     return NextResponse.json({ success: true, data: result })
   } catch (error) {
-    console.error("Error in MCP server request:", error)
+    logger.error("Error in MCP server request:", error)
     return NextResponse.json(
       {
         success: false,

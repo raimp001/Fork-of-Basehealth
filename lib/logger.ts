@@ -1,4 +1,4 @@
-// Create a simple logger that doesn't depend on pino-pretty
+// Simple logger that doesn't depend on pino or pino-pretty
 export const logger = {
   info: (message: string, ...args: any[]) => {
     if (process.env.NODE_ENV !== "production") {

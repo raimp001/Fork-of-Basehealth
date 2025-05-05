@@ -3,167 +3,171 @@
 import { useEffect, useRef, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { MapPin, Locate } from "lucide-react"
-import type { Provider } from "@/types/user"
-import { geocodeZipCode } from "@/lib/geolocation-service"
+import { Locate } from "lucide-react"
+
+interface Provider {
+  id: string
+  name: string
+  address: string
+  specialties: string[]
+  lat?: number
+  lng?: number
+  distance?: number
+}
 
 interface ProviderMapProps {
   providers: Provider[]
-  zipCode?: string
+  center?: { lat: number; lng: number }
   onProviderSelect?: (provider: Provider) => void
 }
 
-export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMapProps) {
+declare global {
+  interface Window {
+    google: any
+  }
+}
+
+export default function ProviderMap({ providers, center, onProviderSelect }: ProviderMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
-  const [map, setMap] = useState<google.maps.Map | null>(null)
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
   const [markers, setMarkers] = useState<google.maps.Marker[]>([])
-  const [centerCoordinates, setCenterCoordinates] = useState<{ lat: number; lng: number } | null>(null)
+  const [apiKey, setApiKey] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [isLoadingLocation, setIsLoadingLocation] = useState(false)
-  const [mapApiKey, setMapApiKey] = useState<string>("")
 
-  // Fetch Maps API key from server
+  // Fetch the API key from the server
   useEffect(() => {
-    async function fetchMapApiKey() {
+    async function fetchApiKey() {
       try {
         const response = await fetch("/api/maps/script")
         const data = await response.json()
-        if (data.apiKey) {
-          setMapApiKey(data.apiKey)
+
+        if (data.success && data.apiKey) {
+          setApiKey(data.apiKey)
+        } else {
+          setError("Could not load Maps API key")
         }
-      } catch (error) {
-        console.error("Failed to fetch Maps API key:", error)
+      } catch (err) {
+        setError("Failed to fetch Maps API key")
       }
     }
 
-    fetchMapApiKey()
+    fetchApiKey()
   }, [])
 
-  // Load Google Maps script
+  // Load the Google Maps script
   useEffect(() => {
-    if (!mapApiKey || window.google) return
+    if (!apiKey || mapLoaded) return
 
     const script = document.createElement("script")
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${mapApiKey}&libraries=places`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`
     script.async = true
     script.defer = true
     script.onload = () => setMapLoaded(true)
+    script.onerror = () => setError("Failed to load Google Maps")
+
     document.head.appendChild(script)
-  }, [mapApiKey])
 
-  // Initialize map when loaded
+    return () => {
+      document.head.removeChild(script)
+    }
+  }, [apiKey, mapLoaded])
+
+  // Initialize the map
   useEffect(() => {
-    const initializeMap = async () => {
-      if (!mapLoaded || !mapRef.current) return
+    if (!mapLoaded || !mapRef.current) return
 
-      // Default coordinates (San Francisco)
-      let mapCenter = { lat: 37.7749, lng: -122.4194 }
+    try {
+      const defaultCenter = center || { lat: 37.7749, lng: -122.4194 } // Default to San Francisco
 
-      // If zipCode is provided, geocode it
-      if (zipCode) {
-        const coordinates = await geocodeZipCode(zipCode)
-        if (coordinates) {
-          mapCenter = { lat: coordinates.latitude, lng: coordinates.longitude }
-          setCenterCoordinates(mapCenter)
-        }
-      }
-
-      // Create the map
-      const newMap = new window.google.maps.Map(mapRef.current, {
-        center: mapCenter,
-        zoom: 11,
+      const map = new window.google.maps.Map(mapRef.current, {
+        center: defaultCenter,
+        zoom: 10,
         mapTypeControl: false,
-        fullscreenControl: false,
         streetViewControl: false,
+        fullscreenControl: false,
       })
 
-      setMap(newMap)
+      setMapInstance(map)
+    } catch (err) {
+      setError("Error initializing map")
     }
-
-    initializeMap()
-  }, [mapLoaded, zipCode])
+  }, [mapLoaded, center])
 
   // Add markers for providers
   useEffect(() => {
-    if (!map || !providers.length) return
+    if (!mapInstance || !providers.length) return
 
     // Clear existing markers
     markers.forEach((marker) => marker.setMap(null))
 
     // Create new markers
-    const newMarkers: google.maps.Marker[] = []
-    const bounds = new google.maps.LatLngBounds()
+    const newMarkers = providers
+      .map((provider) => {
+        // Use provider coordinates if available, otherwise geocode the address
+        const position = provider.lat && provider.lng ? { lat: provider.lat, lng: provider.lng } : null
 
-    // Add markers for each provider
-    providers.forEach(async (provider) => {
-      // Get coordinates for the provider
-      let position: google.maps.LatLngLiteral
+        if (!position) return null
 
-      if (provider.coordinates) {
-        // Use existing coordinates if available
-        position = { lat: provider.coordinates.latitude, lng: provider.coordinates.longitude }
-      } else {
-        // Geocode the provider's address
-        const coordinates = await geocodeZipCode(provider.address.zipCode)
-        if (!coordinates) return
+        const marker = new window.google.maps.Marker({
+          position,
+          map: mapInstance,
+          title: provider.name,
+        })
 
-        position = { lat: coordinates.latitude, lng: coordinates.longitude }
+        // Add click handler
+        marker.addListener("click", () => {
+          if (onProviderSelect) {
+            onProviderSelect(provider)
+          }
 
-        // Add a small offset to prevent markers from overlapping
-        position.lat += (Math.random() - 0.5) * 0.01
-        position.lng += (Math.random() - 0.5) * 0.01
-      }
+          // Create info window
+          const infoWindow = new window.google.maps.InfoWindow({
+            content: `
+            <div style="padding: 8px;">
+              <h3 style="margin: 0 0 8px 0; font-size: 16px;">${provider.name}</h3>
+              <p style="margin: 0 0 4px 0; font-size: 14px;">${provider.specialties.join(", ")}</p>
+              <p style="margin: 0; font-size: 14px;">${provider.address}</p>
+              ${provider.distance ? `<p style="margin: 4px 0 0 0; font-size: 12px;">${provider.distance.toFixed(1)} miles away</p>` : ""}
+            </div>
+          `,
+          })
 
-      // Create marker
-      const marker = new window.google.maps.Marker({
-        position,
-        map,
-        title: provider.name,
-        animation: window.google.maps.Animation.DROP,
+          infoWindow.open(mapInstance, marker)
+        })
+
+        return marker
       })
+      .filter(Boolean) as google.maps.Marker[]
 
-      // Add info window
-      const infoWindow = new window.google.maps.InfoWindow({
-        content: `
-          <div style="max-width: 200px">
-            <h3 style="font-weight: bold; margin-bottom: 5px">${provider.name}</h3>
-            <p style="margin: 0">${provider.specialty}</p>
-            <p style="margin: 5px 0">${provider.address.city}, ${provider.address.state}</p>
-            <p style="margin: 0">Rating: ${provider.rating?.toFixed(1) || "N/A"} (${provider.reviewCount || 0} reviews)</p>
-            ${provider.distance ? `<p style="margin: 5px 0; color: #2563eb">${provider.distance.toFixed(1)} miles away</p>` : ""}
-          </div>
-        `,
-      })
+    setMarkers(newMarkers)
 
-      marker.addListener("click", () => {
-        infoWindow.open(map, marker)
-        if (onProviderSelect) {
-          onProviderSelect(provider)
+    // Fit bounds to markers if we have any
+    if (newMarkers.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds()
+
+      newMarkers.forEach((marker) => {
+        if (marker.getPosition()) {
+          bounds.extend(marker.getPosition()!)
         }
       })
 
-      // Extend bounds to include this marker
-      bounds.extend(position)
-      newMarkers.push(marker)
-    })
-
-    // Fit map to bounds if we have markers
-    if (newMarkers.length > 0) {
-      map.fitBounds(bounds)
+      mapInstance.fitBounds(bounds)
 
       // Don't zoom in too far
-      const listener = window.google.maps.event.addListener(map, "idle", () => {
-        if (map.getZoom()! > 16) map.setZoom(16)
+      const listener = window.google.maps.event.addListener(mapInstance, "idle", () => {
+        if (mapInstance.getZoom()! > 16) {
+          mapInstance.setZoom(16)
+        }
         window.google.maps.event.removeListener(listener)
       })
     }
-
-    setMarkers(newMarkers)
-  }, [map, providers, onProviderSelect])
+  }, [mapInstance, providers, onProviderSelect])
 
   // Get user's current location
   const handleGetCurrentLocation = () => {
-    if (!map) return
+    if (!mapInstance) return
 
     setIsLoadingLocation(true)
 
@@ -175,13 +179,13 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
             lng: position.coords.longitude,
           }
 
-          map.setCenter(userLocation)
-          map.setZoom(13)
+          mapInstance.setCenter(userLocation)
+          mapInstance.setZoom(13)
 
           // Add a marker for the user's location
           new window.google.maps.Marker({
             position: userLocation,
-            map,
+            map: mapInstance,
             icon: {
               path: window.google.maps.SymbolPath.CIRCLE,
               scale: 10,
@@ -193,7 +197,6 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
             title: "Your Location",
           })
 
-          setCenterCoordinates(userLocation)
           setIsLoadingLocation(false)
         },
         (error) => {
@@ -209,54 +212,37 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
   }
 
   return (
-    <Card className="relative overflow-hidden">
-      <div ref={mapRef} className="w-full h-[400px]" />
-
-      {/* Current location button */}
-      <Button
-        variant="outline"
-        size="sm"
-        className="absolute top-4 right-4 bg-white shadow-md"
-        onClick={handleGetCurrentLocation}
-        disabled={isLoadingLocation || !mapLoaded}
-      >
-        {isLoadingLocation ? (
-          <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
-        ) : (
-          <>
-            <Locate className="h-4 w-4 mr-2" />
-            My Location
-          </>
-        )}
-      </Button>
-
-      {/* Map loading state */}
-      {!mapLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-            <p>Loading map...</p>
-          </div>
+    <Card className="w-full h-[400px] overflow-hidden">
+      {error ? (
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+          <p className="text-red-500">{error}</p>
         </div>
-      )}
-
-      {/* No providers state */}
-      {mapLoaded && providers.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-          <div className="text-center p-4">
-            <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p>No providers to display on the map.</p>
-            <p className="text-sm text-muted-foreground mt-2">Try adjusting your search criteria.</p>
-          </div>
+      ) : !mapLoaded ? (
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+          <p>Loading map...</p>
+        </div>
+      ) : (
+        <div ref={mapRef} className="w-full h-full relative">
+          <div ref={mapRef} className="w-full h-full" />
+          {/* Current location button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="absolute top-4 right-4 bg-white shadow-md"
+            onClick={handleGetCurrentLocation}
+            disabled={isLoadingLocation || !mapLoaded}
+          >
+            {isLoadingLocation ? (
+              <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+            ) : (
+              <>
+                <Locate className="h-4 w-4 mr-2" />
+                My Location
+              </>
+            )}
+          </Button>
         </div>
       )}
     </Card>
   )
-}
-
-// Add TypeScript definitions for Google Maps
-declare global {
-  interface Window {
-    google: any
-  }
 }

@@ -70,8 +70,7 @@
     "@coinbase/onchainkit": "latest",
     "@headlessui/react": "latest",
     "@heroicons/react": "latest",
-    "uuid": "latest",
-    "axios": "latest"
+    "uuid": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

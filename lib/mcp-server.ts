@@ -1,15 +1,50 @@
+import { logger } from "./logger"
+
+// Mock MCP server implementation
 export async function handleMcpServerRequest(input: string): Promise<string> {
   try {
-    console.info("Processing MCP request:", input)
+    logger.info("Processing MCP request:", input)
 
-    // Simple mock implementation for now
-    // In a real implementation, this would connect to the MCP server
-    const response = `Processed MCP request: ${input}\n\nResponse: This is a mock response from the MCP server.`
+    // Simulate processing time
+    await new Promise((resolve) => setTimeout(resolve, 500))
 
-    console.info("MCP response generated")
-    return response
+    // Mock response based on input
+    if (input.includes("wallet")) {
+      return JSON.stringify(
+        {
+          type: "wallet_info",
+          address: "0x123...abc",
+          balance: "1.5 ETH",
+          transactions: 12,
+        },
+        null,
+        2,
+      )
+    } else if (input.includes("transaction")) {
+      return JSON.stringify(
+        {
+          type: "transaction_info",
+          hash: "0xdef...789",
+          status: "confirmed",
+          value: "0.5 ETH",
+          timestamp: new Date().toISOString(),
+        },
+        null,
+        2,
+      )
+    } else {
+      return JSON.stringify(
+        {
+          type: "general_response",
+          message: "Processed your request",
+          timestamp: new Date().toISOString(),
+        },
+        null,
+        2,
+      )
+    }
   } catch (error) {
-    console.error("Error in MCP server processing:", error)
-    throw error
+    logger.error("Error processing MCP request:", error)
+    throw new Error("Failed to process MCP request")
   }
 }
