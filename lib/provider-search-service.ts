@@ -1,10 +1,6 @@
 import { logger } from "./logger"
-import npiService, {
-  type NpiProvider,
-  formatProviderName,
-  getSpecialtyFromTaxonomies,
-  getPrimaryAddress,
-} from "./npi-service"
+import type { Provider } from "@/types/user"
+import npiService from "./npi-service"
 
 export interface ProviderSearchParams {
   name?: string
@@ -16,159 +12,129 @@ export interface ProviderSearchParams {
   distance?: number
   page?: number
   limit?: number
-}
-
-export interface Provider {
-  id: string
-  npi?: string
-  name: string
-  specialty: string
-  address: string
-  city: string
-  state: string
-  zipCode: string
-  phoneNumber?: string
-  acceptingNewPatients?: boolean
-  distance?: number
-  latitude?: number
-  longitude?: number
-  rating?: number
-  reviewCount?: number
-  imageUrl?: string
-}
-
-export const providerSearchService = {
-  searchProviders: async (params: ProviderSearchParams): Promise<Provider[]> => {
-    try {
-      logger.info("Searching providers with params:", params)
-
-      // Parse the name into first and last name (simple implementation)
-      let firstName, lastName
-      if (params.name) {
-        const nameParts = params.name.split(" ")
-        if (nameParts.length > 1) {
-          firstName = nameParts[0]
-          lastName = nameParts[nameParts.length - 1]
-        } else {
-          lastName = params.name
-        }
-      }
-
-      // Search the NPI registry
-      const npiResults = await npiService.searchNpiRegistry({
-        first_name: firstName,
-        last_name: lastName,
-        city: params.city,
-        state: params.state,
-        postal_code: params.zipCode,
-        taxonomy_description: params.specialty,
-        limit: params.limit || 10,
-        skip: ((params.page || 1) - 1) * (params.limit || 10),
-      })
-
-      // Convert NPI results to our Provider format
-      const providers = npiResults.results.map(npiToProvider)
-
-      return providers
-    } catch (error) {
-      logger.error("Error searching providers:", error)
-      return []
-    }
-  },
-
-  getProviderById: async (id: string): Promise<Provider | null> => {
-    try {
-      logger.info(`Getting provider by ID: ${id}`)
-
-      // In a real implementation, this would fetch from a database or API
-      // For now, we'll return mock data
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      if (id.startsWith("npi-")) {
-        const npiNumber = id.replace("npi-", "")
-        // This would be a real NPI lookup in production
-        const mockNpiProvider: NpiProvider = {
-          number: npiNumber,
-          basic: {
-            first_name: "John",
-            last_name: "Doe",
-            middle_name: "M",
-            name_prefix: "Dr.",
-            credential: "MD",
-            gender: "M",
-            enumeration_date: "2020-01-01",
-            last_updated: "2023-01-01",
-            status: "active",
-          },
-          taxonomies: [
-            {
-              code: "207R00000X",
-              desc: "Internal Medicine",
-              primary: true,
-              state: "CA",
-              license: "LIC1001",
-            },
-          ],
-          addresses: [
-            {
-              address_purpose: "LOCATION",
-              address_type: "DOM",
-              address_1: "1000 Medical Center Dr",
-              city: "San Francisco",
-              state: "CA",
-              postal_code: "94143",
-              telephone_number: "(555) 100-1000",
-            },
-          ],
-        }
-
-        return npiToProvider(mockNpiProvider)
-      }
-
-      // Mock provider data
-      return {
-        id,
-        name: "Dr. Jane Smith",
-        specialty: "Cardiology",
-        address: "123 Medical Plaza",
-        city: "San Francisco",
-        state: "CA",
-        zipCode: "94143",
-        phoneNumber: "(555) 123-4567",
-        acceptingNewPatients: true,
-        distance: 2.3,
-        rating: 4.8,
-        reviewCount: 124,
-        imageUrl: "/caring-doctor.png",
-      }
-    } catch (error) {
-      logger.error(`Error getting provider by ID: ${id}`, error)
-      return null
-    }
-  },
-}
-
-// Helper function to convert NPI provider to our Provider format
-function npiToProvider(npiProvider: NpiProvider): Provider {
-  const name = formatProviderName(npiProvider)
-  const specialty = getSpecialtyFromTaxonomies(npiProvider.taxonomies)
-  const address = getPrimaryAddress(npiProvider.addresses)
-
-  return {
-    id: `npi-${npiProvider.number}`,
-    npi: npiProvider.number,
-    name,
-    specialty,
-    address: address ? address.address_1 : "",
-    city: address ? address.city : "",
-    state: address ? address.state : "",
-    zipCode: address ? address.postal_code : "",
-    phoneNumber: address?.telephone_number,
-    acceptingNewPatients: Math.random() > 0.3, // Random for mock data
-    rating: 3 + Math.random() * 2, // Random rating between 3-5
-    reviewCount: Math.floor(Math.random() * 200), // Random review count
-    imageUrl: "/caring-doctor.png",
+  coordinates?: {
+    latitude: number
+    longitude: number
   }
+  radius?: number
+  useNPI?: boolean
+  useAI?: boolean
 }
 
-export default providerSearchService
+// Mock provider data
+const mockProviders: Provider[] = [
+  {
+    id: "provider-1",
+    name: "Dr. Jane Smith",
+    specialty: "Cardiology",
+    address: {
+      full: "123 Medical Plaza, San Francisco, CA 94143",
+      city: "San Francisco",
+      state: "CA",
+      zipCode: "94143",
+    },
+    phone: "(555) 123-4567",
+    isVerified: true,
+    rating: 4.8,
+    reviewCount: 124,
+    acceptedInsurance: ["Blue Cross", "Aetna", "UnitedHealthcare"],
+    services: ["Preventive Care", "Chronic Disease Management", "Telehealth"],
+  },
+  {
+    id: "provider-2",
+    name: "Dr. Michael Johnson",
+    specialty: "Family Medicine",
+    address: {
+      full: "456 Health Center Dr, San Francisco, CA 94143",
+      city: "San Francisco",
+      state: "CA",
+      zipCode: "94143",
+    },
+    phone: "(555) 987-6543",
+    isVerified: true,
+    rating: 4.6,
+    reviewCount: 98,
+    acceptedInsurance: ["Blue Cross", "Aetna", "UnitedHealthcare"],
+    services: ["Preventive Care", "Chronic Disease Management", "Telehealth"],
+  },
+]
+
+// Provider search service
+const providerSearchService = {
+  // Search for providers based on various criteria
+  searchProviders: async (params: ProviderSearchParams): Promise<Provider[]> => {
+    logger.info("Searching providers with params:", params)
+
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
+    let providers: Provider[] = []
+    let usedMockData = false
+
+    try {
+      if (params.zipCode) {
+        const npiResults = await npiService.searchProviders({
+          zip: params.zipCode,
+          specialty: params.specialty,
+          limit: params.limit,
+        })
+
+        providers = npiResults.results.map((npiProvider) => npiService.convertToAppProvider(npiProvider))
+      } else {
+        providers = [...mockProviders]
+        usedMockData = true
+      }
+    } catch (error) {
+      logger.error("Error searching NPI registry:", error)
+      providers = [...mockProviders]
+      usedMockData = true
+    }
+
+    // Filter providers based on search parameters
+    let filteredProviders = [...providers]
+
+    // Filter by name
+    if (params.name) {
+      const nameLower = params.name.toLowerCase()
+      filteredProviders = filteredProviders.filter((provider) => provider.name.toLowerCase().includes(nameLower))
+    }
+
+    // Filter by specialty
+    if (params.specialty) {
+      const specialtyLower = params.specialty.toLowerCase()
+      filteredProviders = filteredProviders.filter((provider) =>
+        provider.specialty.toLowerCase().includes(specialtyLower),
+      )
+    }
+
+    // Apply distance filtering if coordinates and radius are provided
+    if (params.coordinates && params.radius) {
+      filteredProviders = filteredProviders.filter((provider) => {
+        // Mock distance calculation for now
+        const distance = Math.random() * 50 // Replace with actual distance calculation
+        return distance <= params.radius!
+      })
+    }
+
+    // Apply pagination
+    const page = params.page || 1
+    const limit = params.limit || 10
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+
+    return filteredProviders.slice(startIndex, endIndex)
+  },
+
+  // Get a provider by ID
+  getProviderById: async (id: string): Promise<Provider | null> => {
+    logger.info(`Getting provider by ID: ${id}`)
+
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    const provider = mockProviders.find((p) => p.id === id)
+    return provider || null
+  },
+}
+
+export const searchProviders = providerSearchService.searchProviders

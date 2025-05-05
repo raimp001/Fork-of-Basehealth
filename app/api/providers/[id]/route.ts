@@ -1,13 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { logger } from "@/lib/logger"
 import providerSearchService from "@/lib/provider-search-service"
+import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const id = params.id
-    logger.info(`Provider details request for ID: ${id}`)
+    const providerId = params.id
+    logger.info(`Getting provider details for ID: ${providerId}`)
 
-    const provider = await providerSearchService.getProviderById(id)
+    const provider = await providerSearchService.getProviderById(providerId)
 
     if (!provider) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 })
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({ provider })
   } catch (error) {
-    logger.error(`Error in provider details API for ID: ${params.id}`, error)
+    logger.error(`Error getting provider details for ID: ${params.id}`, error)
     return NextResponse.json({ error: "Failed to get provider details" }, { status: 500 })
   }
 }

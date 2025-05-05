@@ -1,7 +1,12 @@
 "use client"
 
-import { MinimalOnboarding } from "./minimal-onboarding"
+import { Suspense } from "react"
+import MinimalOnboarding from "./minimal-onboarding"
 
-export function MinimalOnboardingWrapper() {
-  return <MinimalOnboarding />
+export default function MinimalOnboardingWrapper() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading onboarding experience...</div>}>
+      <MinimalOnboarding />
+    </Suspense>
+  )
 }
