@@ -55,7 +55,7 @@ export function CoinbaseClientConfig({ children }: CoinbaseClientConfigProps) {
           if (window.coinbase) {
             try {
               window.coinbase.init({
-                appId: process.env.NEXT_PUBLIC_COINBASE_APP_ID || "", // Use empty string as fallback
+                appId: "", // Remove direct environment variable reference
                 networkId: networkId || "base-sepolia", // Use default if networkId is not set yet
               })
             } catch (error) {

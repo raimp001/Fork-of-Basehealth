@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Phone, MapPin, AlertTriangle, Ambulance, AmbulanceIcon as FirstAid, Info } from "lucide-react"
+import { Phone, MapPin, AlertTriangle, Ambulance, Info } from "lucide-react"
 
 export function EmergencyAssistance() {
   const [location, setLocation] = useState("")
@@ -127,7 +127,7 @@ export function EmergencyAssistance() {
 
               <div className="mt-4">
                 <Button className="w-full">
-                  <FirstAid className="mr-2 h-4 w-4" />
+                  <Ambulance className="mr-2 h-4 w-4" />
                   Find Urgent Care Centers
                 </Button>
               </div>

@@ -20,20 +20,36 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
   const [markers, setMarkers] = useState<google.maps.Marker[]>([])
   const [centerCoordinates, setCenterCoordinates] = useState<{ lat: number; lng: number } | null>(null)
   const [isLoadingLocation, setIsLoadingLocation] = useState(false)
+  const [mapApiKey, setMapApiKey] = useState<string>("")
+
+  // Fetch Maps API key from server
+  useEffect(() => {
+    async function fetchMapApiKey() {
+      try {
+        const response = await fetch("/api/maps/script")
+        const data = await response.json()
+        if (data.apiKey) {
+          setMapApiKey(data.apiKey)
+        }
+      } catch (error) {
+        console.error("Failed to fetch Maps API key:", error)
+      }
+    }
+
+    fetchMapApiKey()
+  }, [])
 
   // Load Google Maps script
   useEffect(() => {
-    if (!window.google) {
-      const script = document.createElement("script")
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`
-      script.async = true
-      script.defer = true
-      script.onload = () => setMapLoaded(true)
-      document.head.appendChild(script)
-    } else {
-      setMapLoaded(true)
-    }
-  }, [])
+    if (!mapApiKey || window.google) return
+
+    const script = document.createElement("script")
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${mapApiKey}&libraries=places`
+    script.async = true
+    script.defer = true
+    script.onload = () => setMapLoaded(true)
+    document.head.appendChild(script)
+  }, [mapApiKey])
 
   // Initialize map when loaded
   useEffect(() => {
@@ -113,7 +129,7 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
             <h3 style="font-weight: bold; margin-bottom: 5px">${provider.name}</h3>
             <p style="margin: 0">${provider.specialty}</p>
             <p style="margin: 5px 0">${provider.address.city}, ${provider.address.state}</p>
-            <p style="margin: 0">Rating: ${provider.rating.toFixed(1)} (${provider.reviewCount} reviews)</p>
+            <p style="margin: 0">Rating: ${provider.rating?.toFixed(1) || "N/A"} (${provider.reviewCount || 0} reviews)</p>
             ${provider.distance ? `<p style="margin: 5px 0; color: #2563eb">${provider.distance.toFixed(1)} miles away</p>` : ""}
           </div>
         `,

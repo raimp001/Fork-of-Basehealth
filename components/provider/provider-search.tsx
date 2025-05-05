@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Slider } from "@/components/ui/slider"
-import { MapPin, List, MapIcon } from "lucide-react"
+import { MapPin, List, MapIcon, AlertCircle } from "lucide-react"
 import type { Provider, ScreeningRecommendation } from "@/types/user"
 import db from "@/lib/mock-db"
 
@@ -28,11 +28,13 @@ export function ProviderSearch() {
   const [screenings, setScreenings] = useState<ScreeningRecommendation[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [infoMessage, setInfoMessage] = useState<string | null>(null)
   const [searchPerformed, setSearchPerformed] = useState(false)
   const [viewMode, setViewMode] = useState<"list" | "map">("list")
   const [maxDistance, setMaxDistance] = useState<number>(25)
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [usedMockData, setUsedMockData] = useState(false)
 
   const specialties = [
     "Family Medicine",
@@ -89,6 +91,7 @@ export function ProviderSearch() {
     if (!zipCode) return
 
     setError(null)
+    setInfoMessage(null)
     setIsLoading(true)
     setSearchPerformed(true)
 
@@ -115,9 +118,19 @@ export function ProviderSearch() {
       const data = await response.json()
       setProviders(data.providers)
       setFilteredProviders(data.providers)
+
+      // Check if mock data was used
+      if (data.usedMockData) {
+        setUsedMockData(true)
+        setInfoMessage(data.message || "Some results are simulated for demonstration purposes.")
+      } else {
+        setUsedMockData(false)
+        setInfoMessage(null)
+      }
     } catch (err) {
       console.error("Search error:", err)
       setError("Unable to find providers. Please try a different search.")
+      setUsedMockData(true)
 
       // Fallback to mock data
       try {
@@ -136,6 +149,7 @@ export function ProviderSearch() {
 
         if (mockProviders.length > 0) {
           setError(null) // Clear error if we found fallback providers
+          setInfoMessage("Showing simulated provider data for demonstration purposes.")
           setProviders(mockProviders)
           setFilteredProviders(mockProviders)
         }
@@ -147,14 +161,11 @@ export function ProviderSearch() {
     }
   }
 
-  const handleSearch = async () => {
-    if (!zipCode) {
-      setError("Please enter a ZIP code to find providers nearby")
-      return
-    }
-
-    setError(null)
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
     setIsLoading(true)
+    setError(null)
+    setInfoMessage(null)
     setSearchPerformed(true)
 
     try {
@@ -170,43 +181,39 @@ export function ProviderSearch() {
         queryParams.append("radius", maxDistance.toString())
       }
 
-      // Call the API route
       const response = await fetch(`/api/providers/search?${queryParams.toString()}`)
+      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error("Failed to fetch providers")
-      }
+        if (data.error?.includes("Google Maps API key is missing")) {
+          setError("Provider search is currently unavailable. Please try again later.")
+          console.error("API key missing:", data.envVars)
+        } else {
+          setError(data.error || "Failed to search providers")
+        }
+        setProviders([])
+      } else {
+        setProviders(data.providers || [])
 
-      const data = await response.json()
-      setProviders(data.providers)
-      setFilteredProviders(data.providers)
+        // Check if mock data was used
+        if (data.usedMockData) {
+          setUsedMockData(true)
+          setInfoMessage(data.message || "Some results are simulated for demonstration purposes.")
+        } else {
+          setUsedMockData(false)
+          setInfoMessage(null)
+        }
+
+        if (data.providers?.length === 0) {
+          setError("No providers found matching your criteria. Please try a different search.")
+        }
+      }
     } catch (err) {
-      console.error("Search error:", err)
-      setError("Unable to find providers. Please try a different search.")
-
-      // Fallback to mock data
-      try {
-        console.log("Falling back to mock database")
-        let mockProviders = await db.getAllProviders()
-
-        // Filter by zipCode if provided
-        if (zipCode) {
-          mockProviders = mockProviders.filter((p) => p.address.zipCode.startsWith(zipCode.substring(0, 1)))
-        }
-
-        // Filter by specialty if provided
-        if (specialty && specialty !== "all") {
-          mockProviders = mockProviders.filter((p) => p.specialty.toLowerCase().includes(specialty.toLowerCase()))
-        }
-
-        if (mockProviders.length > 0) {
-          setError(null) // Clear error if we found fallback providers
-          setProviders(mockProviders)
-          setFilteredProviders(mockProviders)
-        }
-      } catch (fallbackErr) {
-        console.error("Fallback error:", fallbackErr)
-      }
+      console.error("Error searching providers:", err)
+      setError("An unexpected error occurred. Please try again later.")
+      setProviders([])
+      setUsedMockData(true)
+      setInfoMessage("Showing simulated provider data for demonstration purposes.")
     } finally {
       setIsLoading(false)
     }
@@ -218,7 +225,8 @@ export function ProviderSearch() {
         (provider) =>
           provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           provider.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          provider.services.some((service) => service.toLowerCase().includes(searchTerm.toLowerCase())),
+          (provider.services &&
+            provider.services.some((service) => service.toLowerCase().includes(searchTerm.toLowerCase()))),
       )
       setFilteredProviders(filtered)
     } else {
@@ -343,7 +351,7 @@ export function ProviderSearch() {
           </div>
 
           <div className="flex items-end">
-            <Button onClick={handleSearch} disabled={isLoading} className="w-full">
+            <Button onClick={(e) => handleSearch(e)} disabled={isLoading} className="w-full">
               {isLoading ? "Searching..." : "Find Providers Nearby"}
             </Button>
           </div>
@@ -400,6 +408,13 @@ export function ProviderSearch() {
         </Alert>
       )}
 
+      {infoMessage && (
+        <Alert variant="default" className="bg-blue-50 border-blue-200">
+          <AlertCircle className="h-4 w-4 text-blue-500 mr-2" />
+          <AlertDescription className="text-blue-700">{infoMessage}</AlertDescription>
+        </Alert>
+      )}
+
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -425,6 +440,7 @@ export function ProviderSearch() {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium">
               {filteredProviders.length} Provider{filteredProviders.length !== 1 ? "s" : ""} Found
+              {usedMockData && " (Demo Data)"}
             </h3>
             <div className="text-sm text-muted-foreground">
               {viewMode === "list" ? "Showing list view" : "Showing map view"}

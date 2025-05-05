@@ -1254,6 +1254,21 @@ class MockDatabase {
   }
 }
 
+// Add a function to generate mock providers when the Google Maps API key is missing
+async function generateMockProviders(zipCode: string, specialty?: string) {
+  const db = new MockDatabase()
+  const providers = db.generateProvidersForZipCode(zipCode, 5)
+
+  if (specialty && specialty !== "all") {
+    return providers.map((provider) => ({
+      ...provider,
+      specialty: specialty,
+    }))
+  }
+
+  return providers
+}
+
 // Create a singleton instance
 const db = new MockDatabase()
 
