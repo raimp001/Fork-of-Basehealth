@@ -1,10 +1,4 @@
-import dynamic from "next/dynamic"
-
-// Use dynamic import with no SSR to avoid server/client mismatch
-const McpClient = dynamic(() => import("@/components/mcp-client"), {
-  ssr: false,
-  loading: () => <div className="p-8">Loading MCP tools...</div>,
-})
+import McpClientWrapper from "@/components/mcp-client-wrapper"
 
 export default function McpToolsPage() {
   return (
@@ -13,7 +7,7 @@ export default function McpToolsPage() {
       <p className="mb-8 text-gray-600">
         Use these tools to interact with blockchain data through the Model Context Protocol.
       </p>
-      <McpClient />
+      <McpClientWrapper />
     </div>
   )
 }
