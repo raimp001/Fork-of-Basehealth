@@ -1,61 +1,21 @@
-import { NextResponse } from "next/server"
-import { getProviderById } from "@/lib/provider-search-service"
-import { getProviderReviews } from "@/lib/provider-service"
+import { type NextRequest, NextResponse } from "next/server"
+import { logger } from "@/lib/logger"
+import providerSearchService from "@/lib/provider-search-service"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const providerId = params.id
+    const id = params.id
+    logger.info(`Provider details request for ID: ${id}`)
 
-    if (!providerId) {
-      return NextResponse.json({ error: "Provider ID is required" }, { status: 400 })
-    }
-
-    const provider = await getProviderById(providerId)
+    const provider = await providerSearchService.getProviderById(id)
 
     if (!provider) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 })
     }
 
-    // Get provider reviews
-    const reviews = await getProviderReviews(providerId)
-
-    return NextResponse.json({ provider, reviews })
+    return NextResponse.json({ provider })
   } catch (error) {
-    console.error("Error fetching provider:", error)
-    return NextResponse.json({ error: "An error occurred while fetching provider details" }, { status: 500 })
-  }
-}
-
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const providerId = params.id
-
-    if (!providerId) {
-      return NextResponse.json({ error: "Provider ID is required" }, { status: 400 })
-    }
-
-    const data = await request.json()
-
-    // In a real app, we would validate the data here
-
-    // Update provider
-    const provider = await getProviderById(providerId)
-
-    if (!provider) {
-      return NextResponse.json({ error: "Provider not found" }, { status: 404 })
-    }
-
-    // In a real app, we would update the provider in the database
-    // For this mock, we'll just return the updated provider
-    const updatedProvider = {
-      ...provider,
-      ...data,
-      updatedAt: new Date().toISOString(),
-    }
-
-    return NextResponse.json({ provider: updatedProvider })
-  } catch (error) {
-    console.error("Error updating provider:", error)
-    return NextResponse.json({ error: "An error occurred while updating provider" }, { status: 500 })
+    logger.error(`Error in provider details API for ID: ${params.id}`, error)
+    return NextResponse.json({ error: "Failed to get provider details" }, { status: 500 })
   }
 }
