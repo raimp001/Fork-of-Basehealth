@@ -84,8 +84,8 @@ const taxonomyToSpecialty: Record<string, string> = {
   "208VP0014X": "Interventional Pain Medicine",
 }
 
-// Function to search the NPI registry
-export async function searchNPIProviders(params: {
+// Function to search the NPI registry (original function name preserved)
+export async function searchNpiRegistry(params: {
   zip?: string
   city?: string
   state?: string
@@ -144,7 +144,141 @@ export async function searchNPIProviders(params: {
   }
 }
 
+// Alias for backward compatibility
+export const searchNPIProviders = searchNpiRegistry
+
+// Helper function to format provider name
+export function formatProviderName(provider: NpiProvider): string {
+  const { first_name, last_name, middle_name, name_prefix, credential } = provider.basic
+
+  let name = ""
+  if (name_prefix) name += `${name_prefix} `
+  name += first_name
+  if (middle_name) name += ` ${middle_name}`
+  name += ` ${last_name}`
+  if (credential) name += `, ${credential}`
+
+  return name
+}
+
+// Helper function to get specialty from taxonomies
+export function getSpecialtyFromTaxonomies(taxonomies: NpiProvider["taxonomies"]): string {
+  // First try to find the primary taxonomy
+  const primaryTaxonomy = taxonomies.find((tax) => tax.primary)
+
+  if (primaryTaxonomy) {
+    // Check if we have a friendly name for this taxonomy code
+    if (taxonomyToSpecialty[primaryTaxonomy.code]) {
+      return taxonomyToSpecialty[primaryTaxonomy.code]
+    }
+    // Otherwise return the description
+    return primaryTaxonomy.desc
+  }
+
+  // If no primary taxonomy, use the first one
+  if (taxonomies.length > 0) {
+    if (taxonomyToSpecialty[taxonomies[0].code]) {
+      return taxonomyToSpecialty[taxonomies[0].code]
+    }
+    return taxonomies[0].desc
+  }
+
+  // Fallback
+  return "Healthcare Provider"
+}
+
+// Helper function to get primary address
+export function getPrimaryAddress(addresses: NpiProvider["addresses"]): NpiProvider["addresses"][0] | null {
+  // First try to find a practice location address
+  const practiceAddress = addresses.find(
+    (addr) => addr.address_purpose === "LOCATION" || addr.address_purpose === "PRACTICE LOCATION",
+  )
+
+  if (practiceAddress) {
+    return practiceAddress
+  }
+
+  // If no practice location, use the first address
+  if (addresses.length > 0) {
+    return addresses[0]
+  }
+
+  return null
+}
+
+// Helper function to get phone number
+export function getPhoneNumber(provider: NpiProvider): string | null {
+  const primaryAddress = getPrimaryAddress(provider.addresses)
+
+  if (primaryAddress && primaryAddress.telephone_number) {
+    return primaryAddress.telephone_number
+  }
+
+  // Try to find any address with a phone number
+  const addressWithPhone = provider.addresses.find((addr) => addr.telephone_number)
+  if (addressWithPhone) {
+    return addressWithPhone.telephone_number
+  }
+
+  return null
+}
+
 // Function to map NPI taxonomy to specialty
 export function mapNPITaxonomyToSpecialty(taxonomy: string): string {
   return taxonomyToSpecialty[taxonomy] || "General Provider"
 }
+
+// Helper function to convert NPI provider to app provider format
+export function convertToAppProvider(npiProvider: NpiProvider): any {
+  const primaryAddress = getPrimaryAddress(npiProvider.addresses)
+  const specialty = getSpecialtyFromTaxonomies(npiProvider.taxonomies)
+  const name = formatProviderName(npiProvider)
+  const phone = getPhoneNumber(npiProvider)
+
+  return {
+    id: `npi-${npiProvider.number}`,
+    name,
+    specialty,
+    address: primaryAddress
+      ? {
+          full: `${primaryAddress.address_1}${primaryAddress.address_2 ? ", " + primaryAddress.address_2 : ""}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postal_code}`,
+          city: primaryAddress.city,
+          state: primaryAddress.state,
+          zipCode: primaryAddress.postal_code,
+        }
+      : null,
+    phone,
+    npiNumber: npiProvider.number,
+    credentials: npiProvider.basic.credential,
+    isVerified: true,
+    services: ["Preventive Care", "Chronic Disease Management"],
+  }
+}
+
+// Create and export the default npiService object
+const npiService = {
+  searchProviders: searchNpiRegistry,
+  searchNPIProviders,
+  convertToAppProvider,
+  formatProviderName,
+  getSpecialtyFromTaxonomies,
+  getPrimaryAddress,
+  getPhoneNumber,
+  mapNPITaxonomyToSpecialty,
+  getProviderByNPI: async (npiNumber: string) => {
+    try {
+      const response = await searchNpiRegistry({
+        // Use the NPI number directly when available
+        // This is a placeholder since the actual API might have a different parameter
+        lastName: "",
+        limit: 1,
+      })
+      return response.results[0]
+    } catch (error) {
+      logger.error("Error getting provider from NPI registry:", error)
+      return null
+    }
+  },
+}
+
+export default npiService

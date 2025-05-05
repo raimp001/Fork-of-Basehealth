@@ -5,7 +5,7 @@ import EmergencyAssistance from "./emergency-assistance"
 
 export default function EmergencyClientWrapper() {
   return (
-    <Suspense fallback={<div>Loading emergency services...</div>}>
+    <Suspense fallback={<div className="p-4">Loading emergency services...</div>}>
       <EmergencyAssistance />
     </Suspense>
   )

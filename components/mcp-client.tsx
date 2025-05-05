@@ -4,41 +4,41 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 export default function McpClient() {
-  const [input, setInput] = useState("")
-  const [response, setResponse] = useState("")
   const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState("")
   const [error, setError] = useState("")
+  const [query, setQuery] = useState("")
+  const [networkId, setNetworkId] = useState(process.env.NEXT_PUBLIC_NETWORK_ID || "")
 
-  // Client-side handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
 
     try {
-      const formData = new FormData()
-      formData.append("input", input)
-
-      // Call the API route instead of directly calling the server function
       const response = await fetch("/api/mcp-server/request", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query, networkId }),
       })
 
-      const result = await response.json()
-
-      if (!result.success) {
-        throw new Error(result.error || "Failed to process MCP request")
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`)
       }
 
-      setResponse(result.data)
+      const data = await response.json()
+      setResult(JSON.stringify(data, null, 2))
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred")
+      setResult("")
     } finally {
       setLoading(false)
     }
@@ -47,32 +47,49 @@ export default function McpClient() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>MCP Client</CardTitle>
+        <CardTitle>MCP Query Tool</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="request">
-          <TabsList>
-            <TabsTrigger value="request">Request</TabsTrigger>
-            <TabsTrigger value="response">Response</TabsTrigger>
-          </TabsList>
-          <TabsContent value="request">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Textarea
-                placeholder="Enter your MCP request..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                className="min-h-[200px]"
-              />
-              <Button type="submit" disabled={loading}>
-                {loading ? "Processing..." : "Send Request"}
-              </Button>
-              {error && <p className="text-red-500">{error}</p>}
-            </form>
-          </TabsContent>
-          <TabsContent value="response">
-            <Textarea readOnly value={response} className="min-h-[200px]" placeholder="Response will appear here..." />
-          </TabsContent>
-        </Tabs>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="networkId">Network ID</Label>
+            <Input
+              id="networkId"
+              value={networkId}
+              onChange={(e) => setNetworkId(e.target.value)}
+              placeholder="Enter network ID"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="query">MCP Query</Label>
+            <Textarea
+              id="query"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Enter your MCP query"
+              rows={5}
+            />
+          </div>
+
+          <Button type="submit" disabled={loading}>
+            {loading ? "Processing..." : "Submit Query"}
+          </Button>
+        </form>
+
+        {error && (
+          <div className="mt-4 p-4 bg-red-50 text-red-800 rounded-md">
+            <p className="font-semibold">Error:</p>
+            <p>{error}</p>
+          </div>
+        )}
+
+        {result && (
+          <div className="mt-4">
+            <Label>Result:</Label>
+            <pre className="mt-2 p-4 bg-gray-100 rounded-md overflow-auto text-sm">{result}</pre>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

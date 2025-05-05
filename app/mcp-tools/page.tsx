@@ -1,4 +1,10 @@
-import McpClientWrapper from "@/components/mcp-client-wrapper"
+import dynamic from "next/dynamic"
+
+// Use dynamic import with no SSR
+const McpClientWrapper = dynamic(() => import("@/components/mcp-client-wrapper"), {
+  ssr: false,
+  loading: () => <div className="p-4">Loading MCP tools...</div>,
+})
 
 export default function McpToolsPage() {
   return (

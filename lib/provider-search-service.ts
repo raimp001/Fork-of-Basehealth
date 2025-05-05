@@ -1,41 +1,63 @@
-import type { Provider } from "@/types/user"
 import db from "@/lib/mock-db"
-import npiService from "@/lib/npi-service"
-import { searchProviders as searchProvidersNpi } from "@/lib/ai-service"
+import type { Provider } from "@/types/user"
+import { logger } from "./logger"
+import npiService from "./npi-service"
+import { searchProviders as searchProvidersFromAiService } from "@/lib/ai-service"
 
-/**
- * Get provider by ID
- * @param providerId Provider ID
- * @returns Promise resolving to the provider or null if not found
- */
 export async function getProviderById(providerId: string): Promise<Provider | null> {
-  // First, try to get the provider from the mock database
-  const mockProvider = await db.getProviderById(providerId)
-  if (mockProvider) {
-    return mockProvider
-  }
-
-  try {
-    // If not found in mock database, try to get the provider from the NPI database
-    if (providerId.startsWith("npi-")) {
-      const npiNumber = providerId.substring(4)
-      const npiProvider = await npiService.getProviderByNPI(npiNumber)
-      if (npiProvider) {
-        return npiService.convertToAppProvider(npiProvider)
-      }
-    }
-  } catch (error) {
-    console.error("Error getting provider from NPI database:", error)
-  }
-
-  return null
+  return await db.getProviderById(providerId)
 }
 
 export async function searchProviders(options: {
   zipCode?: string
+  location?: string
+  providerType?: "physician" | "np" | "pa" | "acupuncturist" | "dentist"
   specialty?: string
-  coordinates?: { latitude: number; longitude: number }
-  radius?: number
+  useNPI?: boolean
+  useAI?: boolean
 }): Promise<Provider[]> {
-  return await searchProvidersNpi(options.zipCode || "", options.specialty)
+  try {
+    logger.info(`Searching providers with options: ${JSON.stringify(options)}`)
+
+    if (options.useNPI) {
+      logger.info("Searching providers via NPI API")
+      const npiParams = {
+        zip: options.zipCode,
+        city: options.location,
+        specialty: options.specialty,
+      }
+
+      const npiProviders = await npiService.searchProviders(npiParams)
+
+      if (npiProviders && npiProviders.results.length > 0) {
+        logger.info(`Found ${npiProviders.results.length} real providers from NPI API`)
+        return npiProviders.results.map((p) => npiService.convertToAppProvider(p))
+      }
+    }
+
+    if (options.useAI) {
+      logger.info("Searching providers via AI Service")
+      const aiProviders = await searchProvidersFromAiService(options.zipCode || "", options.specialty)
+      return aiProviders
+    }
+
+    // If no NPI providers found, use mock data
+    logger.info("No NPI providers found, using mock data")
+    let mockProviders = await db.getAllProviders()
+
+    // Filter by zipCode if provided
+    if (options.zipCode) {
+      mockProviders = mockProviders.filter((p) => p.address.zipCode.startsWith(options.zipCode!.substring(0, 1)))
+    }
+
+    // Filter by specialty if provided
+    if (options.specialty) {
+      mockProviders = mockProviders.filter((p) => p.specialty.toLowerCase().includes(options.specialty!.toLowerCase()))
+    }
+
+    return mockProviders
+  } catch (error) {
+    logger.error("Error searching providers:", error)
+    return []
+  }
 }
