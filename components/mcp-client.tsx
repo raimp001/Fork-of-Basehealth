@@ -14,26 +14,6 @@ export default function McpClient() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  // Define the server action here with 'use server' directive
-  async function handleMcpRequest(formData: FormData) {
-    "use server"
-
-    try {
-      const input = formData.get("input") as string
-
-      // Import dynamically to avoid server/client mismatch
-      const { handleMcpServerRequest } = await import("@/lib/mcp-server")
-      const result = await handleMcpServerRequest(input)
-
-      return { success: true, data: result }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error occurred",
-      }
-    }
-  }
-
   // Client-side handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

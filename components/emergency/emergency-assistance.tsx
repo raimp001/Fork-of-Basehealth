@@ -19,7 +19,7 @@ export default function EmergencyAssistance() {
     window.location.href = "tel:911"
   }
 
-  const handleFindNearbyER = async () => {
+  const handleFindNearbyER = () => {
     setLoading(true)
     setError("")
 

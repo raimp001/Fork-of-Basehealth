@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { logger } from "@/lib/logger"
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: result })
   } catch (error) {
-    logger.error("Error in MCP server request:", error)
+    console.error("Error in MCP server request:", error)
     return NextResponse.json(
       {
         success: false,

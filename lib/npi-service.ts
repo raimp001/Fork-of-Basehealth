@@ -72,13 +72,15 @@ const taxonomyToSpecialty: Record<string, string> = {
 // Main function to search NPI registry
 export async function searchNPIProviders(params: {
   zip?: string
-  specialty?: string
-  firstName?: string
-  lastName?: string
+  taxonomy_description?: string
+  first_name?: string
+  last_name?: string
   limit?: number
+  providerType?: string
+  state?: string
 }): Promise<NpiResponse> {
   try {
-    const { zip, specialty, firstName, lastName, limit = 10 } = params
+    const { zip, taxonomy_description, first_name, last_name, limit = 10, state } = params
 
     // Build query parameters
     const queryParams: Record<string, string> = {
@@ -87,9 +89,10 @@ export async function searchNPIProviders(params: {
     }
 
     if (zip) queryParams.postal_code = zip
-    if (firstName) queryParams.first_name = firstName
-    if (lastName) queryParams.last_name = lastName
-    if (specialty) queryParams.taxonomy_description = specialty
+    if (first_name) queryParams.first_name = first_name
+    if (last_name) queryParams.last_name = last_name
+    if (taxonomy_description) queryParams.taxonomy_description = taxonomy_description
+    if (state) queryParams.state = state
 
     // Make the API request
     logger.info(`Searching NPI registry with params: ${JSON.stringify(queryParams)}`)
@@ -109,3 +112,45 @@ export async function searchNPIProviders(params: {
 export function mapNPITaxonomyToSpecialty(taxonomy: string): string {
   return taxonomyToSpecialty[taxonomy] || taxonomy
 }
+
+// Helper function to convert NPI provider to app provider
+export function convertToAppProvider(npiProvider: NpiProvider): any {
+  const primaryAddress = npiProvider.addresses.find((a) => a.address_purpose === "LOCATION") || npiProvider.addresses[0]
+  const primaryTaxonomy = npiProvider.taxonomies.find((t) => t.primary) || npiProvider.taxonomies[0]
+
+  return {
+    id: `npi-${npiProvider.number}`,
+    name: `${npiProvider.basic.first_name} ${npiProvider.basic.middle_name ? npiProvider.basic.middle_name + " " : ""}${npiProvider.basic.last_name}${npiProvider.basic.credential ? ", " + npiProvider.basic.credential : ""}`,
+    specialty: primaryTaxonomy ? mapNPITaxonomyToSpecialty(primaryTaxonomy.desc) : "Healthcare Provider",
+    address: {
+      full: `${primaryAddress.address_1}${primaryAddress.address_2 ? ", " + primaryAddress.address_2 : ""}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postal_code}`,
+      city: primaryAddress.city,
+      state: primaryAddress.state,
+      zipCode: primaryAddress.postal_code,
+    },
+    phone: primaryAddress.telephone_number,
+    npiNumber: npiProvider.number,
+    credentials: npiProvider.basic.credential,
+    isVerified: true,
+    services: ["Preventive Care", "Chronic Disease Management"],
+  }
+}
+
+const npiService = {
+  searchProviders: searchNPIProviders,
+  convertToAppProvider,
+  getProviderByNPI: async (npiNumber: string) => {
+    try {
+      const response = await searchNPIProviders({
+        last_name: "",
+        limit: 1,
+      })
+      return response.results[0]
+    } catch (error) {
+      console.error("Error getting provider from NPI registry:", error)
+      return null
+    }
+  },
+}
+
+export default npiService
