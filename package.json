@@ -62,6 +62,8 @@
     "ethers": "latest",
     "@supabase/supabase-js": "latest",
     "ai": "latest",
+    "child_process": "latest",
+    "util": "latest",
     "@modelcontextprotocol/sdk": "latest",
     "@ai-sdk/openai": "latest",
     "@ai-sdk/groq": "latest",

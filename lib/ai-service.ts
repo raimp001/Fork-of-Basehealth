@@ -1,155 +1,217 @@
-import { logger } from "./logger"
-import providerSearchService from "./provider-search-service"
+import { generateText } from "ai"
+import { openai } from "@ai-sdk/openai"
+import type { Provider } from "@/types/user"
+import npiService from "@/lib/npi-service"
 
-// Mock function to simulate AI-powered provider search
-export async function searchProviders(zipCode: string, specialty?: string) {
-  logger.info(`AI service searching providers in ${zipCode} for specialty ${specialty || "any"}`)
-
+// Helper function to extract JSON from text that might contain additional content
+function extractJsonFromText(text: string): any {
   try {
-    // Use the provider search service to get real or mock providers
-    const providers = await providerSearchService.searchProviders({
-      zipCode,
-      specialty,
-    })
-
-    return providers
+    // First try direct parsing
+    return JSON.parse(text)
   } catch (error) {
-    logger.error("Error in AI provider search:", error)
+    // If that fails, try to find JSON array in the text
+    try {
+      // Look for array pattern
+      const arrayMatch = text.match(/\[\s*\{[\s\S]*\}\s*\]/)
+      if (arrayMatch) {
+        return JSON.parse(arrayMatch[0])
+      }
+
+      // Look for object pattern
+      const objectMatch = text.match(/\{\s*"[\s\S]*"\s*:[\s\S]*\}/)
+      if (objectMatch) {
+        return JSON.parse(objectMatch[0])
+      }
+
+      // Try to extract anything between triple backticks
+      const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/)
+      if (codeBlockMatch && codeBlockMatch[1]) {
+        return JSON.parse(codeBlockMatch[1].trim())
+      }
+    } catch (innerError) {
+      console.error("Failed to extract JSON from text:", innerError)
+    }
+
+    // If all parsing attempts fail, return empty array
     return []
   }
 }
 
-// Mock function to simulate AI-powered screening recommendations
-export async function getScreeningRecommendations(age: number, gender: string, conditions: string[]) {
-  logger.info(
-    `Getting screening recommendations for ${gender}, ${age} years old, with conditions: ${conditions.join(", ")}`,
-  )
-
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  // Basic recommendations based on age and gender
-  const recommendations = []
-
-  // General recommendations for all adults
-  recommendations.push({
-    id: "annual-physical",
-    title: "Annual Physical Exam",
-    description: "Comprehensive health check-up once a year",
-    frequency: "Annually",
-    priority: "High",
-  })
-
-  // Age-based recommendations
-  if (age >= 45) {
-    recommendations.push({
-      id: "cholesterol",
-      title: "Cholesterol Screening",
-      description: "Blood test to check cholesterol levels",
-      frequency: "Every 5 years",
-      priority: "Medium",
-    })
-  }
-
-  if (age >= 50) {
-    recommendations.push({
-      id: "colorectal",
-      title: "Colorectal Cancer Screening",
-      description: "Screening for colorectal cancer",
-      frequency: "Every 10 years",
-      priority: "High",
-    })
-  }
-
-  // Gender-specific recommendations
-  if (gender.toLowerCase() === "female") {
-    if (age >= 40) {
-      recommendations.push({
-        id: "mammogram",
-        title: "Mammogram",
-        description: "X-ray of the breast to check for breast cancer",
-        frequency: "Every 1-2 years",
-        priority: "High",
-      })
+export async function searchProviders(zipCode: string, specialtyOrType?: string): Promise<Provider[]> {
+  try {
+    // First, try to get real providers from the NPI API
+    console.log("Searching for real providers via NPI API")
+    const npiParams = {
+      zipCode: zipCode,
+      specialty: specialtyOrType,
+      radius: 25, // 25 mile radius
+      limit: 10,
+      providerType: specialtyOrType as any,
     }
 
-    if (age >= 21) {
-      recommendations.push({
-        id: "pap-smear",
-        title: "Pap Smear",
-        description: "Test for cervical cancer",
-        frequency: "Every 3 years",
-        priority: "Medium",
-      })
+    const npiProviders = await npiService.searchProviders(npiParams)
+
+    // If we have NPI providers, use them
+    if (npiProviders && npiProviders.length > 0) {
+      console.log(`Found ${npiProviders.length} real providers from NPI API`)
+      return npiProviders.map((p) => npiService.convertToAppProvider(p))
     }
-  }
 
-  if (gender.toLowerCase() === "male") {
-    if (age >= 50) {
-      recommendations.push({
-        id: "prostate",
-        title: "Prostate Cancer Screening",
-        description: "PSA blood test for prostate cancer",
-        frequency: "Discuss with your doctor",
-        priority: "Medium",
-      })
+    // If no NPI providers found, use OpenAI to find real providers in the area
+    console.log("No NPI providers found, using OpenAI to research real providers")
+
+    const prompt = `
+      I need information about real healthcare providers near ZIP code ${zipCode}${
+        specialtyOrType ? ` with specialty or type: ${specialtyOrType}` : ""
+      }.
+      
+      Research and provide information about 5 real healthcare providers in this area. Do not invent fictional providers.
+      Return the information in this JSON format:
+      
+      [
+        {
+          "id": "ai-1",
+          "name": "Dr. [Real Full Name]",
+          "specialty": "[Actual Specialty]",
+          "credentials": ["[Real Credentials]"],
+          "address": {
+            "street": "[Real Street Address if known, otherwise a realistic address]",
+            "city": "[Real City]",
+            "state": "[Real State]",
+            "zipCode": "[Real ZIP Code]"
+          },
+          "yearsOfExperience": [Estimated years],
+          "services": ["[Real Services Offered]"]
+        }
+      ]
+      
+      Important: 
+      1. Use ONLY real provider names and information you can find for this location
+      2. If you cannot find specific details, you may estimate reasonable values based on available information
+      3. Return ONLY the JSON array with no additional text
+    `
+
+    const { text } = await generateText({
+      model: openai("gpt-4o"),
+      prompt: prompt,
+      temperature: 0.3, // Lower temperature for more factual responses
+      maxTokens: 2000,
+      response_format: { type: "json_object" },
+    })
+
+    // Extract JSON from the response text
+    const providersData: any = extractJsonFromText(text)
+
+    // If we couldn't parse the JSON or it's not an array, return empty array
+    if (!Array.isArray(providersData) || providersData.length === 0) {
+      console.warn("Failed to parse provider data from AI response")
+      return []
     }
-  }
 
-  // Condition-specific recommendations
-  if (conditions.some((c) => c.toLowerCase().includes("diabetes") || c.toLowerCase().includes("high blood sugar"))) {
-    recommendations.push({
-      id: "a1c",
-      title: "HbA1c Test",
-      description: "Blood test to monitor blood sugar levels",
-      frequency: "Every 3-6 months",
-      priority: "High",
-    })
+    // Convert to Provider type and add additional fields
+    return providersData.map((p: any, index: number) => ({
+      id: p.id || `ai-${index + 1}`,
+      name: p.name || `Dr. Unknown`,
+      email: `${p.name?.toLowerCase().replace(/[^a-z0-9]/g, ".")}@example.com`,
+      role: "provider" as const,
+      specialty: p.specialty || specialtyOrType || "General Practice",
+      credentials: p.credentials || ["MD"],
+      licenseNumber: `LIC${Math.floor(10000 + Math.random() * 90000)}`,
+      licenseState: p.address?.state || zipCode.substring(0, 2),
+      licenseExpiration: new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString().split("T")[0],
+      education: [],
+      yearsOfExperience: p.yearsOfExperience || Math.floor(5 + Math.random() * 20),
+      bio:
+        p.bio ||
+        `${p.name} is a healthcare provider specializing in ${p.specialty || specialtyOrType || "general medicine"}.`,
+      address: {
+        street: p.address?.street || "",
+        city: p.address?.city || "",
+        state: p.address?.state || "",
+        zipCode: p.address?.zipCode || zipCode,
+        country: "USA",
+      },
+      availability: {
+        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        hours: {
+          start: "09:00",
+          end: "17:00",
+        },
+      },
+      consultationFee: p.consultationFee || Math.floor(100 + Math.random() * 150),
+      rating: p.rating || 3.5 + Math.random() * 1.5,
+      reviewCount: p.reviewCount || Math.floor(10 + Math.random() * 90),
+      isVerified: true,
+      verificationStatus: "approved" as const,
+      acceptedInsurance: p.acceptedInsurance || ["Medicare", "Medicaid", "Blue Cross", "Aetna"],
+      acceptedCryptocurrencies: ["BTC", "ETH", "USDC"],
+      services: p.services || [p.specialty || specialtyOrType || "General Consultation"],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      source: "AI" as const,
+    }))
+  } catch (error) {
+    console.error("Error finding providers nearby:", error)
+    return []
   }
-
-  if (
-    conditions.some((c) => c.toLowerCase().includes("hypertension") || c.toLowerCase().includes("high blood pressure"))
-  ) {
-    recommendations.push({
-      id: "bp-check",
-      title: "Blood Pressure Check",
-      description: "Regular monitoring of blood pressure",
-      frequency: "Every 3-6 months",
-      priority: "High",
-    })
-  }
-
-  return recommendations
 }
 
-// Mock function to simulate AI-powered health chat
-export async function chatWithHealthAssistant(message: string, history: { role: string; content: string }[]) {
-  logger.info(`Health assistant chat: ${message}`)
+export async function getProviderRecommendations(patientNeeds: string, zipCode: string): Promise<Provider[]> {
+  // Extract specialty from patient needs
+  const specialtyKeywords = [
+    "family",
+    "internal",
+    "pediatric",
+    "cardio",
+    "heart",
+    "dermatol",
+    "skin",
+    "neuro",
+    "brain",
+    "psych",
+    "mental",
+    "orthoped",
+    "bone",
+    "gynecol",
+    "women",
+  ]
 
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000))
+  const patientNeedsLower = patientNeeds.toLowerCase()
+  const detectedSpecialties = specialtyKeywords
+    .filter((keyword) => patientNeedsLower.includes(keyword))
+    .map((keyword) => {
+      switch (keyword) {
+        case "family":
+          return "Family Medicine"
+        case "internal":
+          return "Internal Medicine"
+        case "pediatric":
+          return "Pediatrics"
+        case "cardio":
+        case "heart":
+          return "Cardiology"
+        case "dermatol":
+        case "skin":
+          return "Dermatology"
+        case "neuro":
+        case "brain":
+          return "Neurology"
+        case "psych":
+        case "mental":
+          return "Psychiatry"
+        case "orthoped":
+        case "bone":
+          return "Orthopedics"
+        case "gynecol":
+        case "women":
+          return "Obstetrics & Gynecology"
+        default:
+          return ""
+      }
+    })
+    .filter((s) => s !== "")
 
-  // Simple keyword-based responses
-  if (message.toLowerCase().includes("headache")) {
-    return "Headaches can be caused by various factors including stress, dehydration, lack of sleep, or eye strain. For occasional headaches, rest, hydration, and over-the-counter pain relievers may help. If you're experiencing severe or persistent headaches, please consult with a healthcare provider."
-  }
+  const specialty = detectedSpecialties.length > 0 ? detectedSpecialties[0] : undefined
 
-  if (message.toLowerCase().includes("cold") || message.toLowerCase().includes("flu")) {
-    return "Common cold and flu symptoms include cough, sore throat, runny nose, and fever. Rest, hydration, and over-the-counter medications can help manage symptoms. If symptoms are severe or persist for more than a week, please consult with a healthcare provider."
-  }
-
-  if (message.toLowerCase().includes("diet") || message.toLowerCase().includes("nutrition")) {
-    return "A balanced diet typically includes a variety of fruits, vegetables, whole grains, lean proteins, and healthy fats. It's recommended to limit processed foods, added sugars, and excessive salt. For personalized nutrition advice, consider consulting with a registered dietitian."
-  }
-
-  if (message.toLowerCase().includes("exercise") || message.toLowerCase().includes("workout")) {
-    return "Regular physical activity is important for overall health. Adults should aim for at least 150 minutes of moderate-intensity aerobic activity or 75 minutes of vigorous activity per week, along with muscle-strengthening activities on 2 or more days per week. Always start gradually and consult with a healthcare provider before beginning a new exercise program."
-  }
-
-  if (message.toLowerCase().includes("sleep")) {
-    return "Adults typically need 7-9 hours of sleep per night. Good sleep hygiene includes maintaining a consistent sleep schedule, creating a restful environment, limiting screen time before bed, and avoiding caffeine and large meals close to bedtime. If you're experiencing persistent sleep problems, consider consulting with a healthcare provider."
-  }
-
-  // Default response
-  return "I'm your healthcare assistant. I can provide general health information and guidance. Please note that I'm not a substitute for professional medical advice, diagnosis, or treatment. For specific health concerns, please consult with a qualified healthcare provider."
+  return searchProviders(zipCode, specialty)
 }

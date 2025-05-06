@@ -3,65 +3,80 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, CheckCircle2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2, AlertCircle } from "lucide-react"
 
-export function McpClient() {
-  const [serverStatus, setServerStatus] = useState<{ status: string; message: string } | null>(null)
+export default function McpClient() {
+  const [tool, setTool] = useState<string>("getWalletBalance")
+  const [params, setParams] = useState<string>("{}")
+  const [result, setResult] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [action, setAction] = useState("FIND_PROVIDERS")
-  const [params, setParams] = useState("")
-  const [response, setResponse] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const checkServerStatus = async () => {
+  const availableTools = [
+    { id: "getWalletBalance", name: "Get Wallet Balance", description: "Get the balance of a wallet address" },
+    { id: "getTransactionDetails", name: "Get Transaction Details", description: "Get details about a transaction" },
+    { id: "getPaymentHistory", name: "Get Payment History", description: "Get payment history for a wallet" },
+    { id: "verifyPayment", name: "Verify Payment", description: "Verify if a payment was completed" },
+  ]
+
+  const handleParamsChange = (value: string) => {
     try {
-      setIsLoading(true)
+      // Validate JSON
+      JSON.parse(value)
+      setParams(value)
       setError(null)
-      const res = await fetch("/api/mcp-server/status")
-      const data = await res.json()
-      setServerStatus(data)
     } catch (err) {
-      setError("Failed to check server status")
-      console.error(err)
-    } finally {
-      setIsLoading(false)
+      setError("Invalid JSON format")
+      setParams(value)
     }
   }
 
-  const sendRequest = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      setResponse(null)
+  const handleExecute = async () => {
+    setIsLoading(true)
+    setError(null)
+    setResult(null)
 
-      let parsedParams = {}
-      try {
-        parsedParams = params ? JSON.parse(params) : {}
-      } catch (err) {
-        setError("Invalid JSON in parameters")
-        setIsLoading(false)
-        return
+    try {
+      // In a real implementation, this would call the MCP server
+      // For now, we'll just simulate a response
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      const mockResults = {
+        getWalletBalance: {
+          address: JSON.parse(params).address || "0x123...",
+          balance: "0.5 ETH",
+          timestamp: new Date().toISOString(),
+        },
+        getTransactionDetails: {
+          txHash: JSON.parse(params).txHash || "0xabc...",
+          status: "confirmed",
+          value: "0.1 ETH",
+          from: "0x123...",
+          to: "0x456...",
+          timestamp: new Date().toISOString(),
+        },
+        getPaymentHistory: {
+          address: JSON.parse(params).address || "0x123...",
+          payments: [
+            { amount: "0.1 ETH", date: "2023-05-01", recipient: "Dr. Johnson" },
+            { amount: "0.05 ETH", date: "2023-04-15", recipient: "BaseHealth Pharmacy" },
+          ],
+        },
+        verifyPayment: {
+          txHash: JSON.parse(params).txHash || "0xabc...",
+          verified: true,
+          amount: "0.1 ETH",
+          recipient: "Dr. Johnson",
+          date: "2023-05-01",
+        },
       }
 
-      const res = await fetch("/api/mcp-server/request", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action,
-          params: parsedParams,
-        }),
-      })
-
-      const data = await res.json()
-      setResponse(data)
+      setResult(JSON.stringify(mockResults[tool as keyof typeof mockResults], null, 2))
     } catch (err) {
-      setError("Failed to send request")
-      console.error(err)
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
     }
@@ -71,78 +86,73 @@ export function McpClient() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>MCP Server Status</CardTitle>
-          <CardDescription>Check if the MCP server is online and operational</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {serverStatus && (
-            <div className="flex items-center gap-2 p-3 rounded-md bg-muted">
-              {serverStatus.status === "online" ? (
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-red-500" />
-              )}
-              <span>{serverStatus.message}</span>
-            </div>
-          )}
-        </CardContent>
-        <CardFooter>
-          <Button onClick={checkServerStatus} disabled={isLoading}>
-            {isLoading ? "Checking..." : "Check Server Status"}
-          </Button>
-        </CardFooter>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Send MCP Request</CardTitle>
-          <CardDescription>Send a request to the MCP server</CardDescription>
+          <CardTitle>Model Context Protocol Tools</CardTitle>
+          <CardDescription>
+            Execute MCP tools to interact with blockchain data for healthcare applications
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="action">Action</Label>
-            <Select value={action} onValueChange={setAction}>
-              <SelectTrigger id="action">
-                <SelectValue placeholder="Select action" />
+            <label className="text-sm font-medium">Select Tool</label>
+            <Select value={tool} onValueChange={setTool}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a tool" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="FIND_PROVIDERS">Find Providers</SelectItem>
-                <SelectItem value="VERIFY_CREDENTIALS">Verify Credentials</SelectItem>
-                <SelectItem value="CHECK_ELIGIBILITY">Check Eligibility</SelectItem>
+                {availableTools.map((tool) => (
+                  <SelectItem key={tool.id} value={tool.id}>
+                    {tool.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">{availableTools.find((t) => t.id === tool)?.description}</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="params">Parameters (JSON)</Label>
+            <label className="text-sm font-medium">Parameters (JSON)</label>
             <Textarea
-              id="params"
-              placeholder='{"key": "value"}'
               value={params}
-              onChange={(e) => setParams(e.target.value)}
-              rows={4}
+              onChange={(e) => handleParamsChange(e.target.value)}
+              placeholder='{"address": "0x123..."}'
+              className="font-mono text-sm"
+              rows={5}
             />
           </div>
 
           {error && (
-            <div className="p-3 rounded-md bg-red-50 text-red-600 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
-          {response && (
-            <div className="p-3 rounded-md bg-muted">
-              <pre className="whitespace-pre-wrap text-sm">{JSON.stringify(response, null, 2)}</pre>
+          {result && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Result</label>
+              <div className="bg-muted p-4 rounded-md overflow-auto max-h-[300px]">
+                <pre className="text-xs">{result}</pre>
+              </div>
             </div>
           )}
         </CardContent>
         <CardFooter>
-          <Button onClick={sendRequest} disabled={isLoading}>
-            {isLoading ? "Sending..." : "Send Request"}
+          <Button onClick={handleExecute} disabled={isLoading} className="w-full">
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Executing...
+              </>
+            ) : (
+              "Execute Tool"
+            )}
           </Button>
         </CardFooter>
       </Card>
+
+      <div className="text-center text-sm text-muted-foreground">
+        <p>These tools allow you to interact with blockchain data in a secure and standardized way.</p>
+      </div>
     </div>
   )
 }

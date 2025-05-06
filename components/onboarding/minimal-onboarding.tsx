@@ -1,195 +1,226 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useRouter } from "next/navigation"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ArrowRight, Check } from "lucide-react"
 
-export default function MinimalOnboarding() {
+export function MinimalOnboarding() {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
-    zipCode: "",
     dateOfBirth: "",
     gender: "",
-    conditions: "",
+    conditions: [] as string[],
+    medications: [] as string[],
+    allergies: [] as string[],
   })
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+  const handleChange = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value })
   }
 
-  const handleNext = () => {
-    setStep((prev) => prev + 1)
-  }
-
-  const handleBack = () => {
-    setStep((prev) => prev - 1)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Redirect to dashboard
-      router.push("/minimal")
-    } catch (error) {
-      console.error("Error submitting form:", error)
-    } finally {
-      setIsLoading(false)
+  const handleConditionToggle = (condition: string, checked: boolean) => {
+    if (checked) {
+      setFormData({ ...formData, conditions: [...formData.conditions, condition] })
+    } else {
+      setFormData({ ...formData, conditions: formData.conditions.filter((c) => c !== condition) })
     }
   }
 
+  const handleNext = () => {
+    setStep(step + 1)
+  }
+
+  const handleBack = () => {
+    setStep(step - 1)
+  }
+
+  const handleSubmit = () => {
+    console.log("Form submitted:", formData)
+    // In a real app, we would send this data to the server
+    setStep(4) // Success step
+  }
+
+  const commonConditions = [
+    "Hypertension (High Blood Pressure)",
+    "Diabetes",
+    "Asthma",
+    "Heart Disease",
+    "Arthritis",
+    "Depression/Anxiety",
+    "Cancer",
+    "None of the above",
+  ]
+
   return (
-    <div className="container max-w-md mx-auto py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Welcome to HealthConnect</CardTitle>
-          <CardDescription>
-            {step === 1 && "Let's get started with your basic information"}
-            {step === 2 && "Tell us about your health"}
-            {step === 3 && "Almost done! Just a few more details"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            {step === 1 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter your full name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Enter your phone number"
-                    required
-                  />
-                </div>
-              </div>
-            )}
+    <div className="container px-4 py-6 pb-20">
+      <h1 className="text-2xl font-bold mb-6">Health Profile Setup</h1>
 
-            {step === 2 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input
-                    id="dateOfBirth"
-                    name="dateOfBirth"
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gender</Label>
-                  <select
-                    id="gender"
-                    name="gender"
-                    className="w-full p-2 border rounded"
-                    value={formData.gender}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}
-                    required
-                  >
-                    <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="non-binary">Non-binary</option>
-                    <option value="prefer-not-to-say">Prefer not to say</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="conditions">Existing Health Conditions</Label>
-                  <Input
-                    id="conditions"
-                    name="conditions"
-                    value={formData.conditions}
-                    onChange={handleChange}
-                    placeholder="E.g., diabetes, hypertension, asthma"
-                  />
-                </div>
-              </div>
-            )}
+      {step === 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+            <CardDescription>Let's start with some basic information</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleChange("name", e.target.value)}
+                placeholder="Enter your full name"
+              />
+            </div>
 
-            {step === 3 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="zipCode">ZIP Code</Label>
-                  <Input
-                    id="zipCode"
-                    name="zipCode"
-                    value={formData.zipCode}
-                    onChange={handleChange}
-                    placeholder="Enter your ZIP code"
-                    required
-                  />
-                </div>
-                <div className="p-4 bg-blue-50 rounded-md">
-                  <h3 className="font-medium text-blue-800">Your information is secure</h3>
-                  <p className="text-sm text-blue-600 mt-1">
-                    We use industry-standard encryption to protect your personal and health information.
-                  </p>
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleChange("email", e.target.value)}
+                placeholder="Enter your email"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dob">Date of Birth</Label>
+              <Input
+                id="dob"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={(e) => handleChange("dateOfBirth", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gender">Gender</Label>
+              <Select value={formData.gender} onValueChange={(value) => handleChange("gender", value)}>
+                <SelectTrigger id="gender">
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={handleNext} className="w-full">
+              Continue
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
+
+      {step === 2 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Medical History</CardTitle>
+            <CardDescription>Help us understand your health background</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Do you have any of these conditions?</Label>
+              <div className="grid grid-cols-1 gap-2 mt-2">
+                {commonConditions.map((condition) => (
+                  <div key={condition} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`condition-${condition}`}
+                      checked={formData.conditions.includes(condition)}
+                      onCheckedChange={(checked) => handleConditionToggle(condition, checked === true)}
+                    />
+                    <Label htmlFor={`condition-${condition}`} className="font-normal">
+                      {condition}
+                    </Label>
+                  </div>
+                ))}
               </div>
-            )}
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          {step > 1 ? (
-            <Button variant="outline" onClick={handleBack} disabled={isLoading}>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline" onClick={handleBack}>
               Back
             </Button>
-          ) : (
-            <div></div>
-          )}
-
-          {step < 3 ? (
-            <Button onClick={handleNext}>Next</Button>
-          ) : (
-            <Button onClick={handleSubmit} disabled={isLoading}>
-              {isLoading ? "Submitting..." : "Complete Setup"}
+            <Button onClick={handleNext}>
+              Continue
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-          )}
-        </CardFooter>
-      </Card>
+          </CardFooter>
+        </Card>
+      )}
+
+      {step === 3 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
+            <CardDescription>Almost done! Just a few more details</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="medications">Current Medications</Label>
+              <Input
+                id="medications"
+                placeholder="Enter medications separated by commas"
+                onChange={(e) => setFormData({ ...formData, medications: e.target.value.split(",") })}
+              />
+              <p className="text-xs text-muted-foreground">Leave blank if none</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="allergies">Allergies</Label>
+              <Input
+                id="allergies"
+                placeholder="Enter allergies separated by commas"
+                onChange={(e) => setFormData({ ...formData, allergies: e.target.value.split(",") })}
+              />
+              <p className="text-xs text-muted-foreground">Leave blank if none</p>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline" onClick={handleBack}>
+              Back
+            </Button>
+            <Button onClick={handleSubmit}>Complete Setup</Button>
+          </CardFooter>
+        </Card>
+      )}
+
+      {step === 4 && (
+        <Card>
+          <CardHeader>
+            <div className="flex justify-center mb-2">
+              <div className="bg-primary/10 p-3 rounded-full">
+                <Check className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+            <CardTitle className="text-center">Profile Complete!</CardTitle>
+            <CardDescription className="text-center">Your health profile has been set up successfully</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center text-muted-foreground">
+              You can now access all features of the BaseHealth platform. Your information will help us provide
+              personalized health recommendations.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button className="w-full" asChild>
+              <a href="/minimal">Go to Dashboard</a>
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
     </div>
   )
 }

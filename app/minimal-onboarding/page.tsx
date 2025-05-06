@@ -1,5 +1,5 @@
-import MinimalOnboardingWrapper from "@/components/onboarding/minimal-onboarding-wrapper"
+import { MinimalOnboarding } from "@/components/onboarding/minimal-onboarding"
 
 export default function MinimalOnboardingPage() {
-  return <MinimalOnboardingWrapper />
+  return <MinimalOnboarding />
 }

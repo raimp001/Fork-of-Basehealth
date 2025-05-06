@@ -1,182 +1,76 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { logger } from "@/lib/logger"
+import { NextResponse } from "next/server"
 
-// Mock reverse geocoding data for common coordinates
-const mockReverseGeocodeData: Record<string, string> = {
-  "40.7128,-74.006": "New York, NY",
-  "34.0522,-118.2437": "Los Angeles, CA",
-  "41.8781,-87.6298": "Chicago, IL",
-  "29.7604,-95.3698": "Houston, TX",
-  "33.4484,-112.074": "Phoenix, AZ",
-  "39.9526,-75.1652": "Philadelphia, PA",
-  "29.4241,-98.4936": "San Antonio, TX",
-  "32.7157,-117.1611": "San Diego, CA",
-  "32.7767,-96.797": "Dallas, TX",
-  "37.3382,-121.8863": "San Jose, CA",
-}
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const lat = searchParams.get("lat")
+  const lng = searchParams.get("lng")
 
-// Function to generate a ZIP code based on coordinates
-function generateZipFromCoordinates(lat: number, lng: number): string {
-  // Use the coordinates to seed a deterministic but seemingly random ZIP code
-  const latStr = Math.abs(Math.floor(lat * 100))
-    .toString()
-    .padStart(4, "0")
-  const lngStr = Math.abs(Math.floor(lng * 100))
-    .toString()
-    .padStart(4, "0")
+  if (!lat || !lng) {
+    return NextResponse.json({ error: "Latitude and longitude are required" }, { status: 400 })
+  }
 
-  // Combine parts of both to create a 5-digit ZIP
-  const zip = (latStr.substring(0, 2) + lngStr.substring(0, 3)).padStart(5, "0")
-  return zip
-}
-
-export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const lat = Number.parseFloat(searchParams.get("lat") || "0")
-    const lng = Number.parseFloat(searchParams.get("lng") || "0")
+    // Use the Google Maps Geocoding API on the server side
+    if (process.env.GOOGLE_MAPS_API_KEY) {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.GOOGLE_MAPS_API_KEY}`,
+        { cache: "force-cache" }, // Cache the results to reduce API calls
+      )
 
-    if (isNaN(lat) || isNaN(lng)) {
-      return NextResponse.json({ success: false, error: "Invalid coordinates" }, { status: 400 })
+      const data = await response.json()
+
+      if (data.status === "OK" && data.results && data.results.length > 0) {
+        // Extract ZIP code from address components
+        let zipCode = null
+        let city = null
+        let state = null
+
+        for (const result of data.results) {
+          for (const component of result.address_components) {
+            if (component.types.includes("postal_code")) {
+              zipCode = component.short_name
+            }
+            if (component.types.includes("locality")) {
+              city = component.long_name
+            }
+            if (component.types.includes("administrative_area_level_1")) {
+              state = component.short_name
+            }
+          }
+          if (zipCode && city && state) break
+        }
+
+        return NextResponse.json({
+          zipCode,
+          city,
+          state,
+          formattedAddress: data.results[0].formatted_address,
+        })
+      }
     }
 
-    logger.info(`Reverse geocoding request: lat=${lat}, lng=${lng}`)
+    // Fallback to mock implementation
+    console.log("Using mock reverse geocoding implementation")
 
-    // Round coordinates to 4 decimal places for lookup
-    const roundedLat = Math.round(lat * 10000) / 10000
-    const roundedLng = Math.round(lng * 10000) / 10000
-    const coordKey = `${roundedLat},${roundedLng}`
+    // Generate a mock ZIP code based on coordinates
+    const latNum = Number.parseFloat(lat)
+    const lngNum = Number.parseFloat(lng)
 
-    // Try to use mock data for known coordinates
-    if (mockReverseGeocodeData[coordKey]) {
-      const address = mockReverseGeocodeData[coordKey]
-      logger.info(`Using mock reverse geocode data: ${address}`)
-
-      return NextResponse.json({
-        success: true,
-        address: {
-          formattedAddress: address,
-          city: address.split(",")[0].trim(),
-          state: address.split(",")[1].trim(),
-          zip: generateZipFromCoordinates(lat, lng),
-        },
-      })
-    }
-
-    // Generate a mock address based on the coordinates
-    const zip = generateZipFromCoordinates(lat, lng)
-
-    // Generate a city name based on coordinates
-    const cityNames = [
-      "Springfield",
-      "Riverside",
-      "Fairview",
-      "Georgetown",
-      "Salem",
-      "Madison",
-      "Clinton",
-      "Franklin",
-      "Greenville",
-      "Bristol",
-      "Kingston",
-      "Marion",
-      "Oxford",
-      "Ashland",
-      "Burlington",
-      "Manchester",
-      "Milton",
-      "Newport",
-      "Auburn",
-      "Dayton",
-    ]
-
-    // Use lat/lng to deterministically select a city name
-    const cityIndex = Math.abs(Math.floor(lat * lng * 100)) % cityNames.length
-    const city = cityNames[cityIndex]
-
-    // Use lat to select a state abbreviation
-    const stateAbbrs = [
-      "AL",
-      "AK",
-      "AZ",
-      "AR",
-      "CA",
-      "CO",
-      "CT",
-      "DE",
-      "FL",
-      "GA",
-      "HI",
-      "ID",
-      "IL",
-      "IN",
-      "IA",
-      "KS",
-      "KY",
-      "LA",
-      "ME",
-      "MD",
-      "MA",
-      "MI",
-      "MN",
-      "MS",
-      "MO",
-      "MT",
-      "NE",
-      "NV",
-      "NH",
-      "NJ",
-      "NM",
-      "NY",
-      "NC",
-      "ND",
-      "OH",
-      "OK",
-      "OR",
-      "PA",
-      "RI",
-      "SC",
-      "SD",
-      "TN",
-      "TX",
-      "UT",
-      "VT",
-      "VA",
-      "WA",
-      "WV",
-      "WI",
-      "WY",
-    ]
-    const stateIndex = Math.abs(Math.floor(lat * 100)) % stateAbbrs.length
-    const state = stateAbbrs[stateIndex]
-
-    const mockAddress = {
-      formattedAddress: `${city}, ${state} ${zip}`,
-      city,
-      state,
-      zip,
-    }
-
-    logger.info(`Generated mock address: ${mockAddress.formattedAddress}`)
+    // Simple algorithm to generate a ZIP code from coordinates
+    const zipPrefix = Math.abs(Math.floor(latNum * 10) % 10)
+    const zipSuffix = Math.abs(Math.floor(lngNum * 100) % 10000)
+      .toString()
+      .padStart(4, "0")
+    const mockZipCode = `${zipPrefix}${zipSuffix}`
 
     return NextResponse.json({
-      success: true,
-      address: mockAddress,
-      isMockData: true,
+      zipCode: mockZipCode,
+      city: "Mock City",
+      state: "MS",
+      formattedAddress: `Mock Address, Mock City, MS ${mockZipCode}`,
     })
   } catch (error) {
-    logger.error("Error in reverse geocoding:", error)
-
-    // Return mock data as fallback
-    return NextResponse.json({
-      success: true,
-      address: {
-        formattedAddress: "Unknown Location",
-        city: "Unknown",
-        state: "XX",
-        zip: "00000",
-      },
-      isMockData: true,
-    })
+    console.error("Error reverse geocoding:", error)
+    return NextResponse.json({ error: "Failed to reverse geocode coordinates" }, { status: 500 })
   }
 }
