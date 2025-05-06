@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import providerSearchService from "@/lib/provider-search-service"
+import { providerSearchService } from "@/lib/provider-search-service"
 import { logger } from "@/lib/logger"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {

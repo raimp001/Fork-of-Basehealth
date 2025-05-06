@@ -188,133 +188,75 @@ export function mapNPITaxonomyToSpecialty(taxonomyDesc: string): string {
 }
 
 // NPI service
-const npiService = {
-  // Search for providers in the NPI registry
-  searchNpiRegistry: async (params: NpiSearchParams): Promise<{ results: NpiProvider[]; result_count: number }> => {
-    logger.info("Searching NPI registry with params:", params)
+const searchNPIProviders = async (
+  params: NpiSearchParams,
+): Promise<{ results: NpiProvider[]; result_count: number }> => {
+  logger.info("Searching NPI registry with params:", params)
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    // In a real implementation, this would call the NPPES API
-    // For now, return mock data
-    let filteredProviders = [...mockNpiData]
+  // In a real implementation, this would call the NPPES API
+  // For now, return mock data
+  let filteredProviders = [...mockNpiData]
 
-    // Filter by first name
-    if (params.first_name) {
-      const firstNameLower = params.first_name.toLowerCase()
-      filteredProviders = filteredProviders.filter((provider) =>
-        provider.basic.first_name.toLowerCase().includes(firstNameLower),
-      )
-    }
+  // Filter by first name
+  if (params.first_name) {
+    const firstNameLower = params.first_name.toLowerCase()
+    filteredProviders = filteredProviders.filter((provider) =>
+      provider.basic.first_name.toLowerCase().includes(firstNameLower),
+    )
+  }
 
-    // Filter by last name
-    if (params.last_name) {
-      const lastNameLower = params.last_name.toLowerCase()
-      filteredProviders = filteredProviders.filter((provider) =>
-        provider.basic.last_name.toLowerCase().includes(lastNameLower),
-      )
-    }
+  // Filter by last name
+  if (params.last_name) {
+    const lastNameLower = params.last_name.toLowerCase()
+    filteredProviders = filteredProviders.filter((provider) =>
+      provider.basic.last_name.toLowerCase().includes(lastNameLower),
+    )
+  }
 
-    // Filter by city
-    if (params.city) {
-      const cityLower = params.city.toLowerCase()
-      filteredProviders = filteredProviders.filter((provider) =>
-        provider.addresses.some((addr) => addr.city.toLowerCase().includes(cityLower)),
-      )
-    }
+  // Filter by city
+  if (params.city) {
+    const cityLower = params.city.toLowerCase()
+    filteredProviders = filteredProviders.filter((provider) =>
+      provider.addresses.some((addr) => addr.city.toLowerCase().includes(cityLower)),
+    )
+  }
 
-    // Filter by state
-    if (params.state) {
-      const stateLower = params.state.toLowerCase()
-      filteredProviders = filteredProviders.filter((provider) =>
-        provider.addresses.some((addr) => addr.state.toLowerCase() === stateLower),
-      )
-    }
+  // Filter by state
+  if (params.state) {
+    const stateLower = params.state.toLowerCase()
+    filteredProviders = filteredProviders.filter((provider) =>
+      provider.addresses.some((addr) => addr.state.toLowerCase() === stateLower),
+    )
+  }
 
-    // Filter by ZIP code
-    if (params.postal_code || params.zip) {
-      const zipCode = params.postal_code || params.zip
-      filteredProviders = filteredProviders.filter((provider) =>
-        provider.addresses.some((addr) => addr.postal_code.startsWith(zipCode!)),
-      )
-    }
+  // Filter by ZIP code
+  if (params.postal_code || params.zip) {
+    const zipCode = params.postal_code || params.zip
+    filteredProviders = filteredProviders.filter((provider) =>
+      provider.addresses.some((addr) => addr.postal_code.startsWith(zipCode!)),
+    )
+  }
 
-    // Filter by specialty or taxonomy description
-    if (params.taxonomy_description || params.specialty) {
-      const specialtyLower = (params.taxonomy_description || params.specialty)!.toLowerCase()
-      filteredProviders = filteredProviders.filter((provider) =>
-        provider.taxonomies.some((tax) => tax.desc.toLowerCase().includes(specialtyLower)),
-      )
-    }
+  // Filter by specialty or taxonomy description
+  if (params.taxonomy_description || params.specialty) {
+    const specialtyLower = (params.taxonomy_description || params.specialty)!.toLowerCase()
+    filteredProviders = filteredProviders.filter((provider) =>
+      provider.taxonomies.some((tax) => tax.desc.toLowerCase().includes(specialtyLower)),
+    )
+  }
 
-    // Apply pagination
-    const skip = params.skip || 0
-    const limit = params.limit || 10
-    const paginatedProviders = filteredProviders.slice(skip, skip + limit)
+  // Apply pagination
+  const skip = params.skip || 0
+  const limit = params.limit || 10
+  const paginatedProviders = filteredProviders.slice(skip, skip + limit)
 
-    return {
-      results: paginatedProviders,
-      result_count: filteredProviders.length,
-    }
-  },
-
-  // Get a provider by NPI number
-  getProviderByNPI: async (npiNumber: string): Promise<NpiProvider | null> => {
-    logger.info(`Getting provider by NPI: ${npiNumber}`)
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    const provider = mockNpiData.find((p) => p.number === npiNumber)
-    return provider || null
-  },
-
-  // Convert an NPI provider to the application's provider format
-  convertToAppProvider: (npiProvider: NpiProvider): any => {
-    const name = formatProviderName(npiProvider)
-    const specialties = getSpecialtyFromTaxonomies(npiProvider.taxonomies)
-    const primaryAddress = getPrimaryAddress(npiProvider.addresses)
-
-    return {
-      id: `npi-${npiProvider.number}`,
-      name,
-      specialty: specialties[0],
-      address: {
-        full: primaryAddress
-          ? `${primaryAddress.address_1}${primaryAddress.address_2 ? `, ${primaryAddress.address_2}` : ""}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postal_code}`
-          : "",
-        city: primaryAddress?.city || "",
-        state: primaryAddress?.state || "",
-        zipCode: primaryAddress?.postal_code || "",
-      },
-      phone: primaryAddress?.telephone_number,
-      npiNumber: npiProvider.number,
-      credentials: npiProvider.basic.credential,
-      isVerified: true,
-    }
-  },
-
-  // Search for providers with a simplified interface
-  searchProviders: async (params: {
-    zip?: string
-    city?: string
-    state?: string
-    specialty?: string
-    first_name?: string
-    last_name?: string
-    limit?: number
-  }) => {
-    return await npiService.searchNpiRegistry({
-      postal_code: params.zip,
-      city: params.city,
-      state: params.state,
-      taxonomy_description: params.specialty,
-      first_name: params.first_name,
-      last_name: params.last_name,
-      limit: params.limit,
-    })
-  },
+  return {
+    results: paginatedProviders,
+    result_count: filteredProviders.length,
+  }
 }
 
-export default npiService
+export { searchNPIProviders }

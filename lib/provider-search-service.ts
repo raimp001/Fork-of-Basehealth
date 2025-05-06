@@ -60,7 +60,7 @@ const mockProviders: Provider[] = [
 ]
 
 // Provider search service
-const providerSearchService = {
+export const providerSearchService = {
   // Search for providers based on various criteria
   searchProviders: async (params: ProviderSearchParams): Promise<Provider[]> => {
     logger.info("Searching providers with params:", params)
@@ -137,4 +137,8 @@ const providerSearchService = {
   },
 }
 
+// Add searchProviders as a named export
 export const searchProviders = providerSearchService.searchProviders
+
+// Export the service as default export
+export default providerSearchService
