@@ -1,24 +1,67 @@
-import { logger } from "./logger"
+/**
+ * MCP Client - Simplified version without direct SDK imports
+ *
+ * This file provides a client for the Model Context Protocol
+ * without using the problematic import paths that cause build errors.
+ */
 
-// Replace any pino logger with our custom logger
-export const mcpClient = {
-  connect: async () => {
-    logger.info("Connecting to MCP client")
-    // Implementation details...
-    return { status: "connected" }
-  },
-
-  disconnect: async () => {
-    logger.info("Disconnecting from MCP client")
-    // Implementation details...
-    return { status: "disconnected" }
-  },
-
-  query: async (prompt: string) => {
-    logger.info(`Querying MCP client with prompt: ${prompt}`)
-    // Implementation details...
-    return { result: "Sample response" }
-  },
+// Define types for MCP tools and responses
+export type McpTool = {
+  name: string
+  description: string
+  parameters: Record<string, any>
 }
 
-export default mcpClient
+export type McpToolResponse = {
+  result: any
+  error?: string
+}
+
+// Function to call MCP tools via API
+export async function callMcpTool(toolName: string, args: Record<string, any> = {}): Promise<McpToolResponse> {
+  try {
+    // In a real implementation, this would communicate with the MCP server
+    // For now, we'll return mock data to avoid build errors
+    return {
+      result: {
+        success: true,
+        toolName,
+        mockData: true,
+        timestamp: new Date().toISOString(),
+      },
+    }
+  } catch (error: any) {
+    return {
+      result: null,
+      error: error.message || "Failed to call MCP tool",
+    }
+  }
+}
+
+// Mock tools that would normally come from the MCP SDK
+export const mockMcpTools: McpTool[] = [
+  {
+    name: "getWalletBalance",
+    description: "Get the balance of a wallet address",
+    parameters: {
+      address: {
+        type: "string",
+        description: "The wallet address",
+      },
+    },
+  },
+  {
+    name: "getTransactionHistory",
+    description: "Get transaction history for a wallet",
+    parameters: {
+      address: {
+        type: "string",
+        description: "The wallet address",
+      },
+      limit: {
+        type: "number",
+        description: "Number of transactions to return",
+      },
+    },
+  },
+]

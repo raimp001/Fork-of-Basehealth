@@ -1,3 +1,5 @@
+"use client"
+
 export default function EmergencyPage() {
   return (
     <div className="container mx-auto py-6">
@@ -15,6 +17,7 @@ export default function EmergencyPage() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="lucide lucide-alert-triangle"
           >
             <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
             <path d="M12 9v4" />
@@ -46,9 +49,12 @@ export default function EmergencyPage() {
         <div className="border rounded-lg p-6 shadow-sm">
           <h2 className="text-xl font-semibold mb-4">Find Nearby Facilities</h2>
           <p className="mb-4">Locate emergency care facilities in your area:</p>
-          <div className="block w-full bg-blue-600 text-white font-bold py-3 px-4 rounded text-center mb-4">
+          <button
+            className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded text-center mb-4"
+            onClick={() => {}}
+          >
             Find Nearby Hospitals
-          </div>
+          </button>
           <p className="text-sm text-gray-600">Search for the closest emergency rooms and urgent care centers.</p>
         </div>
       </div>
