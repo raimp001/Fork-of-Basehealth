@@ -1,4 +1,5 @@
 import { OnchainWalletConnect } from "@/components/blockchain/onchain-wallet-connect"
+import { OnchainProviderWrapper } from "@/components/blockchain/onchain-provider-wrapper"
 
 export const metadata = {
   title: "OnchainKit Wallet | BaseHealth",
@@ -11,7 +12,10 @@ export default function OnchainWalletPage() {
       <h1 className="text-2xl font-bold mb-6">OnchainKit Wallet Integration</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <OnchainWalletConnect />
+          {/* Client component with provider wrapper */}
+          <OnchainProviderWrapper>
+            <OnchainWalletConnect />
+          </OnchainProviderWrapper>
         </div>
         <div className="space-y-4">
           <div className="bg-muted p-6 rounded-lg">
