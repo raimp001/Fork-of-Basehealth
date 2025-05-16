@@ -13,16 +13,16 @@ export default function HomePage() {
         </p>
 
         <div className="flex flex-wrap gap-4 justify-center mb-16">
-          <Link href="/screening">
-            <Button className="px-6">
+          <Button asChild className="px-6">
+            <Link href="/screening">
               Get Started <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </Link>
-          <Link href="/providers/search">
-            <Button variant="outline" className="px-6">
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="px-6">
+            <Link href="/providers/search">
               Find Providers <Search className="h-4 w-4 ml-2" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
@@ -39,11 +39,9 @@ export default function HomePage() {
               Receive personalized screening recommendations based on your age, gender, and risk factors to stay
               proactive about your health.
             </p>
-            <Link href="/screening">
-              <Button variant="outline" size="sm">
-                Get Recommendations
-              </Button>
-            </Link>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/screening">Get Recommendations</Link>
+            </Button>
           </div>
 
           {/* Telemedicine */}
@@ -57,11 +55,9 @@ export default function HomePage() {
               Connect with healthcare providers from the comfort of your home through secure video consultations and
               receive prescriptions digitally.
             </p>
-            <Link href="/providers/search">
-              <Button variant="outline" size="sm">
-                Find Providers
-              </Button>
-            </Link>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/providers/search">Find Providers</Link>
+            </Button>
           </div>
 
           {/* Crypto Payments */}
@@ -75,11 +71,9 @@ export default function HomePage() {
               Pay for healthcare services using your preferred cryptocurrency on Base, providing security, privacy, and
               convenience.
             </p>
-            <Link href="/wallet">
-              <Button variant="outline" size="sm">
-                Connect Wallet
-              </Button>
-            </Link>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/wallet">Connect Wallet</Link>
+            </Button>
           </div>
 
           {/* AI Health Assistant */}
@@ -93,11 +87,9 @@ export default function HomePage() {
               Ask health questions, analyze symptoms, get recommendations, and connect with the right healthcare
               providers.
             </p>
-            <Link href="/chat">
-              <Button variant="outline" size="sm">
-                Chat Now
-              </Button>
-            </Link>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/chat">Chat Now</Link>
+            </Button>
           </div>
         </div>
       </div>

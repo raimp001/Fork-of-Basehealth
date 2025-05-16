@@ -1,6 +1,6 @@
 import { Suspense } from "react"
-import { HealthDashboardClient } from "./client"
 import { Skeleton } from "@/components/ui/skeleton"
+import HealthDashboardClient from "./client"
 
 export default function HealthDashboardPage() {
   return (

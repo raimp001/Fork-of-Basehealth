@@ -1,15 +1,16 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Stethoscope, Video, Wallet, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Stethoscope, Video, Wallet, Menu } from "lucide-react"
 
 export function SimplifiedNav() {
   const pathname = usePathname()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   const routes = [
     {
@@ -58,48 +59,48 @@ export function SimplifiedNav() {
         </div>
 
         <div className="hidden md:flex items-center justify-end space-x-2">
-          <Button variant="outline" size="sm">
-            Sign In
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/login">Sign In</Link>
           </Button>
         </div>
 
         <div className="md:hidden flex flex-1 justify-end">
-          <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X /> : <Menu />}
-          </Button>
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[250px] sm:w-[300px]">
+              <nav className="grid gap-2 mt-6">
+                {routes.map((route) => {
+                  const Icon = route.icon
+                  return (
+                    <Link
+                      key={route.href}
+                      href={route.href}
+                      className={cn(
+                        "flex items-center py-2 px-3 rounded-md transition-colors",
+                        pathname === route.href ? "bg-muted font-medium" : "hover:bg-muted",
+                      )}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Icon className="mr-2 h-4 w-4" />
+                      {route.label}
+                    </Link>
+                  )
+                })}
+                <div className="mt-4 pt-4 border-t">
+                  <Button className="w-full" variant="outline" asChild>
+                    <Link href="/login">Sign In</Link>
+                  </Button>
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-
-      {isMenuOpen && (
-        <div className="md:hidden border-t">
-          <div className="container py-4">
-            <nav className="grid gap-2">
-              {routes.map((route) => {
-                const Icon = route.icon
-                return (
-                  <Link
-                    key={route.href}
-                    href={route.href}
-                    className={cn(
-                      "flex items-center py-2 px-3 rounded-md transition-colors",
-                      pathname === route.href ? "bg-muted font-medium" : "hover:bg-muted",
-                    )}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Icon className="mr-2 h-4 w-4" />
-                    {route.label}
-                  </Link>
-                )
-              })}
-            </nav>
-            <div className="mt-4 pt-4 border-t">
-              <Button className="w-full" variant="outline">
-                Sign In
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   )
 }
