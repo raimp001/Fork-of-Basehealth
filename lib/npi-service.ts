@@ -78,16 +78,43 @@ export async function searchNPIProviders(params: {
 
   // Required parameters
   queryParams.append("version", "2.1")
-  queryParams.append("limit", params.limit?.toString() || "20")
+  queryParams.append("limit", params.limit?.toString() || "50")
 
   // Add optional parameters
   if (params.name) queryParams.append("name", params.name)
   if (params.first_name) queryParams.append("first_name", params.first_name)
   if (params.last_name) queryParams.append("last_name", params.last_name)
-  if (params.city) queryParams.append("city", params.city)
+  
+  // Handle location search
+  if (params.zip && /^\d{5}(-\d{4})?$/.test(params.zip)) {
+    // If it's a valid ZIP code, search by postal code
+    queryParams.append("postal_code", params.zip)
+  } else if (params.city) {
+    // If it's a city name, search by city
+    queryParams.append("city", params.city)
+  }
+  
   if (params.state) queryParams.append("state", params.state)
-  if (params.zip) queryParams.append("postal_code", params.zip)
-  if (params.taxonomy_description) queryParams.append("taxonomy_description", params.taxonomy_description)
+
+  // Handle specialty search with dental taxonomy codes
+  if (params.taxonomy_description) {
+    const taxonomyMap: Record<string, string[]> = {
+      "Dentist": ["Dentist", "General Practice Dentistry"],
+      "General Dentist": ["General Practice Dentistry"],
+      "Pediatric Dentist": ["Pediatric Dentistry"],
+      "Orthodontist": ["Orthodontics and Dentofacial Orthopedics"],
+      "Endodontist": ["Endodontics"],
+      "Periodontist": ["Periodontics"],
+      "Prosthodontist": ["Prosthodontics"],
+      "Oral Surgeon": ["Oral and Maxillofacial Surgery"],
+      "Public Health Dentist": ["Dental Public Health"],
+      "Oral Pathologist": ["Oral and Maxillofacial Pathology"],
+      "Oral Radiologist": ["Oral and Maxillofacial Radiology"],
+    }
+
+    const taxonomies = taxonomyMap[params.taxonomy_description] || [params.taxonomy_description]
+    queryParams.append("taxonomy_description", taxonomies.join("|"))
+  }
 
   try {
     const response = await fetch(`${baseUrl}?${queryParams.toString()}`)
@@ -98,9 +125,19 @@ export async function searchNPIProviders(params: {
 
     const data = await response.json()
 
+    // Process and validate the results
+    const processedResults = (data.results || []).map((provider: NPIProvider) => ({
+      ...provider,
+      basic: {
+        ...provider.basic,
+        first_name: provider.basic.first_name || '',
+        last_name: provider.basic.last_name || '',
+      }
+    }))
+
     return {
       result_count: data.result_count || 0,
-      results: data.results || [],
+      results: processedResults,
     }
   } catch (error) {
     console.error("Error searching NPI providers:", error)
@@ -115,20 +152,31 @@ export function mapNPITaxonomyToSpecialty(taxonomyDescription: string): string {
   const specialtyMap: Record<string, string> = {
     "Internal Medicine": "Internal Medicine",
     "Family Medicine": "Family Medicine",
-    Pediatrics: "Pediatrics",
-    Cardiology: "Cardiology",
-    Dermatology: "Dermatology",
-    Gastroenterology: "Gastroenterology",
-    Neurology: "Neurology",
+    "Pediatrics": "Pediatrics",
+    "Cardiology": "Cardiology",
+    "Dermatology": "Dermatology",
+    "Gastroenterology": "Gastroenterology",
+    "Neurology": "Neurology",
     "Obstetrics & Gynecology": "Obstetrics & Gynecology",
-    Oncology: "Oncology",
-    Ophthalmology: "Ophthalmology",
+    "Oncology": "Oncology",
+    "Ophthalmology": "Ophthalmology",
     "Orthopedic Surgery": "Orthopedics",
     "Psychiatry & Neurology": "Psychiatry",
-    Radiology: "Radiology",
-    Surgery: "Surgery",
-    Urology: "Urology",
-    // Add more mappings as needed
+    "Radiology": "Radiology",
+    "Surgery": "Surgery",
+    "Urology": "Urology",
+    // Dental specialties
+    "Dentist": "Dentist",
+    "General Practice Dentistry": "General Dentist",
+    "Pediatric Dentistry": "Pediatric Dentist",
+    "Orthodontics and Dentofacial Orthopedics": "Orthodontist",
+    "Endodontics": "Endodontist",
+    "Periodontics": "Periodontist",
+    "Prosthodontics": "Prosthodontist",
+    "Oral and Maxillofacial Surgery": "Oral Surgeon",
+    "Dental Public Health": "Public Health Dentist",
+    "Oral and Maxillofacial Pathology": "Oral Pathologist",
+    "Oral and Maxillofacial Radiology": "Oral Radiologist",
   }
 
   // Try to find a match in our map

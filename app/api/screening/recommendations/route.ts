@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import {
   getScreeningRecommendations,
   prioritizeRecommendations,
-  getRecommendationsByRiskFactors,
 } from "@/lib/screening-service"
 
 export async function GET(request: Request) {
@@ -21,15 +20,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Age must be a number" }, { status: 400 })
     }
 
-    let recommendations = await getScreeningRecommendations(age, gender)
+    let recommendations = await getScreeningRecommendations(age, gender, riskFactors)
 
-    // Apply risk factor filtering if provided
-    if (riskFactors.length > 0) {
-      recommendations = getRecommendationsByRiskFactors(recommendations, riskFactors)
-    }
-
-    // Prioritize recommendations by importance
+    // Only prioritize, do not filter again
     recommendations = prioritizeRecommendations(recommendations)
+
+    console.log('USPSTF API returning:', recommendations);
 
     return NextResponse.json({ recommendations })
   } catch (error) {

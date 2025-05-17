@@ -52,6 +52,12 @@ export function ProviderSearch() {
     "Urology",
     "Endocrinology",
     "Pulmonology",
+    // Dental specialties
+    "Dentist",
+    "General Dentist",
+    "Pediatric Dentist",
+    // Lab services
+    "Lab (Quest Diagnostics / Lab Services)",
   ]
 
   useEffect(() => {
@@ -292,6 +298,28 @@ export function ProviderSearch() {
     }
   }
 
+  const isLabSpecialty = specialty === "Lab (Quest Diagnostics / Lab Services)"
+  const sampleQuestLocations = [
+    {
+      name: "Quest Diagnostics - Seattle Central",
+      address: "123 Main St, Seattle, WA 98101",
+      phone: "(206) 555-1234",
+      hours: "Mon-Fri 7am-5pm"
+    },
+    {
+      name: "Quest Diagnostics - Bellevue",
+      address: "456 Bellevue Way, Bellevue, WA 98004",
+      phone: "(425) 555-5678",
+      hours: "Mon-Fri 7am-5pm"
+    },
+    {
+      name: "Quest Diagnostics - Kirkland",
+      address: "789 Market St, Kirkland, WA 98033",
+      phone: "(425) 555-9012",
+      hours: "Mon-Fri 7am-5pm"
+    },
+  ]
+
   return (
     <div className="space-y-6">
       {screenings.length > 0 && (
@@ -311,16 +339,16 @@ export function ProviderSearch() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label htmlFor="zipCode" className="text-sm font-medium block mb-1">
-              ZIP Code
+              ZIP Code or City/Area Name
             </label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="zipCode"
-                  placeholder="Enter ZIP code"
+                  placeholder="Enter ZIP code or city/area name"
                   value={zipCode}
-                  onChange={handleZipCodeChange}
+                  onChange={(e) => setZipCode(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -434,6 +462,25 @@ export function ProviderSearch() {
             </div>
           )}
           {!zipCode && <p className="mt-2">Please enter a ZIP code to find providers in your area.</p>}
+        </div>
+      ) : isLabSpecialty ? (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-8 text-center">
+          <h2 className="text-xl font-bold mb-2 text-blue-700">Lab Services (Quest Diagnostics)</h2>
+          <p className="mb-4 text-blue-900">You can order many routine lab tests directly, without a provider appointment. Visit a Quest Diagnostics location near you for blood work, screening, and more.</p>
+          <div className="mb-4">
+            <h3 className="font-semibold mb-2">Sample Quest Locations:</h3>
+            <ul className="space-y-2">
+              {sampleQuestLocations.map((loc, i) => (
+                <li key={i} className="bg-white rounded shadow p-3 text-left">
+                  <div className="font-medium">{loc.name}</div>
+                  <div className="text-sm">{loc.address}</div>
+                  <div className="text-sm">{loc.phone}</div>
+                  <div className="text-xs text-muted-foreground">{loc.hours}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <a href="https://appointment.questdiagnostics.com/patient/confirmation" target="_blank" rel="noopener noreferrer" className="inline-block mt-2 text-blue-700 underline font-medium">Find more Quest locations</a>
         </div>
       ) : filteredProviders.length > 0 ? (
         <div>

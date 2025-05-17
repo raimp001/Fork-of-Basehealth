@@ -1,6 +1,105 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { getCurrentLocation } from "@/lib/geolocation-service"
+import { searchProviders } from "@/lib/provider-search-service"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { MapPin, Locate, Phone, Star } from "lucide-react"
+import type { Provider } from "@/types/user"
+
+// Add type declarations for Google Maps
+declare global {
+  interface Window {
+    google: {
+      maps: {
+        LatLng: new (lat: number, lng: number) => { lat: () => number; lng: () => number };
+        places: {
+          PlacesService: new (div: HTMLDivElement) => {
+            nearbySearch: (
+              request: {
+                location: { lat: () => number; lng: () => number };
+                radius: number;
+                type: string[];
+              },
+              callback: (results: any[] | null, status: string) => void
+            ) => void;
+          };
+          PlacesServiceStatus: {
+            OK: string;
+          };
+        };
+      };
+    };
+  }
+}
+
 export default function EmergencyPage() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [mapApiKey, setMapApiKey] = useState<string>("")
+  const [mapError, setMapError] = useState<string | null>(null)
+  const [nearbyProviders, setNearbyProviders] = useState<Provider[]>([])
+  const [showMap, setShowMap] = useState(false)
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+
+  // Fetch Maps API key from server
+  useEffect(() => {
+    async function fetchMapApiKey() {
+      try {
+        const response = await fetch("/api/maps/script")
+        const data = await response.json()
+        if (data.apiKey) {
+          setMapApiKey(data.apiKey)
+        } else {
+          setMapError("Google Maps API key not found")
+        }
+      } catch (error) {
+        console.error("Failed to fetch Maps API key:", error)
+        setMapError("Failed to load Google Maps")
+      }
+    }
+
+    fetchMapApiKey()
+  }, [])
+
+  // Load Google Maps script
+  useEffect(() => {
+    if (!mapApiKey || window.google) return
+
+    const script = document.createElement("script")
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${mapApiKey}&libraries=places`
+    script.async = true
+    script.defer = true
+    script.onload = () => setShowMap(true)
+    script.onerror = () => setMapError("Failed to load Google Maps script")
+    document.head.appendChild(script)
+  }, [mapApiKey])
+
+  const findNearbyProviders = async () => {
+    setIsLoading(true)
+    try {
+      const location = await getCurrentLocation()
+      if (!location) {
+        throw new Error("Unable to get your location")
+      }
+
+      setUserLocation(location)
+
+      // Search for providers using the NPI service
+      const providers = await searchProviders({
+        coordinates: location,
+        radius: 25, // 25 mile radius
+      })
+
+      setNearbyProviders(providers)
+    } catch (error) {
+      console.error("Error finding nearby providers:", error)
+      setMapError(error instanceof Error ? error.message : "Failed to find nearby providers")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-2xl font-bold mb-6">Emergency Assistance</h1>
@@ -47,17 +146,84 @@ export default function EmergencyPage() {
         </div>
 
         <div className="border rounded-lg p-6 shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Find Nearby Facilities</h2>
-          <p className="mb-4">Locate emergency care facilities in your area:</p>
+          <h2 className="text-xl font-semibold mb-4">Find Nearby Providers</h2>
+          <p className="mb-4">Locate healthcare providers in your area:</p>
           <button
             className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded text-center mb-4"
-            onClick={() => {}}
+            onClick={findNearbyProviders}
+            disabled={isLoading}
           >
-            Find Nearby Hospitals
+            {isLoading ? "Searching..." : "Find Nearby Providers"}
           </button>
-          <p className="text-sm text-gray-600">Search for the closest emergency rooms and urgent care centers.</p>
+          <p className="text-sm text-gray-600">Search for the closest healthcare providers and emergency care centers.</p>
         </div>
       </div>
+
+      {mapError && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600">{mapError}</p>
+        </div>
+      )}
+
+      {nearbyProviders.length > 0 && (
+        <div className="mt-6 border rounded-lg p-6 shadow-sm">
+          <h2 className="text-xl font-semibold mb-4">Nearby Healthcare Providers</h2>
+          <div className="space-y-4">
+            {nearbyProviders.map((provider) => (
+              <Card key={provider.id} className="p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-medium">{provider.name}</h3>
+                    <p className="text-sm text-gray-600">{provider.specialty}</p>
+                    {provider.address.full && (
+                      <p className="text-sm text-gray-600 mt-1">{provider.address.full}</p>
+                    )}
+                    {provider.credentials && (
+                      <p className="text-sm text-gray-600">{provider.credentials}</p>
+                    )}
+                  </div>
+                  {provider.rating && (
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      <span className="text-sm font-medium">{provider.rating}</span>
+                      {provider.reviewCount && (
+                        <span className="text-sm text-gray-500">({provider.reviewCount})</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 flex gap-2">
+                  {provider.phone && (
+                    <a
+                      href={`tel:${provider.phone}`}
+                      className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                    >
+                      <Phone className="h-4 w-4" />
+                      Call Provider
+                    </a>
+                  )}
+                  {provider.coordinates && (
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${provider.coordinates.latitude},${provider.coordinates.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                    >
+                      <MapPin className="h-4 w-4" />
+                      Get Directions
+                    </a>
+                  )}
+                </div>
+                {provider.services && provider.services.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600">Services: {provider.services.join(", ")}</p>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 border rounded-lg p-6 shadow-sm">
         <h2 className="text-xl font-semibold mb-4">When to Use Emergency Services</h2>
@@ -87,3 +253,4 @@ export default function EmergencyPage() {
     </div>
   )
 }
+

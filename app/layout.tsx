@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "BaseHealth - Healthcare Platform",
   description:
     "Connect with healthcare providers, schedule telemedicine appointments, and manage prescriptions securely with cryptocurrency payments.",
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -21,13 +21,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light">
-          <div className="flex min-h-screen flex-col">
-            <MainNavigation />
-            <main className="flex-1">{children}</main>
-          </div>
-        </ThemeProvider>
+      <body>
+        {children}
       </body>
     </html>
   )

@@ -74,11 +74,11 @@ export function MainNavigation() {
           {/* Logo */}
           <div className="flex justify-start lg:w-0 lg:flex-1">
             <Link href="/">
-              <span className="sr-only">Your Company</span>
+              <span className="sr-only">Basehealth</span>
               <img
                 className="h-8 w-auto sm:h-10"
                 src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                alt=""
+                alt="Basehealth"
               />
             </Link>
           </div>
@@ -98,7 +98,7 @@ export function MainNavigation() {
                     <img
                       className="h-8 w-auto"
                       src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                      alt="Your Company"
+                      alt="Basehealth"
                     />
                   </Link>
                   <nav className="flex flex-col space-y-4">
@@ -135,41 +135,9 @@ export function MainNavigation() {
             </Sheet>
           </div>
 
-          {/* Desktop navigation */}
+          {/* Desktop navigation - simplified */}
           <div className="hidden md:flex md:items-center md:justify-between md:flex-1">
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="bg-transparent">Solutions</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[500px] gap-3 p-4 md:w-[600px] md:grid-cols-2">
-                      {solutions.map((solution) => (
-                        <li key={solution.title}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href={solution.href}
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100"
-                            >
-                              <div className="text-sm font-medium leading-none">{solution.title}</div>
-                              <p className="line-clamp-2 text-sm leading-snug text-slate-500">{solution.description}</p>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      ))}
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-
-                {mainLinks.map((link) => (
-                  <NavigationMenuItem key={link.name}>
-                    <Link href={link.href} legacyBehavior passHref>
-                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>{link.name}</NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                ))}
-              </NavigationMenuList>
-            </NavigationMenu>
-
+            {/* No navigation menu, just sign in/up */}
             <div className="flex items-center">
               <Link
                 href="/login"

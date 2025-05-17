@@ -1,15 +1,16 @@
-import { SimplifiedScreening } from "@/components/screening/simplified-screening"
+"use client"
 
-export const metadata = {
-  title: "Health Screenings | BaseHealth",
-  description: "Get personalized health screening recommendations based on your profile",
-}
+import { ScreeningForm } from "@/components/workflow/screening-form"
 
 export default function ScreeningPage() {
   return (
-    <div className="container py-8">
-      <h1 className="text-2xl font-bold mb-6">Health Screening Recommendations</h1>
-      <SimplifiedScreening />
+    <div className="max-w-2xl mx-auto py-12">
+      <h1 className="text-2xl font-bold mb-6 text-center">USPSTF Health Screening</h1>
+      <ScreeningForm
+        patientData={{}}
+        updatePatientData={() => {}}
+        onComplete={() => {}}
+      />
     </div>
   )
 }

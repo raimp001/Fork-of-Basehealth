@@ -1,33 +1,48 @@
 import type { ScreeningRecommendation } from "@/types/user"
-import db from "@/lib/mock-db"
+import { uspstfGuidelines } from "@/lib/uspstf-guidelines"
 
 /**
- * Get screening recommendations based on age and gender
+ * Get screening recommendations based on age and gender (USPSTF guidelines)
  * @param age Patient age
  * @param gender Patient gender
+ * @param riskFactors Array of risk factors
  * @returns Promise resolving to an array of screening recommendations
  */
-export async function getScreeningRecommendations(age: number, gender = "all"): Promise<ScreeningRecommendation[]> {
-  try {
-    // Get all screening recommendations from the database
-    const allRecommendations = await db.getAllScreeningRecommendations()
-
-    // Filter recommendations based on age and gender
-    return allRecommendations.filter((recommendation) => {
-      // Check age range
-      const isInAgeRange =
-        age >= recommendation.ageRange.min &&
-        (recommendation.ageRange.max === undefined || age <= recommendation.ageRange.max)
-
-      // Check gender
-      const matchesGender = recommendation.gender === "all" || recommendation.gender === gender
-
-      return isInAgeRange && matchesGender
-    })
-  } catch (error) {
-    console.error("Error getting screening recommendations:", error)
-    return []
-  }
+export async function getScreeningRecommendations(
+  age: number,
+  gender = "all",
+  riskFactors: string[] = []
+): Promise<ScreeningRecommendation[]> {
+  // Use the risk factor logic from the guidelines file
+  return uspstfGuidelines
+    .filter((g) =>
+      (g.gender === gender || g.gender === "all") &&
+      age >= g.minAge &&
+      age <= g.maxAge &&
+      (
+        riskFactors.length === 0 ||
+        g.riskFactors.length === 0 ||
+        g.riskFactors.some(rf =>
+          riskFactors.some(f =>
+            f.toLowerCase().includes(rf.toLowerCase()) || rf.toLowerCase().includes(f.toLowerCase())
+          )
+        )
+      )
+    )
+    .map((g) => ({
+      id: g.screening.replace(/\s+/g, "-").toLowerCase(),
+      name: g.screening,
+      description: g.description,
+      ageRange: { min: g.minAge, max: g.maxAge },
+      gender: g.gender,
+      frequency: g.frequency,
+      importance: g.grade === "A" ? "essential" : g.grade === "B" ? "recommended" : "routine",
+      specialtyNeeded: g.specialtyNeeded || "Primary Care",
+      riskFactors: g.riskFactors,
+      grade: g.grade,
+      specialtyNeeded: "Primary Care",
+      riskFactors: [],
+    }))
 }
 
 /**

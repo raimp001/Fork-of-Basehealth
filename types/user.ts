@@ -39,6 +39,11 @@ export interface Provider extends User {
   services: string[]
   walletAddress?: string
   source?: "NPI" | "AI"
+  phone?: string
+  coordinates?: {
+    latitude: number
+    longitude: number
+  }
 }
 
 export interface Admin extends User {
@@ -52,6 +57,7 @@ export interface Address {
   state: string
   zipCode: string
   country: string
+  full?: string
 }
 
 export interface Availability {

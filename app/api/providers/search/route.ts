@@ -24,6 +24,10 @@ interface Provider {
   credentials?: string
   acceptsInsurance?: boolean
   services?: string[]
+  coordinates?: {
+    latitude: number
+    longitude: number
+  }
 }
 
 /**
@@ -40,10 +44,40 @@ function generateMockProviders(zipCode: string, specialty?: string): Provider[] 
     "Psychiatry",
     "Orthopedics",
     "Obstetrics & Gynecology",
+    // Dental specialties
+    "Dentist",
+    "General Dentist",
+    "Pediatric Dentist",
+    "Orthodontist",
+    "Endodontist",
+    "Periodontist",
+    "Prosthodontist",
+    "Oral Surgeon",
   ]
 
   const providerSpecialty =
     specialty && specialty !== "all" ? specialty : specialties[Math.floor(Math.random() * specialties.length)]
+
+  // Define services based on specialty
+  const getServices = (specialty: string) => {
+    if (specialty.includes("Dentist") || specialty === "Dentist") {
+      return ["Dental Cleanings", "Fillings", "Root Canals", "Crowns", "Bridges", "Dentures"]
+    } else if (specialty === "Orthodontist") {
+      return ["Braces", "Invisalign", "Retainers", "Orthodontic Consultations"]
+    } else if (specialty === "Endodontist") {
+      return ["Root Canal Therapy", "Endodontic Surgery", "Dental Trauma Treatment"]
+    } else if (specialty === "Periodontist") {
+      return ["Gum Disease Treatment", "Dental Implants", "Gum Surgery", "Bone Grafting"]
+    } else if (specialty === "Prosthodontist") {
+      return ["Dental Implants", "Crowns", "Bridges", "Dentures", "Veneers"]
+    } else if (specialty === "Oral Surgeon") {
+      return ["Wisdom Teeth Removal", "Dental Implants", "Jaw Surgery", "Facial Trauma"]
+    } else if (specialty === "Pediatric Dentist") {
+      return ["Children's Cleanings", "Sealants", "Fillings", "Space Maintainers"]
+    } else {
+      return ["Preventive Care", "Chronic Disease Management", "Telehealth"]
+    }
+  }
 
   const mockProviders: Provider[] = [
     {
@@ -53,16 +87,16 @@ function generateMockProviders(zipCode: string, specialty?: string): Provider[] 
       rating: 4.8,
       reviewCount: 124,
       address: {
-        full: `123 Main St, Anytown, NY ${zipCode}`,
-        city: "Anytown",
-        state: "NY",
+        full: `123 Main St, ${zipCode}`,
+        city: "",
+        state: "",
         zipCode: zipCode,
       },
       phone: "(555) 123-4567",
       isVerified: true,
-      credentials: "MD",
+      credentials: providerSpecialty.includes("Dentist") ? "DDS" : "MD",
       acceptsInsurance: true,
-      services: ["Preventive Care", "Chronic Disease Management", "Telehealth"],
+      services: getServices(providerSpecialty),
     },
     {
       id: `mock-${zipCode}-2`,
@@ -71,33 +105,35 @@ function generateMockProviders(zipCode: string, specialty?: string): Provider[] 
       rating: 4.6,
       reviewCount: 98,
       address: {
-        full: `456 Oak Ave, Anytown, NY ${zipCode}`,
-        city: "Anytown",
-        state: "NY",
+        full: `456 Oak Ave, ${zipCode}`,
+        city: "",
+        state: "",
         zipCode: zipCode,
       },
       phone: "(555) 987-6543",
       isVerified: true,
-      credentials: "MD",
+      credentials: providerSpecialty.includes("Dentist") ? "DDS" : "MD",
       acceptsInsurance: true,
-      services: ["Preventive Care", "Chronic Disease Management", "Telehealth"],
+      services: getServices(providerSpecialty),
     },
     {
       id: `mock-${zipCode}-3`,
-      name: "Anytown Medical Center",
-      specialty: "Multi-specialty Practice",
+      name: providerSpecialty.includes("Dentist") ? "Dental Center" : "Medical Center",
+      specialty: providerSpecialty.includes("Dentist") ? "Multi-specialty Dental Practice" : "Multi-specialty Practice",
       rating: 4.4,
       reviewCount: 215,
       address: {
-        full: `789 Hospital Way, Anytown, NY ${zipCode}`,
-        city: "Anytown",
-        state: "NY",
+        full: `789 Hospital Way, ${zipCode}`,
+        city: "",
+        state: "",
         zipCode: zipCode,
       },
       phone: "(555) 789-0123",
       isVerified: false,
       acceptsInsurance: true,
-      services: ["Urgent Care", "Primary Care", "Specialty Care", "Imaging"],
+      services: providerSpecialty.includes("Dentist") 
+        ? ["General Dentistry", "Cosmetic Dentistry", "Emergency Dental Care", "Dental X-rays"]
+        : ["Urgent Care", "Primary Care", "Specialty Care", "Imaging"],
     },
     {
       id: `mock-${zipCode}-4`,
@@ -106,33 +142,35 @@ function generateMockProviders(zipCode: string, specialty?: string): Provider[] 
       rating: 4.9,
       reviewCount: 156,
       address: {
-        full: `567 Pine St, Anytown, NY ${zipCode}`,
-        city: "Anytown",
-        state: "NY",
+        full: `567 Pine St, ${zipCode}`,
+        city: "",
+        state: "",
         zipCode: zipCode,
       },
       phone: "(555) 234-5678",
       isVerified: true,
-      credentials: "MD, PhD",
+      credentials: providerSpecialty.includes("Dentist") ? "DDS, MS" : "MD, PhD",
       acceptsInsurance: true,
-      services: ["Preventive Care", "Chronic Disease Management", "Telehealth"],
+      services: getServices(providerSpecialty),
     },
     {
       id: `mock-${zipCode}-5`,
-      name: "Community Health Clinic",
-      specialty: "Primary Care",
+      name: providerSpecialty.includes("Dentist") ? "Community Dental Clinic" : "Community Health Clinic",
+      specialty: providerSpecialty.includes("Dentist") ? "General Dentistry" : "Primary Care",
       rating: 4.2,
       reviewCount: 89,
       address: {
-        full: `890 Community Blvd, Anytown, NY ${zipCode}`,
-        city: "Anytown",
-        state: "NY",
+        full: `890 Community Blvd, ${zipCode}`,
+        city: "",
+        state: "",
         zipCode: zipCode,
       },
       phone: "(555) 345-6789",
       isVerified: true,
       acceptsInsurance: true,
-      services: ["Preventive Care", "Vaccinations", "Health Screenings", "Wellness Programs"],
+      services: providerSpecialty.includes("Dentist")
+        ? ["Preventive Care", "Basic Restorative", "Emergency Care", "Dental Education"]
+        : ["Preventive Care", "Vaccinations", "Health Screenings", "Wellness Programs"],
     },
   ]
 
@@ -156,14 +194,11 @@ export async function GET(request: Request) {
   const radius = searchParams.get("radius") ? Number.parseInt(searchParams.get("radius")!) : 25
 
   if (!zipCode) {
-    return NextResponse.json({ error: "ZIP code is required" }, { status: 400 })
+    return NextResponse.json({ error: "Location (ZIP code or city) is required" }, { status: 400 })
   }
 
   try {
-    // Skip Google Maps API calls due to referer restrictions
-    console.log("Skipping Google Maps API calls due to referer restrictions")
-
-    // Step 1: Search for providers in the NPI registry using the ZIP code
+    // Step 1: Search for providers in the NPI registry
     let npiProviders: NPIProvider[] = []
     let usedMockData = false
     const npiSearchStats = {
@@ -174,11 +209,14 @@ export async function GET(request: Request) {
     }
 
     try {
-      console.log(`Searching NPI registry for providers in ZIP: ${zipCode}, specialty: ${specialty || "any"}`)
+      console.log(`Searching NPI registry for providers in location: ${zipCode}, specialty: ${specialty || "any"}`)
       npiSearchStats.attempted = true
 
+      // Determine if the input is a ZIP code or city name
+      const isZipCode = /^\d{5}(-\d{4})?$/.test(zipCode)
+      
       const npiResponse = await searchNPIProviders({
-        zip: zipCode,
+        [isZipCode ? 'zip' : 'city']: zipCode,
         taxonomy_description: specialty || undefined,
         limit: 50,
       })
@@ -190,80 +228,64 @@ export async function GET(request: Request) {
       console.log(`NPI search successful. Found ${npiResponse.result_count} providers.`)
 
       if (npiProviders.length > 0) {
-        console.log(`First provider: ${npiProviders[0].basic.first_name} ${npiProviders[0].basic.last_name}`)
-        console.log(`Taxonomies: ${npiProviders[0].taxonomies.map((t) => t.desc).join(", ")}`)
+        const firstProvider = npiProviders[0]
+        console.log(`First provider: ${firstProvider.basic.first_name} ${firstProvider.basic.last_name}`)
+        console.log(`Taxonomies: ${firstProvider.taxonomies.map((t) => t.desc).join(", ")}`)
       }
     } catch (npiError) {
       console.error("Error searching NPI providers:", npiError)
       npiSearchStats.successful = false
       npiSearchStats.error = npiError instanceof Error ? npiError.message : "Unknown error"
-      // Continue with mock data only
       usedMockData = true
     }
 
-    // Step 2: Create providers from NPI data
+    // Step 2: Create providers from NPI data with enhanced location information
     let providers: Provider[] = []
 
     if (npiProviders.length > 0) {
-      // Create providers from NPI data
-      for (const npiProvider of npiProviders) {
-        const primaryAddress =
-          npiProvider.addresses.find((a) => a.address_purpose === "LOCATION") || npiProvider.addresses[0]
+      providers = await Promise.all(npiProviders.map(async npiProvider => {
+        const primaryAddress = npiProvider.addresses.find((a) => a.address_purpose === "LOCATION") || npiProvider.addresses[0]
         const primaryTaxonomy = npiProvider.taxonomies.find((t) => t.primary) || npiProvider.taxonomies[0]
 
-        const provider: Provider = {
+        // Create the full address string for geocoding
+        const fullAddress = `${primaryAddress.address_1}${primaryAddress.address_2 ? ", " + primaryAddress.address_2 : ""}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postal_code}`
+
+        // Get coordinates using Google Maps Geocoding API
+        let coordinates = null
+        try {
+          const geocodeResponse = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(fullAddress)}&key=${process.env.GOOGLE_MAPS_API_KEY}`
+          )
+          const geocodeData = await geocodeResponse.json()
+          
+          if (geocodeData.results && geocodeData.results[0]) {
+            coordinates = {
+              latitude: geocodeData.results[0].geometry.location.lat,
+              longitude: geocodeData.results[0].geometry.location.lng,
+            }
+          }
+        } catch (error) {
+          console.error(`Error geocoding address for provider ${npiProvider.number}:`, error)
+        }
+
+        return {
           id: `npi-${npiProvider.number}`,
           name: `${npiProvider.basic.first_name} ${npiProvider.basic.middle_name ? npiProvider.basic.middle_name + " " : ""}${npiProvider.basic.last_name}${npiProvider.basic.credential ? ", " + npiProvider.basic.credential : ""}`,
           specialty: primaryTaxonomy ? mapNPITaxonomyToSpecialty(primaryTaxonomy.desc) : "Healthcare Provider",
           address: {
-            full: `${primaryAddress.address_1}${primaryAddress.address_2 ? ", " + primaryAddress.address_2 : ""}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postal_code}`,
+            full: fullAddress,
             city: primaryAddress.city,
             state: primaryAddress.state,
             zipCode: primaryAddress.postal_code,
           },
+          coordinates,
           phone: primaryAddress.telephone_number,
           npiNumber: npiProvider.number,
           credentials: npiProvider.basic.credential,
           isVerified: true,
           services: ["Preventive Care", "Chronic Disease Management"],
         }
-
-        providers.push(provider)
-      }
-    }
-
-    // Step 3: If no providers found or very few, add mock data
-    if (providers.length < 3) {
-      usedMockData = true
-
-      // Try to get providers from mock DB first
-      try {
-        let mockDbProviders = await db.getAllProviders()
-
-        // Filter by zipCode if provided
-        if (zipCode) {
-          mockDbProviders = mockDbProviders.filter((p) => p.address.zipCode.startsWith(zipCode.substring(0, 1)))
-        }
-
-        // Filter by specialty if provided
-        if (specialty && specialty !== "all") {
-          mockDbProviders = mockDbProviders.filter((p) => p.specialty.toLowerCase().includes(specialty.toLowerCase()))
-        }
-
-        if (mockDbProviders.length > 0) {
-          providers = [...providers, ...mockDbProviders]
-        } else {
-          // Generate mock providers if mock DB doesn't have enough
-          const generatedMockProviders = generateMockProviders(zipCode, specialty || undefined)
-          providers = [...providers, ...generatedMockProviders]
-        }
-      } catch (mockDbError) {
-        console.error("Error getting mock providers:", mockDbError)
-
-        // Generate mock providers as last resort
-        const generatedMockProviders = generateMockProviders(zipCode, specialty || undefined)
-        providers = [...providers, ...generatedMockProviders]
-      }
+      }))
     }
 
     // Sort providers: verified first, then by name
@@ -281,15 +303,9 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error("Error searching providers:", error)
-
-    // Return mock data on error
-    const mockProviders = generateMockProviders(zipCode, specialty || undefined)
-
     return NextResponse.json({
-      providers: mockProviders,
-      usedMockData: true,
-      message: "An error occurred while searching for providers. Showing mock data instead.",
-      errorDetails: error instanceof Error ? error.message : "Unknown error",
-    })
+      error: "An error occurred while searching for providers",
+      details: error instanceof Error ? error.message : "Unknown error",
+    }, { status: 500 })
   }
 }

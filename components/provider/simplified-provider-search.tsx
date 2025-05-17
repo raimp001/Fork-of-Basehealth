@@ -53,6 +53,10 @@ export function SimplifiedProviderSearch() {
     "Psychiatry",
     "Orthopedics",
     "Obstetrics & Gynecology",
+    // Dental specialties
+    "Dentist",
+    "General Dentist",
+    "Pediatric Dentist",
   ]
 
   const handleSearch = async () => {

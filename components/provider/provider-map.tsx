@@ -21,6 +21,7 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
   const [centerCoordinates, setCenterCoordinates] = useState<{ lat: number; lng: number } | null>(null)
   const [isLoadingLocation, setIsLoadingLocation] = useState(false)
   const [mapApiKey, setMapApiKey] = useState<string>("")
+  const [mapError, setMapError] = useState<string | null>(null)
 
   // Fetch Maps API key from server
   useEffect(() => {
@@ -30,9 +31,12 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
         const data = await response.json()
         if (data.apiKey) {
           setMapApiKey(data.apiKey)
+        } else {
+          setMapError("Google Maps API key not found")
         }
       } catch (error) {
         console.error("Failed to fetch Maps API key:", error)
+        setMapError("Failed to load Google Maps")
       }
     }
 
@@ -44,10 +48,11 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
     if (!mapApiKey || window.google) return
 
     const script = document.createElement("script")
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${mapApiKey}&libraries=places`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${mapApiKey}&libraries=places,geocoding`
     script.async = true
     script.defer = true
     script.onload = () => setMapLoaded(true)
+    script.onerror = () => setMapError("Failed to load Google Maps script")
     document.head.appendChild(script)
   }, [mapApiKey])
 
@@ -56,28 +61,40 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
     const initializeMap = async () => {
       if (!mapLoaded || !mapRef.current) return
 
-      // Default coordinates (San Francisco)
-      let mapCenter = { lat: 37.7749, lng: -122.4194 }
+      try {
+        // Default coordinates (San Francisco)
+        let mapCenter = { lat: 37.7749, lng: -122.4194 }
 
-      // If zipCode is provided, geocode it
-      if (zipCode) {
-        const coordinates = await geocodeZipCode(zipCode)
-        if (coordinates) {
-          mapCenter = { lat: coordinates.latitude, lng: coordinates.longitude }
-          setCenterCoordinates(mapCenter)
+        // If zipCode is provided, geocode it
+        if (zipCode) {
+          const coordinates = await geocodeZipCode(zipCode)
+          if (coordinates) {
+            mapCenter = { lat: coordinates.latitude, lng: coordinates.longitude }
+            setCenterCoordinates(mapCenter)
+          }
         }
+
+        // Create the map
+        const newMap = new window.google.maps.Map(mapRef.current, {
+          center: mapCenter,
+          zoom: 11,
+          mapTypeControl: false,
+          fullscreenControl: false,
+          streetViewControl: false,
+          styles: [
+            {
+              featureType: "poi",
+              elementType: "labels",
+              stylers: [{ visibility: "off" }],
+            },
+          ],
+        })
+
+        setMap(newMap)
+      } catch (error) {
+        console.error("Error initializing map:", error)
+        setMapError("Failed to initialize map")
       }
-
-      // Create the map
-      const newMap = new window.google.maps.Map(mapRef.current, {
-        center: mapCenter,
-        zoom: 11,
-        mapTypeControl: false,
-        fullscreenControl: false,
-        streetViewControl: false,
-      })
-
-      setMap(newMap)
     }
 
     initializeMap()
@@ -87,78 +104,101 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
   useEffect(() => {
     if (!map || !providers.length) return
 
-    // Clear existing markers
-    markers.forEach((marker) => marker.setMap(null))
+    try {
+      // Clear existing markers
+      markers.forEach((marker) => marker.setMap(null))
 
-    // Create new markers
-    const newMarkers: google.maps.Marker[] = []
-    const bounds = new google.maps.LatLngBounds()
+      // Create new markers
+      const newMarkers: google.maps.Marker[] = []
+      const bounds = new google.maps.LatLngBounds()
 
-    // Add markers for each provider
-    providers.forEach(async (provider) => {
-      // Get coordinates for the provider
-      let position: google.maps.LatLngLiteral
+      // Add markers for each provider
+      providers.forEach(async (provider) => {
+        try {
+          // Get coordinates for the provider
+          let position: google.maps.LatLngLiteral
 
-      if (provider.coordinates) {
-        // Use existing coordinates if available
-        position = { lat: provider.coordinates.latitude, lng: provider.coordinates.longitude }
-      } else {
-        // Geocode the provider's address
-        const coordinates = await geocodeZipCode(provider.address.zipCode)
-        if (!coordinates) return
+          if (provider.coordinates) {
+            // Use existing coordinates if available
+            position = { lat: provider.coordinates.latitude, lng: provider.coordinates.longitude }
+          } else {
+            // Geocode the provider's address
+            const address = `${provider.address.full || provider.address.city}, ${provider.address.state} ${provider.address.zipCode}`
+            const geocoder = new window.google.maps.Geocoder()
+            
+            const result = await geocoder.geocode({ address })
+            if (result.results[0]) {
+              position = {
+                lat: result.results[0].geometry.location.lat(),
+                lng: result.results[0].geometry.location.lng(),
+              }
+            } else {
+              console.warn(`Could not geocode address for provider: ${provider.name}`)
+              return
+            }
+          }
 
-        position = { lat: coordinates.latitude, lng: coordinates.longitude }
+          // Create marker
+          const marker = new window.google.maps.Marker({
+            position,
+            map,
+            title: provider.name,
+            animation: window.google.maps.Animation.DROP,
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: "#2563eb",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 2,
+            },
+          })
 
-        // Add a small offset to prevent markers from overlapping
-        position.lat += (Math.random() - 0.5) * 0.01
-        position.lng += (Math.random() - 0.5) * 0.01
-      }
+          // Add info window
+          const infoWindow = new window.google.maps.InfoWindow({
+            content: `
+              <div style="max-width: 200px; padding: 8px;">
+                <h3 style="font-weight: bold; margin-bottom: 5px; color: #2563eb;">${provider.name}</h3>
+                <p style="margin: 0; color: #4b5563;">${provider.specialty}</p>
+                <p style="margin: 5px 0; color: #4b5563;">${provider.address.city}, ${provider.address.state}</p>
+                <p style="margin: 0; color: #4b5563;">Rating: ${provider.rating?.toFixed(1) || "N/A"} (${provider.reviewCount || 0} reviews)</p>
+                ${provider.distance ? `<p style="margin: 5px 0; color: #2563eb">${provider.distance.toFixed(1)} miles away</p>` : ""}
+                ${provider.phone ? `<p style="margin: 5px 0; color: #4b5563;">${provider.phone}</p>` : ""}
+              </div>
+            `,
+          })
 
-      // Create marker
-      const marker = new window.google.maps.Marker({
-        position,
-        map,
-        title: provider.name,
-        animation: window.google.maps.Animation.DROP,
-      })
+          marker.addListener("click", () => {
+            infoWindow.open(map, marker)
+            if (onProviderSelect) {
+              onProviderSelect(provider)
+            }
+          })
 
-      // Add info window
-      const infoWindow = new window.google.maps.InfoWindow({
-        content: `
-          <div style="max-width: 200px">
-            <h3 style="font-weight: bold; margin-bottom: 5px">${provider.name}</h3>
-            <p style="margin: 0">${provider.specialty}</p>
-            <p style="margin: 5px 0">${provider.address.city}, ${provider.address.state}</p>
-            <p style="margin: 0">Rating: ${provider.rating?.toFixed(1) || "N/A"} (${provider.reviewCount || 0} reviews)</p>
-            ${provider.distance ? `<p style="margin: 5px 0; color: #2563eb">${provider.distance.toFixed(1)} miles away</p>` : ""}
-          </div>
-        `,
-      })
-
-      marker.addListener("click", () => {
-        infoWindow.open(map, marker)
-        if (onProviderSelect) {
-          onProviderSelect(provider)
+          // Extend bounds to include this marker
+          bounds.extend(position)
+          newMarkers.push(marker)
+        } catch (error) {
+          console.error(`Error adding marker for provider ${provider.name}:`, error)
         }
       })
 
-      // Extend bounds to include this marker
-      bounds.extend(position)
-      newMarkers.push(marker)
-    })
+      // Fit map to bounds if we have markers
+      if (newMarkers.length > 0) {
+        map.fitBounds(bounds)
 
-    // Fit map to bounds if we have markers
-    if (newMarkers.length > 0) {
-      map.fitBounds(bounds)
+        // Don't zoom in too far
+        const listener = window.google.maps.event.addListener(map, "idle", () => {
+          if (map.getZoom()! > 16) map.setZoom(16)
+          window.google.maps.event.removeListener(listener)
+        })
+      }
 
-      // Don't zoom in too far
-      const listener = window.google.maps.event.addListener(map, "idle", () => {
-        if (map.getZoom()! > 16) map.setZoom(16)
-        window.google.maps.event.removeListener(listener)
-      })
+      setMarkers(newMarkers)
+    } catch (error) {
+      console.error("Error adding markers:", error)
+      setMapError("Failed to add provider markers")
     }
-
-    setMarkers(newMarkers)
   }, [map, providers, onProviderSelect])
 
   // Get user's current location
@@ -199,57 +239,31 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
         (error) => {
           console.error("Error getting location:", error)
           setIsLoadingLocation(false)
-        },
-        { enableHighAccuracy: true },
+        }
       )
-    } else {
-      console.error("Geolocation is not supported by this browser.")
-      setIsLoadingLocation(false)
     }
   }
 
+  if (mapError) {
+    return (
+      <Card className="p-4 text-center">
+        <p className="text-red-500">{mapError}</p>
+      </Card>
+    )
+  }
+
   return (
-    <Card className="relative overflow-hidden">
-      <div ref={mapRef} className="w-full h-[400px]" />
-
-      {/* Current location button */}
+    <Card className="relative h-[500px] w-full overflow-hidden">
+      <div ref={mapRef} className="h-full w-full" />
       <Button
-        variant="outline"
-        size="sm"
-        className="absolute top-4 right-4 bg-white shadow-md"
         onClick={handleGetCurrentLocation}
-        disabled={isLoadingLocation || !mapLoaded}
+        disabled={isLoadingLocation}
+        className="absolute bottom-4 right-4 z-10"
+        size="sm"
       >
-        {isLoadingLocation ? (
-          <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
-        ) : (
-          <>
-            <Locate className="h-4 w-4 mr-2" />
-            My Location
-          </>
-        )}
+        <Locate className="mr-2 h-4 w-4" />
+        {isLoadingLocation ? "Locating..." : "Use My Location"}
       </Button>
-
-      {/* Map loading state */}
-      {!mapLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-            <p>Loading map...</p>
-          </div>
-        </div>
-      )}
-
-      {/* No providers state */}
-      {mapLoaded && providers.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-          <div className="text-center p-4">
-            <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p>No providers to display on the map.</p>
-            <p className="text-sm text-muted-foreground mt-2">Try adjusting your search criteria.</p>
-          </div>
-        </div>
-      )}
     </Card>
   )
 }
