@@ -246,8 +246,8 @@ export function ProviderSearch() {
 
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
-    // Only allow numbers and limit to 5 digits
-    if (value === "" || (/^\d+$/.test(value) && value.length <= 5)) {
+    // Allow letters, numbers, spaces, commas, and hyphens for city names and ZIP codes
+    if (value === "" || /^[a-zA-Z0-9\s,\-]+$/.test(value)) {
       setZipCode(value)
     }
   }
@@ -346,9 +346,9 @@ export function ProviderSearch() {
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="zipCode"
-                  placeholder="Enter ZIP code or city/area name"
+                  placeholder="e.g. 90210, Beverly Hills, or Seattle, WA"
                   value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
+                  onChange={handleZipCodeChange}
                   className="pl-10"
                 />
               </div>
@@ -454,14 +454,15 @@ export function ProviderSearch() {
             <div className="mt-4">
               <p className="mb-2">Try these suggestions:</p>
               <ul className="list-disc list-inside text-left max-w-md mx-auto">
-                <li>Check if your ZIP code is correct</li>
-                <li>Try a different specialty</li>
+                <li>Check if your ZIP code or city name is correct</li>
+                <li>Try searching with state abbreviation (e.g., "Seattle, WA")</li>
+                <li>Try a different specialty or select "All specialties"</li>
                 <li>Increase the maximum distance</li>
-                <li>Expand your search to include providers in nearby areas</li>
+                <li>Try a nearby ZIP code or larger city</li>
               </ul>
             </div>
           )}
-          {!zipCode && <p className="mt-2">Please enter a ZIP code to find providers in your area.</p>}
+          {!zipCode && <p className="mt-2">Please enter a ZIP code or city name to find providers in your area.</p>}
         </div>
       ) : isLabSpecialty ? (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-8 text-center">
