@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Wallet, UserPlus, ShieldCheck } from "lucide-react"
+import { Wallet, UserPlus, ShieldCheck, Activity, Users } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -53,17 +53,29 @@ export default function HomePage() {
       </header>
 
       <main className="flex flex-col items-center flex-1 justify-center px-4 w-full">
-        <div className="flex flex-col md:flex-row gap-8 w-full max-w-3xl justify-center mt-12">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-blue-700 mb-2 text-center leading-tight">
+          Personalized Health Starts Here
+        </h1>
+        <p className="text-sm md:text-base text-gray-500 mb-12 text-center">
+          Evidence-based screenings. Expert second opinions.
+        </p>
+        <div className="flex flex-col md:flex-row gap-8 w-full max-w-3xl justify-center">
           {/* AI Screening Card */}
-          <div className="flex-1 bg-white rounded-xl shadow p-8 flex flex-col items-center justify-center min-w-[220px]">
-            <Button asChild variant="outline" className="border-blue-500 text-blue-600 hover:bg-blue-50 transition font-bold py-4 px-8 rounded-lg shadow text-lg w-full">
-              <Link href="/screening">Start AI Screening</Link>
+          <div className="flex-1 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-8 flex flex-col items-center justify-center min-w-[220px]">
+            <Button asChild variant="outline" className="border-blue-500 text-blue-600 hover:bg-blue-50 transition font-semibold py-4 px-8 rounded-lg text-lg w-full flex items-center gap-3">
+              <Link href="/screening">
+                <Activity className="h-5 w-5" />
+                Start AI Screening
+              </Link>
             </Button>
           </div>
           {/* Second Opinion Card */}
-          <div className="flex-1 bg-white rounded-xl shadow p-8 flex flex-col items-center justify-center min-w-[220px]">
-            <Button asChild variant="outline" className="border-blue-500 text-blue-600 hover:bg-blue-50 transition font-bold py-4 px-8 rounded-lg shadow text-lg w-full">
-              <Link href="/second-opinion">Get Second Opinion</Link>
+          <div className="flex-1 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-8 flex flex-col items-center justify-center min-w-[220px]">
+            <Button asChild variant="outline" className="border-blue-500 text-blue-600 hover:bg-blue-50 transition font-semibold py-4 px-8 rounded-lg text-lg w-full flex items-center gap-3">
+              <Link href="/second-opinion">
+                <Users className="h-5 w-5" />
+                Get Second Opinion
+              </Link>
             </Button>
           </div>
         </div>
