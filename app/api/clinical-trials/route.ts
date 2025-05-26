@@ -16,9 +16,6 @@ export async function GET(request: NextRequest) {
     if (query) {
       apiParams.append('query.cond', query)
     }
-    
-    // Add recruiting status filter
-    apiParams.append('query.recrs', 'a,f,d')  // a=recruiting, f=enrolling by invitation, d=active not recruiting
 
     const apiUrl = `https://clinicaltrials.gov/api/v2/studies?${apiParams.toString()}`
     
