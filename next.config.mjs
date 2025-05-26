@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Add static export for GitHub Pages
+  output: 'export',
+  // Add base path for GitHub Pages
+  basePath: '/Fork-of-Basehealth',
+  assetPrefix: '/Fork-of-Basehealth/',
+  trailingSlash: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
