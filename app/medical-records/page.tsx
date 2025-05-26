@@ -257,7 +257,7 @@ export default function MedicalRecordsPage() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <User className="h-4 w-4" />
-                <span>{user.name}</span>
+                <span>{user.firstName} {user.lastName}</span>
               </div>
               <Button onClick={handleLogout} variant="outline" size="sm">
                 Logout

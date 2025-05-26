@@ -75,6 +75,15 @@ export const locationCoordinates: Record<string, Coordinates> = {
   'atlanta, georgia': { latitude: 33.7490, longitude: -84.3880 },
   'miami, florida': { latitude: 25.7617, longitude: -80.1918 },
   'mobile, alabama': { latitude: 30.6954, longitude: -88.0399 },
+  'birmingham, alabama': { latitude: 33.5186, longitude: -86.8104 },
+  'huntsville, alabama': { latitude: 34.7304, longitude: -86.5861 },
+  'montgomery, alabama': { latitude: 32.3668, longitude: -86.3000 },
+  'orlando, florida': { latitude: 28.5383, longitude: -81.3792 },
+  'tampa, florida': { latitude: 27.9506, longitude: -82.4572 },
+  'fort lauderdale, florida': { latitude: 26.1224, longitude: -80.1373 },
+  'st. petersburg, florida': { latitude: 27.7676, longitude: -82.6403 },
+  'tallahassee, florida': { latitude: 30.4518, longitude: -84.2807 },
+  'gainesville, florida': { latitude: 29.6516, longitude: -82.3248 },
   
   // States (center coordinates)
   'alabama': { latitude: 32.3617, longitude: -86.2792 },

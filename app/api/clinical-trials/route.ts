@@ -9,8 +9,8 @@ export async function GET(request: NextRequest) {
     // Build the ClinicalTrials.gov API URL with the search parameters
     const apiParams = new URLSearchParams({
       'format': 'json',
-      'pageSize': searchParams.get('pageSize') || '50',
-      'fields': 'NCTId,BriefTitle,Condition,Phase,OverallStatus,BriefSummary,EligibilityCriteria,EnrollmentCount,StudyType,LocationCity,LocationState,LocationCountry,LeadSponsorName,LocationFacility'
+      'pageSize': searchParams.get('pageSize') || '50'
+      // Remove fields parameter to get full data structure for proper location parsing
     })
 
     // Add the search query if provided

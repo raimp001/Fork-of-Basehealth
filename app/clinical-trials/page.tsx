@@ -92,6 +92,7 @@ export default function ClinicalTrialsPage() {
       'boston', 'chicago', 'houston', 'phoenix', 'philadelphia', 'dallas', 'austin', 
       'columbus', 'charlotte', 'indianapolis', 'seattle', 'denver', 'washington', 'atlanta',
       'miami', 'detroit', 'nashville', 'baltimore', 'memphis', 'milwaukee', 'portland',
+      'birmingham', 'orlando', 'tampa', 'jacksonville',
       // State abbreviations and full names
       'new york', 'california', 'texas', 'florida', 'illinois', 'pennsylvania', 'ohio', 
       'georgia', 'north carolina', 'michigan', 'new jersey', 'virginia', 'washington',
@@ -226,12 +227,23 @@ export default function ClinicalTrialsPage() {
         // Get first location for display
         const locations = contactsLocationsModule.locations || []
         const firstLocation = locations[0] || {}
+        
+        // Debug: Log the location structure
+        if (locations.length > 0) {
+          console.log('Location structure for trial:', identificationModule.nctId, firstLocation)
+        }
+        
         const locationString = [firstLocation.city, firstLocation.state, firstLocation.country]
           .filter(Boolean).join(', ')
 
         // Calculate actual distance if location was mentioned in query
         const distance = parsed.locations.length > 0 ? 
           calculateTrialDistance(parsed.locations[0], firstLocation) : null
+        
+        // Debug: Log distance calculation
+        if (parsed.locations.length > 0 && distance !== null) {
+          console.log(`Distance from ${parsed.locations[0]} to ${firstLocation.city}, ${firstLocation.state}: ${distance} miles`)
+        }
         
         // Calculate location relevance for sorting
         const locationRelevance = parsed.locations.length > 0 ? 
