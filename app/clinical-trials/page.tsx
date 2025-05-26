@@ -392,5 +392,4 @@ export default function ClinicalTrialsPage() {
       </main>
     </div>
   )
-} 
-} 
+}
