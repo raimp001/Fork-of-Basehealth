@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Activity, Users, Wallet, UserPlus } from "lucide-react"
+import { Activity, Users, Wallet, UserPlus, Database } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -64,9 +64,16 @@ export default function HomePage() {
         </div>
         <div className="flex items-center gap-6">
           <nav className="flex items-center gap-8">
-            <Link href="/research" className="text-gray-700 hover:text-indigo-600 transition-colors">
-              Research
-            </Link>
+            <Button 
+              asChild 
+              variant="ghost" 
+              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium"
+            >
+              <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <Database className="h-4 w-4" />
+                healthdb.ai
+              </a>
+            </Button>
             <Link href="/patient-portal" className="text-gray-700 hover:text-indigo-600 transition-colors">
               Patient Portal
             </Link>
@@ -141,6 +148,26 @@ export default function HomePage() {
                 <Users className="h-5 w-5" />
                 Get Second Opinion
               </Link>
+            </Button>
+          </div>
+
+          {/* healthdb.ai Integration Section */}
+          <div className="mt-16 p-8 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Contribute to Healthcare Research
+            </h2>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+              Join healthdb.ai to participate as a patient and contribute your health data to advance medical research and improve healthcare for everyone.
+            </p>
+            <Button 
+              asChild 
+              variant="outline" 
+              className="border-indigo-500 text-indigo-600 hover:bg-indigo-50 px-6 py-2 rounded-lg font-medium"
+            >
+              <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                <Database className="h-4 w-4" />
+                Join healthdb.ai as Patient
+              </a>
             </Button>
           </div>
         </div>

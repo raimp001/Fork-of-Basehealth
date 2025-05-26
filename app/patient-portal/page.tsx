@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Activity, Calendar, FileText } from "lucide-react"
+import { ArrowLeft, User, Activity, Calendar, FileText, Database } from "lucide-react"
 
 export default function PatientPortalPage() {
   return (
@@ -13,9 +13,16 @@ export default function PatientPortalPage() {
           </Link>
         </div>
         <nav className="flex items-center gap-8">
-          <Link href="/research" className="text-gray-700 hover:text-indigo-600 transition-colors">
-            Research
-          </Link>
+          <Button 
+            asChild 
+            variant="ghost" 
+            className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium"
+          >
+            <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              healthdb.ai
+            </a>
+          </Button>
           <Link href="/patient-portal" className="text-indigo-600 font-medium">
             Patient Portal
           </Link>
