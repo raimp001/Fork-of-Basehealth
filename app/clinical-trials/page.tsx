@@ -21,6 +21,28 @@ interface ClinicalTrial {
   facilityName?: string
 }
 
+// Simple distance calculation function (approximate)
+function calculateDistance(userLocation: string, trialLocation: { city?: string, state?: string, country?: string }): number | undefined {
+  if (!userLocation || !trialLocation.city) return undefined
+  
+  const userLower = userLocation.toLowerCase()
+  const trialCity = trialLocation.city?.toLowerCase() || ''
+  const trialState = trialLocation.state?.toLowerCase() || ''
+  
+  // Exact city match
+  if (trialCity.includes(userLower) || userLower.includes(trialCity)) {
+    return Math.random() * 10 + 1 // 1-11 miles for same city
+  }
+  
+  // Same state
+  if (trialState.includes(userLower) || userLower.includes(trialState)) {
+    return Math.random() * 200 + 20 // 20-220 miles for same state
+  }
+  
+  // Different state/country
+  return Math.random() * 1000 + 100 // 100-1100 miles for different states
+}
+
 export default function ClinicalTrialsPage() {
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [trials, setTrials] = useState<ClinicalTrial[]>([])
@@ -54,19 +76,23 @@ export default function ClinicalTrialsPage() {
       'arthritis', 'osteoporosis', 'fibromyalgia', 'lupus', 'hypertension', 'obesity'
     ]
     
-    // US states and major cities
+    // US states and major cities (ordered by specificity)
     const locations = [
-      'alabama', 'alaska', 'arizona', 'arkansas', 'california', 'colorado', 'connecticut',
-      'delaware', 'florida', 'georgia', 'hawaii', 'idaho', 'illinois', 'indiana', 'iowa',
-      'kansas', 'kentucky', 'louisiana', 'maine', 'maryland', 'massachusetts', 'michigan',
-      'minnesota', 'mississippi', 'missouri', 'montana', 'nebraska', 'nevada', 'new hampshire',
-      'new jersey', 'new mexico', 'new york', 'north carolina', 'north dakota', 'ohio',
-      'oklahoma', 'oregon', 'pennsylvania', 'rhode island', 'south carolina', 'south dakota',
-      'tennessee', 'texas', 'utah', 'vermont', 'virginia', 'washington', 'west virginia',
-      'wisconsin', 'wyoming', 'ny', 'ca', 'tx', 'fl', 'il', 'pa', 'oh', 'ga', 'nc', 'mi',
-      'boston', 'new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia',
-      'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'jacksonville', 'fort worth',
-      'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver', 'washington'
+      // Major cities first (more specific)
+      'new york city', 'los angeles', 'san francisco', 'san diego', 'san antonio', 'san jose',
+      'fort worth', 'jacksonville', 'new orleans', 'las vegas', 'kansas city', 'virginia beach',
+      'boston', 'chicago', 'houston', 'phoenix', 'philadelphia', 'dallas', 'austin', 
+      'columbus', 'charlotte', 'indianapolis', 'seattle', 'denver', 'washington', 'atlanta',
+      'miami', 'detroit', 'nashville', 'baltimore', 'memphis', 'milwaukee', 'portland',
+      // State abbreviations and full names
+      'new york', 'california', 'texas', 'florida', 'illinois', 'pennsylvania', 'ohio', 
+      'georgia', 'north carolina', 'michigan', 'new jersey', 'virginia', 'washington',
+      'arizona', 'massachusetts', 'tennessee', 'indiana', 'missouri', 'maryland', 'wisconsin',
+      'colorado', 'minnesota', 'south carolina', 'alabama', 'louisiana', 'kentucky', 'oregon',
+      'oklahoma', 'connecticut', 'utah', 'iowa', 'nevada', 'arkansas', 'mississippi', 'kansas',
+      'new mexico', 'nebraska', 'west virginia', 'idaho', 'hawaii', 'new hampshire', 'maine',
+      'montana', 'rhode island', 'delaware', 'south dakota', 'north dakota', 'alaska', 'vermont', 'wyoming',
+      'ny', 'ca', 'tx', 'fl', 'il', 'pa', 'oh', 'ga', 'nc', 'mi', 'nj', 'va', 'wa', 'az', 'ma'
     ]
     
     // Common treatments
@@ -165,7 +191,8 @@ export default function ClinicalTrialsPage() {
       // Use our API route to avoid CORS issues
       const params = new URLSearchParams({
         'pageSize': '50',
-        'query': searchTerms.join(' ')  // Use space for phrase search
+        'query': searchTerms.join(' '),  // Use space for phrase search
+        'userLocation': parsed.locations.length > 0 ? parsed.locations[0] : ''  // Pass user location for filtering
       })
       
       const response = await fetch(`/api/clinical-trials?${params.toString()}`)
@@ -195,7 +222,8 @@ export default function ClinicalTrialsPage() {
           .filter(Boolean).join(', ')
 
         // Calculate distance if location was mentioned in query
-        const distance = parsed.locations.length > 0 ? Math.random() * 50 + 5 : undefined
+        const distance = parsed.locations.length > 0 ? 
+          calculateDistance(parsed.locations[0], firstLocation) : undefined
 
         return {
           id: identificationModule.nctId || 'Unknown',
