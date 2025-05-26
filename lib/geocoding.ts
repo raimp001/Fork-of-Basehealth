@@ -148,14 +148,38 @@ export function getLocationCoordinates(locationString: string): Coordinates | nu
     return locationCoordinates[normalized]
   }
   
-  // Try to find partial matches
+  // Try to find partial matches - prioritize city matches over state matches
+  let bestMatch: Coordinates | null = null
+  let bestMatchScore = 0
+  
   for (const [key, coords] of Object.entries(locationCoordinates)) {
-    if (key.includes(normalized) || normalized.includes(key)) {
+    let score = 0
+    
+    // Exact match gets highest score
+    if (key === normalized) {
       return coords
+    }
+    
+    // City name matches get high score
+    if (key.includes(normalized) || normalized.includes(key)) {
+      // Prefer city matches over state matches
+      if (key.includes(',')) {
+        score = 10 // City match
+      } else {
+        score = 5  // State match
+      }
+      
+      // Prefer longer matches
+      score += Math.min(normalized.length, key.length)
+      
+      if (score > bestMatchScore) {
+        bestMatchScore = score
+        bestMatch = coords
+      }
     }
   }
   
-  return null
+  return bestMatch
 }
 
 // Parse location from clinical trial data
@@ -166,17 +190,25 @@ export function parseTrialLocation(location: { city?: string, state?: string, co
   if (location.country && location.country.toLowerCase() !== 'united states') {
     parts.push(location.country.toLowerCase())
   }
-  return parts.join(', ')
+  const result = parts.join(', ')
+  console.log('parseTrialLocation:', location, '->', result)
+  return result
 }
 
 // Calculate distance between user location and trial location
 export function calculateTrialDistance(userLocation: string, trialLocation: { city?: string, state?: string, country?: string }): number | null {
+  console.log('calculateTrialDistance called with:', { userLocation, trialLocation })
+  
   const userCoords = getLocationCoordinates(userLocation)
+  console.log('User coordinates for', userLocation, ':', userCoords)
   if (!userCoords) return null
   
   const trialLocationString = parseTrialLocation(trialLocation)
   const trialCoords = getLocationCoordinates(trialLocationString)
+  console.log('Trial coordinates for', trialLocationString, ':', trialCoords)
   if (!trialCoords) return null
   
-  return calculateDistance(userCoords, trialCoords)
+  const distance = calculateDistance(userCoords, trialCoords)
+  console.log('Calculated distance:', distance, 'miles')
+  return distance
 } 

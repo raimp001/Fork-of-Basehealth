@@ -224,25 +224,40 @@ export default function ClinicalTrialsPage() {
         const contactsLocationsModule = protocolSection.contactsLocationsModule || {}
         const sponsorCollaboratorsModule = protocolSection.sponsorCollaboratorsModule || {}
 
-        // Get first location for display
+        // Get first location for display - handle different API response structures
         const locations = contactsLocationsModule.locations || []
         const firstLocation = locations[0] || {}
         
+        // Handle different possible location field names from ClinicalTrials.gov API
+        const locationCity = firstLocation.city || firstLocation.locationCity || firstLocation.City
+        const locationState = firstLocation.state || firstLocation.locationState || firstLocation.State  
+        const locationCountry = firstLocation.country || firstLocation.locationCountry || firstLocation.Country || 'United States'
+        
         // Debug: Log the location structure
         if (locations.length > 0) {
-          console.log('Location structure for trial:', identificationModule.nctId, firstLocation)
+          console.log('Location structure for trial:', identificationModule.nctId, {
+            original: firstLocation,
+            parsed: { city: locationCity, state: locationState, country: locationCountry }
+          })
         }
         
-        const locationString = [firstLocation.city, firstLocation.state, firstLocation.country]
+        const locationString = [locationCity, locationState, locationCountry]
           .filter(Boolean).join(', ')
+
+        // Create normalized location object for distance calculation
+        const normalizedLocation = {
+          city: locationCity,
+          state: locationState,
+          country: locationCountry
+        }
 
         // Calculate actual distance if location was mentioned in query
         const distance = parsed.locations.length > 0 ? 
-          calculateTrialDistance(parsed.locations[0], firstLocation) : null
+          calculateTrialDistance(parsed.locations[0], normalizedLocation) : null
         
         // Debug: Log distance calculation
-        if (parsed.locations.length > 0 && distance !== null) {
-          console.log(`Distance from ${parsed.locations[0]} to ${firstLocation.city}, ${firstLocation.state}: ${distance} miles`)
+        if (parsed.locations.length > 0) {
+          console.log(`Distance calculation: ${parsed.locations[0]} to ${locationCity}, ${locationState}:`, distance, 'miles')
         }
         
         // Calculate location relevance for sorting
