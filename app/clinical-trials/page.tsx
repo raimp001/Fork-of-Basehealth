@@ -23,6 +23,7 @@ interface ClinicalTrial {
 export default function ClinicalTrialsPage() {
   const [location, setLocation] = useState<string>("")
   const [isLoadingLocation, setIsLoadingLocation] = useState(false)
+  const [manualLocation, setManualLocation] = useState<string>("")
   const [trials, setTrials] = useState<ClinicalTrial[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCondition, setSelectedCondition] = useState("")
@@ -70,6 +71,34 @@ export default function ClinicalTrialsPage() {
       eligibility: ["Age 21-60", "No current antidepressants", "Smartphone access"],
       estimatedEnrollment: 100,
       studyType: "Interventional"
+    },
+    {
+      id: "NCT05456789",
+      title: "Cancer Immunotherapy Combination Study",
+      condition: "Lung Cancer",
+      phase: "Phase II",
+      location: "Memorial Sloan Kettering, NY",
+      distance: 12.4,
+      sponsor: "Memorial Sloan Kettering",
+      status: "Recruiting",
+      description: "Testing combination immunotherapy treatments for advanced lung cancer patients.",
+      eligibility: ["Age 18+", "Stage III/IV lung cancer", "Previous treatment required"],
+      estimatedEnrollment: 300,
+      studyType: "Interventional"
+    },
+    {
+      id: "NCT05567890",
+      title: "Pediatric Diabetes Technology Trial",
+      condition: "Type 1 Diabetes",
+      phase: "Phase III",
+      location: "Children's Hospital Boston, MA",
+      distance: 15.2,
+      sponsor: "Boston Children's Hospital",
+      status: "Recruiting",
+      description: "Evaluating new continuous glucose monitoring technology in children.",
+      eligibility: ["Age 6-17", "Type 1 diabetes >1 year", "Parent consent"],
+      estimatedEnrollment: 180,
+      studyType: "Interventional"
     }
   ]
 
@@ -84,23 +113,31 @@ export default function ClinicalTrialsPage() {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude } = position.coords
-            // In real app, use reverse geocoding API
+            // In real app, use reverse geocoding API to get city name
             setLocation(`${latitude.toFixed(2)}, ${longitude.toFixed(2)}`)
             setIsLoadingLocation(false)
           },
           (error) => {
             console.error("Error getting location:", error)
-            setLocation("Location access denied")
+            setLocation("Location access denied - Please enter manually")
             setIsLoadingLocation(false)
           }
         )
       } else {
-        setLocation("Geolocation not supported")
+        setLocation("Geolocation not supported - Please enter manually")
         setIsLoadingLocation(false)
       }
     } catch (error) {
       console.error("Location error:", error)
+      setLocation("Error detecting location - Please enter manually")
       setIsLoadingLocation(false)
+    }
+  }
+
+  const handleManualLocationSubmit = () => {
+    if (manualLocation.trim()) {
+      setLocation(manualLocation.trim())
+      // In real app, this would geocode the location and update trial distances
     }
   }
 
@@ -152,24 +189,51 @@ export default function ClinicalTrialsPage() {
             <h1 className="text-4xl font-bold text-gray-900">Clinical Trials Near You</h1>
           </div>
 
-          {/* Location and Search Section */}
+          {/* Location Section */}
           <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-8">
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-indigo-600" />
-                <span className="text-gray-700">Location:</span>
-                <span className="font-medium text-gray-900">
-                  {location || "Not detected"}
-                </span>
+            <div className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-indigo-600" />
+                  <span className="text-gray-700">Current Location:</span>
+                  <span className="font-medium text-gray-900">
+                    {location || "Not set"}
+                  </span>
+                </div>
+                <Button 
+                  onClick={getLocation}
+                  disabled={isLoadingLocation}
+                  variant="outline"
+                  className="border-indigo-500 text-indigo-600 hover:bg-indigo-50"
+                >
+                  {isLoadingLocation ? "Detecting..." : "Auto-Detect"}
+                </Button>
               </div>
-              <Button 
-                onClick={getLocation}
-                disabled={isLoadingLocation}
-                variant="outline"
-                className="border-indigo-500 text-indigo-600 hover:bg-indigo-50"
-              >
-                {isLoadingLocation ? "Detecting..." : "Detect Location"}
-              </Button>
+              
+              {/* Manual Location Input */}
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="Enter ZIP code, city, or address (e.g., 94301, Palo Alto CA, New York NY)"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    value={manualLocation}
+                    onChange={(e) => setManualLocation(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleManualLocationSubmit()}
+                  />
+                </div>
+                <Button 
+                  onClick={handleManualLocationSubmit}
+                  disabled={!manualLocation.trim()}
+                  className="bg-indigo-600 hover:bg-indigo-700 whitespace-nowrap"
+                >
+                  Set Location
+                </Button>
+              </div>
+              
+              <p className="text-sm text-gray-600">
+                💡 Enter your location to find clinical trials near you. We'll calculate distances to nearby medical centers.
+              </p>
             </div>
           </div>
 
