@@ -1,13 +1,9 @@
 // NPI (National Provider Identifier) API integration for real provider data
 export interface NPIProvider {
-  npi: string
-  name: {
-    first?: string
-    last?: string
-    middle?: string
-    credential?: string
-    organization?: string
-  }
+  number: string // NPI number
+  enumeration_type: string
+  created_epoch: string
+  last_updated_epoch: string
   addresses: Array<{
     address_1: string
     address_2?: string
@@ -18,9 +14,12 @@ export interface NPIProvider {
     country_name: string
     address_type: string
     address_purpose: string
+    telephone_number?: string
+    fax_number?: string
   }>
   taxonomies: Array<{
     code: string
+    taxonomy_group?: string
     desc: string
     primary: boolean
     state?: string
@@ -36,6 +35,20 @@ export interface NPIProvider {
     endpoint: string
     endpointType: string
     endpointTypeDescription: string
+    endpointDescription?: string
+    affiliation?: string
+    use?: string
+    useDescription?: string
+    contentType?: string
+    contentTypeDescription?: string
+    contentOtherDescription?: string
+    country_code?: string
+    country_name?: string
+    address_type?: string
+    address_1?: string
+    city?: string
+    state?: string
+    postal_code?: string
   }>
   basic?: {
     status: string
@@ -44,9 +57,10 @@ export interface NPIProvider {
     last_name?: string
     middle_name?: string
     name?: string
-    gender?: string
+    sex?: string // Changed from gender to sex
     enumeration_date?: string
     last_updated?: string
+    certification_date?: string
     name_prefix?: string
     name_suffix?: string
     sole_proprietor?: string
@@ -61,6 +75,20 @@ export interface NPIProvider {
     authorized_official_telephone_number?: string
     authorized_official_title_or_position?: string
   }
+  practiceLocations?: Array<{
+    country_code: string
+    country_name: string
+    address_purpose: string
+    address_type: string
+    address_1: string
+    address_2?: string
+    city: string
+    state: string
+    postal_code: string
+    telephone_number?: string
+    fax_number?: string
+  }>
+  other_names?: Array<any>
 }
 
 export interface NPISearchParams {
@@ -146,6 +174,9 @@ export async function searchProviders(params: NPISearchParams): Promise<NPISearc
   const baseUrl = 'https://npiregistry.cms.hhs.gov/api/'
   const searchParams = new URLSearchParams()
   
+  // Add required version parameter
+  searchParams.append('version', '2.1')
+  
   // Add search parameters
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
@@ -218,7 +249,7 @@ export async function searchProvidersBySpecialty(
     
     // Remove duplicates and limit results
     const uniqueResults = allResults.filter((provider, index, self) => 
-      index === self.findIndex(p => p.npi === provider.npi)
+      index === self.findIndex(p => p.number === provider.number)
     )
     
     return uniqueResults.slice(0, limit)

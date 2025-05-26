@@ -72,8 +72,13 @@ export async function GET(request: NextRequest) {
       // Generate a rating (in real app, this would come from reviews/ratings service)
       const rating = Math.round((Math.random() * 2 + 3) * 10) / 10 // 3.0-5.0 rating
       
+      // Get phone number from address or basic info
+      const phone = provider.addresses?.find(addr => addr.telephone_number)?.telephone_number || 
+                   provider.basic?.authorized_official_telephone_number || 
+                   'Phone not available'
+      
       return {
-        id: provider.npi,
+        id: provider.number, // Use 'number' instead of 'npi'
         name,
         specialty: providerSpecialty,
         address,
@@ -81,10 +86,10 @@ export async function GET(request: NextRequest) {
         rating,
         reviewCount: Math.floor(Math.random() * 200) + 10, // Mock review count
         acceptingPatients,
-        phone: provider.basic?.authorized_official_telephone_number || 'Phone not available',
-        npi: provider.npi,
+        phone,
+        npi: provider.number, // Use 'number' field
         credentials: provider.basic?.credential || '',
-        gender: provider.basic?.gender || 'Not specified',
+        gender: provider.basic?.sex || 'Not specified', // Use 'sex' instead of 'gender'
         // Mock additional fields that would come from other sources
         availability: acceptingPatients ? 'Next available: ' + 
           new Date(Date.now() + Math.random() * 14 * 24 * 60 * 60 * 1000).toLocaleDateString() : 
