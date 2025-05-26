@@ -1,8 +1,58 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Activity, Users } from "lucide-react"
+import { Activity, Users, Wallet, UserPlus } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
+} from "@/components/ui/dropdown-menu"
+import { useState, useEffect } from "react"
+import { getBlockchainService } from "@/services/blockchain-service"
 
 export default function HomePage() {
+  const [isWalletConnected, setIsWalletConnected] = useState(false)
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [isConnecting, setIsConnecting] = useState(false)
+
+  const blockchainService = getBlockchainService()
+
+  useEffect(() => {
+    // Check if wallet is already connected
+    checkWalletConnection()
+  }, [])
+
+  const checkWalletConnection = async () => {
+    if (blockchainService.isWalletConnected()) {
+      const address = await blockchainService.getWalletAddress()
+      setWalletAddress(address)
+      setIsWalletConnected(true)
+    }
+  }
+
+  const handleConnectWallet = async () => {
+    setIsConnecting(true)
+    try {
+      const connected = await blockchainService.connect()
+      if (connected) {
+        const address = await blockchainService.getWalletAddress()
+        setWalletAddress(address)
+        setIsWalletConnected(true)
+      }
+    } catch (error) {
+      console.error("Failed to connect wallet:", error)
+      alert("Failed to connect wallet. Please make sure you have a Web3 wallet installed.")
+    } finally {
+      setIsConnecting(false)
+    }
+  }
+
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header Navigation */}
@@ -12,17 +62,51 @@ export default function HomePage() {
             basehealth.xyz
           </Link>
         </div>
-        <nav className="flex items-center gap-8">
-          <Link href="/research" className="text-gray-700 hover:text-indigo-600 transition-colors">
-            Research
-          </Link>
-          <Link href="/patient-portal" className="text-gray-700 hover:text-indigo-600 transition-colors">
-            Patient Portal
-          </Link>
-          <Link href="/settings" className="text-gray-700 hover:text-indigo-600 transition-colors">
-            Settings
-          </Link>
-        </nav>
+        <div className="flex items-center gap-6">
+          <nav className="flex items-center gap-8">
+            <Link href="/research" className="text-gray-700 hover:text-indigo-600 transition-colors">
+              Research
+            </Link>
+            <Link href="/patient-portal" className="text-gray-700 hover:text-indigo-600 transition-colors">
+              Patient Portal
+            </Link>
+            <Link href="/settings" className="text-gray-700 hover:text-indigo-600 transition-colors">
+              Settings
+            </Link>
+          </nav>
+          
+          {/* Wallet and Auth Section */}
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              className={`flex items-center gap-2 border-indigo-500 hover:bg-indigo-50 transition px-4 py-2 rounded-lg ${
+                isWalletConnected ? 'text-green-600 border-green-500' : 'text-indigo-600'
+              }`}
+              onClick={handleConnectWallet}
+              disabled={isConnecting}
+            >
+              <Wallet className="h-4 w-4" /> 
+              {isConnecting ? "Connecting..." : 
+               isWalletConnected ? formatAddress(walletAddress!) : "Connect Wallet"}
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2 border-indigo-500 text-indigo-700 hover:bg-indigo-50 transition px-4 py-2 rounded-lg font-medium">
+                  <UserPlus className="h-4 w-4" />
+                  Sign Up
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <Link href="/providers/signup">Provider Sign Up</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin">Admin Portal</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </header>
 
       {/* Main Content */}
