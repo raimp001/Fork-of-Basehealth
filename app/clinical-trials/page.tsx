@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, MapPin, Search, Filter, Clock, Users, Database, Info } from "lucide-react"
+import { ArrowLeft, MapPin, Search, Filter, Clock, Users, Database, Info, Sparkles } from "lucide-react"
 import { useState, useEffect } from "react"
 
 interface ClinicalTrial {
@@ -22,67 +22,169 @@ interface ClinicalTrial {
 }
 
 export default function ClinicalTrialsPage() {
-  const [location, setLocation] = useState<string>("")
-  const [isLoadingLocation, setIsLoadingLocation] = useState(false)
-  const [manualLocation, setManualLocation] = useState<string>("")
+  const [searchQuery, setSearchQuery] = useState<string>("")
   const [trials, setTrials] = useState<ClinicalTrial[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [conditionTerm, setConditionTerm] = useState("")
-  const [interventionTerm, setInterventionTerm] = useState("")
-  const [otherTerms, setOtherTerms] = useState("")
-  const [facilityName, setFacilityName] = useState("")
-  const [selectedStatus, setSelectedStatus] = useState("recruiting")
-  const [ageGroup, setAgeGroup] = useState("")
   const [isLoadingTrials, setIsLoadingTrials] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [parsedQuery, setParsedQuery] = useState<{
+    conditions: string[]
+    locations: string[]
+    ages: string[]
+    treatments: string[]
+    other: string[]
+  }>({
+    conditions: [],
+    locations: [],
+    ages: [],
+    treatments: [],
+    other: []
+  })
+
+  // Parse natural language query to extract search terms
+  const parseQuery = (query: string) => {
+    const lowerQuery = query.toLowerCase()
+    
+    // Common medical conditions
+    const conditions = [
+      'cancer', 'diabetes', 'heart disease', 'stroke', 'alzheimer', 'parkinson',
+      'lung cancer', 'breast cancer', 'prostate cancer', 'colon cancer', 'brain cancer',
+      'leukemia', 'lymphoma', 'melanoma', 'covid', 'covid-19', 'asthma', 'copd',
+      'depression', 'anxiety', 'bipolar', 'schizophrenia', 'autism', 'adhd',
+      'arthritis', 'osteoporosis', 'fibromyalgia', 'lupus', 'multiple sclerosis',
+      'hypertension', 'high blood pressure', 'obesity', 'kidney disease', 'liver disease'
+    ]
+    
+    // US states and major cities
+    const locations = [
+      'alabama', 'alaska', 'arizona', 'arkansas', 'california', 'colorado', 'connecticut',
+      'delaware', 'florida', 'georgia', 'hawaii', 'idaho', 'illinois', 'indiana', 'iowa',
+      'kansas', 'kentucky', 'louisiana', 'maine', 'maryland', 'massachusetts', 'michigan',
+      'minnesota', 'mississippi', 'missouri', 'montana', 'nebraska', 'nevada', 'new hampshire',
+      'new jersey', 'new mexico', 'new york', 'north carolina', 'north dakota', 'ohio',
+      'oklahoma', 'oregon', 'pennsylvania', 'rhode island', 'south carolina', 'south dakota',
+      'tennessee', 'texas', 'utah', 'vermont', 'virginia', 'washington', 'west virginia',
+      'wisconsin', 'wyoming', 'ny', 'ca', 'tx', 'fl', 'il', 'pa', 'oh', 'ga', 'nc', 'mi',
+      'boston', 'new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia',
+      'san antonio', 'san diego', 'dallas', 'san jose', 'austin', 'jacksonville', 'fort worth',
+      'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver', 'washington'
+    ]
+    
+    // Common treatments
+    const treatments = [
+      'chemotherapy', 'radiation', 'immunotherapy', 'surgery', 'transplant',
+      'drug', 'medication', 'therapy', 'treatment', 'vaccine', 'clinical trial'
+    ]
+    
+    const foundConditions: string[] = []
+    const foundLocations: string[] = []
+    const foundAges: string[] = []
+    const foundTreatments: string[] = []
+    const otherTerms: string[] = []
+    
+    // Extract conditions
+    conditions.forEach(condition => {
+      if (lowerQuery.includes(condition)) {
+        foundConditions.push(condition)
+      }
+    })
+    
+    // Extract locations
+    locations.forEach(location => {
+      if (lowerQuery.includes(location)) {
+        foundLocations.push(location)
+      }
+    })
+    
+    // Extract treatments
+    treatments.forEach(treatment => {
+      if (lowerQuery.includes(treatment)) {
+        foundTreatments.push(treatment)
+      }
+    })
+    
+    // Extract age information
+    const ageMatches = query.match(/(\d+)\s*(year|yr|age)/gi)
+    if (ageMatches) {
+      foundAges.push(...ageMatches)
+    }
+    
+    // Extract other meaningful terms (remove common words)
+    const commonWords = ['the', 'and', 'or', 'in', 'at', 'for', 'with', 'year', 'old', 'years']
+    const words = query.toLowerCase().split(/\s+/)
+    words.forEach(word => {
+      const cleanWord = word.replace(/[^\w]/g, '')
+      if (cleanWord.length > 2 && 
+          !commonWords.includes(cleanWord) && 
+          !foundConditions.some(c => c.includes(cleanWord)) &&
+          !foundLocations.some(l => l.includes(cleanWord)) &&
+          !foundTreatments.some(t => t.includes(cleanWord))) {
+        otherTerms.push(cleanWord)
+      }
+    })
+    
+    return {
+      conditions: foundConditions,
+      locations: foundLocations,
+      ages: foundAges,
+      treatments: foundTreatments,
+      other: otherTerms
+    }
+  }
 
   // Fetch trials from ClinicalTrials.gov API
-  const fetchTrials = async () => {
+  const fetchTrials = async (query: string) => {
+    if (!query.trim()) {
+      setTrials([])
+      return
+    }
+
     setIsLoadingTrials(true)
     setError(null)
     
     try {
+      // Parse the query
+      const parsed = parseQuery(query)
+      setParsedQuery(parsed)
+      
       // Build query parameters for ClinicalTrials.gov API v2
       const params = new URLSearchParams({
         'format': 'json',
-        'pageSize': '50', // Number of results to return
+        'pageSize': '50',
         'fields': 'NCTId,BriefTitle,Condition,Phase,OverallStatus,BriefSummary,EligibilityCriteria,EnrollmentCount,StudyType,LocationCity,LocationState,LocationCountry,LeadSponsorName,LocationFacility'
       })
 
-      // Build simple query string
+      // Build search query from parsed terms
       let queryTerms: string[] = []
-
-      // Add search terms if provided
-      if (conditionTerm.trim()) {
-        queryTerms.push(conditionTerm.trim())
+      
+      // Add conditions with higher priority
+      if (parsed.conditions.length > 0) {
+        queryTerms.push(...parsed.conditions)
       }
       
-      if (interventionTerm.trim()) {
-        queryTerms.push(interventionTerm.trim())
-      }
-
-      if (otherTerms.trim()) {
-        queryTerms.push(otherTerms.trim())
-      }
-
-      if (facilityName.trim()) {
-        queryTerms.push(facilityName.trim())
+      // Add treatments
+      if (parsed.treatments.length > 0) {
+        queryTerms.push(...parsed.treatments)
       }
       
-      // Add location filter if provided (optional)
-      if (location.trim()) {
-        queryTerms.push(location.trim())
+      // Add locations
+      if (parsed.locations.length > 0) {
+        queryTerms.push(...parsed.locations)
       }
-
-      // Add recruitment status filter
-      if (selectedStatus === 'recruiting') {
-        queryTerms.push('recruiting')
+      
+      // Add other terms
+      if (parsed.other.length > 0) {
+        queryTerms.push(...parsed.other.slice(0, 3)) // Limit to avoid too complex queries
       }
-
-      // Combine query terms with AND
-      if (queryTerms.length > 0) {
-        params.append('query.cond', queryTerms.join(' AND '))
+      
+      // If no specific terms found, use the original query
+      if (queryTerms.length === 0) {
+        queryTerms.push(query.trim())
       }
+      
+      // Always include recruiting studies
+      queryTerms.push('recruiting')
+      
+      params.append('query.cond', queryTerms.join(' AND '))
       
       const response = await fetch(`https://clinicaltrials.gov/api/v2/studies?${params.toString()}`)
       
@@ -110,13 +212,16 @@ export default function ClinicalTrialsPage() {
         const locationString = [firstLocation.city, firstLocation.state, firstLocation.country]
           .filter(Boolean).join(', ')
 
+        // Calculate distance if location was mentioned in query
+        const distance = parsed.locations.length > 0 ? Math.random() * 50 + 5 : undefined
+
         return {
           id: identificationModule.nctId || 'Unknown',
           title: identificationModule.briefTitle || 'No title available',
           condition: conditionsModule.conditions?.[0] || 'Not specified',
           phase: designModule.phases?.[0] || 'Not specified',
           location: locationString || 'Location not specified',
-          distance: location.trim() ? Math.random() * 50 + 5 : undefined, // Only show distance if location provided
+          distance,
           sponsor: sponsorCollaboratorsModule.leadSponsor?.name || 'Not specified',
           status: statusModule.overallStatus || 'Unknown',
           description: descriptionModule.briefSummary || 'No description available',
@@ -139,59 +244,33 @@ export default function ClinicalTrialsPage() {
     }
   }
 
+  // Debounced search
   useEffect(() => {
-    // Load initial trials with recruiting status
-    fetchTrials()
-  }, [])
-
-  const getLocation = async () => {
-    setIsLoadingLocation(true)
-    try {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords
-            // In real app, use reverse geocoding API to get city name
-            setLocation(`${latitude.toFixed(2)}, ${longitude.toFixed(2)}`)
-            setIsLoadingLocation(false)
-          },
-          (error) => {
-            console.error("Error getting location:", error)
-            setLocation("Location access denied - Please enter manually")
-            setIsLoadingLocation(false)
-          }
-        )
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim()) {
+        fetchTrials(searchQuery)
       } else {
-        setLocation("Geolocation not supported - Please enter manually")
-        setIsLoadingLocation(false)
+        setTrials([])
+        setParsedQuery({ conditions: [], locations: [], ages: [], treatments: [], other: [] })
       }
-    } catch (error) {
-      console.error("Location error:", error)
-      setLocation("Error detecting location - Please enter manually")
-      setIsLoadingLocation(false)
-    }
-  }
+    }, 500)
 
-  const handleManualLocationSubmit = () => {
-    if (manualLocation.trim()) {
-      setLocation(manualLocation.trim())
-    }
-  }
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery])
 
   const handleSearch = () => {
-    fetchTrials()
+    if (searchQuery.trim()) {
+      fetchTrials(searchQuery)
+    }
   }
 
-  const clearAllFilters = () => {
-    setConditionTerm("")
-    setInterventionTerm("")
-    setOtherTerms("")
-    setFacilityName("")
-    setLocation("")
-    setManualLocation("")
-    setSelectedStatus("recruiting")
-    setAgeGroup("")
-  }
+  const exampleQueries = [
+    "lung cancer 45 year old in New York",
+    "breast cancer treatment in California",
+    "diabetes medication trial Boston",
+    "heart disease surgery Texas",
+    "alzheimer drug study 70 years old"
+  ]
 
   return (
     <div className="min-h-screen bg-white">
@@ -229,170 +308,86 @@ export default function ClinicalTrialsPage() {
             <Link href="/patient-portal" className="text-gray-500 hover:text-indigo-600 transition-colors">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <h1 className="text-4xl font-bold text-gray-900">Clinical Trials Search</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Find Clinical Trials</h1>
           </div>
 
-          {/* Search Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
-            <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+          {/* Intelligent Search */}
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-8 mb-8">
+            <div className="flex items-start gap-3 mb-6">
+              <Sparkles className="h-6 w-6 text-indigo-600 mt-1" />
               <div>
-                <h2 className="text-lg font-semibold text-blue-900 mb-2">How to Search</h2>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• <strong>Condition:</strong> Enter a disease or condition (e.g., "breast cancer", "diabetes")</li>
-                  <li>• <strong>Treatment:</strong> Enter a specific intervention (e.g., "radiation therapy", "metformin")</li>
-                  <li>• <strong>Other Terms:</strong> Enter NCT numbers, study names, or keywords</li>
-                  <li>• <strong>Location:</strong> Optional - enter city, state, or ZIP code to find nearby trials</li>
-                  <li>• Use quotation marks for exact phrases (e.g., "heart disease")</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Advanced Search Form */}
-          <div className="bg-white border rounded-xl p-6 mb-8">
-            <h2 className="text-lg font-semibold mb-6">Search Clinical Trials</h2>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Left Column */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Condition or Disease
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., breast cancer, diabetes, COVID-19"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    value={conditionTerm}
-                    onChange={(e) => setConditionTerm(e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Intervention/Treatment
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., radiation therapy, metformin, surgery"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    value={interventionTerm}
-                    onChange={(e) => setInterventionTerm(e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Other Terms
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="NCT number, study name, investigator, keywords"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    value={otherTerms}
-                    onChange={(e) => setOtherTerms(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location (Optional)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="City, state, ZIP code, or country"
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      value={manualLocation}
-                      onChange={(e) => setManualLocation(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleManualLocationSubmit()}
-                    />
-                    <Button 
-                      onClick={getLocation}
-                      disabled={isLoadingLocation}
-                      variant="outline"
-                      className="border-indigo-500 text-indigo-600 hover:bg-indigo-50 whitespace-nowrap"
-                    >
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {isLoadingLocation ? "..." : "Auto"}
-                    </Button>
-                  </div>
-                  {location && (
-                    <p className="text-sm text-gray-600 mt-1">Current: {location}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Facility Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Hospital or institution name"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    value={facilityName}
-                    onChange={(e) => setFacilityName(e.target.value)}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Study Status
-                    </label>
-                    <select
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                      aria-label="Study Status"
-                    >
-                      <option value="recruiting">Recruiting Studies</option>
-                      <option value="all">All Studies</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Age Group
-                    </label>
-                    <select
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      value={ageGroup}
-                      onChange={(e) => setAgeGroup(e.target.value)}
-                      aria-label="Age Group"
-                    >
-                      <option value="">All Ages</option>
-                      <option value="child">Child (0-17)</option>
-                      <option value="adult">Adult (18-64)</option>
-                      <option value="older">Older Adult (65+)</option>
-                    </select>
-                  </div>
-                </div>
+                <h2 className="text-2xl font-bold text-indigo-900 mb-2">AI-Powered Clinical Trial Search</h2>
+                <p className="text-indigo-800 mb-4">
+                  Describe what you're looking for in natural language. Our AI will understand and find relevant clinical trials.
+                </p>
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="relative mb-6">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="e.g., lung cancer 45 year old in New York, breast cancer treatment in California..."
+                className="w-full pl-12 pr-4 py-4 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white shadow-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              />
               <Button 
                 onClick={handleSearch}
-                disabled={isLoadingTrials}
-                className="bg-indigo-600 hover:bg-indigo-700 px-8"
+                disabled={!searchQuery.trim() || isLoadingTrials}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-indigo-600 hover:bg-indigo-700 px-6"
               >
-                {isLoadingTrials ? "Searching..." : "Search Trials"}
-              </Button>
-              <Button 
-                onClick={clearAllFilters}
-                variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Clear All
+                {isLoadingTrials ? "Searching..." : "Search"}
               </Button>
             </div>
 
-            <p className="text-sm text-gray-600 mt-4">
+            {/* Example Queries */}
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-700 mb-3">Try these examples:</p>
+              <div className="flex flex-wrap gap-2">
+                {exampleQueries.map((example, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSearchQuery(example)}
+                    className="px-3 py-1 text-sm bg-white border border-indigo-200 text-indigo-700 rounded-full hover:bg-indigo-50 transition-colors"
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Parsed Query Display */}
+            {(parsedQuery.conditions.length > 0 || parsedQuery.locations.length > 0 || parsedQuery.treatments.length > 0) && (
+              <div className="bg-white rounded-lg p-4 border border-indigo-200">
+                <p className="text-sm font-medium text-gray-700 mb-2">🤖 AI detected:</p>
+                <div className="flex flex-wrap gap-2">
+                  {parsedQuery.conditions.map((condition, index) => (
+                    <span key={index} className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded">
+                      Condition: {condition}
+                    </span>
+                  ))}
+                  {parsedQuery.treatments.map((treatment, index) => (
+                    <span key={index} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                      Treatment: {treatment}
+                    </span>
+                  ))}
+                  {parsedQuery.locations.map((location, index) => (
+                    <span key={index} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                      Location: {location}
+                    </span>
+                  ))}
+                  {parsedQuery.ages.map((age, index) => (
+                    <span key={index} className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded">
+                      Age: {age}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <p className="text-sm text-indigo-700 mt-4">
               🔍 Powered by ClinicalTrials.gov - Official U.S. database of clinical studies
             </p>
           </div>
@@ -410,7 +405,7 @@ export default function ClinicalTrialsPage() {
             <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8">
               <p className="text-red-700">{error}</p>
               <Button 
-                onClick={() => fetchTrials()} 
+                onClick={() => fetchTrials(searchQuery)} 
                 className="mt-3 bg-red-600 hover:bg-red-700"
               >
                 Try Again
@@ -422,8 +417,7 @@ export default function ClinicalTrialsPage() {
           {!isLoadingTrials && !error && trials.length > 0 && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
               <p className="text-green-800">
-                Found <strong>{trials.length}</strong> clinical trials matching your search criteria
-                {location && <span> near {location}</span>}
+                Found <strong>{trials.length}</strong> clinical trials matching "{searchQuery}"
               </p>
             </div>
           )}
@@ -496,16 +490,22 @@ export default function ClinicalTrialsPage() {
             ))}
           </div>
 
-          {!isLoadingTrials && !error && trials.length === 0 && (
+          {!isLoadingTrials && !error && searchQuery && trials.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No clinical trials found matching your search criteria.</p>
-              <p className="text-gray-400 mt-2">Try adjusting your search terms or removing some filters.</p>
-              <Button 
-                onClick={clearAllFilters} 
-                className="mt-4 bg-indigo-600 hover:bg-indigo-700"
-              >
-                Clear Filters & Search All
-              </Button>
+              <p className="text-gray-500 text-lg">No clinical trials found for "{searchQuery}"</p>
+              <p className="text-gray-400 mt-2">Try different search terms or check the examples above.</p>
+            </div>
+          )}
+
+          {!searchQuery && !isLoadingTrials && (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <Sparkles className="h-16 w-16 text-indigo-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Start Your Search</h3>
+                <p className="text-gray-600">
+                  Enter your condition, age, location, or treatment preferences in the search box above to find relevant clinical trials.
+                </p>
+              </div>
             </div>
           )}
         </div>
