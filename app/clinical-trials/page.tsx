@@ -44,14 +44,14 @@ export default function ClinicalTrialsPage() {
   const parseQuery = (query: string) => {
     const lowerQuery = query.toLowerCase()
     
-    // Common medical conditions
+    // Common medical conditions (ordered by specificity - more specific first)
     const conditions = [
-      'cancer', 'diabetes', 'heart disease', 'stroke', 'alzheimer', 'parkinson',
-      'lung cancer', 'breast cancer', 'prostate cancer', 'colon cancer', 'brain cancer',
-      'leukemia', 'lymphoma', 'melanoma', 'covid', 'covid-19', 'asthma', 'copd',
-      'depression', 'anxiety', 'bipolar', 'schizophrenia', 'autism', 'adhd',
-      'arthritis', 'osteoporosis', 'fibromyalgia', 'lupus', 'multiple sclerosis',
-      'hypertension', 'high blood pressure', 'obesity', 'kidney disease', 'liver disease'
+      'alzheimer disease', 'alzheimer\'s disease', 'alzheimer', 'parkinson disease', 'parkinson\'s disease', 'parkinson',
+      'lung cancer', 'breast cancer', 'prostate cancer', 'colon cancer', 'brain cancer', 'pancreatic cancer',
+      'heart disease', 'kidney disease', 'liver disease', 'multiple sclerosis', 'high blood pressure',
+      'covid-19', 'covid', 'cancer', 'diabetes', 'stroke', 'leukemia', 'lymphoma', 'melanoma', 
+      'asthma', 'copd', 'depression', 'anxiety', 'bipolar', 'schizophrenia', 'autism', 'adhd',
+      'arthritis', 'osteoporosis', 'fibromyalgia', 'lupus', 'hypertension', 'obesity'
     ]
     
     // US states and major cities
@@ -146,38 +146,26 @@ export default function ClinicalTrialsPage() {
       const parsed = parseQuery(query)
       setParsedQuery(parsed)
       
-      // Build search query from parsed terms
-      let queryTerms: string[] = []
+      // Build search query from parsed terms with better logic
+      let searchTerms: string[] = []
       
-      // Add conditions with higher priority
+      // Prioritize medical conditions - these should be the main search terms
       if (parsed.conditions.length > 0) {
-        queryTerms.push(...parsed.conditions)
-      }
-      
-      // Add treatments
-      if (parsed.treatments.length > 0) {
-        queryTerms.push(...parsed.treatments)
-      }
-      
-      // Add locations
-      if (parsed.locations.length > 0) {
-        queryTerms.push(...parsed.locations)
-      }
-      
-      // Add other terms
-      if (parsed.other.length > 0) {
-        queryTerms.push(...parsed.other.slice(0, 3)) // Limit to avoid too complex queries
-      }
-      
-      // If no specific terms found, use the original query
-      if (queryTerms.length === 0) {
-        queryTerms.push(query.trim())
+        // Use the most specific condition found
+        const primaryCondition = parsed.conditions.find(c => c.includes(' ')) || parsed.conditions[0]
+        searchTerms.push(primaryCondition)
+      } else if (parsed.other.length > 0) {
+        // If no medical conditions found, use other meaningful terms
+        searchTerms.push(...parsed.other.slice(0, 2))
+      } else {
+        // Fallback to the original query
+        searchTerms.push(query.trim())
       }
       
       // Use our API route to avoid CORS issues
       const params = new URLSearchParams({
         'pageSize': '50',
-        'query': queryTerms.join(' OR ')  // Use OR instead of AND for broader results
+        'query': searchTerms.join(' ')  // Use space for phrase search
       })
       
       const response = await fetch(`/api/clinical-trials?${params.toString()}`)
