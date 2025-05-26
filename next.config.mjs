@@ -1,12 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Add static export for GitHub Pages
-  output: 'export',
-  // Add base path for GitHub Pages
-  basePath: '/Fork-of-Basehealth',
-  assetPrefix: '/Fork-of-Basehealth/',
-  trailingSlash: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -14,12 +8,12 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    unoptimized: false, // Enable optimization for better performance
   },
   experimental: {
     // Enable server actions with proper object syntax
     serverActions: {
-      allowedOrigins: ['localhost:3000', 'vercel.app'],
+      allowedOrigins: ['localhost:3000', 'vercel.app', 'basehealth.xyz', 'www.basehealth.xyz'],
     },
   },
   webpack: (config) => {

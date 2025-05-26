@@ -1,89 +1,160 @@
-# Deploying BaseHealth to basehealth.xyz
+# Deploying BaseHealth to www.basehealth.xyz
 
-This guide will help you deploy the BaseHealth application to your domain.
+This guide will help you deploy the BaseHealth application to your custom domain **www.basehealth.xyz**.
 
-## Prerequisites
+## Quick Deployment (Recommended)
 
-1. A Vercel account (https://vercel.com)
-2. Your domain (basehealth.xyz) DNS access
-3. The BaseHealth codebase
+Use our automated deployment script:
 
-## Deployment Steps
+```bash
+./scripts/deploy.sh
+```
 
-### 1. Push your code to GitHub
+## Manual Deployment Steps
 
-First, push your code to a GitHub repository:
+### Prerequisites
 
-\`\`\`bash
-git init
+1. A Vercel account (https://vercel.com) - **Free tier is sufficient**
+2. Domain DNS access for basehealth.xyz
+3. Vercel CLI installed: `npm i -g vercel`
+4. The BaseHealth codebase pushed to GitHub
+
+### 1. Initial Setup
+
+First, ensure your code is on GitHub:
+
+```bash
 git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/yourusername/basehealth.git
-git push -u origin main
-\`\`\`
+git commit -m "Prepare for www.basehealth.xyz deployment"
+git push origin main
+```
 
-### 2. Connect to Vercel
+### 2. Deploy to Vercel
 
-1. Log in to your Vercel account
-2. Click "Add New" > "Project"
-3. Import your GitHub repository
-4. Configure the project:
-   - Framework Preset: Next.js
-   - Root Directory: ./
-   - Build Command: next build
-   - Output Directory: .next
+```bash
+# Install dependencies
+pnpm install
 
-### 3. Environment Variables
+# Login to Vercel (first time only)
+vercel login
 
-Add any necessary environment variables in the Vercel project settings:
+# Deploy to production
+vercel --prod
+```
 
-- NEXT_PUBLIC_API_URL: Your API URL if applicable
-- Any other environment variables your application needs
+### 3. Configure Custom Domain
 
-### 4. Deploy
+1. **In Vercel Dashboard:**
+   - Go to your project settings
+   - Navigate to "Domains" section
+   - Add both domains:
+     - `basehealth.xyz`
+     - `www.basehealth.xyz`
 
-Click "Deploy" and wait for the deployment to complete.
+2. **Configure DNS Settings:**
+   
+   In your domain registrar's DNS settings, add these records:
 
-### 5. Connect Your Domain
+   ```
+   Type: A
+   Name: @
+   Value: 76.76.19.61
+   TTL: 3600
 
-1. Go to the "Domains" section in your Vercel project
-2. Add your domain: basehealth.xyz
-3. Follow Vercel's instructions to configure your DNS settings:
-   - Add an A record pointing to Vercel's IP
-   - Add a CNAME record for the www subdomain
+   Type: CNAME
+   Name: www
+   Value: cname.vercel-dns.com
+   TTL: 3600
+   ```
 
-### 6. SSL Certificate
+   > **Note:** Vercel will provide the exact IP and CNAME values in your dashboard
 
-Vercel will automatically provision an SSL certificate for your domain.
+### 4. SSL Certificate & Final Steps
 
-### 7. Verify Deployment
+- Vercel automatically provisions SSL certificates
+- DNS propagation takes 5-60 minutes
+- Your site will be live at: **https://www.basehealth.xyz**
 
-Visit your domain (basehealth.xyz) to verify that the deployment was successful.
+## Environment Variables (Optional)
+
+If your app requires environment variables:
+
+1. Go to Vercel Project Settings
+2. Navigate to "Environment Variables"
+3. Add any required variables:
+   - `NEXT_PUBLIC_API_URL`
+   - Database credentials (if applicable)
+   - Third-party API keys
+
+## Automatic Deployments
+
+✅ **Already configured!** Every push to the `main` branch will trigger a new deployment.
+
+## Domain Configuration Features
+
+Our setup includes:
+
+- ✅ Automatic redirect from `basehealth.xyz` → `www.basehealth.xyz`
+- ✅ SSL/TLS encryption
+- ✅ CDN optimization
+- ✅ Security headers
+- ✅ Performance optimizations
 
 ## Troubleshooting
 
-If you encounter any issues during deployment:
+### Common Issues:
 
-1. Check Vercel's deployment logs
-2. Ensure your DNS settings are correct
-3. Verify that all environment variables are properly set
-4. Check for any build errors in your code
+1. **DNS not propagating:**
+   - Wait up to 24 hours
+   - Use `dig` command: `dig www.basehealth.xyz`
 
-## Updating Your Site
+2. **Build errors:**
+   - Check Vercel function logs
+   - Verify environment variables
+   - Test build locally: `pnpm build`
 
-To update your site after making changes:
+3. **Domain not working:**
+   - Verify DNS records match Vercel's requirements
+   - Check domain status in Vercel dashboard
 
-1. Push your changes to GitHub
-2. Vercel will automatically redeploy your site
+### Verification Commands:
 
-## Custom Domain Email
+```bash
+# Check DNS propagation
+nslookup www.basehealth.xyz
 
-Consider setting up custom domain email (e.g., info@basehealth.xyz) using a service like:
-- Google Workspace
-- Microsoft 365
-- Zoho Mail
+# Test local build
+pnpm build && pnpm start
 
-This will make your platform look more professional when communicating with users.
-\`\`\`
+# Check Vercel deployment status
+vercel ls
+```
 
-Let's also create a tailwind.config.js file to ensure the styling is correct:
+## Professional Email Setup
+
+Consider setting up professional email addresses:
+
+- **info@basehealth.xyz** - General inquiries
+- **support@basehealth.xyz** - Customer support
+- **admin@basehealth.xyz** - Administrative use
+
+**Recommended services:**
+- Google Workspace ($6/user/month)
+- Microsoft 365 ($5/user/month)
+- Zoho Mail (Free tier available)
+
+## Monitoring & Analytics
+
+After deployment, consider adding:
+
+- **Vercel Analytics** (built-in)
+- **Google Analytics 4**
+- **Uptime monitoring** (UptimeRobot, Pingdom)
+
+🎉 **Your BaseHealth platform will be live at https://www.basehealth.xyz!**
+
+For support, check the Vercel documentation or create an issue in this repository.
+
+---
+
+Made with ❤️ for BaseHealth
