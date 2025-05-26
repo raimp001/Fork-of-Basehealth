@@ -54,8 +54,8 @@ export default function PatientPortalPage() {
               <p className="text-gray-600 mb-4 text-sm">
                 Manage your personal health information and medical history.
               </p>
-              <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
-                View Profile
+              <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
+                <Link href="/health-profile">View Profile</Link>
               </Button>
             </div>
 
@@ -102,8 +102,8 @@ export default function PatientPortalPage() {
               <p className="text-gray-600 mb-4 text-sm">
                 Access your complete medical records and test results.
               </p>
-              <Button variant="outline" className="w-full border-indigo-600 text-indigo-600 hover:bg-indigo-50">
-                View Records
+              <Button asChild variant="outline" className="w-full border-indigo-600 text-indigo-600 hover:bg-indigo-50">
+                <Link href="/medical-records">View Records</Link>
               </Button>
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function PatientPortalPage() {
                 <Link href="/second-opinion">Get Second Opinion</Link>
               </Button>
               <Button asChild variant="outline" className="border-indigo-600 text-indigo-600 hover:bg-indigo-50">
-                <Link href="/providers/signup">Find a Provider</Link>
+                <Link href="/providers/search">Find a Provider</Link>
               </Button>
             </div>
           </div>
