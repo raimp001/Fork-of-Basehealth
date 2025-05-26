@@ -27,83 +27,93 @@ export default function ClinicalTrialsPage() {
   const [trials, setTrials] = useState<ClinicalTrial[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCondition, setSelectedCondition] = useState("")
+  const [isLoadingTrials, setIsLoadingTrials] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Mock clinical trials data - in real app, this would come from ClinicalTrials.gov API
-  const mockTrials: ClinicalTrial[] = [
-    {
-      id: "NCT05123456",
-      title: "AI-Powered Diabetes Management Study",
-      condition: "Type 2 Diabetes",
-      phase: "Phase III",
-      location: "Stanford Medical Center, CA",
-      distance: 2.3,
-      sponsor: "Stanford University",
-      status: "Recruiting",
-      description: "Evaluating the effectiveness of AI-powered glucose monitoring and management system.",
-      eligibility: ["Age 18-65", "Type 2 Diabetes diagnosis", "HbA1c 7-10%"],
-      estimatedEnrollment: 200,
-      studyType: "Interventional"
-    },
-    {
-      id: "NCT05234567",
-      title: "Cardiovascular Health Monitoring with Wearables",
-      condition: "Cardiovascular Disease",
-      phase: "Phase II",
-      location: "UCSF Medical Center, CA",
-      distance: 5.7,
-      sponsor: "University of California",
-      status: "Recruiting",
-      description: "Testing continuous heart monitoring using advanced wearable technology.",
-      eligibility: ["Age 40-75", "History of heart disease", "Able to wear devices"],
-      estimatedEnrollment: 150,
-      studyType: "Observational"
-    },
-    {
-      id: "NCT05345678",
-      title: "Mental Health AI Screening Platform",
-      condition: "Depression",
-      phase: "Phase I",
-      location: "Kaiser Permanente, CA",
-      distance: 8.1,
-      sponsor: "Kaiser Foundation",
-      status: "Not yet recruiting",
-      description: "Developing AI-based screening tools for early detection of depression.",
-      eligibility: ["Age 21-60", "No current antidepressants", "Smartphone access"],
-      estimatedEnrollment: 100,
-      studyType: "Interventional"
-    },
-    {
-      id: "NCT05456789",
-      title: "Cancer Immunotherapy Combination Study",
-      condition: "Lung Cancer",
-      phase: "Phase II",
-      location: "Memorial Sloan Kettering, NY",
-      distance: 12.4,
-      sponsor: "Memorial Sloan Kettering",
-      status: "Recruiting",
-      description: "Testing combination immunotherapy treatments for advanced lung cancer patients.",
-      eligibility: ["Age 18+", "Stage III/IV lung cancer", "Previous treatment required"],
-      estimatedEnrollment: 300,
-      studyType: "Interventional"
-    },
-    {
-      id: "NCT05567890",
-      title: "Pediatric Diabetes Technology Trial",
-      condition: "Type 1 Diabetes",
-      phase: "Phase III",
-      location: "Children's Hospital Boston, MA",
-      distance: 15.2,
-      sponsor: "Boston Children's Hospital",
-      status: "Recruiting",
-      description: "Evaluating new continuous glucose monitoring technology in children.",
-      eligibility: ["Age 6-17", "Type 1 diabetes >1 year", "Parent consent"],
-      estimatedEnrollment: 180,
-      studyType: "Interventional"
+  // Fetch trials from ClinicalTrials.gov API
+  const fetchTrials = async (searchQuery?: string, locationQuery?: string) => {
+    setIsLoadingTrials(true)
+    setError(null)
+    
+    try {
+      // Build query parameters for ClinicalTrials.gov API
+      const params = new URLSearchParams({
+        'format': 'json',
+        'min_rnk': '1',
+        'max_rnk': '20', // Limit to 20 results for better performance
+        'fields': 'NCTId,BriefTitle,Condition,Phase,OverallStatus,BriefSummary,EligibilityCriteria,EnrollmentCount,StudyType,LocationCity,LocationState,LocationCountry,LeadSponsorName'
+      })
+
+      // Add search terms if provided
+      if (searchQuery) {
+        params.append('cond', searchQuery)
+      }
+      
+      // Add location filter if provided
+      if (locationQuery) {
+        params.append('locn', locationQuery)
+      }
+
+      // Default to recruiting studies
+      params.append('recrs', 'a') // All recruitment statuses
+      
+      const response = await fetch(`https://clinicaltrials.gov/api/v2/studies?${params.toString()}`)
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      // Transform API response to our interface
+      const transformedTrials: ClinicalTrial[] = data.studies?.map((study: any) => {
+        const protocolSection = study.protocolSection || {}
+        const identificationModule = protocolSection.identificationModule || {}
+        const statusModule = protocolSection.statusModule || {}
+        const designModule = protocolSection.designModule || {}
+        const conditionsModule = protocolSection.conditionsModule || {}
+        const descriptionModule = protocolSection.descriptionModule || {}
+        const eligibilityModule = protocolSection.eligibilityModule || {}
+        const contactsLocationsModule = protocolSection.contactsLocationsModule || {}
+        const sponsorCollaboratorsModule = protocolSection.sponsorCollaboratorsModule || {}
+
+        // Get first location for display
+        const locations = contactsLocationsModule.locations || []
+        const firstLocation = locations[0] || {}
+        const locationString = [firstLocation.city, firstLocation.state, firstLocation.country]
+          .filter(Boolean).join(', ')
+
+        return {
+          id: identificationModule.nctId || 'Unknown',
+          title: identificationModule.briefTitle || 'No title available',
+          condition: conditionsModule.conditions?.[0] || 'Not specified',
+          phase: designModule.phases?.[0] || 'Not specified',
+          location: locationString || 'Location not specified',
+          distance: Math.random() * 20 + 1, // Random distance for demo - would calculate based on user location
+          sponsor: sponsorCollaboratorsModule.leadSponsor?.name || 'Not specified',
+          status: statusModule.overallStatus || 'Unknown',
+          description: descriptionModule.briefSummary || 'No description available',
+          eligibility: eligibilityModule.eligibilityCriteria ? 
+            eligibilityModule.eligibilityCriteria.split('\n').slice(0, 3) : 
+            ['Eligibility criteria not available'],
+          estimatedEnrollment: statusModule.enrollmentInfo?.count || 0,
+          studyType: designModule.studyType || 'Not specified'
+        }
+      }) || []
+
+      setTrials(transformedTrials)
+    } catch (err) {
+      console.error('Error fetching trials:', err)
+      setError('Failed to fetch clinical trials. Please try again.')
+      setTrials([])
+    } finally {
+      setIsLoadingTrials(false)
     }
-  ]
+  }
 
   useEffect(() => {
-    setTrials(mockTrials)
+    // Load initial trials
+    fetchTrials()
   }, [])
 
   const getLocation = async () => {
@@ -137,16 +147,26 @@ export default function ClinicalTrialsPage() {
   const handleManualLocationSubmit = () => {
     if (manualLocation.trim()) {
       setLocation(manualLocation.trim())
-      // In real app, this would geocode the location and update trial distances
+      // Refetch trials with location filter
+      fetchTrials(searchTerm || selectedCondition, manualLocation.trim())
     }
   }
 
-  const filteredTrials = trials.filter(trial => {
-    const matchesSearch = trial.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trial.condition.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCondition = selectedCondition === "" || trial.condition === selectedCondition
-    return matchesSearch && matchesCondition
-  })
+  const handleSearch = () => {
+    const query = searchTerm || selectedCondition
+    fetchTrials(query, location)
+  }
+
+  // Real-time search when search term or condition changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm || selectedCondition) {
+        handleSearch()
+      }
+    }, 500) // Debounce search by 500ms
+
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm, selectedCondition])
 
   const conditions = [...new Set(trials.map(trial => trial.condition))]
 
@@ -238,36 +258,71 @@ export default function ClinicalTrialsPage() {
           </div>
 
           {/* Search and Filter */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search trials by condition or keyword..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <select
-                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                value={selectedCondition}
-                onChange={(e) => setSelectedCondition(e.target.value)}
-                aria-label="Filter by medical condition"
+          <div className="bg-white border rounded-xl p-6 mb-8">
+            <h2 className="text-lg font-semibold mb-4">Search Clinical Trials</h2>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by condition, keyword, or study title (e.g., diabetes, cancer, COVID-19)..."
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              </div>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <select
+                  className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={selectedCondition}
+                  onChange={(e) => setSelectedCondition(e.target.value)}
+                  aria-label="Filter by medical condition"
+                >
+                  <option value="">All Conditions</option>
+                  {conditions.map(condition => (
+                    <option key={condition} value={condition}>{condition}</option>
+                  ))}
+                </select>
+              </div>
+              <Button 
+                onClick={handleSearch}
+                disabled={isLoadingTrials}
+                className="bg-indigo-600 hover:bg-indigo-700 whitespace-nowrap px-6"
               >
-                <option value="">All Conditions</option>
-                {conditions.map(condition => (
-                  <option key={condition} value={condition}>{condition}</option>
-                ))}
-              </select>
+                {isLoadingTrials ? "Searching..." : "Search Trials"}
+              </Button>
             </div>
+            <p className="text-sm text-gray-600 mt-3">
+              🔍 Powered by ClinicalTrials.gov - Official database of clinical studies
+            </p>
           </div>
+
+          {/* Loading State */}
+          {isLoadingTrials && (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Searching ClinicalTrials.gov database...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8">
+              <p className="text-red-700">{error}</p>
+              <Button 
+                onClick={() => fetchTrials()} 
+                className="mt-3 bg-red-600 hover:bg-red-700"
+              >
+                Try Again
+              </Button>
+            </div>
+          )}
 
           {/* Clinical Trials List */}
           <div className="space-y-6">
-            {filteredTrials.map((trial) => (
+            {!isLoadingTrials && !error && trials.map((trial) => (
               <div key={trial.id} className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -321,14 +376,21 @@ export default function ClinicalTrialsPage() {
             ))}
           </div>
 
-          {filteredTrials.length === 0 && (
+          {!isLoadingTrials && !error && trials.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No clinical trials found matching your criteria.</p>
               <p className="text-gray-400 mt-2">Try adjusting your search terms or location.</p>
+              <Button 
+                onClick={() => fetchTrials()} 
+                className="mt-4 bg-indigo-600 hover:bg-indigo-700"
+              >
+                Load All Trials
+              </Button>
             </div>
           )}
         </div>
       </main>
     </div>
   )
+} 
 } 
