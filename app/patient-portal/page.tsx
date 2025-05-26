@@ -75,19 +75,19 @@ export default function PatientPortalPage() {
               </Button>
             </div>
 
-            {/* Appointments */}
+            {/* Clinical Trials */}
             <div className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-indigo-100 rounded-lg">
                   <Calendar className="h-6 w-6 text-indigo-600" />
                 </div>
-                <h3 className="text-lg font-semibold">Appointments</h3>
+                <h3 className="text-lg font-semibold">Clinical Trials</h3>
               </div>
               <p className="text-gray-600 mb-4 text-sm">
-                Schedule and manage your healthcare appointments.
+                Find clinical trials near you based on your location and health conditions.
               </p>
-              <Button variant="outline" className="w-full border-indigo-600 text-indigo-600 hover:bg-indigo-50">
-                Book Appointment
+              <Button asChild variant="outline" className="w-full border-indigo-600 text-indigo-600 hover:bg-indigo-50">
+                <Link href="/clinical-trials">Find Trials</Link>
               </Button>
             </div>
 
