@@ -174,13 +174,10 @@ export default function ClinicalTrialsPage() {
         queryTerms.push(query.trim())
       }
       
-      // Always include recruiting studies
-      queryTerms.push('recruiting')
-      
       // Use our API route to avoid CORS issues
       const params = new URLSearchParams({
         'pageSize': '50',
-        'query': queryTerms.join(' AND ')
+        'query': queryTerms.join(' OR ')  // Use OR instead of AND for broader results
       })
       
       const response = await fetch(`/api/clinical-trials?${params.toString()}`)
