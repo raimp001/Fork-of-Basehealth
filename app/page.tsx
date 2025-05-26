@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { User, FlaskConical, Settings } from "lucide-react"
+import { Activity, Users } from "lucide-react"
 
 export default function HomePage() {
   return (
@@ -34,7 +34,7 @@ export default function HomePage() {
           </h1>
           
           <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-            Advanced healthcare platform powered by artificial intelligence
+            Personalized health starts here. Evidence-based screenings. Expert second opinions.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -43,8 +43,8 @@ export default function HomePage() {
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg rounded-lg font-medium transition-colors"
             >
               <Link href="/screening" className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Join as Patient
+                <Activity className="h-5 w-5" />
+                Start AI Screening
               </Link>
             </Button>
             
@@ -53,9 +53,9 @@ export default function HomePage() {
               variant="outline" 
               className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg rounded-lg font-medium transition-colors"
             >
-              <Link href="/providers/signup" className="flex items-center gap-2">
-                <FlaskConical className="h-5 w-5" />
-                Join as Researcher
+              <Link href="/second-opinion" className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Get Second Opinion
               </Link>
             </Button>
           </div>
