@@ -42,50 +42,46 @@ export default function ClinicalTrialsPage() {
     setError(null)
     
     try {
-      // Build query parameters for ClinicalTrials.gov API
+      // Build query parameters for ClinicalTrials.gov API v2
       const params = new URLSearchParams({
         'format': 'json',
-        'min_rnk': '1',
-        'max_rnk': '50', // Increased to show more results
+        'pageSize': '50', // Number of results to return
         'fields': 'NCTId,BriefTitle,Condition,Phase,OverallStatus,BriefSummary,EligibilityCriteria,EnrollmentCount,StudyType,LocationCity,LocationState,LocationCountry,LeadSponsorName,LocationFacility'
       })
 
+      // Build simple query string
+      let queryTerms: string[] = []
+
       // Add search terms if provided
       if (conditionTerm.trim()) {
-        params.append('cond', conditionTerm.trim())
+        queryTerms.push(conditionTerm.trim())
       }
       
       if (interventionTerm.trim()) {
-        params.append('intr', interventionTerm.trim())
+        queryTerms.push(interventionTerm.trim())
       }
 
       if (otherTerms.trim()) {
-        params.append('term', otherTerms.trim())
+        queryTerms.push(otherTerms.trim())
       }
 
       if (facilityName.trim()) {
-        params.append('lead', facilityName.trim())
+        queryTerms.push(facilityName.trim())
       }
       
       // Add location filter if provided (optional)
       if (location.trim()) {
-        params.append('locn', location.trim())
+        queryTerms.push(location.trim())
       }
 
       // Add recruitment status filter
       if (selectedStatus === 'recruiting') {
-        params.append('recrs', 'a') // Active, recruiting
-      } else if (selectedStatus === 'all') {
-        params.append('recrs', 'abdefghijk') // All statuses
+        queryTerms.push('recruiting')
       }
 
-      // Add age group if specified
-      if (ageGroup === 'child') {
-        params.append('age', '0-17')
-      } else if (ageGroup === 'adult') {
-        params.append('age', '18-64')
-      } else if (ageGroup === 'older') {
-        params.append('age', '65+')
+      // Combine query terms with AND
+      if (queryTerms.length > 0) {
+        params.append('query.cond', queryTerms.join(' AND '))
       }
       
       const response = await fetch(`https://clinicaltrials.gov/api/v2/studies?${params.toString()}`)
