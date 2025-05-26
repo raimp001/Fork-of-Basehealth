@@ -1,25 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Simple distance calculation function (approximate)
-function calculateDistance(userLocation: string, trialLocation: { city?: string, state?: string, country?: string }): number | undefined {
-  if (!userLocation || !trialLocation.city) return undefined
+// Location relevance scoring function
+function calculateLocationRelevance(userLocation: string, trialLocation: { city?: string, state?: string, country?: string }): number {
+  if (!userLocation || !trialLocation.city) return 0
   
   const userLower = userLocation.toLowerCase()
   const trialCity = trialLocation.city?.toLowerCase() || ''
   const trialState = trialLocation.state?.toLowerCase() || ''
+  const trialCountry = trialLocation.country?.toLowerCase() || ''
   
-  // Exact city match
+  // Exact city match - highest relevance
   if (trialCity.includes(userLower) || userLower.includes(trialCity)) {
-    return Math.random() * 10 + 1 // 1-11 miles for same city
+    return 100
   }
   
-  // Same state
+  // Same state/region - high relevance
   if (trialState.includes(userLower) || userLower.includes(trialState)) {
-    return Math.random() * 200 + 20 // 20-220 miles for same state
+    return 80
   }
   
-  // Different state/country
-  return Math.random() * 1000 + 100 // 100-1100 miles for different states
+  // Same country - medium relevance
+  if (trialCountry.includes('united states') && (userLower.includes('usa') || userLower.includes('us') || userLower.includes('america'))) {
+    return 60
+  }
+  
+  // Different country - low relevance
+  return 20
 }
 
 export async function GET(request: NextRequest) {

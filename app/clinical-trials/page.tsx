@@ -11,7 +11,7 @@ interface ClinicalTrial {
   condition: string
   phase: string
   location: string
-  distance?: number
+  locationRelevance?: number
   sponsor: string
   status: string
   description: string
@@ -21,26 +21,32 @@ interface ClinicalTrial {
   facilityName?: string
 }
 
-// Simple distance calculation function (approximate)
-function calculateDistance(userLocation: string, trialLocation: { city?: string, state?: string, country?: string }): number | undefined {
-  if (!userLocation || !trialLocation.city) return undefined
+// Location relevance scoring function
+function calculateLocationRelevance(userLocation: string, trialLocation: { city?: string, state?: string, country?: string }): number {
+  if (!userLocation || !trialLocation.city) return 0
   
   const userLower = userLocation.toLowerCase()
   const trialCity = trialLocation.city?.toLowerCase() || ''
   const trialState = trialLocation.state?.toLowerCase() || ''
+  const trialCountry = trialLocation.country?.toLowerCase() || ''
   
-  // Exact city match
+  // Exact city match - highest relevance
   if (trialCity.includes(userLower) || userLower.includes(trialCity)) {
-    return Math.random() * 10 + 1 // 1-11 miles for same city
+    return 100
   }
   
-  // Same state
+  // Same state/region - high relevance
   if (trialState.includes(userLower) || userLower.includes(trialState)) {
-    return Math.random() * 200 + 20 // 20-220 miles for same state
+    return 80
   }
   
-  // Different state/country
-  return Math.random() * 1000 + 100 // 100-1100 miles for different states
+  // Same country - medium relevance
+  if (trialCountry.includes('united states') && (userLower.includes('usa') || userLower.includes('us') || userLower.includes('america'))) {
+    return 60
+  }
+  
+  // Different country - low relevance
+  return 20
 }
 
 export default function ClinicalTrialsPage() {
@@ -221,9 +227,9 @@ export default function ClinicalTrialsPage() {
         const locationString = [firstLocation.city, firstLocation.state, firstLocation.country]
           .filter(Boolean).join(', ')
 
-        // Calculate distance if location was mentioned in query
-        const distance = parsed.locations.length > 0 ? 
-          calculateDistance(parsed.locations[0], firstLocation) : undefined
+        // Calculate location relevance if location was mentioned in query
+        const locationRelevance = parsed.locations.length > 0 ? 
+          calculateLocationRelevance(parsed.locations[0], firstLocation) : 0
 
         return {
           id: identificationModule.nctId || 'Unknown',
@@ -231,7 +237,7 @@ export default function ClinicalTrialsPage() {
           condition: conditionsModule.conditions?.[0] || 'Not specified',
           phase: designModule.phases?.[0] || 'Not specified',
           location: locationString || 'Location not specified',
-          distance,
+          locationRelevance,
           sponsor: sponsorCollaboratorsModule.leadSponsor?.name || 'Not specified',
           status: statusModule.overallStatus || 'Unknown',
           description: descriptionModule.briefSummary || 'No description available',
@@ -243,6 +249,11 @@ export default function ClinicalTrialsPage() {
           facilityName: firstLocation.facility || 'Not specified'
         }
       }) || []
+
+      // Sort by location relevance if location was provided
+      if (parsed.locations.length > 0) {
+        transformedTrials.sort((a, b) => (b.locationRelevance || 0) - (a.locationRelevance || 0))
+      }
 
       setTrials(transformedTrials)
     } catch (err) {
@@ -442,12 +453,10 @@ export default function ClinicalTrialsPage() {
                     <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
                       <span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded">{trial.phase}</span>
                       <span className="bg-green-100 text-green-700 px-2 py-1 rounded">{trial.status}</span>
-                      {trial.distance && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          {trial.distance.toFixed(1)} miles away
-                        </span>
-                      )}
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        {trial.location}
+                      </span>
                     </div>
                   </div>
                   <div className="text-right">
