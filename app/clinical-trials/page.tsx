@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, MapPin, Search, Filter, Clock, Users, Database, Info, Sparkles } from "lucide-react"
 import { useState, useEffect } from "react"
+import { calculateTrialDistance } from "@/lib/geocoding"
 
 interface ClinicalTrial {
   id: string
@@ -11,6 +12,7 @@ interface ClinicalTrial {
   condition: string
   phase: string
   location: string
+  distance?: number
   locationRelevance?: number
   sponsor: string
   status: string
@@ -21,7 +23,7 @@ interface ClinicalTrial {
   facilityName?: string
 }
 
-// Location relevance scoring function
+// Location relevance scoring function for sorting
 function calculateLocationRelevance(userLocation: string, trialLocation: { city?: string, state?: string, country?: string }): number {
   if (!userLocation || !trialLocation.city) return 0
   
@@ -227,7 +229,11 @@ export default function ClinicalTrialsPage() {
         const locationString = [firstLocation.city, firstLocation.state, firstLocation.country]
           .filter(Boolean).join(', ')
 
-        // Calculate location relevance if location was mentioned in query
+        // Calculate actual distance if location was mentioned in query
+        const distance = parsed.locations.length > 0 ? 
+          calculateTrialDistance(parsed.locations[0], firstLocation) : null
+        
+        // Calculate location relevance for sorting
         const locationRelevance = parsed.locations.length > 0 ? 
           calculateLocationRelevance(parsed.locations[0], firstLocation) : 0
 
@@ -237,6 +243,7 @@ export default function ClinicalTrialsPage() {
           condition: conditionsModule.conditions?.[0] || 'Not specified',
           phase: designModule.phases?.[0] || 'Not specified',
           location: locationString || 'Location not specified',
+          distance,
           locationRelevance,
           sponsor: sponsorCollaboratorsModule.leadSponsor?.name || 'Not specified',
           status: statusModule.overallStatus || 'Unknown',
@@ -455,7 +462,10 @@ export default function ClinicalTrialsPage() {
                       <span className="bg-green-100 text-green-700 px-2 py-1 rounded">{trial.status}</span>
                       <span className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
-                        {trial.location}
+                        {trial.distance !== null && trial.distance !== undefined ? 
+                          `${trial.distance} miles away` : 
+                          trial.location
+                        }
                       </span>
                     </div>
                   </div>

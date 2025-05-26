@@ -1,32 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Location relevance scoring function
-function calculateLocationRelevance(userLocation: string, trialLocation: { city?: string, state?: string, country?: string }): number {
-  if (!userLocation || !trialLocation.city) return 0
-  
-  const userLower = userLocation.toLowerCase()
-  const trialCity = trialLocation.city?.toLowerCase() || ''
-  const trialState = trialLocation.state?.toLowerCase() || ''
-  const trialCountry = trialLocation.country?.toLowerCase() || ''
-  
-  // Exact city match - highest relevance
-  if (trialCity.includes(userLower) || userLower.includes(trialCity)) {
-    return 100
-  }
-  
-  // Same state/region - high relevance
-  if (trialState.includes(userLower) || userLower.includes(trialState)) {
-    return 80
-  }
-  
-  // Same country - medium relevance
-  if (trialCountry.includes('united states') && (userLower.includes('usa') || userLower.includes('us') || userLower.includes('america'))) {
-    return 60
-  }
-  
-  // Different country - low relevance
-  return 20
-}
+// Note: Distance calculation is now handled on the frontend using accurate geocoding
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
