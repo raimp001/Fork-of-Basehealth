@@ -146,13 +146,6 @@ export default function ClinicalTrialsPage() {
       const parsed = parseQuery(query)
       setParsedQuery(parsed)
       
-      // Build query parameters for ClinicalTrials.gov API v2
-      const params = new URLSearchParams({
-        'format': 'json',
-        'pageSize': '50',
-        'fields': 'NCTId,BriefTitle,Condition,Phase,OverallStatus,BriefSummary,EligibilityCriteria,EnrollmentCount,StudyType,LocationCity,LocationState,LocationCountry,LeadSponsorName,LocationFacility'
-      })
-
       // Build search query from parsed terms
       let queryTerms: string[] = []
       
@@ -184,9 +177,13 @@ export default function ClinicalTrialsPage() {
       // Always include recruiting studies
       queryTerms.push('recruiting')
       
-      params.append('query.cond', queryTerms.join(' AND '))
+      // Use our API route to avoid CORS issues
+      const params = new URLSearchParams({
+        'pageSize': '50',
+        'query': queryTerms.join(' AND ')
+      })
       
-      const response = await fetch(`https://clinicaltrials.gov/api/v2/studies?${params.toString()}`)
+      const response = await fetch(`/api/clinical-trials?${params.toString()}`)
       
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status}`)
