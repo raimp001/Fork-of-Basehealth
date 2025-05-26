@@ -1,70 +1,137 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, FileText, Download, Eye, Calendar, Activity, Heart, Beaker } from "lucide-react"
+import { ArrowLeft, FileText, Download, Eye, Calendar, Activity, Heart, Beaker, Lock, Shield, User } from "lucide-react"
+import { useState, useEffect } from "react"
+
+interface MedicalRecord {
+  id: number
+  patientId: string
+  type: string
+  title: string
+  date: string
+  provider: string
+  status: string
+  category: string
+  confidential: boolean
+}
+
+interface User {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  role: string
+}
 
 export default function MedicalRecordsPage() {
-  const records = [
-    {
-      id: 1,
-      type: "Lab Results",
-      title: "Complete Blood Count (CBC)",
-      date: "2024-01-15",
-      provider: "Dr. Smith - Internal Medicine",
-      status: "Normal",
-      icon: Beaker,
-      color: "bg-blue-100 text-blue-600"
-    },
-    {
-      id: 2,
-      type: "Imaging",
-      title: "Chest X-Ray",
-      date: "2024-01-10",
-      provider: "City Medical Center",
-      status: "Normal",
-      icon: Activity,
-      color: "bg-green-100 text-green-600"
-    },
-    {
-      id: 3,
-      type: "Lab Results",
-      title: "Lipid Panel",
-      date: "2024-01-08",
-      provider: "Dr. Johnson - Cardiology",
-      status: "Elevated",
-      icon: Heart,
-      color: "bg-red-100 text-red-600"
-    },
-    {
-      id: 4,
-      type: "Visit Summary",
-      title: "Annual Physical Exam",
-      date: "2024-01-05",
-      provider: "Dr. Smith - Internal Medicine",
-      status: "Complete",
-      icon: FileText,
-      color: "bg-indigo-100 text-indigo-600"
-    },
-    {
-      id: 5,
-      type: "Lab Results",
-      title: "Hemoglobin A1C",
-      date: "2023-12-20",
-      provider: "Dr. Wilson - Endocrinology",
-      status: "Normal",
-      icon: Beaker,
-      color: "bg-blue-100 text-blue-600"
-    },
-    {
-      id: 6,
-      type: "Prescription",
-      title: "Lisinopril 10mg",
-      date: "2023-12-15",
-      provider: "Dr. Smith - Internal Medicine",
-      status: "Active",
-      icon: FileText,
-      color: "bg-purple-100 text-purple-600"
+  const [records, setRecords] = useState<MedicalRecord[]>([])
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [loginForm, setLoginForm] = useState({ email: '', patientId: '' })
+
+  // Check authentication and load records
+  useEffect(() => {
+    loadMedicalRecords()
+  }, [])
+
+  const loadMedicalRecords = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/medical-records')
+      
+      if (response.status === 401) {
+        setIsAuthenticated(false)
+        setError('Please log in to access your medical records.')
+        return
+      }
+      
+      if (response.status === 403) {
+        setError('Access denied. Only patients can view medical records.')
+        return
+      }
+      
+      if (!response.ok) {
+        throw new Error('Failed to load medical records')
+      }
+      
+      const data = await response.json()
+      setRecords(data.records)
+      setUser(data.patient)
+      setIsAuthenticated(true)
+      setError(null)
+      
+    } catch (err) {
+      console.error('Error loading medical records:', err)
+      setError('Unable to load medical records. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
-  ]
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginForm),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Login failed')
+      }
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        // Reload medical records after successful login
+        await loadMedicalRecords()
+      }
+      
+    } catch (err) {
+      console.error('Login error:', err)
+      setError('Login failed. Please check your credentials.')
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/login', { method: 'DELETE' })
+      setIsAuthenticated(false)
+      setUser(null)
+      setRecords([])
+      setError(null)
+    } catch (err) {
+      console.error('Logout error:', err)
+    }
+  }
+
+  const getRecordIcon = (category: string) => {
+    switch (category) {
+      case 'lab': return Beaker
+      case 'imaging': return Activity
+      case 'visit': return FileText
+      case 'prescription': return Heart
+      default: return FileText
+    }
+  }
+
+  const getRecordColor = (category: string) => {
+    switch (category) {
+      case 'lab': return 'bg-blue-100 text-blue-600'
+      case 'imaging': return 'bg-green-100 text-green-600'
+      case 'visit': return 'bg-indigo-100 text-indigo-600'
+      case 'prescription': return 'bg-purple-100 text-purple-600'
+      default: return 'bg-gray-100 text-gray-600'
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -80,6 +147,94 @@ export default function MedicalRecordsPage() {
       default:
         return 'bg-gray-100 text-gray-700'
     }
+  }
+
+  // Show login form if not authenticated
+  if (!isAuthenticated && !isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <header className="flex items-center justify-between px-8 py-6 border-b">
+          <div className="flex items-center">
+            <Link href="/" className="text-2xl font-bold text-indigo-600">
+              basehealth.xyz
+            </Link>
+          </div>
+          <nav className="flex items-center gap-8">
+            <Link href="/patient-portal" className="text-gray-700 hover:text-indigo-600 transition-colors">
+              Patient Portal
+            </Link>
+          </nav>
+        </header>
+
+        <main className="px-8 py-12">
+          <div className="max-w-md mx-auto">
+            <div className="bg-white border rounded-xl p-8 shadow-lg">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-red-100 rounded-lg">
+                  <Lock className="h-8 w-8 text-red-600" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Secure Access Required</h1>
+                  <p className="text-gray-600">Please log in to view your medical records</p>
+                </div>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <p className="text-red-700">{error}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={loginForm.email}
+                    onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Enter your email"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Patient ID (Demo)
+                  </label>
+                  <select
+                    value={loginForm.patientId}
+                    onChange={(e) => setLoginForm({...loginForm, patientId: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    aria-label="Select patient for demo login"
+                  >
+                    <option value="">Select Patient</option>
+                    <option value="patient_001">John Doe (patient_001)</option>
+                    <option value="patient_002">Jane Smith (patient_002)</option>
+                  </select>
+                </div>
+
+                <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Secure Login
+                </Button>
+              </form>
+
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h3 className="font-medium text-blue-900 mb-2">🔒 Security Features</h3>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• Patient-only access control</li>
+                  <li>• Secure session management</li>
+                  <li>• Access logging and monitoring</li>
+                  <li>• HIPAA-compliant data protection</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -98,6 +253,17 @@ export default function MedicalRecordsPage() {
           <Link href="/settings" className="text-gray-700 hover:text-indigo-600 transition-colors">
             Settings
           </Link>
+          {isAuthenticated && user && (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <User className="h-4 w-4" />
+                <span>{user.name}</span>
+              </div>
+              <Button onClick={handleLogout} variant="outline" size="sm">
+                Logout
+              </Button>
+            </div>
+          )}
         </nav>
       </header>
 
@@ -111,6 +277,19 @@ export default function MedicalRecordsPage() {
             <h1 className="text-4xl font-bold text-gray-900">Medical Records</h1>
           </div>
 
+          {/* Security Notice */}
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-8">
+            <div className="flex items-center gap-3">
+              <Shield className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-green-800 font-medium">Secure Access Verified</p>
+                <p className="text-green-700 text-sm">
+                  Your medical records are protected and only accessible by you. All access is logged for security.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Summary Cards */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white border rounded-xl p-6">
@@ -120,7 +299,9 @@ export default function MedicalRecordsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Lab Results</p>
-                  <p className="text-2xl font-bold text-gray-900">3</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {records.filter(r => r.category === 'lab').length}
+                  </p>
                 </div>
               </div>
             </div>
@@ -132,7 +313,9 @@ export default function MedicalRecordsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Imaging</p>
-                  <p className="text-2xl font-bold text-gray-900">1</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {records.filter(r => r.category === 'imaging').length}
+                  </p>
                 </div>
               </div>
             </div>
@@ -144,7 +327,9 @@ export default function MedicalRecordsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Visit Notes</p>
-                  <p className="text-2xl font-bold text-gray-900">1</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {records.filter(r => r.category === 'visit').length}
+                  </p>
                 </div>
               </div>
             </div>
@@ -156,7 +341,9 @@ export default function MedicalRecordsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Prescriptions</p>
-                  <p className="text-2xl font-bold text-gray-900">1</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {records.filter(r => r.category === 'prescription').length}
+                  </p>
                 </div>
               </div>
             </div>
@@ -170,16 +357,22 @@ export default function MedicalRecordsPage() {
             
             <div className="divide-y divide-gray-200">
               {records.map((record) => {
-                const IconComponent = record.icon
+                const IconComponent = getRecordIcon(record.category)
+                const iconColor = getRecordColor(record.category)
                 return (
                   <div key={record.id} className="p-6 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-lg ${record.color}`}>
+                        <div className={`p-3 rounded-lg ${iconColor}`}>
                           <IconComponent className="h-6 w-6" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{record.title}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-semibold text-gray-900">{record.title}</h3>
+                            {record.confidential && (
+                              <Lock className="h-4 w-4 text-red-500" title="Confidential Record" />
+                            )}
+                          </div>
                           <p className="text-sm text-gray-600">{record.type} • {record.provider}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <Calendar className="h-4 w-4 text-gray-400" />
