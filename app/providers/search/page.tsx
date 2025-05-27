@@ -27,7 +27,6 @@ export default function ProviderSearchPage() {
   const [providers, setProviders] = useState<Provider[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
   const [selectedSpecialty, setSelectedSpecialty] = useState("")
   const [locationInput, setLocationInput] = useState("")
   const [hasSearched, setHasSearched] = useState(false)
@@ -50,8 +49,8 @@ export default function ProviderSearchPage() {
   ]
 
   const searchProviders = async () => {
-    if (!searchQuery && !selectedSpecialty && !locationInput) {
-      setError("Please enter a search term, select a specialty, or specify a location")
+    if (!selectedSpecialty && !locationInput) {
+      setError("Please select a specialty or specify a location")
       return
     }
 
@@ -61,7 +60,6 @@ export default function ProviderSearchPage() {
 
     try {
       const params = new URLSearchParams()
-      if (searchQuery) params.append('query', searchQuery)
       if (selectedSpecialty) params.append('specialty', selectedSpecialty)
       if (locationInput) params.append('location', locationInput)
       params.append('limit', '20')
@@ -130,19 +128,7 @@ export default function ProviderSearchPage() {
 
           {/* Search and Filters */}
           <form onSubmit={handleSearch} className="bg-gray-50 rounded-xl p-6 mb-8">
-            <div className="grid md:grid-cols-4 gap-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Provider name..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-
+            <div className="grid md:grid-cols-3 gap-4">
               {/* Specialty Filter */}
               <select
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -326,7 +312,7 @@ export default function ProviderSearchPage() {
             <div className="text-center py-12">
               <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg">Search for healthcare providers</p>
-              <p className="text-gray-400 mt-2">Enter a provider name, select a specialty, or specify a location to get started.</p>
+              <p className="text-gray-400 mt-2">Select a specialty or specify a location to get started.</p>
             </div>
           )}
         </div>

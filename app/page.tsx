@@ -155,17 +155,6 @@ export default function HomePage() {
               variant="outline" 
               className="border-indigo-500 text-indigo-600 hover:bg-indigo-50 px-8 py-3 text-lg rounded-lg font-medium transition-colors"
             >
-              <Link href="/providers/search" className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                Find a Provider
-              </Link>
-            </Button>
-
-            <Button 
-              asChild 
-              variant="outline" 
-              className="border-indigo-500 text-indigo-600 hover:bg-indigo-50 px-8 py-3 text-lg rounded-lg font-medium transition-colors"
-            >
               <Link href="/clinical-trials" className="flex items-center gap-2">
                 <Search className="h-5 w-5" />
                 Find Clinical Trials
