@@ -529,6 +529,7 @@ export default function MedicalProfilePage() {
   )
 }
 
+// Helper functions should be outside the component
 function getRecordIcon(category: string) {
   switch (category) {
     case 'lab': return Beaker
