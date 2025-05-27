@@ -3,44 +3,58 @@ import type { NextRequest } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
 export async function middleware(request: NextRequest) {
-  // Create a Supabase client
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  const supabase = createClient(supabaseUrl, supabaseKey)
+  try {
+    // Check if environment variables are set
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Get the auth cookie
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase environment variables')
+      // Allow the request to continue if environment variables are missing
+      return NextResponse.next()
+    }
 
-  // Check if the user is authenticated
-  const isAuthenticated = !!session
+    // Create a Supabase client
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
-  // Define protected routes
-  const protectedRoutes = [
-    "/dashboard",
-    "/appointments",
-    "/profile",
-    "/on-demand",
-    "/providers/dashboard",
-    "/medical-profile",
-    "/medical-records",
-    "/chat",
-    "/appointment"
-  ]
+    // Get the auth cookie
+    const { data: { session } } = await supabase.auth.getSession()
 
-  // Check if the current route is protected
-  const isProtectedRoute = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
+    // Check if the user is authenticated
+    const isAuthenticated = !!session
 
-  // If the route is protected and the user is not authenticated, redirect to login
-  if (isProtectedRoute && !isAuthenticated) {
-    const redirectUrl = new URL("/login", request.url)
-    redirectUrl.searchParams.set("redirect", request.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+    // Define protected routes
+    const protectedRoutes = [
+      "/dashboard",
+      "/appointments",
+      "/profile",
+      "/on-demand",
+      "/providers/dashboard",
+      "/medical-profile",
+      "/medical-records",
+      "/chat",
+      "/appointment"
+    ]
+
+    // Check if the current route is protected
+    const isProtectedRoute = protectedRoutes.some((route) => 
+      request.nextUrl.pathname.startsWith(route)
+    )
+
+    // If the route is protected and the user is not authenticated, redirect to login
+    if (isProtectedRoute && !isAuthenticated) {
+      const redirectUrl = new URL("/login", request.url)
+      redirectUrl.searchParams.set("redirect", request.nextUrl.pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Continue with the request
+    return NextResponse.next()
+  } catch (error) {
+    console.error('Middleware error:', error)
+    // In case of error, allow the request to continue
+    return NextResponse.next()
   }
-
-  // Continue with the request
-  return NextResponse.next()
 }
 
 export const config = {
