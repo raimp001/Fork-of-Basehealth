@@ -1,6 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Activity, Calendar, FileText, Database } from "lucide-react"
+import { ArrowLeft, User, Activity, FileText, Calendar, MessageSquare, Wallet } from "lucide-react"
 
 export default function PatientPortalPage() {
   return (
@@ -13,19 +15,6 @@ export default function PatientPortalPage() {
           </Link>
         </div>
         <nav className="flex items-center gap-8">
-          <Button 
-            asChild 
-            variant="ghost" 
-            className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium"
-          >
-            <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              healthdb.ai
-            </a>
-          </Button>
-          <Link href="/patient-portal" className="text-indigo-600 font-medium">
-            Patient Portal
-          </Link>
           <Link href="/settings" className="text-gray-700 hover:text-indigo-600 transition-colors">
             Settings
           </Link>
@@ -55,52 +44,87 @@ export default function PatientPortalPage() {
                 Manage your health profile and access your complete medical records.
               </p>
               <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
-                <Link href="/medical-records">View Profile</Link>
+                <Link href="/medical-profile">View Profile</Link>
               </Button>
             </div>
 
             {/* AI Screening */}
             <div className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-indigo-100 rounded-lg">
-                  <Activity className="h-6 w-6 text-indigo-600" />
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Activity className="h-6 w-6 text-green-600" />
                 </div>
-                <h3 className="text-lg font-semibold">AI Screening</h3>
+                <h3 className="text-lg font-semibold">AI Health Screening</h3>
               </div>
               <p className="text-gray-600 mb-4 text-sm">
-                Get personalized health screenings powered by AI.
+                Get personalized health recommendations based on your profile.
               </p>
-              <Button asChild variant="outline" className="w-full border-indigo-600 text-indigo-600 hover:bg-indigo-50">
+              <Button asChild className="w-full bg-green-600 hover:bg-green-700">
                 <Link href="/screening">Start Screening</Link>
               </Button>
             </div>
 
-            {/* Clinical Trials */}
+            {/* Medical Records */}
             <div className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-indigo-100 rounded-lg">
-                  <Calendar className="h-6 w-6 text-indigo-600" />
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileText className="h-6 w-6 text-blue-600" />
                 </div>
-                <h3 className="text-lg font-semibold">Clinical Trials</h3>
+                <h3 className="text-lg font-semibold">Medical Records</h3>
               </div>
               <p className="text-gray-600 mb-4 text-sm">
-                Find clinical trials near you based on your location and health conditions.
+                View and download your medical records and test results.
               </p>
-              <Button asChild variant="outline" className="w-full border-indigo-600 text-indigo-600 hover:bg-indigo-50">
-                <Link href="/clinical-trials">Find Trials</Link>
+              <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+                <Link href="/medical-profile?tab=records">View Records</Link>
               </Button>
             </div>
-          </div>
 
-          {/* Quick Actions */}
-          <div className="mt-12 bg-gray-50 rounded-xl p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
-                <Link href="/second-opinion">Get Second Opinion</Link>
+            {/* Appointments */}
+            <div className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Calendar className="h-6 w-6 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold">Appointments</h3>
+              </div>
+              <p className="text-gray-600 mb-4 text-sm">
+                Schedule and manage your upcoming appointments.
+              </p>
+              <Button asChild className="w-full bg-purple-600 hover:bg-purple-700">
+                <Link href="/appointment">View Appointments</Link>
               </Button>
-              <Button asChild variant="outline" className="border-indigo-600 text-indigo-600 hover:bg-indigo-50">
-                <Link href="/providers/search">Find a Provider</Link>
+            </div>
+
+            {/* Messages */}
+            <div className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <MessageSquare className="h-6 w-6 text-yellow-600" />
+                </div>
+                <h3 className="text-lg font-semibold">Messages</h3>
+              </div>
+              <p className="text-gray-600 mb-4 text-sm">
+                Communicate securely with your healthcare providers.
+              </p>
+              <Button asChild className="w-full bg-yellow-600 hover:bg-yellow-700">
+                <Link href="/chat">View Messages</Link>
+              </Button>
+            </div>
+
+            {/* Health Wallet */}
+            <div className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <Wallet className="h-6 w-6 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold">Health Wallet</h3>
+              </div>
+              <p className="text-gray-600 mb-4 text-sm">
+                Manage your health insurance and payment information.
+              </p>
+              <Button asChild className="w-full bg-red-600 hover:bg-red-700">
+                <Link href="/wallet">View Wallet</Link>
               </Button>
             </div>
           </div>
