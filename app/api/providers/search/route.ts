@@ -8,7 +8,7 @@ import {
   isAcceptingPatients,
   NPIProvider 
 } from '@/lib/npi-api'
-import { calculateTrialDistance } from '@/lib/geocoding'
+import { calculateTrialDistance, convertZipToLocation } from '@/lib/geocoding'
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,10 +20,10 @@ export async function GET(request: NextRequest) {
     
     let providers: NPIProvider[] = []
     
-    // Parse location for city and state
-    const locationParts = location.toLowerCase().split(',').map(part => part.trim())
-    const city = locationParts[0] || undefined
-    const state = locationParts[1] || undefined
+    // Convert location (could be ZIP code or city, state)
+    const locationData = convertZipToLocation(location)
+    const city = locationData.city
+    const state = locationData.state
     
     if (specialty && specialty !== 'all') {
       // Search by specialty
