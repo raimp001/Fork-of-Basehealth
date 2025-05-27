@@ -17,7 +17,17 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = !!session
 
   // Define protected routes
-  const protectedRoutes = ["/dashboard", "/appointments", "/profile", "/on-demand", "/providers/dashboard"]
+  const protectedRoutes = [
+    "/dashboard",
+    "/appointments",
+    "/profile",
+    "/on-demand",
+    "/providers/dashboard",
+    "/medical-profile",
+    "/medical-records",
+    "/chat",
+    "/appointment"
+  ]
 
   // Check if the current route is protected
   const isProtectedRoute = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
@@ -40,5 +50,9 @@ export const config = {
     "/profile/:path*",
     "/on-demand/:path*",
     "/providers/dashboard/:path*",
+    "/medical-profile/:path*",
+    "/medical-records/:path*",
+    "/chat/:path*",
+    "/appointment/:path*"
   ],
 }
