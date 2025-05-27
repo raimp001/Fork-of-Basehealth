@@ -190,25 +190,17 @@ export function parseTrialLocation(location: { city?: string, state?: string, co
   if (location.country && location.country.toLowerCase() !== 'united states') {
     parts.push(location.country.toLowerCase())
   }
-  const result = parts.join(', ')
-  console.log('parseTrialLocation:', location, '->', result)
-  return result
+  return parts.join(', ')
 }
 
 // Calculate distance between user location and trial location
 export function calculateTrialDistance(userLocation: string, trialLocation: { city?: string, state?: string, country?: string }): number | null {
-  console.log('calculateTrialDistance called with:', { userLocation, trialLocation })
-  
   const userCoords = getLocationCoordinates(userLocation)
-  console.log('User coordinates for', userLocation, ':', userCoords)
   if (!userCoords) return null
   
   const trialLocationString = parseTrialLocation(trialLocation)
   const trialCoords = getLocationCoordinates(trialLocationString)
-  console.log('Trial coordinates for', trialLocationString, ':', trialCoords)
   if (!trialCoords) return null
   
-  const distance = calculateDistance(userCoords, trialCoords)
-  console.log('Calculated distance:', distance, 'miles')
-  return distance
+  return calculateDistance(userCoords, trialCoords)
 } 

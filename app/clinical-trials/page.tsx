@@ -233,13 +233,7 @@ export default function ClinicalTrialsPage() {
         const locationState = firstLocation.state || firstLocation.locationState || firstLocation.State  
         const locationCountry = firstLocation.country || firstLocation.locationCountry || firstLocation.Country || 'United States'
         
-        // Debug: Log the location structure
-        if (locations.length > 0) {
-          console.log('Location structure for trial:', identificationModule.nctId, {
-            original: firstLocation,
-            parsed: { city: locationCity, state: locationState, country: locationCountry }
-          })
-        }
+        // Location structure parsed successfully
         
         const locationString = [locationCity, locationState, locationCountry]
           .filter(Boolean).join(', ')
@@ -255,10 +249,7 @@ export default function ClinicalTrialsPage() {
         const distance = parsed.locations.length > 0 ? 
           calculateTrialDistance(parsed.locations[0], normalizedLocation) : null
         
-        // Debug: Log distance calculation
-        if (parsed.locations.length > 0) {
-          console.log(`Distance calculation: ${parsed.locations[0]} to ${locationCity}, ${locationState}:`, distance, 'miles')
-        }
+        // Distance calculation completed
         
         // Calculate location relevance for sorting
         const locationRelevance = parsed.locations.length > 0 ? 
