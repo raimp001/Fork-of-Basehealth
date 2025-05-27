@@ -526,10 +526,10 @@ export default function MedicalProfilePage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
 
-// Helper functions should be outside the component
+// Helper functions below
 function getRecordIcon(category: string) {
   switch (category) {
     case 'lab': return Beaker
