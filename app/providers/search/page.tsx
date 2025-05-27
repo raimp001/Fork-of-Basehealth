@@ -136,7 +136,7 @@ export default function ProviderSearchPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Provider name or organization..."
+                  placeholder="Provider name..."
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -161,7 +161,7 @@ export default function ProviderSearchPage() {
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="City, State (e.g., San Francisco, CA)"
+                  placeholder="ZIP code or area (e.g., 94102, San Francisco CA, New York NY)"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   value={locationInput}
                   onChange={(e) => setLocationInput(e.target.value)}
@@ -293,11 +293,16 @@ export default function ProviderSearchPage() {
                             View Profile
                           </Button>
                           <Button 
+                            asChild
                             className="bg-indigo-600 hover:bg-indigo-700"
                             disabled={!provider.acceptingPatients}
                           >
-                            <Calendar className="h-4 w-4 mr-2" />
-                            Book Appointment
+                            <Link 
+                              href={`/appointment/book?name=${encodeURIComponent(provider.name)}&specialty=${encodeURIComponent(provider.specialty)}&address=${encodeURIComponent(provider.address)}&phone=${encodeURIComponent(provider.phone)}&npi=${encodeURIComponent(provider.npi)}&rating=${provider.rating}&accepting=${provider.acceptingPatients}`}
+                            >
+                              <Calendar className="h-4 w-4 mr-2" />
+                              Book Appointment
+                            </Link>
                           </Button>
                         </div>
                       </div>

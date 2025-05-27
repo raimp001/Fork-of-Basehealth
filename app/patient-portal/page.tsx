@@ -42,20 +42,20 @@ export default function PatientPortalPage() {
             <h1 className="text-4xl font-bold text-gray-900">Patient Portal</h1>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Health Profile */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* My Medical Profile */}
             <div className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-indigo-100 rounded-lg">
                   <User className="h-6 w-6 text-indigo-600" />
                 </div>
-                <h3 className="text-lg font-semibold">Health Profile</h3>
+                <h3 className="text-lg font-semibold">My Medical Profile</h3>
               </div>
               <p className="text-gray-600 mb-4 text-sm">
-                Manage your personal health information and medical history.
+                Manage your health profile and access your complete medical records.
               </p>
               <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
-                <Link href="/health-profile">View Profile</Link>
+                <Link href="/medical-records">View Profile</Link>
               </Button>
             </div>
 
@@ -88,22 +88,6 @@ export default function PatientPortalPage() {
               </p>
               <Button asChild variant="outline" className="w-full border-indigo-600 text-indigo-600 hover:bg-indigo-50">
                 <Link href="/clinical-trials">Find Trials</Link>
-              </Button>
-            </div>
-
-            {/* Medical Records */}
-            <div className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-indigo-100 rounded-lg">
-                  <FileText className="h-6 w-6 text-indigo-600" />
-                </div>
-                <h3 className="text-lg font-semibold">Medical Records</h3>
-              </div>
-              <p className="text-gray-600 mb-4 text-sm">
-                Access your complete medical records and test results.
-              </p>
-              <Button asChild variant="outline" className="w-full border-indigo-600 text-indigo-600 hover:bg-indigo-50">
-                <Link href="/medical-records">View Records</Link>
               </Button>
             </div>
           </div>
