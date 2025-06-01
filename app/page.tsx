@@ -128,10 +128,10 @@ export default function HomePage() {
             Personalized health starts here. Evidence-based screenings. Expert second opinions.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 justify-center items-center max-w-4xl mx-auto">
             <Button 
               asChild 
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg rounded-lg font-medium transition-colors"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 text-lg rounded-lg font-medium transition-colors w-full h-16 flex items-center justify-center"
             >
               <Link href="/screening" className="flex items-center gap-2">
                 <Activity className="h-5 w-5" />
@@ -142,7 +142,7 @@ export default function HomePage() {
             <Button 
               asChild 
               variant="outline" 
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 text-lg rounded-lg font-medium transition-colors"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg rounded-lg font-medium transition-colors w-full h-16 flex items-center justify-center"
             >
               <Link href="/second-opinion" className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -153,7 +153,7 @@ export default function HomePage() {
             <Button 
               asChild 
               variant="outline" 
-              className="border-indigo-500 text-indigo-600 hover:bg-indigo-50 px-8 py-3 text-lg rounded-lg font-medium transition-colors"
+              className="border-indigo-500 text-indigo-600 hover:bg-indigo-50 px-8 py-4 text-lg rounded-lg font-medium transition-colors w-full h-16 flex items-center justify-center"
             >
               <Link href="/clinical-trials" className="flex items-center gap-2">
                 <Search className="h-5 w-5" />
