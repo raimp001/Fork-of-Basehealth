@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Activity, Users, Wallet, UserPlus, Database, Search } from "lucide-react"
+import { Activity, Users, Wallet, UserPlus, Database, Search, Shield } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -56,28 +56,34 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header Navigation */}
-      <header className="flex items-center justify-between px-8 py-6">
+      <header className="flex items-center justify-between px-8 py-6 border-b border-gray-100">
         <div className="flex items-center">
-          <Link href="/" className="text-2xl font-bold text-indigo-600">
-            basehealth.xyz
+          <Link href="/" className="text-2xl font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
+            BaseHealth
           </Link>
         </div>
         <div className="flex items-center gap-6">
-          <nav className="flex items-center gap-8">
+          <nav className="flex items-center gap-6">
             <Button 
               asChild 
               variant="ghost" 
-              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium"
+              className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium px-4 py-2 rounded-lg transition-all duration-200"
             >
               <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                 <Database className="h-4 w-4" />
-                healthdb.ai
+                HealthDB.ai
               </a>
             </Button>
-            <Link href="/patient-portal" className="text-gray-700 hover:text-indigo-600 transition-colors">
+            <Link 
+              href="/patient-portal" 
+              className="text-gray-700 hover:text-indigo-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+            >
               Patient Portal
             </Link>
-            <Link href="/settings" className="text-gray-700 hover:text-indigo-600 transition-colors">
+            <Link 
+              href="/settings" 
+              className="text-gray-700 hover:text-indigo-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+            >
               Settings
             </Link>
           </nav>
@@ -86,8 +92,10 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
-              className={`flex items-center gap-2 border-indigo-500 hover:bg-indigo-50 transition px-4 py-2 rounded-lg ${
-                isWalletConnected ? 'text-green-600 border-green-500' : 'text-indigo-600'
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                isWalletConnected 
+                  ? 'text-green-600 border-green-500 hover:bg-green-50' 
+                  : 'text-indigo-600 border-indigo-500 hover:bg-indigo-50'
               }`}
               onClick={handleConnectWallet}
               disabled={isConnecting}
@@ -98,17 +106,26 @@ export default function HomePage() {
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2 border-indigo-500 text-indigo-700 hover:bg-indigo-50 transition px-4 py-2 rounded-lg font-medium">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2 border-indigo-500 text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                >
                   <UserPlus className="h-4 w-4" />
                   Sign Up
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className="w-48">
                 <DropdownMenuItem asChild>
-                  <Link href="/providers/signup">Provider Sign Up</Link>
+                  <Link href="/providers/signup" className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Provider Sign Up
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/admin">Admin Portal</Link>
+                  <Link href="/admin" className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Admin Portal
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -121,7 +138,7 @@ export default function HomePage() {
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
             Welcome to{" "}
-            <span className="text-indigo-600">basehealth.xyz</span>
+            <span className="text-indigo-600">BaseHealth</span>
           </h1>
           
           <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
