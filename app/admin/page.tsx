@@ -45,7 +45,12 @@ import {
   Award,
   Building,
   Camera,
-  ExternalLink
+  ExternalLink,
+  Bell,
+  TrendingUp,
+  AlertCircle,
+  ArrowUpRight,
+  BarChart3
 } from "lucide-react"
 
 interface ProviderApplication {
@@ -506,241 +511,320 @@ export default function AdminPortalPage() {
   )
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Admin Portal</h1>
-          <p className="text-muted-foreground">
-            Manage provider applications and platform operations
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+      {/* Enhanced Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  Admin Portal
+                </h1>
+                <p className="text-sm text-gray-500">Provider Management System</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-green-700">System Online</span>
+              </div>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Bell className="h-4 w-4" />
+                Notifications
+              </Button>
+            </div>
+          </div>
         </div>
-        <Badge variant="outline" className="flex items-center gap-1">
-          <Shield className="h-3 w-3" />
-          Admin Access
-        </Badge>
-      </div>
+      </header>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Providers</p>
-                <p className="text-2xl font-bold">{stats.totalProviders}</p>
-              </div>
-              <Users className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Pending Applications</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.pendingApplications}</p>
-              </div>
-              <Clock className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Approved This Month</p>
-                <p className="text-2xl font-bold text-green-600">{stats.approvedThisMonth}</p>
-              </div>
-              <UserCheck className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Patients</p>
-                <p className="text-2xl font-bold">{stats.totalPatients}</p>
-              </div>
-              <Activity className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="applications">Provider Applications</TabsTrigger>
-          <TabsTrigger value="providers">Active Providers</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-
-        {/* Provider Applications Tab */}
-        <TabsContent value="applications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Provider Applications</CardTitle>
-                  <CardDescription>
-                    Review and manage provider applications
-                  </CardDescription>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Enhanced Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-6 border border-blue-200 hover:shadow-lg transition-all duration-300">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -mr-10 -mt-10"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Users className="h-6 w-6 text-white" />
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
-                </div>
+                <TrendingUp className="h-5 w-5 text-blue-500" />
               </div>
-            </CardHeader>
-            <CardContent>
-              {/* Filters */}
-              <div className="flex gap-4 mb-6">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
-                    <Input
-                      placeholder="Search by name, email, or specialty..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
+              <p className="text-2xl font-bold text-gray-900">{stats.totalProviders}</p>
+              <p className="text-sm text-gray-600">Total Providers</p>
+            </div>
+          </div>
+
+          <div className="group relative overflow-hidden bg-gradient-to-br from-amber-50 to-yellow-100 rounded-2xl p-6 border border-amber-200 hover:shadow-lg transition-all duration-300">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full -mr-10 -mt-10"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <AlertCircle className="h-5 w-5 text-amber-500" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{stats.pendingApplications}</p>
+              <p className="text-sm text-gray-600">Pending Review</p>
+            </div>
+          </div>
+
+          <div className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 to-green-100 rounded-2xl p-6 border border-emerald-200 hover:shadow-lg transition-all duration-300">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full -mr-10 -mt-10"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-emerald-500" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{stats.approvedThisMonth}</p>
+              <p className="text-sm text-gray-600">Approved This Month</p>
+            </div>
+          </div>
+
+          <div className="group relative overflow-hidden bg-gradient-to-br from-purple-50 to-violet-100 rounded-2xl p-6 border border-purple-200 hover:shadow-lg transition-all duration-300">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full -mr-10 -mt-10"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <DollarSign className="h-6 w-6 text-white" />
+                </div>
+                <TrendingUp className="h-5 w-5 text-purple-500" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900">${stats.monthlyRevenue.toLocaleString()}</p>
+              <p className="text-sm text-gray-600">Monthly Revenue</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Main Content */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200 overflow-hidden">
+          {/* Enhanced Tab Header */}
+          <div className="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+            <div className="flex space-x-8 px-6">
+              <button
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-all duration-200 ${
+                  activeTab === "applications"
+                    ? "border-indigo-500 text-indigo-600 bg-white/50 rounded-t-lg"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+                onClick={() => setActiveTab("applications")}
+              >
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Provider Applications
+                  {stats.pendingApplications > 0 && (
+                    <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {stats.pendingApplications}
+                    </span>
+                  )}
+                </div>
+              </button>
+              <button
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-all duration-200 ${
+                  activeTab === "providers"
+                    ? "border-indigo-500 text-indigo-600 bg-white/50 rounded-t-lg"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+                onClick={() => setActiveTab("providers")}
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Active Providers
+                </div>
+              </button>
+              <button
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-all duration-200 ${
+                  activeTab === "analytics"
+                    ? "border-indigo-500 text-indigo-600 bg-white/50 rounded-t-lg"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+                onClick={() => setActiveTab("analytics")}
+              >
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Analytics
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Main Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="applications">Provider Applications</TabsTrigger>
+              <TabsTrigger value="providers">Active Providers</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            </TabsList>
+
+            {/* Provider Applications Tab */}
+            <TabsContent value="applications" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>Provider Applications</CardTitle>
+                      <CardDescription>
+                        Review and manage provider applications
+                      </CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Applications</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="under_review">Under Review</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                </CardHeader>
+                <CardContent>
+                  {/* Filters */}
+                  <div className="flex gap-4 mb-6">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+                        <Input
+                          placeholder="Search by name, email, or specialty..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Applications</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="under_review">Under Review</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* Applications Table */}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Provider</TableHead>
-                    <TableHead>Specialty</TableHead>
-                    <TableHead>License</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Documents</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredApplications.map((application) => (
-                    <TableRow key={application.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{application.firstName} {application.lastName}</p>
-                          <p className="text-sm text-muted-foreground">{application.email}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{application.specialty}</p>
-                          <p className="text-sm text-muted-foreground">{application.credentials}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{application.licenseState}</p>
-                          <p className="text-sm text-muted-foreground">{application.licenseNumber}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{application.submittedDate}</TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(application.status)}>
-                          {application.status.replace('_', ' ').toUpperCase()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {Object.values(application.documents).filter(Boolean).length === 4 ? (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <AlertTriangle className="h-4 w-4 text-orange-500" />
-                          )}
-                          <span className="text-sm">
-                            {Object.values(application.documents).filter(Boolean).length}/4
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {renderApplicationDetails(application)}
-                          {application.status === "pending" && (
-                            <>
-                              <Button 
-                                size="sm" 
-                                onClick={() => handleApprove(application.id)}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="destructive"
-                                onClick={() => handleReject(application.id)}
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  {/* Applications Table */}
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Provider</TableHead>
+                        <TableHead>Specialty</TableHead>
+                        <TableHead>License</TableHead>
+                        <TableHead>Submitted</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Documents</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredApplications.map((application) => (
+                        <TableRow key={application.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{application.firstName} {application.lastName}</p>
+                              <p className="text-sm text-muted-foreground">{application.email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{application.specialty}</p>
+                              <p className="text-sm text-muted-foreground">{application.credentials}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{application.licenseState}</p>
+                              <p className="text-sm text-muted-foreground">{application.licenseNumber}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>{application.submittedDate}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(application.status)}>
+                              {application.status.replace('_', ' ').toUpperCase()}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              {Object.values(application.documents).filter(Boolean).length === 4 ? (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <AlertTriangle className="h-4 w-4 text-orange-500" />
+                              )}
+                              <span className="text-sm">
+                                {Object.values(application.documents).filter(Boolean).length}/4
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              {renderApplicationDetails(application)}
+                              {application.status === "pending" && (
+                                <>
+                                  <Button 
+                                    size="sm" 
+                                    onClick={() => handleApprove(application.id)}
+                                    className="bg-green-600 hover:bg-green-700"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="destructive"
+                                    onClick={() => handleReject(application.id)}
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-        {/* Active Providers Tab */}
-        <TabsContent value="providers" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Providers</CardTitle>
-              <CardDescription>Manage currently active providers on the platform</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Active provider management coming soon</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            {/* Active Providers Tab */}
+            <TabsContent value="providers" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Active Providers</CardTitle>
+                  <CardDescription>Manage currently active providers on the platform</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Active provider management coming soon</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Platform Analytics</CardTitle>
-              <CardDescription>Monitor platform performance and metrics</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Analytics dashboard coming soon</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            {/* Analytics Tab */}
+            <TabsContent value="analytics" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Platform Analytics</CardTitle>
+                  <CardDescription>Monitor platform performance and metrics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Analytics dashboard coming soon</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
     </div>
   )
 } 

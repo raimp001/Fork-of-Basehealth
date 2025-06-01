@@ -3,6 +3,7 @@
   "framework": "nextjs",
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install",
+  "name": "basehealth-platform",
   "rewrites": [
     {
       "source": "/(.*)",
