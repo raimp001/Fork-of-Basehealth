@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Activity, FileText, Calendar, MessageSquare, Wallet, Shield, Heart, Stethoscope, Pill, ChevronRight, Clock, Star, Zap, UserCheck } from "lucide-react"
+import { ArrowLeft, User, Activity, FileText, Calendar, MessageSquare, Wallet, Shield, Heart, Stethoscope, Pill, ChevronRight, Zap, UserCheck } from "lucide-react"
 
 export default function PatientPortalPage() {
   return (
@@ -62,41 +62,6 @@ export default function PatientPortalPage() {
               <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                 Access your complete health profile, connect with providers, and manage your wellness journey—all in one secure place.
               </p>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/20 text-center">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                </div>
-                <p className="text-sm text-gray-600">Next Appointment</p>
-                <p className="font-semibold text-gray-900">In 3 days</p>
-              </div>
-              
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/20 text-center">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Star className="h-5 w-5 text-green-600" />
-                </div>
-                <p className="text-sm text-gray-600">Health Score</p>
-                <p className="font-semibold text-gray-900">85/100</p>
-              </div>
-              
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/20 text-center">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Pill className="h-5 w-5 text-purple-600" />
-                </div>
-                <p className="text-sm text-gray-600">Active Medications</p>
-                <p className="font-semibold text-gray-900">2 items</p>
-              </div>
-              
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/20 text-center">
-                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <UserCheck className="h-5 w-5 text-indigo-600" />
-                </div>
-                <p className="text-sm text-gray-600">Providers</p>
-                <p className="font-semibold text-gray-900">3 connected</p>
-              </div>
             </div>
 
             {/* Main Service Cards */}
@@ -216,53 +181,6 @@ export default function PatientPortalPage() {
                     </Link>
                   </Button>
                 </div>
-              </div>
-            </div>
-
-            {/* Additional Services Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:shadow-lg transition-all duration-300 group">
-                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Calendar className="h-6 w-6 text-orange-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Appointments</h3>
-                <p className="text-sm text-gray-600 mb-4">Schedule and manage your appointments</p>
-                <Button asChild variant="outline" size="sm" className="w-full">
-                  <Link href="/appointment/book">Book Now</Link>
-                </Button>
-              </div>
-
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:shadow-lg transition-all duration-300 group">
-                <div className="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <MessageSquare className="h-6 w-6 text-pink-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Messages</h3>
-                <p className="text-sm text-gray-600 mb-4">Secure communication with providers</p>
-                <Button asChild variant="outline" size="sm" className="w-full">
-                  <Link href="/chat">View Messages</Link>
-                </Button>
-              </div>
-
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:shadow-lg transition-all duration-300 group">
-                <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Stethoscope className="h-6 w-6 text-teal-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Find Providers</h3>
-                <p className="text-sm text-gray-600 mb-4">Connect with healthcare professionals</p>
-                <Button asChild variant="outline" size="sm" className="w-full">
-                  <Link href="/providers/search">Search</Link>
-                </Button>
-              </div>
-
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:shadow-lg transition-all duration-300 group">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <FileText className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Medical Records</h3>
-                <p className="text-sm text-gray-600 mb-4">Access your complete health history</p>
-                <Button asChild variant="outline" size="sm" className="w-full">
-                  <Link href="/medical-records">View Records</Link>
-                </Button>
               </div>
             </div>
           </div>
