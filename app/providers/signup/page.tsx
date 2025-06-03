@@ -782,7 +782,7 @@ export default function ProviderSignupPage() {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-2">Join BaseHealth Provider Network</h1>
+        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">Join BaseHealth Provider Network</h1>
         <p className="text-xl text-muted-foreground">
           Connect with patients and grow your practice with our secure, modern platform
         </p>
@@ -794,13 +794,13 @@ export default function ProviderSignupPage() {
           {[1, 2, 3, 4, 5].map((step) => (
             <div key={step} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                step <= currentStep ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'
+                step <= currentStep ? 'bg-sky-600 text-white' : 'bg-gray-200 text-gray-500'
               }`}>
                 {step}
               </div>
               {step < 5 && (
                 <div className={`w-16 h-1 mx-2 ${
-                  step < currentStep ? 'bg-blue-500' : 'bg-gray-200'
+                  step < currentStep ? 'bg-sky-600' : 'bg-gray-200'
                 }`} />
               )}
             </div>

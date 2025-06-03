@@ -6,30 +6,30 @@ import { ArrowLeft, User, Activity, FileText, Calendar, MessageSquare, Wallet, S
 
 export default function PatientPortalPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-healthcare-hero">
       {/* Enhanced Header Navigation */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-cyan-100 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-sky-500 to-cyan-600 rounded-lg flex items-center justify-center">
                 <Heart className="h-6 w-6 text-white" />
               </div>
               <div className="flex items-center gap-2">
-                <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all duration-200">
+                <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-sky-600 to-cyan-600 bg-clip-text text-transparent hover:from-sky-700 hover:to-cyan-700 transition-all duration-200">
                   BaseHealth
                 </Link>
                 <span className="text-sm text-gray-500 font-medium">Patient Portal</span>
               </div>
             </div>
             <nav className="flex items-center gap-6">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-green-700">Secure Session</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-emerald-700">Secure Session</span>
               </div>
               <Link 
                 href="/settings" 
-                className="text-gray-700 hover:text-indigo-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                className="text-gray-700 hover:text-sky-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
               >
                 Settings
               </Link>
@@ -47,16 +47,16 @@ export default function PatientPortalPage() {
             {/* Header Section */}
             <div className="text-center mb-12">
               <div className="flex items-center justify-center gap-4 mb-6">
-                <Link href="/" className="text-indigo-500 hover:text-indigo-600 transition-colors group">
+                <Link href="/" className="text-sky-500 hover:text-sky-600 transition-colors group">
                   <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform duration-200" />
                 </Link>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 text-sky-700 text-sm font-medium">
                   <Shield className="h-4 w-4" />
                   HIPAA Compliant & Secure
                 </div>
               </div>
               
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">
                 Your Health Dashboard
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
@@ -67,16 +67,16 @@ export default function PatientPortalPage() {
             {/* Main Service Cards */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               {/* My Account - Enhanced */}
-              <div className="group relative overflow-hidden bg-gradient-to-br from-indigo-50 to-blue-100 rounded-3xl p-8 border border-indigo-200 hover:shadow-xl transition-all duration-300">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-500/10 rounded-full -mr-10 -mt-10"></div>
+              <div className="group relative overflow-hidden bg-gradient-to-br from-sky-50 to-cyan-100 rounded-3xl p-8 border border-sky-200 hover:shadow-xl transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-sky-500/10 rounded-full -mr-10 -mt-10"></div>
                 <div className="relative">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-r from-sky-500 to-cyan-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                       <Shield className="h-8 w-8 text-white" />
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-gray-900">My Health Profile</h3>
-                      <p className="text-sm text-indigo-600 font-medium">Secure & Private</p>
+                      <p className="text-sm text-sky-600 font-medium">Secure & Private</p>
                     </div>
                   </div>
                   <p className="text-gray-700 mb-6 leading-relaxed">
@@ -84,19 +84,19 @@ export default function PatientPortalPage() {
                   </p>
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                       HIPAA Compliant
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                       End-to-End Encrypted
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                       Real-time Updates
                     </div>
                   </div>
-                  <Button asChild className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 group-hover:scale-105">
+                  <Button asChild className="w-full bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 group-hover:scale-105">
                     <Link href="/medical-profile" className="flex items-center justify-center gap-2">
                       Access Profile
                       <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
@@ -145,16 +145,16 @@ export default function PatientPortalPage() {
               </div>
 
               {/* Health Wallet - Enhanced */}
-              <div className="group relative overflow-hidden bg-gradient-to-br from-purple-50 to-violet-100 rounded-3xl p-8 border border-purple-200 hover:shadow-xl transition-all duration-300">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full -mr-10 -mt-10"></div>
+              <div className="group relative overflow-hidden bg-gradient-to-br from-violet-50 to-purple-100 rounded-3xl p-8 border border-violet-200 hover:shadow-xl transition-all duration-300">
+                <div className="absolute top-0 right-0 w-20 h-20 bg-violet-500/10 rounded-full -mr-10 -mt-10"></div>
                 <div className="relative">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                       <Wallet className="h-8 w-8 text-white" />
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-gray-900">Health Wallet</h3>
-                      <p className="text-sm text-purple-600 font-medium">Smart Payments</p>
+                      <p className="text-sm text-violet-600 font-medium">Smart Payments</p>
                     </div>
                   </div>
                   <p className="text-gray-700 mb-6 leading-relaxed">
@@ -162,19 +162,19 @@ export default function PatientPortalPage() {
                   </p>
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
                       Insurance Management
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
                       Crypto Payments (2.5% off)
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
                       Spending Analytics
                     </div>
                   </div>
-                  <Button asChild className="w-full bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 group-hover:scale-105">
+                  <Button asChild className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 group-hover:scale-105">
                     <Link href="/wallet" className="flex items-center justify-center gap-2">
                       Open Wallet
                       <Wallet className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />

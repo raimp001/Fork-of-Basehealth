@@ -34,24 +34,24 @@ export default function BillingPage() {
   const providerId = "provider_456"
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-healthcare-hero">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       
       <div className="relative">
         {/* Enhanced Header */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-indigo-200/50 sticky top-0 z-40">
+        <header className="bg-white/80 backdrop-blur-md border-b border-cyan-100 sticky top-0 z-40">
           <div className="container mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-indigo-600">
+                <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-sky-600">
                   <Link href="/patient-portal">
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back to Portal
                   </Link>
                 </Button>
                 <div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">
                     Healthcare Billing
                   </h1>
                   <p className="text-gray-600 mt-1">
@@ -60,15 +60,15 @@ export default function BillingPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 border-indigo-200">
+                <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">
                   <Shield className="h-3 w-3 mr-1" />
                   CMS Compliant
                 </Badge>
-                <Button variant="outline" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                <Button variant="outline" className="border-sky-200 text-sky-600 hover:bg-sky-50">
                   <CreditCard className="h-4 w-4 mr-2" />
                   Payment Methods
                 </Button>
-                <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg">
+                <Button className="bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 shadow-lg">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Make Payment
                 </Button>
@@ -94,10 +94,10 @@ export default function BillingPage() {
             <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-blue-100 to-indigo-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                    <Target className="h-6 w-6 text-indigo-600" />
+                  <div className="bg-gradient-to-br from-sky-100 to-cyan-100 w-12 h-12 rounded-lg flex items-center justify-center">
+                    <Target className="h-6 w-6 text-sky-600" />
                   </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">On Track</Badge>
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-200">On Track</Badge>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Monthly Budget</p>
@@ -109,10 +109,10 @@ export default function BillingPage() {
             <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-green-100 to-emerald-100 w-12 h-12 rounded-lg flex items-center justify-center">
+                  <div className="bg-gradient-to-br from-emerald-100 to-green-100 w-12 h-12 rounded-lg flex items-center justify-center">
                     <BarChart3 className="h-6 w-6 text-emerald-600" />
                   </div>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">62% used</Badge>
+                  <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">62% used</Badge>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">This Month</p>
@@ -124,10 +124,10 @@ export default function BillingPage() {
             <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-purple-100 to-pink-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                    <Wallet className="h-6 w-6 text-purple-600" />
+                  <div className="bg-gradient-to-br from-violet-100 to-purple-100 w-12 h-12 rounded-lg flex items-center justify-center">
+                    <Wallet className="h-6 w-6 text-violet-600" />
                   </div>
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200">2.5% discount</Badge>
+                  <Badge variant="secondary" className="bg-violet-100 text-violet-700 border-violet-200">2.5% discount</Badge>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Crypto Savings</p>
@@ -139,10 +139,10 @@ export default function BillingPage() {
             <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-green-100 to-teal-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="h-6 w-6 text-green-600" />
+                  <div className="bg-gradient-to-br from-emerald-100 to-teal-100 w-12 h-12 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="h-6 w-6 text-emerald-600" />
                   </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">Approval Rate</Badge>
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-200">Approval Rate</Badge>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Claims Status</p>
@@ -155,19 +155,19 @@ export default function BillingPage() {
           {/* Enhanced Main Content */}
           <Tabs defaultValue="dashboard" className="space-y-8">
             <TabsList className="grid w-full grid-cols-4 h-14 bg-white/60 backdrop-blur-sm p-1 shadow-lg border-0">
-              <TabsTrigger value="dashboard" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
+              <TabsTrigger value="dashboard" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
                 Billing Dashboard
               </TabsTrigger>
-              <TabsTrigger value="insights" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
+              <TabsTrigger value="insights" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
                 Smart Insights
               </TabsTrigger>
-              <TabsTrigger value="compliance" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
+              <TabsTrigger value="compliance" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 CMS Compliance
               </TabsTrigger>
-              <TabsTrigger value="documentation" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
+              <TabsTrigger value="documentation" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 Documentation
               </TabsTrigger>
@@ -191,8 +191,8 @@ export default function BillingPage() {
                 <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
                   <CardHeader className="pb-4">
                     <CardTitle className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-blue-100 to-indigo-100 w-10 h-10 rounded-lg flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-indigo-600" />
+                      <div className="bg-gradient-to-br from-sky-100 to-cyan-100 w-10 h-10 rounded-lg flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-sky-600" />
                       </div>
                       Good Faith Estimates
                     </CardTitle>
@@ -208,7 +208,7 @@ export default function BillingPage() {
                         <p>Facility Fee: $85.00</p>
                         <p className="font-medium text-gray-900">Total Estimate: $197.00</p>
                       </div>
-                      <Button size="sm" variant="outline" className="mt-3 border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                      <Button size="sm" variant="outline" className="mt-3 border-sky-200 text-sky-600 hover:bg-sky-50">
                         Generate Estimate
                       </Button>
                     </div>
@@ -218,7 +218,7 @@ export default function BillingPage() {
                         <p>Multiple CPT Codes</p>
                         <p className="font-medium text-gray-900">Total Estimate: $125.00 - $185.00</p>
                       </div>
-                      <Button size="sm" variant="outline" className="mt-3 border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                      <Button size="sm" variant="outline" className="mt-3 border-sky-200 text-sky-600 hover:bg-sky-50">
                         Generate Estimate
                       </Button>
                     </div>
@@ -242,7 +242,7 @@ export default function BillingPage() {
                     <div className="p-4 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <h4 className="font-medium text-gray-900">Chronic Care Management</h4>
-                        <Badge className="bg-green-100 text-green-800 border-green-200">Approved</Badge>
+                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Approved</Badge>
                       </div>
                       <div className="text-sm text-gray-600">
                         <p>CPT Code: 99490</p>
@@ -267,8 +267,8 @@ export default function BillingPage() {
                 <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
                   <CardHeader className="pb-4">
                     <CardTitle className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-purple-100 to-pink-100 w-10 h-10 rounded-lg flex items-center justify-center">
-                        <BarChart3 className="h-5 w-5 text-purple-600" />
+                      <div className="bg-gradient-to-br from-violet-100 to-purple-100 w-10 h-10 rounded-lg flex items-center justify-center">
+                        <BarChart3 className="h-5 w-5 text-violet-600" />
                       </div>
                       Quality Measure Tracking
                     </CardTitle>
@@ -280,11 +280,11 @@ export default function BillingPage() {
                     <div className="space-y-3">
                       <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
                         <span className="font-medium text-gray-900">CQM-68: Documentation of BP</span>
-                        <Badge className="bg-green-100 text-green-800 border-green-200">95%</Badge>
+                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">95%</Badge>
                       </div>
                       <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
                         <span className="font-medium text-gray-900">CQM-22: Preventive Care Screening</span>
-                        <Badge className="bg-green-100 text-green-800 border-green-200">88%</Badge>
+                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">88%</Badge>
                       </div>
                       <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
                         <span className="font-medium text-gray-900">CQM-90: Chronic Care Management</span>
@@ -311,18 +311,18 @@ export default function BillingPage() {
                     <div className="space-y-3">
                       <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
                         <span className="font-medium text-gray-900">Medical Necessity Documentation</span>
-                        <Badge className="bg-green-100 text-green-800 border-green-200">Complete</Badge>
+                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Complete</Badge>
                       </div>
                       <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
                         <span className="font-medium text-gray-900">Billing Code Accuracy</span>
-                        <Badge className="bg-green-100 text-green-800 border-green-200">Verified</Badge>
+                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Verified</Badge>
                       </div>
                       <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
                         <span className="font-medium text-gray-900">Patient Consent Forms</span>
                         <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Review Needed</Badge>
                       </div>
                     </div>
-                    <Button variant="outline" className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                    <Button variant="outline" className="w-full border-sky-200 text-sky-600 hover:bg-sky-50">
                       Generate Audit Report
                     </Button>
                   </CardContent>
@@ -332,12 +332,12 @@ export default function BillingPage() {
           </Tabs>
 
           {/* Enhanced Compliance Footer */}
-          <Card className="border-0 shadow-xl bg-gradient-to-r from-blue-50/80 to-purple-50/80 backdrop-blur-sm">
+          <Card className="border-0 shadow-xl bg-gradient-to-r from-sky-50/80 to-cyan-50/80 backdrop-blur-sm">
             <CardContent className="p-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="p-4 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl">
-                    <Shield className="h-8 w-8 text-indigo-600" />
+                  <div className="p-4 bg-gradient-to-br from-sky-100 to-cyan-100 rounded-xl">
+                    <Shield className="h-8 w-8 text-sky-600" />
                   </div>
                   <div>
                     <h3 className="font-bold text-xl text-gray-900 mb-2">CMS Compliance & Security</h3>
@@ -347,10 +347,10 @@ export default function BillingPage() {
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 border-indigo-200">CMS Certified</Badge>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">HIPAA Compliant</Badge>
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200">No Surprise Billing</Badge>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">Quality Reporting</Badge>
+                  <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">CMS Certified</Badge>
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-200">HIPAA Compliant</Badge>
+                  <Badge variant="secondary" className="bg-violet-100 text-violet-700 border-violet-200">No Surprise Billing</Badge>
+                  <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">Quality Reporting</Badge>
                 </div>
               </div>
             </CardContent>
