@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Textarea } from "@/components/ui/textarea"
@@ -97,6 +97,7 @@ export default function ClinicalTrialsPage() {
 
   // Eligibility check state
   const [selectedTrialForEligibility, setSelectedTrialForEligibility] = useState<ClinicalTrial | null>(null)
+  const [isEligibilityDialogOpen, setIsEligibilityDialogOpen] = useState(false)
   const [eligibilityForm, setEligibilityForm] = useState<EligibilityForm>({
     age: "",
     gender: "",
@@ -350,6 +351,7 @@ export default function ClinicalTrialsPage() {
 
   const handleEligibilityCheck = async (trial: ClinicalTrial) => {
     setSelectedTrialForEligibility(trial)
+    setIsEligibilityDialogOpen(true)
     setEligibilityResult(null)
     setEligibilityForm({
       age: "",
@@ -724,182 +726,16 @@ export default function ClinicalTrialsPage() {
                         View on ClinicalTrials.gov
                       </a>
                     </Button>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 shadow-lg"
-                          onClick={() => handleEligibilityCheck(trial)}
-                        >
-                          <User className="h-4 w-4 mr-2" />
-                          Check Eligibility
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2">
-                            <User className="h-5 w-5" />
-                            Eligibility Check: {selectedTrialForEligibility?.title}
-                          </DialogTitle>
-                        </DialogHeader>
-                        
-                        {!eligibilityResult ? (
-                          <div className="space-y-6">
-                            <Alert>
-                              <AlertCircle className="h-4 w-4" />
-                              <AlertDescription>
-                                Please provide your medical information to check eligibility for this clinical trial. This is a preliminary assessment only.
-                              </AlertDescription>
-                            </Alert>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="age">Age</Label>
-                                <Input
-                                  id="age"
-                                  type="number"
-                                  placeholder="Enter your age"
-                                  value={eligibilityForm.age}
-                                  onChange={(e) => setEligibilityForm(prev => ({ ...prev, age: e.target.value }))}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="gender">Gender</Label>
-                                <Select value={eligibilityForm.gender} onValueChange={(value) => setEligibilityForm(prev => ({ ...prev, gender: value }))}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select gender" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="male">Male</SelectItem>
-                                    <SelectItem value="female">Female</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label>Medical Conditions (Select all that apply)</Label>
-                              <div className="grid grid-cols-2 gap-2">
-                                {["Cancer", "Lung Cancer", "Diabetes", "Type 2 Diabetes", "Heart Disease", "High Blood Pressure", "Family History Alzheimer", "Other"].map((condition) => (
-                                  <div key={condition} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={condition}
-                                      checked={eligibilityForm.medicalConditions.includes(condition.toLowerCase())}
-                                      onCheckedChange={(checked) => handleMedicalConditionChange(condition.toLowerCase(), checked as boolean)}
-                                    />
-                                    <Label htmlFor={condition} className="text-sm">{condition}</Label>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="medications">Current Medications</Label>
-                              <Textarea
-                                id="medications"
-                                placeholder="List your current medications..."
-                                value={eligibilityForm.currentMedications}
-                                onChange={(e) => setEligibilityForm(prev => ({ ...prev, currentMedications: e.target.value }))}
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="treatments">Previous Treatments</Label>
-                              <Textarea
-                                id="treatments"
-                                placeholder="Describe any previous treatments you've received..."
-                                value={eligibilityForm.previousTreatments}
-                                onChange={(e) => setEligibilityForm(prev => ({ ...prev, previousTreatments: e.target.value }))}
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="additional">Additional Information</Label>
-                              <Textarea
-                                id="additional"
-                                placeholder="Any other relevant medical information..."
-                                value={eligibilityForm.additionalInfo}
-                                onChange={(e) => setEligibilityForm(prev => ({ ...prev, additionalInfo: e.target.value }))}
-                              />
-                            </div>
-
-                            <Button 
-                              onClick={checkEligibility}
-                              disabled={!eligibilityForm.age || !eligibilityForm.gender || isCheckingEligibility}
-                              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-                            >
-                              {isCheckingEligibility ? "Checking Eligibility..." : "Check Eligibility"}
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="space-y-6">
-                            <div className={`p-4 rounded-lg ${eligibilityResult.isEligible ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
-                              <div className="flex items-center gap-2 mb-2">
-                                {eligibilityResult.isEligible ? (
-                                  <CheckCircle className="h-5 w-5 text-green-600" />
-                                ) : (
-                                  <AlertCircle className="h-5 w-5 text-yellow-600" />
-                                )}
-                                <h3 className={`font-semibold ${eligibilityResult.isEligible ? 'text-green-800' : 'text-yellow-800'}`}>
-                                  {eligibilityResult.isEligible ? 'Potentially Eligible' : 'Additional Screening Required'}
-                                </h3>
-                              </div>
-                              <p className={`text-sm ${eligibilityResult.isEligible ? 'text-green-700' : 'text-yellow-700'}`}>
-                                Eligibility Score: {eligibilityResult.score}/100
-                              </p>
-                            </div>
-
-                            <div>
-                              <h4 className="font-medium text-gray-900 mb-2">Assessment Details</h4>
-                              <ul className="space-y-1">
-                                {eligibilityResult.reasons.map((reason, index) => (
-                                  <li key={index} className="text-sm text-gray-700">{reason}</li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            <div>
-                              <h4 className="font-medium text-gray-900 mb-2">Next Steps</h4>
-                              <ul className="space-y-1">
-                                {eligibilityResult.recommendations.map((rec, index) => (
-                                  <li key={index} className="text-sm text-gray-700">• {rec}</li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            <Alert>
-                              <AlertCircle className="h-4 w-4" />
-                              <AlertDescription className="text-sm">
-                                This is a preliminary assessment only. Final eligibility must be determined by the study team through official screening procedures.
-                              </AlertDescription>
-                            </Alert>
-
-                            <div className="flex gap-3">
-                              <Button 
-                                asChild
-                                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-                              >
-                                <a 
-                                  href={`https://clinicaltrials.gov/study/${selectedTrialForEligibility?.id}`} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                >
-                                  Contact Study Team
-                                </a>
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                onClick={() => setEligibilityResult(null)}
-                                className="flex-1"
-                              >
-                                Check Another
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </DialogContent>
-                    </Dialog>
+                    <div>
+                      <Button 
+                        variant="outline" 
+                        className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 shadow-lg"
+                        onClick={() => handleEligibilityCheck(trial)}
+                      >
+                        <User className="h-4 w-4 mr-2" />
+                        Check Eligibility
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -930,6 +766,208 @@ export default function ClinicalTrialsPage() {
           )}
         </div>
       </main>
+
+      {/* Separate Controlled Eligibility Dialog */}
+      <Dialog open={isEligibilityDialogOpen} onOpenChange={setIsEligibilityDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-white border-0 shadow-2xl">
+          <DialogHeader className="border-b border-gray-200 pb-4">
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold text-gray-900">
+              <User className="h-5 w-5 text-indigo-600" />
+              Eligibility Check: {selectedTrialForEligibility?.title}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="pt-6">
+            {!eligibilityResult ? (
+              <div className="space-y-6">
+                <Alert className="bg-blue-50 border-blue-200">
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800">
+                    Please provide your medical information to check eligibility for this clinical trial. This is a preliminary assessment only.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="age" className="text-gray-700 font-medium">Age *</Label>
+                    <Input
+                      id="age"
+                      type="number"
+                      min="1"
+                      max="120"
+                      placeholder="Enter your age"
+                      value={eligibilityForm.age}
+                      onChange={(e) => setEligibilityForm(prev => ({ ...prev, age: e.target.value }))}
+                      className="w-full bg-white border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender" className="text-gray-700 font-medium">Gender *</Label>
+                    <Select value={eligibilityForm.gender} onValueChange={(value) => setEligibilityForm(prev => ({ ...prev, gender: value }))}>
+                      <SelectTrigger className="w-full bg-white border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent className="z-[99999] bg-white border border-gray-300 shadow-lg" position="popper" sideOffset={5}>
+                        <SelectItem value="male" className="hover:bg-gray-100">Male</SelectItem>
+                        <SelectItem value="female" className="hover:bg-gray-100">Female</SelectItem>
+                        <SelectItem value="other" className="hover:bg-gray-100">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-gray-700 font-medium">Medical Conditions (Select all that apply)</Label>
+                  <div className="grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border">
+                    {["Cancer", "Lung Cancer", "Diabetes", "Type 2 Diabetes", "Heart Disease", "High Blood Pressure", "Family History Alzheimer", "Other"].map((condition) => (
+                      <div key={condition} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={condition}
+                          checked={eligibilityForm.medicalConditions.includes(condition.toLowerCase())}
+                          onCheckedChange={(checked) => handleMedicalConditionChange(condition.toLowerCase(), checked as boolean)}
+                          className="border-gray-400"
+                        />
+                        <Label htmlFor={condition} className="text-sm text-gray-700 cursor-pointer">{condition}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="medications" className="text-gray-700 font-medium">Current Medications</Label>
+                  <Textarea
+                    id="medications"
+                    placeholder="List your current medications..."
+                    value={eligibilityForm.currentMedications}
+                    onChange={(e) => setEligibilityForm(prev => ({ ...prev, currentMedications: e.target.value }))}
+                    className="min-h-[80px] bg-white border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="treatments" className="text-gray-700 font-medium">Previous Treatments</Label>
+                  <Textarea
+                    id="treatments"
+                    placeholder="Describe any previous treatments you've received..."
+                    value={eligibilityForm.previousTreatments}
+                    onChange={(e) => setEligibilityForm(prev => ({ ...prev, previousTreatments: e.target.value }))}
+                    className="min-h-[80px] bg-white border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="additional" className="text-gray-700 font-medium">Additional Information</Label>
+                  <Textarea
+                    id="additional"
+                    placeholder="Any other relevant medical information..."
+                    value={eligibilityForm.additionalInfo}
+                    onChange={(e) => setEligibilityForm(prev => ({ ...prev, additionalInfo: e.target.value }))}
+                    className="min-h-[80px] bg-white border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <Button 
+                    onClick={checkEligibility}
+                    disabled={!eligibilityForm.age || !eligibilityForm.gender || isCheckingEligibility}
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-3 shadow-lg"
+                  >
+                    {isCheckingEligibility ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Checking Eligibility...
+                      </div>
+                    ) : (
+                      "Check Eligibility"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className={`p-6 rounded-lg border-2 ${eligibilityResult.isEligible ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    {eligibilityResult.isEligible ? (
+                      <CheckCircle className="h-6 w-6 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-6 w-6 text-yellow-600" />
+                    )}
+                    <h3 className={`text-lg font-bold ${eligibilityResult.isEligible ? 'text-green-800' : 'text-yellow-800'}`}>
+                      {eligibilityResult.isEligible ? 'Potentially Eligible' : 'Additional Screening Required'}
+                    </h3>
+                  </div>
+                  <p className={`text-sm font-medium ${eligibilityResult.isEligible ? 'text-green-700' : 'text-yellow-700'}`}>
+                    Eligibility Score: {eligibilityResult.score}/100
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-bold text-gray-900 mb-3">Assessment Details</h4>
+                  <ul className="space-y-2">
+                    {eligibilityResult.reasons.map((reason, index) => (
+                      <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                        <span className="text-indigo-600 mt-1">•</span>
+                        {reason}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h4 className="font-bold text-blue-900 mb-3">Next Steps</h4>
+                  <ul className="space-y-2">
+                    {eligibilityResult.recommendations.map((rec, index) => (
+                      <li key={index} className="text-sm text-blue-800 flex items-start gap-2">
+                        <span className="text-blue-600 mt-1">✓</span>
+                        {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <Alert className="bg-amber-50 border-amber-200">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800 font-medium">
+                    This is a preliminary assessment only. Final eligibility must be determined by the study team through official screening procedures.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                  <Button 
+                    asChild
+                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium py-3 shadow-lg"
+                  >
+                    <a 
+                      href={`https://clinicaltrials.gov/study/${selectedTrialForEligibility?.id}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      Contact Study Team
+                    </a>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setEligibilityResult(null)
+                      setEligibilityForm({
+                        age: "",
+                        gender: "",
+                        medicalConditions: [],
+                        currentMedications: "",
+                        previousTreatments: "",
+                        additionalInfo: ""
+                      })
+                    }}
+                    className="flex-1 bg-white border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-3"
+                  >
+                    Check Another
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

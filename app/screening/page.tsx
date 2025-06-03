@@ -94,7 +94,7 @@ export default function ScreeningPage() {
 
             {/* Main Screening Form */}
             <div className="max-w-4xl mx-auto">
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/30 shadow-xl">
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/30 shadow-xl relative z-10">
                 <div className="mb-8">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-green-600 rounded-lg flex items-center justify-center">

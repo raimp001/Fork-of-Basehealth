@@ -37,7 +37,7 @@ type ScreeningRecommendation = {
 export function ScreeningForm({ patientData, updatePatientData, onComplete }: ScreeningFormProps) {
   const router = useRouter();
   const [age, setAge] = useState<string>(patientData.age?.toString() || "")
-  const [gender, setGender] = useState<string>(patientData.gender || "all")
+  const [gender, setGender] = useState<string>(patientData.gender || "")
   const [medicalHistory, setMedicalHistory] = useState<string[]>(patientData.medicalHistory || [])
   const [zipCode, setZipCode] = useState<string>(patientData.zipCode || "")
   const [recommendations, setRecommendations] = useState<ScreeningRecommendation[]>([])
@@ -67,8 +67,8 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
 
   const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
-    // Only allow numbers
-    if (value === "" || /^\d+$/.test(value)) {
+    // Only allow numbers and reasonable age range
+    if (value === "" || (/^\d+$/.test(value) && parseInt(value) >= 1 && parseInt(value) <= 120)) {
       setAge(value)
     }
   }
@@ -153,22 +153,44 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="age">Age</Label>
-            <Input id="age" value={age} onChange={handleAgeChange} placeholder="Enter your age" />
+            <Label htmlFor="age">Age *</Label>
+            <Input 
+              id="age" 
+              type="number"
+              min="1"
+              max="120"
+              value={age} 
+              onChange={handleAgeChange} 
+              placeholder="Enter your age" 
+              className="w-full"
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="gender">Gender</Label>
+            <Label htmlFor="gender">Gender *</Label>
             <Select value={gender} onValueChange={setGender}>
-              <SelectTrigger id="gender">
+              <SelectTrigger id="gender" className="w-full">
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Other</SelectItem>
+              <SelectContent className="z-[9999]" position="popper" sideOffset={5}>
                 <SelectItem value="male">Male</SelectItem>
                 <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="all">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="zipCode">ZIP Code *</Label>
+          <Input 
+            id="zipCode" 
+            type="text"
+            maxLength={5}
+            value={zipCode} 
+            onChange={handleZipCodeChange} 
+            placeholder="Enter your ZIP code" 
+            className="w-full max-w-xs"
+          />
         </div>
 
         <div className="space-y-2">
@@ -190,8 +212,15 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={fetchRecommendations} disabled={isLoading || !age || !gender}>
-            {isLoading ? "Loading..." : "Get Screening Recommendations"}
+          <Button onClick={fetchRecommendations} disabled={isLoading || !age || !gender || zipCode.length !== 5}>
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                Loading...
+              </div>
+            ) : (
+              "Get Screening Recommendations"
+            )}
           </Button>
         </div>
       </div>
@@ -277,10 +306,17 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
           )}
         </div>
       </div>
-      {(!isFormComplete || selectedScreenings.length === 0) && (
+      {!isFormComplete && (
         <div className="text-sm text-red-600 mt-2">
-          {(!isFormComplete && "Please complete all required fields (age, gender). ")}
-          {(selectedScreenings.length === 0 && "Please select at least one screening recommendation.")}
+          Please complete all required fields: 
+          {!age && " Age"}
+          {!gender && " Gender"}
+          {zipCode.length !== 5 && " ZIP Code"}
+        </div>
+      )}
+      {isFormComplete && recommendations.length > 0 && selectedScreenings.length === 0 && (
+        <div className="text-sm text-amber-600 mt-2">
+          Please select at least one screening recommendation to continue.
         </div>
       )}
     </div>
