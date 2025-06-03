@@ -163,7 +163,7 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Prefer not to say</SelectItem>
+                <SelectItem value="all">Other</SelectItem>
                 <SelectItem value="male">Male</SelectItem>
                 <SelectItem value="female">Female</SelectItem>
               </SelectContent>
