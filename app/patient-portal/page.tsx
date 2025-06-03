@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Activity, FileText, Calendar, MessageSquare, Wallet, Shield, Heart, Stethoscope, Pills, ChevronRight, Clock, Star, Zap, UserCheck } from "lucide-react"
+import { ArrowLeft, User, Activity, FileText, Calendar, MessageSquare, Wallet, Shield, Heart, Stethoscope, Pill, ChevronRight, Clock, Star, Zap, UserCheck } from "lucide-react"
 
 export default function PatientPortalPage() {
   return (
@@ -84,7 +84,7 @@ export default function PatientPortalPage() {
               
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/20 text-center">
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Pills className="h-5 w-5 text-purple-600" />
+                  <Pill className="h-5 w-5 text-purple-600" />
                 </div>
                 <p className="text-sm text-gray-600">Active Medications</p>
                 <p className="font-semibold text-gray-900">2 items</p>
