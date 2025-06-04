@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Search, MapPin, Star, Calendar, Phone, Globe, Filter, Loader2, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 
 interface Provider {
   id: string
@@ -30,6 +31,8 @@ export default function ProviderSearchPage() {
   const [selectedSpecialty, setSelectedSpecialty] = useState("")
   const [locationInput, setLocationInput] = useState("")
   const [hasSearched, setHasSearched] = useState(false)
+  
+  const searchParams = useSearchParams()
 
   const specialties = [
     "Primary Care",
@@ -96,6 +99,40 @@ export default function ProviderSearchPage() {
       searchProviders()
     }
   }, [selectedSpecialty, locationInput])
+
+  // Initialize from URL parameters
+  useEffect(() => {
+    const location = searchParams.get('location')
+    const screenings = searchParams.get('screenings')
+    
+    if (location) {
+      setLocationInput(location)
+    }
+    
+    // If screenings are provided, set appropriate specialty
+    if (screenings) {
+      const screeningList = screenings.split(',')
+      // Map common screenings to specialties
+      if (screeningList.some(s => s.includes('colonoscopy') || s.includes('colorectal'))) {
+        setSelectedSpecialty('Gastroenterology')
+      } else if (screeningList.some(s => s.includes('mammogram') || s.includes('breast'))) {
+        setSelectedSpecialty('Radiology')
+      } else if (screeningList.some(s => s.includes('cardiovascular') || s.includes('heart'))) {
+        setSelectedSpecialty('Cardiology')
+      } else {
+        setSelectedSpecialty('Primary Care')
+      }
+    }
+    
+    // Auto-search if we have location or specialty from URL
+    if (location || screenings) {
+      setHasSearched(true)
+      // Small delay to allow state to settle
+      setTimeout(() => {
+        searchProviders()
+      }, 100)
+    }
+  }, [searchParams])
 
   return (
     <div className="min-h-screen bg-white">

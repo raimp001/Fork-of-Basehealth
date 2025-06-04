@@ -60,10 +60,10 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
   ]
 
   useEffect(() => {
-    // Check if form is complete enough to proceed
-    const isValid = age !== "" && gender !== "" && zipCode.length === 5
+    // Check if form is complete enough to proceed - removing ZIP code requirement
+    const isValid = age !== "" && gender !== ""
     setIsFormComplete(isValid)
-  }, [age, gender, zipCode])
+  }, [age, gender]) // Removed zipCode from dependencies
 
   const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -181,16 +181,17 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="zipCode">ZIP Code *</Label>
+          <Label htmlFor="zipCode">ZIP Code (Optional)</Label>
           <Input 
             id="zipCode" 
             type="text"
             maxLength={5}
             value={zipCode} 
             onChange={handleZipCodeChange} 
-            placeholder="Enter your ZIP code" 
+            placeholder="Enter your ZIP code (optional)" 
             className="w-full max-w-xs"
           />
+          <p className="text-xs text-gray-500">ZIP code helps find nearby providers for screenings</p>
         </div>
 
         <div className="space-y-2">
@@ -212,7 +213,7 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={fetchRecommendations} disabled={isLoading || !age || !gender || zipCode.length !== 5}>
+          <Button onClick={fetchRecommendations} disabled={isLoading || !age || !gender}>
             {isLoading ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
@@ -286,7 +287,12 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
           <div className="flex justify-end pt-4">
             <Button
               onClick={() => {
-                router.push(`/providers/search?screenings=${selectedScreenings.join(",")}`)
+                const params = new URLSearchParams()
+                params.append('screenings', selectedScreenings.join(","))
+                if (zipCode.trim()) {
+                  params.append('location', zipCode.trim())
+                }
+                router.push(`/providers/search?${params.toString()}`)
               }}
               disabled={selectedScreenings.length === 0}
             >
@@ -311,7 +317,6 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
           Please complete all required fields: 
           {!age && " Age"}
           {!gender && " Gender"}
-          {zipCode.length !== 5 && " ZIP Code"}
         </div>
       )}
       {isFormComplete && recommendations.length > 0 && selectedScreenings.length === 0 && (

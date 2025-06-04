@@ -307,7 +307,7 @@ export default function ClinicalTrialsPage() {
           status: statusModule.overallStatus || 'Unknown',
           description: descriptionModule.briefSummary || 'No description available',
           eligibility: eligibilityModule.eligibilityCriteria ? 
-            eligibilityModule.eligibilityCriteria.split('\n').slice(0, 3) : 
+            eligibilityModule.eligibilityCriteria.split('\n').filter(line => line.trim() !== '') : 
             ['Eligibility criteria not available'],
           estimatedEnrollment: statusModule.enrollmentInfo?.count || 0,
           studyType: designModule.studyType || 'Not specified',
@@ -758,6 +758,91 @@ export default function ClinicalTrialsPage() {
     "alzheimer drug study 70 years old"
   ]
 
+  const getRelevantMedicalConditions = (trialCondition: string, eligibilityCriteria: string[]) => {
+    const condition = trialCondition.toLowerCase()
+    const criteria = eligibilityCriteria.join(' ').toLowerCase()
+    
+    let conditions: string[] = []
+    
+    // Base conditions that are relevant to the trial condition
+    if (condition.includes('cancer') || condition.includes('carcinoma') || condition.includes('tumor') || condition.includes('oncolog') || condition.includes('sarcoma')) {
+      conditions.push('Cancer History')
+      
+      // Specific cancer types
+      if (condition.includes('lung') || criteria.includes('lung')) {
+        conditions.push('Lung Cancer')
+      }
+      if (condition.includes('breast') || criteria.includes('breast')) {
+        conditions.push('Breast Cancer')
+      }
+      if (condition.includes('prostate') || criteria.includes('prostate')) {
+        conditions.push('Prostate Cancer')
+      }
+      if (condition.includes('osteosarcoma') || criteria.includes('osteosarcoma') || condition.includes('bone') || criteria.includes('bone')) {
+        conditions.push('Osteosarcoma')
+        conditions.push('Bone Cancer')
+        conditions.push('Bone Tumors')
+      }
+      if (condition.includes('metastatic') || criteria.includes('metastatic') || condition.includes('metastases') || criteria.includes('metastases')) {
+        conditions.push('Metastatic Disease')
+        conditions.push('Distant Metastases')
+      }
+      if (condition.includes('sarcoma') || criteria.includes('sarcoma')) {
+        conditions.push('Soft Tissue Sarcoma')
+        conditions.push('Bone Sarcoma')
+      }
+      
+      // Cancer-related conditions
+      conditions.push('Previous Chemotherapy')
+      conditions.push('Previous Radiation')
+      conditions.push('Previous Surgery')
+      conditions.push('Recurrent Disease')
+    }
+    
+    if (condition.includes('diabetes') || criteria.includes('diabetes')) {
+      conditions.push('Type 1 Diabetes')
+      conditions.push('Type 2 Diabetes')
+    }
+    
+    if (condition.includes('heart') || condition.includes('cardiovascular') || criteria.includes('cardiac')) {
+      conditions.push('Heart Disease')
+      conditions.push('High Blood Pressure')
+      conditions.push('Heart Attack History')
+    }
+    
+    if (condition.includes('alzheimer') || condition.includes('dementia') || criteria.includes('cognitive')) {
+      conditions.push('Alzheimer\'s Disease')
+      conditions.push('Dementia')
+      conditions.push('Memory Problems')
+    }
+    
+    if (condition.includes('depression') || condition.includes('anxiety') || criteria.includes('mental')) {
+      conditions.push('Depression')
+      conditions.push('Anxiety')
+    }
+    
+    // Only add generic conditions if we don't have specific ones yet
+    if (conditions.length === 0) {
+      // Common conditions that might be relevant exclusion criteria
+      conditions.push('Kidney Disease')
+      conditions.push('Liver Disease')
+      conditions.push('Autoimmune Disease')
+      conditions.push('Current Pregnancy')
+    } else {
+      // Add some common exclusion criteria for specific conditions
+      conditions.push('Kidney Disease')
+      conditions.push('Liver Disease')
+      conditions.push('Autoimmune Disease')
+      conditions.push('Current Pregnancy')
+    }
+    
+    // Remove duplicates and add "Other" option
+    conditions = [...new Set(conditions)]
+    conditions.push('Other')
+    
+    return conditions
+  }
+
   return (
     <div className="min-h-screen bg-healthcare-hero">
       {/* Header */}
@@ -1076,7 +1161,10 @@ export default function ClinicalTrialsPage() {
                 <div className="space-y-2">
                   <Label className="text-gray-700 font-medium">Medical Conditions (Select all that apply)</Label>
                   <div className="grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg border">
-                    {["Cancer", "Lung Cancer", "Diabetes", "Type 2 Diabetes", "Heart Disease", "High Blood Pressure", "Family History Alzheimer", "Other"].map((condition) => (
+                    {getRelevantMedicalConditions(
+                      selectedTrialForEligibility?.condition || '',
+                      selectedTrialForEligibility?.eligibility || []
+                    ).map((condition) => (
                       <div key={condition} className="flex items-center space-x-2">
                         <Checkbox
                           id={condition}
@@ -1088,13 +1176,16 @@ export default function ClinicalTrialsPage() {
                       </div>
                     ))}
                   </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Conditions relevant to: {selectedTrialForEligibility?.condition}
+                  </p>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="medications" className="text-gray-700 font-medium">Current Medications</Label>
                   <Textarea
                     id="medications"
-                    placeholder="List your current medications..."
+                    placeholder={`List any current medications, especially those related to ${selectedTrialForEligibility?.condition || 'your condition'}...`}
                     value={eligibilityForm.currentMedications}
                     onChange={(e) => setEligibilityForm(prev => ({ ...prev, currentMedications: e.target.value }))}
                     className="min-h-[80px] bg-white border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
@@ -1105,7 +1196,7 @@ export default function ClinicalTrialsPage() {
                   <Label htmlFor="treatments" className="text-gray-700 font-medium">Previous Treatments</Label>
                   <Textarea
                     id="treatments"
-                    placeholder="Describe any previous treatments you've received..."
+                    placeholder={`Describe any previous treatments for ${selectedTrialForEligibility?.condition || 'your condition'} (surgery, chemotherapy, radiation, etc.)...`}
                     value={eligibilityForm.previousTreatments}
                     onChange={(e) => setEligibilityForm(prev => ({ ...prev, previousTreatments: e.target.value }))}
                     className="min-h-[80px] bg-white border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
@@ -1113,10 +1204,10 @@ export default function ClinicalTrialsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="additional" className="text-gray-700 font-medium">Additional Information</Label>
+                  <Label htmlFor="additional" className="text-gray-700 font-medium">Additional Medical Information</Label>
                   <Textarea
                     id="additional"
-                    placeholder="Any other relevant medical information..."
+                    placeholder="Any other relevant medical information, allergies, or health conditions that might be important for this clinical trial..."
                     value={eligibilityForm.additionalInfo}
                     onChange={(e) => setEligibilityForm(prev => ({ ...prev, additionalInfo: e.target.value }))}
                     className="min-h-[80px] bg-white border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
@@ -1323,18 +1414,9 @@ export default function ClinicalTrialsPage() {
             {!eligibilityResult && !isCheckingEligibility && (
               <div className="flex gap-3 pt-6 border-t border-gray-200">
                 <Button 
-                  onClick={checkEligibility}
-                  disabled={!eligibilityForm.age || !eligibilityForm.gender}
-                  className="bg-healthcare-primary hover:scale-105 shadow-lg transition-all duration-200 flex-1"
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Analyze Eligibility
-                </Button>
-                
-                <Button 
                   variant="outline" 
                   onClick={() => setIsEligibilityDialogOpen(false)}
-                  className="border-gray-300 hover:bg-gray-50"
+                  className="border-gray-300 hover:bg-gray-50 w-full"
                 >
                   Cancel
                 </Button>
