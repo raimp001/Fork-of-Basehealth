@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Activity, Users, Wallet, UserPlus, Database, Search, Shield } from "lucide-react"
+import { Activity, Users, Wallet, UserPlus, Database, Search, Shield, User, Settings } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -56,7 +56,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-healthcare-hero">
       {/* Header Navigation */}
-      <header className="flex items-center justify-between px-8 py-6 backdrop-blur-sm bg-white/90 border-b border-cyan-100 sticky top-0 z-50">
+      <header className="flex items-center justify-between px-8 py-6 backdrop-blur-sm bg-white/90 border-b border-cyan-100 sticky top-0 z-50 shadow-sm">
         <div className="flex items-center">
           <Link href="/" className="text-2xl font-bold text-gradient hover:scale-105 transition-all duration-200">
             BaseHealth
@@ -67,35 +67,43 @@ export default function HomePage() {
             <Button 
               asChild 
               variant="ghost" 
-              className="text-sky-600 hover:text-sky-700 hover:bg-sky-50 font-medium px-4 py-2 rounded-lg transition-all duration-200"
+              className="text-sky-600 hover:text-sky-700 hover:bg-sky-50 font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm"
             >
               <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                 <Database className="h-4 w-4" />
                 HealthDB.ai
               </a>
             </Button>
-            <Link 
-              href="/patient-portal" 
-              className="text-slate-700 hover:text-sky-600 hover:bg-sky-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+            <Button
+              asChild
+              variant="ghost"
+              className="text-slate-700 hover:text-emerald-600 hover:bg-emerald-50 px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              Patient Portal
-            </Link>
-            <Link 
-              href="/settings" 
-              className="text-slate-700 hover:text-sky-600 hover:bg-sky-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+              <Link href="/patient-portal" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Patient Portal
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="ghost"
+              className="text-slate-700 hover:text-violet-600 hover:bg-violet-50 px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              Settings
-            </Link>
+              <Link href="/settings" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Settings
+              </Link>
+            </Button>
           </nav>
           
           {/* Wallet and Auth Section */}
           <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
                 isWalletConnected 
-                  ? 'text-emerald-600 border-emerald-500 hover:bg-emerald-50' 
-                  : 'text-sky-600 border-sky-500 hover:bg-sky-50'
+                  ? 'text-emerald-600 border-emerald-500 hover:bg-emerald-50 bg-emerald-50/50' 
+                  : 'text-indigo-600 border-indigo-500 hover:bg-indigo-50 bg-indigo-50/30'
               }`}
               onClick={handleConnectWallet}
               disabled={isConnecting}
@@ -108,7 +116,7 @@ export default function HomePage() {
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="outline" 
-                  className="flex items-center gap-2 border-sky-500 text-sky-600 hover:bg-sky-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                  className="flex items-center gap-2 border-purple-500 text-purple-600 hover:bg-purple-50 bg-purple-50/30 px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   <UserPlus className="h-4 w-4" />
                   Sign Up
