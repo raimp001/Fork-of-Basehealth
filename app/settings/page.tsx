@@ -1,45 +1,47 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Bell, Shield, Globe, Database, Heart } from "lucide-react"
+import { ArrowLeft, Heart, Database, User, Shield, Bell, Lock, CreditCard, Users, Mail, Phone, Globe, MapPin, Calendar, Activity } from "lucide-react"
 
 export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-healthcare-hero">
-      {/* Header Navigation */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-cyan-100 sticky top-0 z-50 shadow-sm">
+      {/* Enhanced Header Navigation */}
+      <header className="bg-white/90 backdrop-blur-sm border-b border-cyan-100 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-gradient-to-r from-sky-500 to-cyan-600 rounded-lg flex items-center justify-center">
                 <Heart className="h-6 w-6 text-white" />
               </div>
-              <div className="flex items-center gap-2">
-                <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-sky-600 to-cyan-600 bg-clip-text text-transparent hover:from-sky-700 hover:to-cyan-700 transition-all duration-200">
-                  BaseHealth
-                </Link>
-                <span className="text-sm text-gray-500 font-medium">Settings</span>
-              </div>
+              <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-sky-600 to-cyan-600 bg-clip-text text-transparent hover:from-sky-700 hover:to-cyan-700 transition-all duration-200">
+                BaseHealth
+              </Link>
             </div>
+
             <nav className="flex items-center gap-6">
               <Button 
                 asChild 
                 variant="ghost" 
-                className="text-sky-600 hover:text-sky-700 hover:bg-sky-50 font-medium"
+                className="text-sky-600 hover:text-sky-700 hover:bg-sky-50 font-medium px-4 py-2 rounded-lg transition-all duration-200"
               >
                 <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                   <Database className="h-4 w-4" />
-                  healthdb.ai
+                  HealthDB.ai
                 </a>
               </Button>
-              <Link 
-                href="/patient-portal" 
-                className="text-gray-700 hover:text-sky-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+              <Button
+                asChild
+                variant="ghost"
+                className="text-slate-700 hover:text-emerald-600 hover:bg-emerald-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
               >
-                Patient Portal
-              </Link>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-sky-50 border border-sky-200 rounded-lg">
-                <div className="w-2 h-2 bg-sky-500 rounded-full"></div>
-                <span className="text-sm font-medium text-sky-700">Settings</span>
+                <Link href="/patient-portal" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Patient Portal
+                </Link>
+              </Button>
+              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-lg shadow-sm">
+                <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-violet-700">Settings</span>
               </div>
             </nav>
           </div>

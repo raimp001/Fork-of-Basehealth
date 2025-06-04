@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Activity, FileText, Calendar, MessageSquare, Wallet, Shield, Heart, Stethoscope, Pill, ChevronRight, Zap, UserCheck } from "lucide-react"
+import { ArrowLeft, User, Activity, FileText, Calendar, MessageSquare, Wallet, Shield, Heart, Stethoscope, Pill, ChevronRight, Zap, UserCheck, Database, Settings } from "lucide-react"
 
 export default function PatientPortalPage() {
   return (
@@ -23,16 +23,30 @@ export default function PatientPortalPage() {
               </div>
             </div>
             <nav className="flex items-center gap-6">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-emerald-700">Secure Session</span>
-              </div>
-              <Link 
-                href="/settings" 
-                className="text-gray-700 hover:text-sky-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+              <Button 
+                asChild 
+                variant="ghost" 
+                className="text-sky-600 hover:text-sky-700 hover:bg-sky-50 font-medium px-4 py-2 rounded-lg transition-all duration-200"
               >
-                Settings
-              </Link>
+                <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  HealthDB.ai
+                </a>
+              </Button>
+              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg shadow-sm">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-emerald-700">Patient Portal</span>
+              </div>
+              <Button
+                asChild
+                variant="ghost"
+                className="text-slate-700 hover:text-violet-600 hover:bg-violet-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+              >
+                <Link href="/settings" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Link>
+              </Button>
             </nav>
           </div>
         </div>
