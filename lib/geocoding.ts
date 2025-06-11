@@ -459,6 +459,338 @@ export const zipCodeMapping: Record<string, { city: string, state: string }> = {
   '60697': { city: 'Chicago', state: 'IL' },
   '60699': { city: 'Chicago', state: 'IL' },
   
+  // Washington State (Seattle area)
+  '98101': { city: 'Seattle', state: 'WA' },
+  '98102': { city: 'Seattle', state: 'WA' },
+  '98103': { city: 'Seattle', state: 'WA' },
+  '98104': { city: 'Seattle', state: 'WA' },
+  '98105': { city: 'Seattle', state: 'WA' },
+  '98106': { city: 'Seattle', state: 'WA' },
+  '98107': { city: 'Seattle', state: 'WA' },
+  '98108': { city: 'Seattle', state: 'WA' },
+  '98109': { city: 'Seattle', state: 'WA' },
+  '98110': { city: 'Bainbridge Island', state: 'WA' },
+  '98111': { city: 'Seattle', state: 'WA' },
+  '98112': { city: 'Seattle', state: 'WA' },
+  '98113': { city: 'Seattle', state: 'WA' },
+  '98114': { city: 'Seattle', state: 'WA' },
+  '98115': { city: 'Seattle', state: 'WA' },
+  '98116': { city: 'Seattle', state: 'WA' },
+  '98117': { city: 'Seattle', state: 'WA' },
+  '98118': { city: 'Seattle', state: 'WA' },
+  '98119': { city: 'Seattle', state: 'WA' },
+  '98121': { city: 'Seattle', state: 'WA' },
+  '98122': { city: 'Seattle', state: 'WA' },
+  '98125': { city: 'Seattle', state: 'WA' },
+  '98126': { city: 'Seattle', state: 'WA' },
+  '98133': { city: 'Seattle', state: 'WA' },
+  '98134': { city: 'Seattle', state: 'WA' },
+  '98136': { city: 'Seattle', state: 'WA' },
+  '98144': { city: 'Seattle', state: 'WA' },
+  '98146': { city: 'Burien', state: 'WA' },
+  '98148': { city: 'Burien', state: 'WA' },
+  '98154': { city: 'Seattle', state: 'WA' },
+  '98155': { city: 'Shoreline', state: 'WA' },
+  '98158': { city: 'Tukwila', state: 'WA' },
+  '98160': { city: 'Vashon', state: 'WA' },
+  '98164': { city: 'Seattle', state: 'WA' },
+  '98166': { city: 'Burien', state: 'WA' },
+  '98168': { city: 'Tukwila', state: 'WA' },
+  '98174': { city: 'Seattle', state: 'WA' },
+  '98177': { city: 'Seattle', state: 'WA' },
+  '98178': { city: 'Tukwila', state: 'WA' },
+  '98188': { city: 'SeaTac', state: 'WA' },
+  '98195': { city: 'Seattle', state: 'WA' },
+  '98199': { city: 'Seattle', state: 'WA' },
+  
+  // More Washington cities
+  '98001': { city: 'Auburn', state: 'WA' },
+  '98002': { city: 'Auburn', state: 'WA' },
+  '98003': { city: 'Federal Way', state: 'WA' },
+  '98004': { city: 'Bellevue', state: 'WA' },
+  '98005': { city: 'Bellevue', state: 'WA' },
+  '98006': { city: 'Bellevue', state: 'WA' },
+  '98007': { city: 'Bellevue', state: 'WA' },
+  '98008': { city: 'Bellevue', state: 'WA' },
+  '98009': { city: 'Bellevue', state: 'WA' },
+  '98010': { city: 'Black Diamond', state: 'WA' },
+  '98011': { city: 'Bothell', state: 'WA' },
+  '98012': { city: 'Bothell', state: 'WA' },
+  '98013': { city: 'Bothell', state: 'WA' },
+  '98014': { city: 'Carnation', state: 'WA' },
+  '98015': { city: 'Bellevue', state: 'WA' },
+  '98019': { city: 'Duvall', state: 'WA' },
+  '98020': { city: 'Edmonds', state: 'WA' },
+  '98021': { city: 'Bothell', state: 'WA' },
+  '98022': { city: 'Enumclaw', state: 'WA' },
+  '98023': { city: 'Federal Way', state: 'WA' },
+  '98024': { city: 'Fall City', state: 'WA' },
+  '98025': { city: 'Hobart', state: 'WA' },
+  '98026': { city: 'Edmonds', state: 'WA' },
+  '98027': { city: 'Issaquah', state: 'WA' },
+  '98028': { city: 'Kenmore', state: 'WA' },
+  '98029': { city: 'Issaquah', state: 'WA' },
+  '98030': { city: 'Kent', state: 'WA' },
+  '98031': { city: 'Kent', state: 'WA' },
+  '98032': { city: 'Kent', state: 'WA' },
+  '98033': { city: 'Kirkland', state: 'WA' },
+  '98034': { city: 'Kirkland', state: 'WA' },
+  '98035': { city: 'Kent', state: 'WA' },
+  '98036': { city: 'Lynnwood', state: 'WA' },
+  '98037': { city: 'Lynnwood', state: 'WA' },
+  '98038': { city: 'Maple Valley', state: 'WA' },
+  '98039': { city: 'Medina', state: 'WA' },
+  '98040': { city: 'Mercer Island', state: 'WA' },
+  '98041': { city: 'Newcastle', state: 'WA' },
+  '98042': { city: 'Kent', state: 'WA' },
+  '98043': { city: 'Mountlake Terrace', state: 'WA' },
+  '98045': { city: 'North Bend', state: 'WA' },
+  '98047': { city: 'Pacific', state: 'WA' },
+  '98050': { city: 'Preston', state: 'WA' },
+  '98051': { city: 'Ravensdale', state: 'WA' },
+  '98052': { city: 'Redmond', state: 'WA' },
+  '98053': { city: 'Redmond', state: 'WA' },
+  '98055': { city: 'Renton', state: 'WA' },
+  '98056': { city: 'Renton', state: 'WA' },
+  '98057': { city: 'Renton', state: 'WA' },
+  '98058': { city: 'Renton', state: 'WA' },
+  '98059': { city: 'Renton', state: 'WA' },
+  '98061': { city: 'Tukwila', state: 'WA' },
+  '98062': { city: 'Tukwila', state: 'WA' },
+  '98063': { city: 'Federal Way', state: 'WA' },
+  '98064': { city: 'Kent', state: 'WA' },
+  '98065': { city: 'Snoqualmie', state: 'WA' },
+  '98068': { city: 'Snoqualmie Pass', state: 'WA' },
+  '98070': { city: 'Vashon', state: 'WA' },
+  '98071': { city: 'Auburn', state: 'WA' },
+  '98072': { city: 'Woodinville', state: 'WA' },
+  '98073': { city: 'Redmond', state: 'WA' },
+  '98074': { city: 'Sammamish', state: 'WA' },
+  '98075': { city: 'Sammamish', state: 'WA' },
+  '98077': { city: 'Woodinville', state: 'WA' },
+  '98092': { city: 'Auburn', state: 'WA' },
+  '98093': { city: 'Federal Way', state: 'WA' },
+  
+  // Texas (major cities)
+  '75001': { city: 'Addison', state: 'TX' },
+  '75002': { city: 'Allen', state: 'TX' },
+  '75006': { city: 'Carrollton', state: 'TX' },
+  '75007': { city: 'Carrollton', state: 'TX' },
+  '75010': { city: 'Carrollton', state: 'TX' },
+  '75019': { city: 'Coppell', state: 'TX' },
+  '75020': { city: 'Denison', state: 'TX' },
+  '75023': { city: 'Plano', state: 'TX' },
+  '75024': { city: 'Plano', state: 'TX' },
+  '75025': { city: 'Plano', state: 'TX' },
+  '75026': { city: 'Plano', state: 'TX' },
+  '75030': { city: 'Rowlett', state: 'TX' },
+  '75034': { city: 'Frisco', state: 'TX' },
+  '75035': { city: 'Frisco', state: 'TX' },
+  '75038': { city: 'Irving', state: 'TX' },
+  '75039': { city: 'Irving', state: 'TX' },
+  '75040': { city: 'Garland', state: 'TX' },
+  '75041': { city: 'Garland', state: 'TX' },
+  '75042': { city: 'Garland', state: 'TX' },
+  '75043': { city: 'Garland', state: 'TX' },
+  '75044': { city: 'Garland', state: 'TX' },
+  '75048': { city: 'Sachse', state: 'TX' },
+  '75050': { city: 'Grand Prairie', state: 'TX' },
+  '75051': { city: 'Grand Prairie', state: 'TX' },
+  '75052': { city: 'Grand Prairie', state: 'TX' },
+  '75054': { city: 'Grand Prairie', state: 'TX' },
+  '75056': { city: 'The Colony', state: 'TX' },
+  '75057': { city: 'Lewisville', state: 'TX' },
+  '75060': { city: 'Irving', state: 'TX' },
+  '75061': { city: 'Irving', state: 'TX' },
+  '75062': { city: 'Irving', state: 'TX' },
+  '75063': { city: 'Irving', state: 'TX' },
+  '75067': { city: 'Lewisville', state: 'TX' },
+  '75068': { city: 'Little Elm', state: 'TX' },
+  '75069': { city: 'McKinney', state: 'TX' },
+  '75070': { city: 'McKinney', state: 'TX' },
+  '75071': { city: 'McKinney', state: 'TX' },
+  '75074': { city: 'Plano', state: 'TX' },
+  '75075': { city: 'Plano', state: 'TX' },
+  '75080': { city: 'Richardson', state: 'TX' },
+  '75081': { city: 'Richardson', state: 'TX' },
+  '75082': { city: 'Richardson', state: 'TX' },
+  '75083': { city: 'Richardson', state: 'TX' },
+  '75085': { city: 'Richardson', state: 'TX' },
+  '75086': { city: 'Wylie', state: 'TX' },
+  '75087': { city: 'Rockwall', state: 'TX' },
+  '75088': { city: 'Rowlett', state: 'TX' },
+  '75089': { city: 'Rowlett', state: 'TX' },
+  '75093': { city: 'Plano', state: 'TX' },
+  '75094': { city: 'Plano', state: 'TX' },
+  
+  // Dallas proper
+  '75201': { city: 'Dallas', state: 'TX' },
+  '75202': { city: 'Dallas', state: 'TX' },
+  '75203': { city: 'Dallas', state: 'TX' },
+  '75204': { city: 'Dallas', state: 'TX' },
+  '75205': { city: 'Dallas', state: 'TX' },
+  '75206': { city: 'Dallas', state: 'TX' },
+  '75207': { city: 'Dallas', state: 'TX' },
+  '75208': { city: 'Dallas', state: 'TX' },
+  '75209': { city: 'Dallas', state: 'TX' },
+  '75210': { city: 'Dallas', state: 'TX' },
+  '75211': { city: 'Dallas', state: 'TX' },
+  '75212': { city: 'Dallas', state: 'TX' },
+  '75214': { city: 'Dallas', state: 'TX' },
+  '75215': { city: 'Dallas', state: 'TX' },
+  '75216': { city: 'Dallas', state: 'TX' },
+  '75217': { city: 'Dallas', state: 'TX' },
+  '75218': { city: 'Dallas', state: 'TX' },
+  '75219': { city: 'Dallas', state: 'TX' },
+  '75220': { city: 'Dallas', state: 'TX' },
+  '75221': { city: 'Dallas', state: 'TX' },
+  '75222': { city: 'Dallas', state: 'TX' },
+  '75223': { city: 'Dallas', state: 'TX' },
+  '75224': { city: 'Dallas', state: 'TX' },
+  '75225': { city: 'Dallas', state: 'TX' },
+  '75226': { city: 'Dallas', state: 'TX' },
+  '75227': { city: 'Dallas', state: 'TX' },
+  '75228': { city: 'Dallas', state: 'TX' },
+  '75229': { city: 'Dallas', state: 'TX' },
+  '75230': { city: 'Dallas', state: 'TX' },
+  '75231': { city: 'Dallas', state: 'TX' },
+  '75232': { city: 'Dallas', state: 'TX' },
+  '75233': { city: 'Dallas', state: 'TX' },
+  '75234': { city: 'Dallas', state: 'TX' },
+  '75235': { city: 'Dallas', state: 'TX' },
+  '75236': { city: 'Dallas', state: 'TX' },
+  '75237': { city: 'Dallas', state: 'TX' },
+  '75238': { city: 'Dallas', state: 'TX' },
+  '75240': { city: 'Dallas', state: 'TX' },
+  '75241': { city: 'Dallas', state: 'TX' },
+  '75243': { city: 'Dallas', state: 'TX' },
+  '75244': { city: 'Dallas', state: 'TX' },
+  '75246': { city: 'Dallas', state: 'TX' },
+  '75247': { city: 'Dallas', state: 'TX' },
+  '75248': { city: 'Dallas', state: 'TX' },
+  '75249': { city: 'Dallas', state: 'TX' },
+  '75250': { city: 'Dallas', state: 'TX' },
+  '75251': { city: 'Dallas', state: 'TX' },
+  '75252': { city: 'Dallas', state: 'TX' },
+  '75253': { city: 'Dallas', state: 'TX' },
+  '75254': { city: 'Dallas', state: 'TX' },
+  '75270': { city: 'Dallas', state: 'TX' },
+  '75275': { city: 'Dallas', state: 'TX' },
+  '75277': { city: 'Dallas', state: 'TX' },
+  '75283': { city: 'Dallas', state: 'TX' },
+  '75284': { city: 'Dallas', state: 'TX' },
+  '75285': { city: 'Dallas', state: 'TX' },
+  '75287': { city: 'Dallas', state: 'TX' },
+  '75390': { city: 'Dallas', state: 'TX' },
+  '75391': { city: 'Dallas', state: 'TX' },
+  '75392': { city: 'Dallas', state: 'TX' },
+  '75393': { city: 'Dallas', state: 'TX' },
+  '75394': { city: 'Dallas', state: 'TX' },
+  '75395': { city: 'Dallas', state: 'TX' },
+  '75396': { city: 'Dallas', state: 'TX' },
+  '75397': { city: 'Dallas', state: 'TX' },
+  '75398': { city: 'Dallas', state: 'TX' },
+  
+  // Houston area
+  '77001': { city: 'Houston', state: 'TX' },
+  '77002': { city: 'Houston', state: 'TX' },
+  '77003': { city: 'Houston', state: 'TX' },
+  '77004': { city: 'Houston', state: 'TX' },
+  '77005': { city: 'Houston', state: 'TX' },
+  '77006': { city: 'Houston', state: 'TX' },
+  '77007': { city: 'Houston', state: 'TX' },
+  '77008': { city: 'Houston', state: 'TX' },
+  '77009': { city: 'Houston', state: 'TX' },
+  '77010': { city: 'Houston', state: 'TX' },
+  '77011': { city: 'Houston', state: 'TX' },
+  '77012': { city: 'Houston', state: 'TX' },
+  '77013': { city: 'Houston', state: 'TX' },
+  '77014': { city: 'Houston', state: 'TX' },
+  '77015': { city: 'Houston', state: 'TX' },
+  '77016': { city: 'Houston', state: 'TX' },
+  '77017': { city: 'Houston', state: 'TX' },
+  '77018': { city: 'Houston', state: 'TX' },
+  '77019': { city: 'Houston', state: 'TX' },
+  '77020': { city: 'Houston', state: 'TX' },
+  '77021': { city: 'Houston', state: 'TX' },
+  '77022': { city: 'Houston', state: 'TX' },
+  '77023': { city: 'Houston', state: 'TX' },
+  '77024': { city: 'Houston', state: 'TX' },
+  '77025': { city: 'Houston', state: 'TX' },
+  '77026': { city: 'Houston', state: 'TX' },
+  '77027': { city: 'Houston', state: 'TX' },
+  '77028': { city: 'Houston', state: 'TX' },
+  '77029': { city: 'Houston', state: 'TX' },
+  '77030': { city: 'Houston', state: 'TX' },
+  '77031': { city: 'Houston', state: 'TX' },
+  '77032': { city: 'Houston', state: 'TX' },
+  '77033': { city: 'Houston', state: 'TX' },
+  '77034': { city: 'Houston', state: 'TX' },
+  '77035': { city: 'Houston', state: 'TX' },
+  '77036': { city: 'Houston', state: 'TX' },
+  '77037': { city: 'Houston', state: 'TX' },
+  '77038': { city: 'Houston', state: 'TX' },
+  '77039': { city: 'Houston', state: 'TX' },
+  '77040': { city: 'Houston', state: 'TX' },
+  '77041': { city: 'Houston', state: 'TX' },
+  '77042': { city: 'Houston', state: 'TX' },
+  '77043': { city: 'Houston', state: 'TX' },
+  '77044': { city: 'Houston', state: 'TX' },
+  '77045': { city: 'Houston', state: 'TX' },
+  '77046': { city: 'Houston', state: 'TX' },
+  '77047': { city: 'Houston', state: 'TX' },
+  '77048': { city: 'Houston', state: 'TX' },
+  '77049': { city: 'Houston', state: 'TX' },
+  '77050': { city: 'Houston', state: 'TX' },
+  '77051': { city: 'Houston', state: 'TX' },
+  '77052': { city: 'Houston', state: 'TX' },
+  '77053': { city: 'Houston', state: 'TX' },
+  '77054': { city: 'Houston', state: 'TX' },
+  '77055': { city: 'Houston', state: 'TX' },
+  '77056': { city: 'Houston', state: 'TX' },
+  '77057': { city: 'Houston', state: 'TX' },
+  '77058': { city: 'Houston', state: 'TX' },
+  '77059': { city: 'Houston', state: 'TX' },
+  '77060': { city: 'Houston', state: 'TX' },
+  '77061': { city: 'Houston', state: 'TX' },
+  '77062': { city: 'Houston', state: 'TX' },
+  '77063': { city: 'Houston', state: 'TX' },
+  '77064': { city: 'Houston', state: 'TX' },
+  '77065': { city: 'Houston', state: 'TX' },
+  '77066': { city: 'Houston', state: 'TX' },
+  '77067': { city: 'Houston', state: 'TX' },
+  '77068': { city: 'Houston', state: 'TX' },
+  '77069': { city: 'Houston', state: 'TX' },
+  '77070': { city: 'Houston', state: 'TX' },
+  '77071': { city: 'Houston', state: 'TX' },
+  '77072': { city: 'Houston', state: 'TX' },
+  '77073': { city: 'Houston', state: 'TX' },
+  '77074': { city: 'Houston', state: 'TX' },
+  '77075': { city: 'Houston', state: 'TX' },
+  '77076': { city: 'Houston', state: 'TX' },
+  '77077': { city: 'Houston', state: 'TX' },
+  '77078': { city: 'Houston', state: 'TX' },
+  '77079': { city: 'Houston', state: 'TX' },
+  '77080': { city: 'Houston', state: 'TX' },
+  '77081': { city: 'Houston', state: 'TX' },
+  '77082': { city: 'Houston', state: 'TX' },
+  '77083': { city: 'Houston', state: 'TX' },
+  '77084': { city: 'Houston', state: 'TX' },
+  '77085': { city: 'Houston', state: 'TX' },
+  '77086': { city: 'Houston', state: 'TX' },
+  '77087': { city: 'Houston', state: 'TX' },
+  '77088': { city: 'Houston', state: 'TX' },
+  '77089': { city: 'Houston', state: 'TX' },
+  '77090': { city: 'Houston', state: 'TX' },
+  '77091': { city: 'Houston', state: 'TX' },
+  '77092': { city: 'Houston', state: 'TX' },
+  '77093': { city: 'Houston', state: 'TX' },
+  '77094': { city: 'Houston', state: 'TX' },
+  '77095': { city: 'Houston', state: 'TX' },
+  '77096': { city: 'Houston', state: 'TX' },
+  '77098': { city: 'Houston', state: 'TX' },
+  '77099': { city: 'Houston', state: 'TX' },
+  
   // Florida
   '33101': { city: 'Miami', state: 'FL' },
   '33102': { city: 'Miami', state: 'FL' },
@@ -552,6 +884,69 @@ export function convertZipToLocation(input: string): { city?: string, state?: st
     if (zipData) {
       return { city: zipData.city, state: zipData.state }
     }
+    
+    // If ZIP code not in our mapping, try to infer state from ZIP code ranges
+    const zipNum = parseInt(trimmed)
+    let state = ''
+    
+    // Common ZIP code ranges by state
+    if (zipNum >= 98001 && zipNum <= 99403) state = 'WA'
+    else if (zipNum >= 90001 && zipNum <= 96162) state = 'CA'
+    else if (zipNum >= 75001 && zipNum <= 79999) state = 'TX'
+    else if (zipNum >= 77001 && zipNum <= 77999) state = 'TX'
+    else if (zipNum >= 33001 && zipNum <= 34997) state = 'FL'
+    else if (zipNum >= 10001 && zipNum <= 14975) state = 'NY'
+    else if (zipNum >= 60001 && zipNum <= 62999) state = 'IL'
+    else if (zipNum >= 30001 && zipNum <= 31999) state = 'GA'
+    else if (zipNum >= 20001 && zipNum <= 20599) state = 'DC'
+    else if (zipNum >= 21001 && zipNum <= 21930) state = 'MD'
+    else if (zipNum >= 22001 && zipNum <= 24658) state = 'VA'
+    else if (zipNum >= 27001 && zipNum <= 28909) state = 'NC'
+    else if (zipNum >= 29001 && zipNum <= 29948) state = 'SC'
+    else if (zipNum >= 35001 && zipNum <= 36925) state = 'AL'
+    else if (zipNum >= 37001 && zipNum <= 38589) state = 'TN'
+    else if (zipNum >= 39001 && zipNum <= 39776) state = 'MS'
+    else if (zipNum >= 40001 && zipNum <= 42788) state = 'KY'
+    else if (zipNum >= 43001 && zipNum <= 45999) state = 'OH'
+    else if (zipNum >= 46001 && zipNum <= 47997) state = 'IN'
+    else if (zipNum >= 48001 && zipNum <= 49971) state = 'MI'
+    else if (zipNum >= 50001 && zipNum <= 52809) state = 'IA'
+    else if (zipNum >= 53001 && zipNum <= 54990) state = 'WI'
+    else if (zipNum >= 55001 && zipNum <= 56763) state = 'MN'
+    else if (zipNum >= 58001 && zipNum <= 58856) state = 'ND'
+    else if (zipNum >= 57001 && zipNum <= 57799) state = 'SD'
+    else if (zipNum >= 59001 && zipNum <= 59937) state = 'MT'
+    else if (zipNum >= 68001 && zipNum <= 69367) state = 'NE'
+    else if (zipNum >= 66001 && zipNum <= 67954) state = 'KS'
+    else if (zipNum >= 70001 && zipNum <= 71497) state = 'LA'
+    else if (zipNum >= 72001 && zipNum <= 72959) state = 'AR'
+    else if (zipNum >= 73001 && zipNum <= 74966) state = 'OK'
+    else if (zipNum >= 80001 && zipNum <= 81658) state = 'CO'
+    else if (zipNum >= 82001 && zipNum <= 83414) state = 'WY'
+    else if (zipNum >= 83001 && zipNum <= 83876) state = 'ID'
+    else if (zipNum >= 84001 && zipNum <= 84784) state = 'UT'
+    else if (zipNum >= 85001 && zipNum <= 86556) state = 'AZ'
+    else if (zipNum >= 87001 && zipNum <= 88441) state = 'NM'
+    else if (zipNum >= 89001 && zipNum <= 89883) state = 'NV'
+    else if (zipNum >= 97001 && zipNum <= 97920) state = 'OR'
+    else if (zipNum >= 96701 && zipNum <= 96898) state = 'HI'
+    else if (zipNum >= 99501 && zipNum <= 99950) state = 'AK'
+    else if (zipNum >= 1001 && zipNum <= 5544) state = 'MA'
+    else if (zipNum >= 6001 && zipNum <= 6928) state = 'CT'
+    else if (zipNum >= 7001 && zipNum <= 8989) state = 'NJ'
+    else if (zipNum >= 3001 && zipNum <= 3897) state = 'NH'
+    else if (zipNum >= 4001 && zipNum <= 4992) state = 'ME'
+    else if (zipNum >= 5001 && zipNum <= 5907) state = 'VT'
+    else if (zipNum >= 2801 && zipNum <= 2940) state = 'RI'
+    else if (zipNum >= 19001 && zipNum <= 19640) state = 'PA'
+    else if (zipNum >= 25001 && zipNum <= 26886) state = 'WV'
+    
+    if (state) {
+      return { state }
+    }
+    
+    // If we can't determine the state, return the ZIP as is for the search
+    return { city: trimmed }
   }
   
   // If not a ZIP code or not found, parse as city, state
