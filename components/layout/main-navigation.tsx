@@ -13,7 +13,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Home, Search, Calendar, MessageSquare, Activity, Wallet } from "lucide-react"
+import { Menu, Home, Search, Calendar, MessageSquare, Activity, Wallet, Dashboard, Hospital, Users } from "lucide-react"
 
 export function MainNavigation() {
   const [isOpen, setIsOpen] = useState(false)
@@ -65,6 +65,9 @@ export function MainNavigation() {
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Health Dashboard", href: "/health/dashboard", icon: Activity },
     { name: "Wallet", href: "/wallet", icon: Wallet },
+    { name: "Dashboard", href: "/dashboard", icon: Dashboard },
+    { name: "Retrieve Patient Info", href: "/portal/retrieve-pt-info", icon: Hospital },
+    { name: "Patients", href: "/patients", icon: Users },
   ]
 
   return (
