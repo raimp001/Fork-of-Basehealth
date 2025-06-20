@@ -35,16 +35,16 @@ export async function GET(request: NextRequest) {
     })
     
     // Build search parameters
-    const searchParams: any = {
+    const npiSearchParams: any = {
       limit,
       enumeration_type: 'NPI-1'
     }
     
     // Add location parameters if available
-    if (city) searchParams.city = city
-    if (state) searchParams.state = state
+    if (city) npiSearchParams.city = city
+    if (state) npiSearchParams.state = state
     if (location && /^\d{5}$/.test(location)) {
-      searchParams.postal_code = location
+      npiSearchParams.postal_code = location
     }
     
     if (specialty && specialty !== 'all') {
@@ -57,20 +57,20 @@ export async function GET(request: NextRequest) {
       }
     } else if (query) {
       // Search by name or organization
-      const searchResponse = await searchProviders({
-        first_name: query.includes(' ') ? query.split(' ')[0] : undefined,
-        last_name: query.includes(' ') ? query.split(' ').slice(1).join(' ') : query,
-        organization_name: query,
-        ...searchParams
-      })
+              const searchResponse = await searchProviders({
+          first_name: query.includes(' ') ? query.split(' ')[0] : undefined,
+          last_name: query.includes(' ') ? query.split(' ').slice(1).join(' ') : query,
+          organization_name: query,
+          ...npiSearchParams
+        })
       providers = searchResponse.results
-    } else {
-      // General search by location
-      console.log('NPI search params:', searchParams)
-      const searchResponse = await searchProviders(searchParams)
-      providers = searchResponse.results
-      console.log('NPI search results count:', providers.length)
-    }
+          } else {
+        // General search by location
+        console.log('NPI search params:', npiSearchParams)
+        const searchResponse = await searchProviders(npiSearchParams)
+        providers = searchResponse.results
+        console.log('NPI search results count:', providers.length)
+      }
     
     // Transform providers to our format
     const transformedProviders = providers.map(provider => {

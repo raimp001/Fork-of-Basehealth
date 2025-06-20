@@ -1,5 +1,7 @@
+'use client'
+
 import { useState } from 'react'
-import { User, ClipboardList, Users, Settings, Hospital, Search, ShieldCheck, Database, FileText, FlaskConical, Stethoscope, Syringe, FileCheck2, FileBarChart2, FileMedical, FileHeart, FileScan, FileSignature, FileSearch2, FileStack, FileUser, FileUser2, FileUserCheck, FileUserPlus, FileUserX, FileUsers, FileUsers2, FileUsersCheck, FileUsersPlus, FileUsersX, FileX, FileX2, FileX3, FileX4, FileX5, FileX6, FileX7, FileX8, FileX9, FileX10, FileX11, FileX12, FileX13, FileX14, FileX15, FileX16, FileX17, FileX18, FileX19, FileX20, FileX21, FileX22, FileX23, FileX24, FileX25, FileX26, FileX27, FileX28, FileX29, FileX30, FileX31, FileX32, FileX33, FileX34, FileX35, FileX36, FileX37, FileX38, FileX39, FileX40, FileX41, FileX42, FileX43, FileX44, FileX45, FileX46, FileX47, FileX48, FileX49, FileX50 } from 'lucide-react'
+import { ClipboardList, Users, Settings, Hospital, Search, ShieldCheck, Database, FileText, FlaskConical, Syringe, FileHeart, FileScan, FileX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -98,7 +100,7 @@ export default function RetrievePtInfoDashboard() {
                   <FHIRCard title="Conditions" icon={FileHeart} items={selectedPatient.conditions} />
                   <FHIRCard title="Medications" icon={Syringe} items={selectedPatient.medications} />
                   <FHIRCard title="Labs" icon={FlaskConical} items={selectedPatient.labs} />
-                  <FHIRCard title="Allergies" icon={FileMedical} items={selectedPatient.allergies} />
+                  <FHIRCard title="Allergies" icon={FileX} items={selectedPatient.allergies} />
                   <FHIRCard title="Imaging" icon={FileScan} items={selectedPatient.imaging} />
                   <FHIRCard title="Progress Notes" icon={FileText} items={selectedPatient.progressNotes} />
                 </div>
