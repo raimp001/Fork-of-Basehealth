@@ -172,9 +172,9 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 justify-center items-center max-w-4xl mx-auto mb-16">
               <Button 
                 asChild 
-                className="btn-healthcare-primary hover:scale-105 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 shadow-healthcare hover:shadow-healthcare-lg w-full h-20 flex items-center justify-center group"
+                className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center group hover:scale-105"
               >
-                <Link href="/screening" className="flex items-center gap-3">
+                <Link href="/screening" className="flex items-center gap-3 text-white">
                   <Activity className="h-6 w-6 group-hover:scale-110 transition-transform" />
                   <span>Start AI Screening</span>
                 </Link>
@@ -183,7 +183,7 @@ export default function HomePage() {
               <Button 
                 asChild 
                 variant="outline" 
-                className="btn-healthcare-secondary border-2 border-emerald-200 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-healthcare hover:shadow-healthcare-lg w-full h-20 flex items-center justify-center group"
+                className="border-2 border-emerald-600 text-emerald-700 hover:border-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center group bg-white"
               >
                 <Link href="/second-opinion" className="flex items-center gap-3">
                   <Users className="h-6 w-6 group-hover:scale-110 transition-transform" />
@@ -194,7 +194,7 @@ export default function HomePage() {
               <Button 
                 asChild 
                 variant="outline" 
-                className="btn-healthcare-secondary border-2 border-cyan-200 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-healthcare hover:shadow-healthcare-lg w-full h-20 flex items-center justify-center group"
+                className="border-2 border-cyan-600 text-cyan-700 hover:border-cyan-700 hover:bg-cyan-50 hover:text-cyan-800 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center group bg-white"
               >
                 <Link href="/clinical-trials" className="flex items-center gap-3">
                   <Search className="h-6 w-6 group-hover:scale-110 transition-transform" />

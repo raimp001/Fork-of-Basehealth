@@ -25,7 +25,7 @@ body {
   }
   
   .text-gradient {
-    background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 25%, #10b981 75%, #059669 100%);
+    background: linear-gradient(135deg, #1e40af 0%, #0ea5e9 25%, #06b6d4 75%, #0891b2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -141,7 +141,7 @@ body {
   
   /* Healthcare-specific button styles */
   .btn-healthcare-primary {
-    background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+    background: linear-gradient(135deg, #0f172a, #1e293b);
     color: white;
     border: none;
     font-weight: 600;
@@ -149,23 +149,25 @@ body {
   }
   
   .btn-healthcare-primary:hover {
-    background: linear-gradient(135deg, #0284c7, #0891b2);
+    background: linear-gradient(135deg, #334155, #475569);
     transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.3);
+    color: white;
   }
   
   .btn-healthcare-secondary {
-    background: rgba(14, 165, 233, 0.1);
-    color: #0ea5e9;
-    border: 1px solid rgba(14, 165, 233, 0.2);
-    font-weight: 500;
+    background: rgba(255, 255, 255, 0.9);
+    color: #0f172a;
+    border: 2px solid rgba(15, 23, 42, 0.2);
+    font-weight: 600;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .btn-healthcare-secondary:hover {
-    background: rgba(14, 165, 233, 0.15);
-    border-color: rgba(14, 165, 233, 0.3);
+    background: rgba(15, 23, 42, 0.05);
+    border-color: rgba(15, 23, 42, 0.3);
     transform: translateY(-1px);
+    color: #0f172a;
   }
   
   /* Status indicators */

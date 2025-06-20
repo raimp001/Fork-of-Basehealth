@@ -39,9 +39,9 @@ export function ProviderCard({ provider }: ProviderCardProps) {
 
   const getAvailabilityColor = (availability: string) => {
     if (availability.toLowerCase().includes('today') || availability.toLowerCase().includes('available')) {
-      return 'text-emerald-600 bg-emerald-50'
+      return 'text-emerald-800 bg-emerald-100 border border-emerald-200'
     }
-    return 'text-amber-600 bg-amber-50'
+    return 'text-amber-800 bg-amber-100 border border-amber-200'
   }
 
   return (
@@ -68,7 +68,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
               </h3>
               <p className="text-sky-600 font-medium text-sm mb-1">{provider.specialty}</p>
               {provider.credentials && (
-                <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-600 border-0 px-2 py-1">
+                <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-700 border border-slate-300 px-2 py-1 font-medium">
                   {provider.credentials}
                 </Badge>
               )}
@@ -140,10 +140,10 @@ export function ProviderCard({ provider }: ProviderCardProps) {
         <Badge 
           variant={provider.acceptingPatients ? "default" : "secondary"}
           className={`
-            px-4 py-2 text-sm font-medium rounded-full
+            px-4 py-2 text-sm font-semibold rounded-full border-2
             ${provider.acceptingPatients 
-              ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
-              : 'bg-slate-100 text-slate-600 border-slate-200'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
+              : 'bg-slate-50 text-slate-700 border-slate-300'
             }
           `}
         >
@@ -156,12 +156,12 @@ export function ProviderCard({ provider }: ProviderCardProps) {
       <div className="space-y-3">
         <Button 
           asChild
-          className="w-full btn-healthcare-primary text-white font-semibold py-2.5 px-4 rounded-xl shadow-healthcare hover:shadow-healthcare-lg"
+          className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
           disabled={!provider.acceptingPatients}
         >
           <Link 
             href={`/appointment/book?name=${encodeURIComponent(provider.name)}&specialty=${encodeURIComponent(provider.specialty)}&address=${encodeURIComponent(provider.address)}&phone=${encodeURIComponent(provider.phone)}&npi=${encodeURIComponent(provider.npi)}&rating=${provider.rating}&accepting=${provider.acceptingPatients}`}
-            className="flex items-center justify-center gap-2"
+            className="flex items-center justify-center gap-2 text-white"
           >
             <Calendar className="h-4 w-4" />
             {provider.acceptingPatients ? 'Book Appointment' : 'Join Waitlist'}
@@ -171,7 +171,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
         <div className="grid grid-cols-2 gap-2">
           <Button 
             variant="outline" 
-            className="btn-healthcare-secondary border-sky-200 text-sky-700 hover:bg-sky-50 py-2 px-3 rounded-lg text-sm font-medium"
+            className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200"
           >
             <Globe className="h-4 w-4 mr-1" />
             Profile
@@ -179,7 +179,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
           
           <Button 
             variant="outline" 
-            className="btn-healthcare-secondary border-sky-200 text-sky-700 hover:bg-sky-50 py-2 px-3 rounded-lg text-sm font-medium"
+            className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200"
           >
             <Phone className="h-4 w-4 mr-1" />
             Call

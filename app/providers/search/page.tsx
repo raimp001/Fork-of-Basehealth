@@ -190,7 +190,7 @@ export default function ProviderSearchPage() {
             <div className="flex justify-center pt-4">
               <Button 
                 type="submit" 
-                className="btn-healthcare-primary px-8 py-3 text-base font-semibold rounded-xl shadow-healthcare hover:shadow-healthcare-lg"
+                className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 disabled={loading}
               >
                 {loading ? (
@@ -248,7 +248,7 @@ export default function ProviderSearchPage() {
                 setQuery('')
               }}
               variant="outline"
-              className="btn-healthcare-secondary"
+              className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 px-4 py-2 rounded-lg font-medium transition-all duration-200"
             >
               Clear Search
             </Button>
