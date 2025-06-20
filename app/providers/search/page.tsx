@@ -4,7 +4,11 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Search, MapPin, Star, Calendar, Phone, Globe, Filter, Loader2, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ProviderCard } from '@/components/provider-card'
+import { toast } from 'sonner'
 
 interface Provider {
   id: string
@@ -33,6 +37,7 @@ export default function ProviderSearchPage() {
   const [hasSearched, setHasSearched] = useState(false)
   
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   const specialties = [
     "Primary Care",
@@ -51,20 +56,30 @@ export default function ProviderSearchPage() {
     "Internal Medicine"
   ]
 
-  const searchProviders = async () => {
-    if (!selectedSpecialty && !locationInput) {
-      setError("Please select a specialty or specify a location")
-      return
+  // Initialize state from URL parameters
+  useEffect(() => {
+    const locationParam = searchParams.get('location') || searchParams.get('zipCode') || ''
+    const specialtyParam = searchParams.get('specialty') || ''
+    const queryParam = searchParams.get('query') || ''
+    
+    setLocationInput(locationParam)
+    setSelectedSpecialty(specialtyParam)
+    
+    if (locationParam || specialtyParam || queryParam) {
+      searchProviders(locationParam, specialtyParam, queryParam)
     }
+  }, [searchParams])
 
+  const searchProviders = async (loc: string, spec: string, q: string) => {
     setIsLoading(true)
     setError(null)
     setHasSearched(true)
 
     try {
       const params = new URLSearchParams()
-      if (selectedSpecialty) params.append('specialty', selectedSpecialty)
-      if (locationInput) params.append('location', locationInput)
+      if (loc) params.append('location', loc)
+      if (spec) params.append('specialty', spec)
+      if (q) params.append('query', q)
       params.append('limit', '20')
 
       const response = await fetch(`/api/providers/search?${params.toString()}`)
@@ -90,49 +105,17 @@ export default function ProviderSearchPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    searchProviders()
+    
+    // Update URL with search parameters
+    const params = new URLSearchParams()
+    if (locationInput) params.append('location', locationInput)
+    if (selectedSpecialty) params.append('specialty', selectedSpecialty)
+    
+    router.push(`/providers/search?${params.toString()}`)
+    
+    // Perform search
+    searchProviders(locationInput, selectedSpecialty, '')
   }
-
-  // Auto-search when specialty or location changes
-  useEffect(() => {
-    if (hasSearched && (selectedSpecialty || locationInput)) {
-      searchProviders()
-    }
-  }, [selectedSpecialty, locationInput])
-
-  // Initialize from URL parameters
-  useEffect(() => {
-    const location = searchParams.get('location')
-    const screenings = searchParams.get('screenings')
-    
-    if (location) {
-      setLocationInput(location)
-    }
-    
-    // If screenings are provided, set appropriate specialty
-    if (screenings) {
-      const screeningList = screenings.split(',')
-      // Map common screenings to specialties
-      if (screeningList.some(s => s.includes('colonoscopy') || s.includes('colorectal'))) {
-        setSelectedSpecialty('Gastroenterology')
-      } else if (screeningList.some(s => s.includes('mammogram') || s.includes('breast'))) {
-        setSelectedSpecialty('Radiology')
-      } else if (screeningList.some(s => s.includes('cardiovascular') || s.includes('heart'))) {
-        setSelectedSpecialty('Cardiology')
-      } else {
-        setSelectedSpecialty('Primary Care')
-      }
-    }
-    
-    // Auto-search if we have location or specialty from URL
-    if (location || screenings) {
-      setHasSearched(true)
-      // Small delay to allow state to settle
-      setTimeout(() => {
-        searchProviders()
-      }, 100)
-    }
-  }, [searchParams])
 
   return (
     <div className="min-h-screen bg-white">
@@ -165,46 +148,50 @@ export default function ProviderSearchPage() {
 
           {/* Search and Filters */}
           <form onSubmit={handleSearch} className="bg-gray-50 rounded-xl p-6 mb-8">
-            <div className="grid md:grid-cols-3 gap-4">
-              {/* Specialty Filter */}
-              <select
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                value={selectedSpecialty}
-                onChange={(e) => setSelectedSpecialty(e.target.value)}
-                aria-label="Select specialty"
-              >
-                <option value="">All Specialties</option>
-                {specialties.map(specialty => (
-                  <option key={specialty} value={specialty}>{specialty}</option>
-                ))}
-              </select>
-
-              {/* Location Filter */}
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="ZIP code or area (e.g., 94102, San Francisco CA, New York NY)"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label htmlFor="location" className="block text-sm font-medium mb-2">
+                  Location (ZIP code or City, State)
+                </label>
+                <Input
+                  id="location"
                   value={locationInput}
                   onChange={(e) => setLocationInput(e.target.value)}
+                  placeholder="e.g. 98101 or Seattle, WA"
+                  className="w-full"
                 />
               </div>
-
-              {/* Search Button */}
-              <Button 
-                type="submit" 
-                className="bg-indigo-600 hover:bg-indigo-700"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Search className="h-4 w-4 mr-2" />
-                )}
-                Search
-              </Button>
+              
+              <div>
+                <label htmlFor="specialty" className="block text-sm font-medium mb-2">
+                  Specialty
+                </label>
+                <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select specialty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Specialties</SelectItem>
+                    {specialties.map(specialty => (
+                      <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+            
+            <Button 
+              type="submit" 
+              className="bg-indigo-600 hover:bg-indigo-700"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4 mr-2" />
+              )}
+              Search
+            </Button>
           </form>
 
           {/* Error Message */}
@@ -243,95 +230,7 @@ export default function ProviderSearchPage() {
           {!isLoading && providers.length > 0 && (
             <div className="space-y-6">
               {providers.map((provider) => (
-                <div key={provider.id} className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex items-start gap-6">
-                    {/* Provider Image/Initials */}
-                    <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <span className="text-2xl font-bold text-indigo-600">
-                        {provider.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                      </span>
-                    </div>
-
-                    {/* Provider Info */}
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="text-xl font-semibold text-gray-900">{provider.name}</h3>
-                          <p className="text-indigo-600 font-medium">{provider.specialty}</p>
-                          <p className="text-gray-600">{provider.address}</p>
-                          <p className="text-sm text-gray-500">NPI: {provider.npi}</p>
-                        </div>
-                        
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 mb-1">
-                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                            <span className="font-medium">{provider.rating}</span>
-                            <span className="text-gray-500">({provider.reviewCount} reviews)</span>
-                          </div>
-                          {provider.distance !== null && provider.distance !== undefined && (
-                            <div className="flex items-center gap-1 text-gray-600">
-                              <MapPin className="h-4 w-4" />
-                              <span className="text-sm">{provider.distance} miles away</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="grid md:grid-cols-3 gap-4 mb-4">
-                        <div>
-                          <p className="text-sm text-gray-600">Availability</p>
-                          <p className="font-medium text-sm">{provider.availability}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Languages</p>
-                          <p className="font-medium text-sm">{provider.languages.join(', ')}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Insurance</p>
-                          <p className="font-medium text-sm">{provider.insurance.slice(0, 2).join(', ')}{provider.insurance.length > 2 ? '...' : ''}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            provider.acceptingPatients 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-red-100 text-red-700'
-                          }`}>
-                            {provider.acceptingPatients ? 'Accepting Patients' : 'Not Accepting'}
-                          </span>
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Phone className="h-4 w-4" />
-                            <span className="text-sm">{provider.phone}</span>
-                          </div>
-                          {provider.credentials && (
-                            <span className="text-sm text-gray-600">{provider.credentials}</span>
-                          )}
-                        </div>
-
-                        <div className="flex gap-3">
-                          <Button variant="outline" className="border-indigo-600 text-indigo-600 hover:bg-indigo-50">
-                            <Globe className="h-4 w-4 mr-2" />
-                            View Profile
-                          </Button>
-                          <Button 
-                            asChild
-                            className="bg-indigo-600 hover:bg-indigo-700"
-                            disabled={!provider.acceptingPatients}
-                          >
-                            <Link 
-                              href={`/appointment/book?name=${encodeURIComponent(provider.name)}&specialty=${encodeURIComponent(provider.specialty)}&address=${encodeURIComponent(provider.address)}&phone=${encodeURIComponent(provider.phone)}&npi=${encodeURIComponent(provider.npi)}&rating=${provider.rating}&accepting=${provider.acceptingPatients}`}
-                            >
-                              <Calendar className="h-4 w-4 mr-2" />
-                              Book Appointment
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ProviderCard key={provider.id} provider={provider} />
               ))}
             </div>
           )}

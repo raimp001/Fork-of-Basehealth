@@ -34,8 +34,21 @@ export async function GET(request: NextRequest) {
       query 
     })
     
+    // Build search parameters
+    const searchParams: any = {
+      limit,
+      enumeration_type: 'NPI-1'
+    }
+    
+    // Add location parameters if available
+    if (city) searchParams.city = city
+    if (state) searchParams.state = state
+    if (location && /^\d{5}$/.test(location)) {
+      searchParams.postal_code = location
+    }
+    
     if (specialty && specialty !== 'all') {
-      // Search by specialty
+      // Search by specialty with location
       providers = await searchProvidersBySpecialty(specialty, city, state, limit)
       
       // If no results and we have a ZIP code, try searching by state only
@@ -48,28 +61,11 @@ export async function GET(request: NextRequest) {
         first_name: query.includes(' ') ? query.split(' ')[0] : undefined,
         last_name: query.includes(' ') ? query.split(' ').slice(1).join(' ') : query,
         organization_name: query,
-        city,
-        state,
-        limit,
-        enumeration_type: 'NPI-1'
+        ...searchParams
       })
       providers = searchResponse.results
     } else {
       // General search by location
-      const searchParams: any = {
-        limit,
-        enumeration_type: 'NPI-1'
-      }
-      
-      // Add location parameters if available
-      if (city) searchParams.city = city
-      if (state) searchParams.state = state
-      
-      // If we have a ZIP code but no city/state mapping, try postal_code search
-      if (!city && !state && location && /^\d{5}$/.test(location)) {
-        searchParams.postal_code = location
-      }
-      
       console.log('NPI search params:', searchParams)
       const searchResponse = await searchProviders(searchParams)
       providers = searchResponse.results
@@ -103,19 +99,18 @@ export async function GET(request: NextRequest) {
                    'Phone not available'
       
       return {
-        id: provider.number, // Use 'number' instead of 'npi'
+        id: provider.number,
         name,
         specialty: providerSpecialty,
         address,
         distance,
         rating,
-        reviewCount: Math.floor(Math.random() * 200) + 10, // Mock review count
+        reviewCount: Math.floor(Math.random() * 200) + 10,
         acceptingPatients,
         phone,
-        npi: provider.number, // Use 'number' field
+        npi: provider.number,
         credentials: provider.basic?.credential || '',
-        gender: provider.basic?.sex || 'Not specified', // Use 'sex' instead of 'gender'
-        // Mock additional fields that would come from other sources
+        gender: provider.basic?.sex || 'Not specified',
         availability: acceptingPatients ? 'Next available: ' + 
           new Date(Date.now() + Math.random() * 14 * 24 * 60 * 60 * 1000).toLocaleDateString() : 
           'Not accepting new patients',
@@ -163,7 +158,7 @@ export async function GET(request: NextRequest) {
               name,
               specialty: providerSpecialty,
               address,
-              distance: null, // No distance calculation for broader search
+              distance: null,
               rating,
               reviewCount: Math.floor(Math.random() * 200) + 10,
               acceptingPatients,
@@ -216,17 +211,17 @@ export async function GET(request: NextRequest) {
             name: provider.name,
             specialty: provider.specialty,
             address: `${provider.address.street}, ${provider.address.city}, ${provider.address.state} ${provider.address.zipCode}`,
-            distance: null, // No distance calculation for AI providers
+            distance: null,
             rating: provider.rating,
             reviewCount: provider.reviewCount,
-            acceptingPatients: true, // Assume AI providers are accepting patients
-            phone: provider.address.street ? '(555) 123-4567' : 'Contact for availability', // Generate phone or placeholder
+            acceptingPatients: true,
+            phone: provider.address.street ? '(555) 123-4567' : 'Contact for availability',
             npi: provider.id.startsWith('ai-') ? `AI_${provider.id}` : provider.id,
             credentials: Array.isArray(provider.credentials) ? provider.credentials.join(', ') : provider.credentials || 'MD',
-            gender: 'Not specified', // AI service doesn't provide gender
+            gender: 'Not specified',
             availability: `Next available: ${new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}`,
             insurance: provider.acceptedInsurance || ['Medicare', 'Medicaid', 'Blue Cross Blue Shield'],
-            languages: ['English'] // Default to English for AI providers
+            languages: ['English']
           }))
           
           return NextResponse.json({

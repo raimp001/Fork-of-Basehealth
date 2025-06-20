@@ -788,6 +788,7 @@ export const zipCodeMapping: Record<string, { city: string, state: string }> = {
   '77094': { city: 'Houston', state: 'TX' },
   '77095': { city: 'Houston', state: 'TX' },
   '77096': { city: 'Houston', state: 'TX' },
+  '77097': { city: 'Houston', state: 'TX' },
   '77098': { city: 'Houston', state: 'TX' },
   '77099': { city: 'Houston', state: 'TX' },
   
@@ -894,7 +895,6 @@ export function convertZipToLocation(input: string): { city?: string, state?: st
     else if (zipNum >= 90001 && zipNum <= 96162) state = 'CA'
     else if (zipNum >= 75001 && zipNum <= 79999) state = 'TX'
     else if (zipNum >= 77001 && zipNum <= 77999) state = 'TX'
-    else if (zipNum >= 33001 && zipNum <= 34997) state = 'FL'
     else if (zipNum >= 10001 && zipNum <= 14975) state = 'NY'
     else if (zipNum >= 60001 && zipNum <= 62999) state = 'IL'
     else if (zipNum >= 30001 && zipNum <= 31999) state = 'GA'
@@ -907,7 +907,6 @@ export function convertZipToLocation(input: string): { city?: string, state?: st
     else if (zipNum >= 37001 && zipNum <= 38589) state = 'TN'
     else if (zipNum >= 39001 && zipNum <= 39776) state = 'MS'
     else if (zipNum >= 40001 && zipNum <= 42788) state = 'KY'
-    else if (zipNum >= 43001 && zipNum <= 45999) state = 'OH'
     else if (zipNum >= 46001 && zipNum <= 47997) state = 'IN'
     else if (zipNum >= 48001 && zipNum <= 49971) state = 'MI'
     else if (zipNum >= 50001 && zipNum <= 52809) state = 'IA'
@@ -920,7 +919,6 @@ export function convertZipToLocation(input: string): { city?: string, state?: st
     else if (zipNum >= 66001 && zipNum <= 67954) state = 'KS'
     else if (zipNum >= 70001 && zipNum <= 71497) state = 'LA'
     else if (zipNum >= 72001 && zipNum <= 72959) state = 'AR'
-    else if (zipNum >= 73001 && zipNum <= 74966) state = 'OK'
     else if (zipNum >= 80001 && zipNum <= 81658) state = 'CO'
     else if (zipNum >= 82001 && zipNum <= 83414) state = 'WY'
     else if (zipNum >= 83001 && zipNum <= 83876) state = 'ID'
@@ -952,9 +950,19 @@ export function convertZipToLocation(input: string): { city?: string, state?: st
   // If not a ZIP code or not found, parse as city, state
   const parts = trimmed.split(',').map(part => part.trim())
   if (parts.length >= 2) {
+    // Handle state abbreviations
+    const state = parts[1].toUpperCase()
+    if (state.length === 2) {
+      return { city: parts[0], state }
+    }
     return { city: parts[0], state: parts[1] }
   } else if (parts.length === 1) {
     // Could be just a city or just a state
+    const part = parts[0].toUpperCase()
+    if (part.length === 2) {
+      // Assume it's a state abbreviation
+      return { state: part }
+    }
     return { city: parts[0] }
   }
   
