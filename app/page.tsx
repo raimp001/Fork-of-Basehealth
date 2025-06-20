@@ -149,8 +149,8 @@ export default function HomePage() {
         <div className="relative flex flex-col items-center justify-center px-4 py-24 min-h-[calc(100vh-80px)]">
           <div className="text-center max-w-5xl mx-auto">
             {/* Hero Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-100 text-cyan-700 text-sm font-medium mb-8">
-              <span className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></span>
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full glass border border-sky-200 text-sky-700 text-sm font-medium mb-8 shadow-healthcare">
+              <span className="w-2 h-2 bg-sky-500 rounded-full animate-pulse"></span>
               Advanced Healthcare Platform
             </div>
 
@@ -163,7 +163,7 @@ export default function HomePage() {
             </h1>
             
             {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
               Personalized health starts here. Evidence-based screenings, expert second opinions, 
               and cutting-edge clinical trials—all in one platform.
             </p>
@@ -172,10 +172,10 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 justify-center items-center max-w-4xl mx-auto mb-16">
               <Button 
                 asChild 
-                className="bg-healthcare-primary hover:scale-105 text-white px-8 py-6 text-lg rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center"
+                className="btn-healthcare-primary hover:scale-105 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 shadow-healthcare hover:shadow-healthcare-lg w-full h-20 flex items-center justify-center group"
               >
                 <Link href="/screening" className="flex items-center gap-3">
-                  <Activity className="h-6 w-6" />
+                  <Activity className="h-6 w-6 group-hover:scale-110 transition-transform" />
                   <span>Start AI Screening</span>
                 </Link>
               </Button>
@@ -183,10 +183,10 @@ export default function HomePage() {
               <Button 
                 asChild 
                 variant="outline" 
-                className="border-2 border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 px-8 py-6 text-lg rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center"
+                className="btn-healthcare-secondary border-2 border-emerald-200 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-healthcare hover:shadow-healthcare-lg w-full h-20 flex items-center justify-center group"
               >
                 <Link href="/second-opinion" className="flex items-center gap-3">
-                  <Users className="h-6 w-6" />
+                  <Users className="h-6 w-6 group-hover:scale-110 transition-transform" />
                   <span>Get Second Opinion</span>
                 </Link>
               </Button>
@@ -194,10 +194,10 @@ export default function HomePage() {
               <Button 
                 asChild 
                 variant="outline" 
-                className="border-2 border-cyan-200 text-cyan-600 hover:border-cyan-400 hover:bg-cyan-50 hover:text-cyan-700 px-8 py-6 text-lg rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center"
+                className="btn-healthcare-secondary border-2 border-cyan-200 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-healthcare hover:shadow-healthcare-lg w-full h-20 flex items-center justify-center group"
               >
                 <Link href="/clinical-trials" className="flex items-center gap-3">
-                  <Search className="h-6 w-6" />
+                  <Search className="h-6 w-6 group-hover:scale-110 transition-transform" />
                   <span>Find Clinical Trials</span>
                 </Link>
               </Button>

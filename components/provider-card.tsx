@@ -1,5 +1,6 @@
-import { Star, MapPin, Phone, Globe, Calendar } from 'lucide-react'
+import { Star, MapPin, Phone, Globe, Calendar, Award, Clock, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 
 interface Provider {
@@ -25,94 +26,170 @@ interface ProviderCardProps {
 }
 
 export function ProviderCard({ provider }: ProviderCardProps) {
+  const initials = provider.name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
+  const getStatusColor = (accepting: boolean) => {
+    return accepting ? 'status-online' : 'status-offline'
+  }
+
+  const getAvailabilityColor = (availability: string) => {
+    if (availability.toLowerCase().includes('today') || availability.toLowerCase().includes('available')) {
+      return 'text-emerald-600 bg-emerald-50'
+    }
+    return 'text-amber-600 bg-amber-50'
+  }
+
   return (
-    <div className="bg-white border rounded-xl p-6 hover:shadow-lg transition-shadow">
-      <div className="flex items-start gap-6">
-        {/* Provider Image/Initials */}
-        <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center">
-          <span className="text-2xl font-bold text-indigo-600">
-            {provider.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-          </span>
+    <div className="provider-card p-6 group">
+      {/* Header Section */}
+      <div className="flex items-start gap-4 mb-6">
+        {/* Provider Avatar */}
+        <div className="relative">
+          <div className="w-16 h-16 bg-gradient-to-br from-sky-100 via-cyan-50 to-emerald-100 rounded-xl flex items-center justify-center shadow-healthcare">
+            <span className="text-lg font-bold text-gradient">
+              {initials}
+            </span>
+          </div>
+          {/* Status Indicator */}
+          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${getStatusColor(provider.acceptingPatients)}`}></div>
         </div>
 
         {/* Provider Info */}
-        <div className="flex-1">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900">{provider.name}</h3>
-              <p className="text-indigo-600 font-medium">{provider.specialty}</p>
-              <p className="text-gray-600">{provider.address}</p>
-              <p className="text-sm text-gray-500">NPI: {provider.npi}</p>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="font-semibold text-slate-900 text-lg leading-tight mb-1 group-hover:text-sky-700 transition-colors">
+                {provider.name}
+              </h3>
+              <p className="text-sky-600 font-medium text-sm mb-1">{provider.specialty}</p>
+              {provider.credentials && (
+                <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-600 border-0 px-2 py-1">
+                  {provider.credentials}
+                </Badge>
+              )}
             </div>
             
-            <div className="text-right">
-              <div className="flex items-center gap-1 mb-1">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="font-medium">{provider.rating}</span>
-                <span className="text-gray-500">({provider.reviewCount} reviews)</span>
-              </div>
-              {provider.distance !== null && provider.distance !== undefined && (
-                <div className="flex items-center gap-1 text-gray-600">
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-sm">{provider.distance} miles away</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4 mb-4">
-            <div>
-              <p className="text-sm text-gray-600">Availability</p>
-              <p className="font-medium text-sm">{provider.availability}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Languages</p>
-              <p className="font-medium text-sm">{provider.languages.join(', ')}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Insurance</p>
-              <p className="font-medium text-sm">{provider.insurance.slice(0, 2).join(', ')}{provider.insurance.length > 2 ? '...' : ''}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                provider.acceptingPatients 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-red-100 text-red-700'
-              }`}>
-                {provider.acceptingPatients ? 'Accepting Patients' : 'Not Accepting'}
-              </span>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Phone className="h-4 w-4" />
-                <span className="text-sm">{provider.phone}</span>
-              </div>
-              {provider.credentials && (
-                <span className="text-sm text-gray-600">{provider.credentials}</span>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" className="border-indigo-600 text-indigo-600 hover:bg-indigo-50">
-                <Globe className="h-4 w-4 mr-2" />
-                View Profile
-              </Button>
-              <Button 
-                asChild
-                className="bg-indigo-600 hover:bg-indigo-700"
-                disabled={!provider.acceptingPatients}
-              >
-                <Link 
-                  href={`/appointment/book?name=${encodeURIComponent(provider.name)}&specialty=${encodeURIComponent(provider.specialty)}&address=${encodeURIComponent(provider.address)}&phone=${encodeURIComponent(provider.phone)}&npi=${encodeURIComponent(provider.npi)}&rating=${provider.rating}&accepting=${provider.acceptingPatients}`}
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Book Appointment
-                </Link>
-              </Button>
+            {/* Rating */}
+            <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg">
+              <Star className="h-4 w-4 text-amber-500 fill-current" />
+              <span className="font-semibold text-amber-700 text-sm">{provider.rating}</span>
+              <span className="text-amber-600 text-xs">({provider.reviewCount})</span>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Location & Distance */}
+      <div className="flex items-start gap-2 mb-4 text-slate-600">
+        <MapPin className="h-4 w-4 mt-0.5 text-slate-400 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm leading-relaxed">{provider.address}</p>
+          {provider.distance !== null && provider.distance !== undefined && (
+            <p className="text-xs text-sky-600 font-medium mt-1">
+              {provider.distance} miles away
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Info Grid */}
+      <div className="grid grid-cols-1 gap-3 mb-6">
+        {/* Availability */}
+        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-slate-500" />
+            <span className="text-sm font-medium text-slate-700">Availability</span>
+          </div>
+          <span className={`text-xs font-medium px-2 py-1 rounded-md ${getAvailabilityColor(provider.availability)}`}>
+            {provider.availability}
+          </span>
+        </div>
+
+        {/* Languages */}
+        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-slate-500" />
+            <span className="text-sm font-medium text-slate-700">Languages</span>
+          </div>
+          <span className="text-xs text-slate-600 text-right">
+            {provider.languages.slice(0, 2).join(', ')}
+            {provider.languages.length > 2 && '...'}
+          </span>
+        </div>
+
+        {/* Insurance */}
+        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Award className="h-4 w-4 text-slate-500" />
+            <span className="text-sm font-medium text-slate-700">Insurance</span>
+          </div>
+          <span className="text-xs text-slate-600 text-right">
+            {provider.insurance.slice(0, 2).join(', ')}
+            {provider.insurance.length > 2 && '...'}
+          </span>
+        </div>
+      </div>
+
+      {/* Status Badge */}
+      <div className="flex items-center justify-center mb-6">
+        <Badge 
+          variant={provider.acceptingPatients ? "default" : "secondary"}
+          className={`
+            px-4 py-2 text-sm font-medium rounded-full
+            ${provider.acceptingPatients 
+              ? 'bg-emerald-100 text-emerald-700 border-emerald-200' 
+              : 'bg-slate-100 text-slate-600 border-slate-200'
+            }
+          `}
+        >
+          <div className={`w-2 h-2 rounded-full mr-2 ${getStatusColor(provider.acceptingPatients)}`}></div>
+          {provider.acceptingPatients ? 'Accepting New Patients' : 'Not Accepting Patients'}
+        </Badge>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="space-y-3">
+        <Button 
+          asChild
+          className="w-full btn-healthcare-primary text-white font-semibold py-2.5 px-4 rounded-xl shadow-healthcare hover:shadow-healthcare-lg"
+          disabled={!provider.acceptingPatients}
+        >
+          <Link 
+            href={`/appointment/book?name=${encodeURIComponent(provider.name)}&specialty=${encodeURIComponent(provider.specialty)}&address=${encodeURIComponent(provider.address)}&phone=${encodeURIComponent(provider.phone)}&npi=${encodeURIComponent(provider.npi)}&rating=${provider.rating}&accepting=${provider.acceptingPatients}`}
+            className="flex items-center justify-center gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            {provider.acceptingPatients ? 'Book Appointment' : 'Join Waitlist'}
+          </Link>
+        </Button>
+        
+        <div className="grid grid-cols-2 gap-2">
+          <Button 
+            variant="outline" 
+            className="btn-healthcare-secondary border-sky-200 text-sky-700 hover:bg-sky-50 py-2 px-3 rounded-lg text-sm font-medium"
+          >
+            <Globe className="h-4 w-4 mr-1" />
+            Profile
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="btn-healthcare-secondary border-sky-200 text-sky-700 hover:bg-sky-50 py-2 px-3 rounded-lg text-sm font-medium"
+          >
+            <Phone className="h-4 w-4 mr-1" />
+            Call
+          </Button>
+        </div>
+      </div>
+
+      {/* NPI Footer */}
+      <div className="mt-4 pt-4 border-t border-slate-100">
+        <p className="text-xs text-slate-400 text-center">NPI: {provider.npi}</p>
       </div>
     </div>
   )
