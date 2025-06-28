@@ -57,18 +57,18 @@ export async function GET(request: NextRequest) {
       }
     } else if (query) {
       // Search by name or organization
-              const searchResponse = await searchProviders({
-          first_name: query.includes(' ') ? query.split(' ')[0] : undefined,
-          last_name: query.includes(' ') ? query.split(' ').slice(1).join(' ') : query,
-          organization_name: query,
-          ...npiSearchParams
-        })
-      providers = searchResponse.results
+      const searchResponse = await searchProviders({
+        first_name: query.includes(' ') ? query.split(' ')[0] : undefined,
+        last_name: query.includes(' ') ? query.split(' ').slice(1).join(' ') : query,
+        organization_name: query,
+        ...npiSearchParams
+      })
+      providers = searchResponse?.results || []
           } else {
         // General search by location
         console.log('NPI search params:', npiSearchParams)
         const searchResponse = await searchProviders(npiSearchParams)
-        providers = searchResponse.results
+        providers = searchResponse?.results || []
         console.log('NPI search results count:', providers.length)
       }
     
@@ -133,10 +133,10 @@ export async function GET(request: NextRequest) {
           
           if (specialty && specialty !== 'all') {
             const broaderResults = await searchProvidersBySpecialty(specialty, undefined, state, limit * 2)
-            providers = broaderResults
+            providers = broaderResults || []
           } else {
             const broaderResponse = await searchProviders(broaderSearchParams)
-            providers = broaderResponse.results
+            providers = broaderResponse?.results || []
           }
           
           console.log('Broader search results count:', providers.length)

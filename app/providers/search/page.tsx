@@ -34,7 +34,7 @@ export default function ProviderSearchPage() {
   const [loading, setLoading] = useState(false)
   const [providers, setProviders] = useState<Provider[]>([])
   const [location, setLocation] = useState('')
-  const [specialty, setSpecialty] = useState('')
+  const [specialty, setSpecialty] = useState('all')
   const [query, setQuery] = useState('')
   
   const specialties = [
@@ -55,14 +55,16 @@ export default function ProviderSearchPage() {
   // Initialize state from URL parameters
   useEffect(() => {
     const locationParam = searchParams.get('location') || searchParams.get('zipCode') || ''
-    const specialtyParam = searchParams.get('specialty') || ''
+    const specialtyParam = searchParams.get('specialty') || 'all'
     const queryParam = searchParams.get('query') || ''
+    const screeningsParam = searchParams.get('screenings') || ''
     
     setLocation(locationParam)
     setSpecialty(specialtyParam)
     setQuery(queryParam)
     
-    if (locationParam || specialtyParam || queryParam) {
+    // If we have screenings from recommendations, auto-search
+    if (locationParam || specialtyParam || queryParam || screeningsParam) {
       searchProviders(locationParam, specialtyParam, queryParam)
     }
   }, [searchParams])
@@ -73,7 +75,7 @@ export default function ProviderSearchPage() {
       // Build search parameters
       const params = new URLSearchParams()
       if (loc) params.append('location', loc)
-      if (spec) params.append('specialty', spec)
+      if (spec && spec !== 'all') params.append('specialty', spec)
       if (q) params.append('query', q)
       
       const response = await fetch(`/api/providers/search?${params.toString()}`)
@@ -104,7 +106,7 @@ export default function ProviderSearchPage() {
     // Update URL with search parameters
     const params = new URLSearchParams()
     if (location) params.append('location', location)
-    if (specialty) params.append('specialty', specialty)
+    if (specialty && specialty !== 'all') params.append('specialty', specialty)
     if (query) params.append('query', query)
     
     router.push(`/providers/search?${params.toString()}`)
@@ -131,6 +133,22 @@ export default function ProviderSearchPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Show screening context if we came from screening recommendations */}
+        {searchParams.get('screenings') && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">✓</span>
+              </div>
+              <h3 className="font-semibold text-blue-800">Following up on your screening recommendations</h3>
+            </div>
+            <p className="text-blue-700 text-sm">
+              We're helping you find providers for your recommended screenings. 
+              {location && ` Searching in ${location}.`}
+            </p>
+          </div>
+        )}
+        
         {/* Search Form */}
         <Card className="glass-card p-8 mb-8 shadow-healthcare-lg">
           <form onSubmit={handleSearch} className="space-y-6">
@@ -161,10 +179,10 @@ export default function ProviderSearchPage() {
                   <SelectTrigger className="input-healthcare h-12">
                     <SelectValue placeholder="Select specialty" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Specialties</SelectItem>
+                  <SelectContent className="bg-white border border-slate-200 shadow-lg rounded-lg max-h-64 overflow-y-auto z-50">
+                    <SelectItem value="all" className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer">All Specialties</SelectItem>
                     {specialties.map(spec => (
-                      <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                      <SelectItem key={spec} value={spec} className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer">{spec}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -244,7 +262,7 @@ export default function ProviderSearchPage() {
             <Button 
               onClick={() => {
                 setLocation('')
-                setSpecialty('')
+                setSpecialty('all')
                 setQuery('')
               }}
               variant="outline"

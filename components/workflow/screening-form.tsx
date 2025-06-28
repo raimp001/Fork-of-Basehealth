@@ -292,11 +292,12 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
                 if (zipCode.trim()) {
                   params.append('location', zipCode.trim())
                 }
+                console.log('Navigating to provider search with params:', params.toString())
                 router.push(`/providers/search?${params.toString()}`)
               }}
               disabled={selectedScreenings.length === 0}
             >
-              Continue
+              Find Providers for Selected Screenings
             </Button>
           </div>
         </div>

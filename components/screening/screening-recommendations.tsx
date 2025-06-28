@@ -223,12 +223,16 @@ export function ScreeningRecommendations() {
                   placeholder="ZIP code"
                   className="mr-2"
                 />
-                <Link
-                  href={`/providers/search?zipCode=${zipCode}&screenings=${selectedRecommendations.join(",")}`}
-                  passHref
+                <Button 
+                  asChild 
+                  disabled={!zipCode || selectedRecommendations.length === 0}
                 >
-                  <Button disabled={!zipCode || selectedRecommendations.length === 0}>Find Providers</Button>
-                </Link>
+                  <Link
+                    href={`/providers/search?zipCode=${zipCode}&screenings=${selectedRecommendations.join(",")}`}
+                  >
+                    Find Providers
+                  </Link>
+                </Button>
               </div>
             </div>
           </CardFooter>

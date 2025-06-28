@@ -59,14 +59,17 @@ export function ScreeningCard({ recommendation, isDue = false }: ScreeningCardPr
         </div>
       </CardContent>
       <CardFooter>
-        <Link
-          href={`/providers/search?specialty=${encodeURIComponent(recommendation.specialistTypes[0])}`}
+        <Button 
+          asChild 
+          variant={isDue ? "default" : "outline"} 
           className="w-full"
         >
-          <Button variant={isDue ? "default" : "outline"} className="w-full">
+          <Link
+            href={`/providers/search?specialty=${encodeURIComponent(recommendation.specialistTypes[0])}`}
+          >
             Find Provider
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </CardFooter>
     </Card>
   )

@@ -221,7 +221,7 @@ export function SimplifiedScreening() {
               Back
             </Button>
             <Button asChild className="flex-1">
-              <Link href="/providers/search">Find Providers</Link>
+              <Link href={`/providers/search${formData.zipCode ? `?location=${formData.zipCode}` : ''}`}>Find Providers</Link>
             </Button>
           </div>
         )}
