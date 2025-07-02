@@ -50,8 +50,10 @@ import {
   TrendingUp,
   AlertCircle,
   ArrowUpRight,
-  BarChart3
+  BarChart3,
+  Heart
 } from "lucide-react"
+import CaregiverApplicationReview from '@/components/admin/caregiver-application-review'
 
 interface ProviderApplication {
   id: string
@@ -626,6 +628,19 @@ export default function AdminPortalPage() {
               </button>
               <button
                 className={`py-4 px-2 border-b-2 font-medium text-sm transition-all duration-200 ${
+                  activeTab === "caregivers"
+                    ? "border-indigo-500 text-indigo-600 bg-white/50 rounded-t-lg"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+                onClick={() => setActiveTab("caregivers")}
+              >
+                <div className="flex items-center gap-2">
+                  <Heart className="h-4 w-4" />
+                  Caregiver Applications
+                </div>
+              </button>
+              <button
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-all duration-200 ${
                   activeTab === "providers"
                     ? "border-indigo-500 text-indigo-600 bg-white/50 rounded-t-lg"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -655,8 +670,9 @@ export default function AdminPortalPage() {
 
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="applications">Provider Applications</TabsTrigger>
+              <TabsTrigger value="caregivers">Caregiver Applications</TabsTrigger>
               <TabsTrigger value="providers">Active Providers</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
             </TabsList>
@@ -789,6 +805,11 @@ export default function AdminPortalPage() {
                   </Table>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Caregiver Applications Tab */}
+            <TabsContent value="caregivers" className="space-y-6">
+              <CaregiverApplicationReview />
             </TabsContent>
 
             {/* Active Providers Tab */}

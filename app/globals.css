@@ -570,3 +570,278 @@ body {
 .hover-lift:hover {
   box-shadow: 0 20px 25px -5px rgba(12, 74, 110, 0.15), 0 10px 10px -5px rgba(12, 74, 110, 0.1);
 }
+
+/* Enhanced Background and Glass Effects */
+.bg-healthcare-hero {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 25%, #ecfdf5 50%, #f3e8ff 75%, #fef7cd 100%);
+  min-height: 100vh;
+}
+
+.bg-healthcare-surface {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.gradient-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.gradient-card:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.healthcare-card {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 1.5rem;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.healthcare-card:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Enhanced Text Gradients with Fallback Colors */
+.text-gradient {
+  background: linear-gradient(135deg, #0c4a6e 0%, #0891b2 50%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: #0c4a6e; /* Fallback color */
+}
+
+.text-gradient-secondary {
+  background: linear-gradient(135deg, #065f46 0%, #059669 50%, #34d399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: #065f46; /* Fallback color */
+}
+
+.text-gradient-accent {
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: #7c3aed; /* Fallback color */
+}
+
+/* Ensure proper text colors */
+.text-healthcare-primary {
+  color: #0c4a6e !important;
+}
+
+.text-healthcare-secondary {
+  color: #065f46 !important;
+}
+
+.text-healthcare-accent {
+  color: #7c3aed !important;
+}
+
+/* Enhanced Backgrounds */
+.bg-healthcare-primary {
+  background-color: #0c4a6e !important;
+  color: white;
+}
+
+.bg-healthcare-secondary {
+  background-color: #065f46 !important;
+  color: white;
+}
+
+.bg-healthcare-accent {
+  background-color: #7c3aed !important;
+  color: white;
+}
+
+.bg-healthcare-surface {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%) !important;
+}
+
+/* Enhanced shadow effects */
+.shadow-healthcare {
+  box-shadow: 0 20px 25px -5px rgba(12, 74, 110, 0.1), 0 10px 10px -5px rgba(12, 74, 110, 0.04);
+}
+
+/* Ensure solid text colors for better visibility */
+.text-slate-600 {
+  color: #475569 !important;
+}
+
+.text-slate-700 {
+  color: #334155 !important;
+}
+
+.text-slate-800 {
+  color: #1e293b !important;
+}
+
+.text-slate-900 {
+  color: #0f172a !important;
+}
+
+/* Pattern backgrounds with better visibility */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(rgba(12, 74, 110, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(12, 74, 110, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-dot-pattern {
+  background-image: radial-gradient(rgba(12, 74, 110, 0.1) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Enhanced glass effects for better visibility */
+/* SOLID BACKGROUNDS - NO TRANSPARENCY */
+.glass-healthcare {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.glass-healthcare-dark {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* HIGH CONTRAST CAREGIVER PAGE STYLES */
+.caregiver-page-solid {
+  background: #fef2f2 !important; /* Very light rose background */
+}
+
+.caregiver-header-solid {
+  background: rgba(255, 255, 255, 0.98) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #fda4af;
+}
+
+.caregiver-card-solid {
+  background: rgba(255, 255, 255, 0.98) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid #fda4af !important;
+  box-shadow: 0 8px 32px rgba(244, 63, 94, 0.1) !important;
+}
+
+.caregiver-text-dark {
+  color: #1f2937 !important; /* Very dark gray for high contrast */
+  font-weight: 600;
+}
+
+.caregiver-text-rose {
+  color: #be123c !important; /* Dark rose for contrast */
+}
+
+/* Enhanced input styles for caregiver forms */
+.caregiver-input-solid {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 2px solid #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+.caregiver-input-solid:focus {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: #e11d48 !important;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1) !important;
+}
+
+/* Enhanced select dropdown for caregiver forms */
+.caregiver-select-solid {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 2px solid #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+.caregiver-select-content-solid {
+  background: rgba(255, 255, 255, 0.98) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid #f1f5f9 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  z-index: 9999 !important;
+}
+
+/* High contrast buttons for caregiver section */
+.caregiver-button-solid {
+  background: #dc2626 !important;
+  color: white !important;
+  border: none !important;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
+}
+
+.caregiver-button-solid:hover {
+  background: #b91c1c !important;
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+}
+
+/* Textarea solid background */
+.caregiver-textarea-solid {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 2px solid #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+.caregiver-textarea-solid:focus {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: #e11d48 !important;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1) !important;
+}
+
+/* Error text with high contrast */
+.caregiver-error-text {
+  color: #dc2626 !important;
+  font-weight: 500;
+}
+
+/* Success text with high contrast */
+.caregiver-success-text {
+  color: #059669 !important;
+  font-weight: 500;
+}
+
+/* Loading state with high contrast */
+.caregiver-loading {
+  background: rgba(255, 255, 255, 0.95) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #1f2937 !important;
+}
+
+/* Enhanced dialog styles for caregiver bounty */
+.caregiver-dialog-solid {
+  background: rgba(255, 255, 255, 0.98) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid #fda4af !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}

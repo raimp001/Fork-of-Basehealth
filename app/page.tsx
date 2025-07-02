@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Activity, Users, Wallet, UserPlus, Database, Search, Shield, User, Settings } from "lucide-react"
+import { Activity, Users, Wallet, UserPlus, Database, Search, Shield, User, Settings, Heart } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -56,7 +56,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-healthcare-hero">
       {/* Header Navigation */}
-      <header className="flex items-center justify-between px-8 py-6 backdrop-blur-sm bg-white/90 border-b border-cyan-100 sticky top-0 z-50 shadow-sm">
+      <header className="flex items-center justify-between px-8 py-6 bg-white border-b border-cyan-100 sticky top-0 z-50 shadow-lg">
         <div className="flex items-center">
           <Link href="/" className="text-2xl font-bold text-gradient hover:scale-105 transition-all duration-200">
             BaseHealth
@@ -130,6 +130,12 @@ export default function HomePage() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link href="/providers/caregiver-signup" className="flex items-center gap-2">
+                    <Heart className="h-4 w-4" />
+                    Caregiver Sign Up
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/admin" className="flex items-center gap-2">
                     <Shield className="h-4 w-4" />
                     Admin Portal
@@ -149,13 +155,13 @@ export default function HomePage() {
         <div className="relative flex flex-col items-center justify-center px-4 py-24 min-h-[calc(100vh-80px)]">
           <div className="text-center max-w-5xl mx-auto">
             {/* Hero Badge */}
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full glass border border-sky-200 text-sky-700 text-sm font-medium mb-8 shadow-healthcare">
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border-2 border-sky-200 text-sky-700 text-sm font-medium mb-8 shadow-lg">
               <span className="w-2 h-2 bg-sky-500 rounded-full animate-pulse"></span>
               Advanced Healthcare Platform
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight text-slate-900">
               Welcome to{" "}
               <span className="text-gradient">
                 BaseHealth
@@ -163,13 +169,13 @@ export default function HomePage() {
             </h1>
             
             {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
+            <p className="text-xl md:text-2xl text-slate-700 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
               Personalized health starts here. Evidence-based screenings, expert second opinions, 
-              and cutting-edge clinical trials—all in one platform.
+              cutting-edge clinical trials, and caregiver bounties—all in one platform.
             </p>
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 justify-center items-center max-w-4xl mx-auto mb-16">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-center items-center max-w-6xl mx-auto mb-16">
               <Button 
                 asChild 
                 className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center group hover:scale-105"
@@ -201,10 +207,21 @@ export default function HomePage() {
                   <span>Find Clinical Trials</span>
                 </Link>
               </Button>
+
+              <Button 
+                asChild 
+                variant="outline" 
+                className="border-2 border-rose-600 text-rose-700 hover:border-rose-700 hover:bg-rose-50 hover:text-rose-800 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center group bg-white"
+              >
+                <Link href="/providers/search?bounty=true" className="flex items-center gap-3">
+                  <Heart className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                  <span>Find Caregivers</span>
+                </Link>
+              </Button>
             </div>
 
             {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
               <div className="healthcare-card hover-lift p-6">
                 <Activity className="h-12 w-12 text-sky-600 mb-4 mx-auto" />
                 <h3 className="text-xl font-semibold text-slate-800 mb-3">AI Health Screening</h3>
@@ -226,6 +243,14 @@ export default function HomePage() {
                 <h3 className="text-xl font-semibold text-slate-800 mb-3">Clinical Trial Matching</h3>
                 <p className="text-slate-600">
                   Discover clinical trials that match your profile and medical needs using our AI-powered search engine.
+                </p>
+              </div>
+
+              <div className="healthcare-card hover-lift p-6">
+                <Heart className="h-12 w-12 text-rose-600 mb-4 mx-auto" />
+                <h3 className="text-xl font-semibold text-slate-800 mb-3">Find Caregivers</h3>
+                <p className="text-slate-600">
+                  Connect with qualified healthcare providers and post bounties to find the right caregiver for your specific needs.
                 </p>
               </div>
             </div>
