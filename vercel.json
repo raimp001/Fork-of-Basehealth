@@ -1,9 +1,8 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "buildCommand": "pnpm build",
-  "installCommand": "pnpm install",
-  "name": "basehealth-platform",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install --legacy-peer-deps",
   "rewrites": [
     {
       "source": "/(.*)",
