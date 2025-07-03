@@ -27,6 +27,7 @@ interface Provider {
   availability: string
   insurance: string[]
   languages: string[]
+  website?: string
 }
 
 export default function ProviderSearchPage() {

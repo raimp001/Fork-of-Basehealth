@@ -98,6 +98,10 @@ export async function GET(request: NextRequest) {
                    provider.basic?.authorized_official_telephone_number || 
                    'Phone not available'
       
+      // Generate a website URL for some providers (simulate real providers having websites)
+      const hasWebsite = Math.random() > 0.4 // 60% of providers have websites
+      const website = hasWebsite ? `https://${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.medicalpractice.com` : undefined
+      
       return {
         id: provider.number,
         name,
@@ -115,7 +119,8 @@ export async function GET(request: NextRequest) {
           new Date(Date.now() + Math.random() * 14 * 24 * 60 * 60 * 1000).toLocaleDateString() : 
           'Not accepting new patients',
         insurance: ['Medicare', 'Medicaid', 'Blue Cross Blue Shield', 'Aetna', 'Cigna'].slice(0, Math.floor(Math.random() * 3) + 2),
-        languages: ['English', 'Spanish', 'French', 'Mandarin'].slice(0, Math.floor(Math.random() * 2) + 1)
+        languages: ['English', 'Spanish', 'French', 'Mandarin'].slice(0, Math.floor(Math.random() * 2) + 1),
+        website
       }
     })
     
@@ -153,6 +158,10 @@ export async function GET(request: NextRequest) {
                          provider.basic?.authorized_official_telephone_number || 
                          'Phone not available'
             
+            // Generate a website URL for some providers
+            const hasWebsite = Math.random() > 0.4 // 60% of providers have websites
+            const website = hasWebsite ? `https://${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.medicalpractice.com` : undefined
+            
             return {
               id: provider.number,
               name,
@@ -170,7 +179,8 @@ export async function GET(request: NextRequest) {
                 new Date(Date.now() + Math.random() * 14 * 24 * 60 * 60 * 1000).toLocaleDateString() : 
                 'Not accepting new patients',
               insurance: ['Medicare', 'Medicaid', 'Blue Cross Blue Shield', 'Aetna', 'Cigna'].slice(0, Math.floor(Math.random() * 3) + 2),
-              languages: ['English', 'Spanish', 'French', 'Mandarin'].slice(0, Math.floor(Math.random() * 2) + 1)
+              languages: ['English', 'Spanish', 'French', 'Mandarin'].slice(0, Math.floor(Math.random() * 2) + 1),
+              website
             }
           })
           
@@ -206,23 +216,30 @@ export async function GET(request: NextRequest) {
           console.log(`Found ${aiProviders.length} providers from AI service`)
           
           // Transform AI providers to match our API format
-          const aiTransformed = aiProviders.map(provider => ({
-            id: provider.id,
-            name: provider.name,
-            specialty: provider.specialty,
-            address: `${provider.address.street}, ${provider.address.city}, ${provider.address.state} ${provider.address.zipCode}`,
-            distance: null,
-            rating: provider.rating,
-            reviewCount: provider.reviewCount,
-            acceptingPatients: true,
-            phone: provider.address.street ? '(555) 123-4567' : 'Contact for availability',
-            npi: provider.id.startsWith('ai-') ? `AI_${provider.id}` : provider.id,
-            credentials: Array.isArray(provider.credentials) ? provider.credentials.join(', ') : provider.credentials || 'MD',
-            gender: 'Not specified',
-            availability: `Next available: ${new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}`,
-            insurance: provider.acceptedInsurance || ['Medicare', 'Medicaid', 'Blue Cross Blue Shield'],
-            languages: ['English']
-          }))
+          const aiTransformed = aiProviders.map(provider => {
+            // Generate a website URL for some AI providers
+            const hasWebsite = Math.random() > 0.5 // 50% of AI providers have websites
+            const website = hasWebsite ? `https://${provider.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.healthcarepractice.com` : undefined
+            
+            return {
+              id: provider.id,
+              name: provider.name,
+              specialty: provider.specialty,
+              address: `${provider.address.street}, ${provider.address.city}, ${provider.address.state} ${provider.address.zipCode}`,
+              distance: null,
+              rating: provider.rating,
+              reviewCount: provider.reviewCount,
+              acceptingPatients: true,
+              phone: provider.address.street ? '(555) 123-4567' : 'Contact for availability',
+              npi: provider.id.startsWith('ai-') ? `AI_${provider.id}` : provider.id,
+              credentials: Array.isArray(provider.credentials) ? provider.credentials.join(', ') : provider.credentials || 'MD',
+              gender: 'Not specified',
+              availability: `Next available: ${new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}`,
+              insurance: provider.acceptedInsurance || ['Medicare', 'Medicaid', 'Blue Cross Blue Shield'],
+              languages: ['English'],
+              website
+            }
+          })
           
           return NextResponse.json({
             success: true,

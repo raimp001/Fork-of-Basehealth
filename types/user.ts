@@ -40,6 +40,7 @@ export interface Provider extends User {
   walletAddress?: string
   source?: "NPI" | "AI"
   phone?: string
+  website?: string
   coordinates?: {
     latitude: number
     longitude: number

@@ -19,6 +19,7 @@ interface Provider {
   availability: string
   insurance: string[]
   languages: string[]
+  website?: string
 }
 
 interface ProviderCardProps {
@@ -170,19 +171,43 @@ export function ProviderCard({ provider }: ProviderCardProps) {
         
         <div className="grid grid-cols-2 gap-2">
           <Button 
+            asChild
             variant="outline" 
             className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200"
           >
-            <Globe className="h-4 w-4 mr-1" />
-            Profile
+            {provider.website ? (
+              <a 
+                href={provider.website} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1"
+              >
+                <Globe className="h-4 w-4" />
+                Website
+              </a>
+            ) : (
+              <Link 
+                href={`/providers/${provider.id}`}
+                className="flex items-center justify-center gap-1"
+              >
+                <Globe className="h-4 w-4" />
+                Profile
+              </Link>
+            )}
           </Button>
           
           <Button 
+            asChild
             variant="outline" 
             className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200"
           >
-            <Phone className="h-4 w-4 mr-1" />
-            Call
+            <a 
+              href={`tel:${provider.phone}`}
+              className="flex items-center justify-center gap-1"
+            >
+              <Phone className="h-4 w-4" />
+              Call
+            </a>
           </Button>
         </div>
       </div>
