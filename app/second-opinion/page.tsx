@@ -467,30 +467,30 @@ export default function SecondOpinionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
-      {/* Enhanced Header Navigation */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <div className="min-h-screen bg-slate-50">
+      {/* Clean Header Navigation */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center">
-                <Heart className="h-6 w-6 text-white" />
+              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                <Users className="h-6 w-6 text-slate-600" />
               </div>
               <div className="flex items-center gap-2">
-                <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent hover:from-orange-700 hover:to-amber-700 transition-all duration-200">
+                <Link href="/" className="text-2xl font-bold text-slate-900 hover:text-slate-700 transition-all duration-200">
                   BaseHealth
                 </Link>
-                <span className="text-sm text-gray-500 font-medium">Second Opinion</span>
+                <span className="text-sm text-slate-500 font-medium">Second Opinion</span>
               </div>
             </div>
             <nav className="flex items-center gap-6">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg">
-                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-orange-700">Expert Network</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg opacity-75">
+                <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+                <span className="text-sm font-medium text-slate-600">Expert Network</span>
               </div>
               <Link 
                 href="/patient-portal" 
-                className="text-gray-700 hover:text-orange-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
+                className="text-slate-700 hover:text-slate-900 hover:bg-slate-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
               >
                 Back to Portal
               </Link>

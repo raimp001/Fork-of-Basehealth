@@ -183,17 +183,17 @@ export default function ProviderSearchPage() {
   return (
     <div className={`min-h-screen ${isCaregiverMode ? 'caregiver-page-solid bg-white' : 'bg-gray-50'}`}>
       {/* Header */}
-      <div className={`${isCaregiverMode ? 'caregiver-header-solid' : 'bg-white border-b border-slate-200'} sticky top-0 z-40 shadow-xl`}>
+      <div className={`${isCaregiverMode ? 'bg-white border-b border-rose-200' : 'bg-white border-b border-slate-200'} sticky top-0 z-40 shadow-sm`}>
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className={`w-10 h-10 ${isCaregiverMode ? 'bg-gradient-to-br from-rose-500 to-pink-500' : 'bg-gradient-to-br from-sky-500 to-cyan-500'} rounded-lg flex items-center justify-center`}>
-              <Stethoscope className="h-5 w-5 text-white" />
+            <div className={`w-10 h-10 ${isCaregiverMode ? 'bg-rose-100' : 'bg-slate-100'} rounded-lg flex items-center justify-center`}>
+              <Stethoscope className={`h-5 w-5 ${isCaregiverMode ? 'text-rose-700' : 'text-slate-700'}`} />
             </div>
-            <h1 className={`text-3xl font-bold ${isCaregiverMode ? 'caregiver-text-rose' : 'text-slate-900'}`}>
+            <h1 className={`text-3xl font-bold ${isCaregiverMode ? 'text-rose-900' : 'text-slate-900'}`}>
               {isCaregiverMode ? 'Find Caregivers' : 'Find Healthcare Providers'}
             </h1>
           </div>
-          <p className={`max-w-2xl ${isCaregiverMode ? 'caregiver-text-rose font-bold' : 'text-slate-600'}`}>
+          <p className={`max-w-2xl ${isCaregiverMode ? 'text-rose-700' : 'text-slate-600'}`}>
             {isCaregiverMode 
               ? 'Search for qualified caregivers in your area or post a bounty to incentivize providers to reach out to you.'
               : 'Search for qualified healthcare providers in your area. Find specialists, check availability, and book appointments instantly.'
@@ -419,24 +419,24 @@ export default function ProviderSearchPage() {
             <div className="flex justify-center items-center gap-4 pt-4">
               <Button 
                 type="submit" 
-                className={`${isCaregiverMode ? 'bg-rose-600 hover:bg-rose-700' : 'bg-slate-900 hover:bg-slate-800'} text-white px-8 py-3 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300`}
+                className={`${isCaregiverMode ? 'bg-rose-600 hover:bg-rose-700' : 'bg-slate-900 hover:bg-slate-800'} text-white px-6 py-3 text-base font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200`}
                 disabled={loading}
               >
                 {loading ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
                   </>
                 ) : (
                   <>
                     {isCaregiverMode ? (
                       <>
-                        <DollarSign className="mr-2 h-5 w-5" />
+                        <DollarSign className="mr-2 h-4 w-4" />
                         Post Bounty & Search Caregivers
                       </>
                     ) : (
                       <>
-                        <Search className="mr-2 h-5 w-5" />
+                        <Search className="mr-2 h-4 w-4" />
                         Find Providers
                       </>
                     )}

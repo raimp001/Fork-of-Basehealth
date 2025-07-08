@@ -71,18 +71,14 @@ export function MainNavigation() {
   ]
 
   return (
-    <div className="border-b bg-white">
+    <div className="border-b border-slate-200 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex justify-start lg:w-0 lg:flex-1">
-            <Link href="/">
-              <span className="sr-only">Basehealth</span>
-              <img
-                className="h-8 w-auto sm:h-10"
-                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                alt="Basehealth"
-              />
+            <Link href="/" className="text-2xl font-bold text-slate-900 hover:text-slate-700 transition-colors">
+              <span className="sr-only">BaseHealth</span>
+              BaseHealth
             </Link>
           </div>
 
@@ -90,43 +86,39 @@ export function MainNavigation() {
           <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" size="icon" className="md:hidden text-slate-700 hover:text-slate-900">
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[300px] sm:w-[400px]">
                 <div className="px-2 py-6">
-                  <Link href="/" className="flex items-center mb-6" onClick={() => setIsOpen(false)}>
-                    <img
-                      className="h-8 w-auto"
-                      src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                      alt="Basehealth"
-                    />
+                  <Link href="/" className="flex items-center mb-6 text-2xl font-bold text-slate-900" onClick={() => setIsOpen(false)}>
+                    BaseHealth
                   </Link>
                   <nav className="flex flex-col space-y-4">
                     {mobileLinks.map((link) => (
                       <Link
                         key={link.name}
                         href={link.href}
-                        className="flex items-center px-3 py-2 text-base font-medium rounded-md hover:bg-gray-100"
+                        className="flex items-center px-3 py-2 text-base font-medium rounded-md hover:bg-slate-50 text-slate-700 hover:text-slate-900"
                         onClick={() => setIsOpen(false)}
                       >
-                        <link.icon className="mr-3 h-5 w-5 text-indigo-600" />
+                        <link.icon className="mr-3 h-5 w-5 text-slate-600" />
                         {link.name}
                       </Link>
                     ))}
-                    <div className="pt-4 mt-4 border-t border-gray-200">
+                    <div className="pt-4 mt-4 border-t border-slate-200">
                       <Link
                         href="/login"
-                        className="block px-3 py-2 text-base font-medium rounded-md hover:bg-gray-100"
+                        className="block px-3 py-2 text-base font-medium rounded-md hover:bg-slate-50 text-slate-700 hover:text-slate-900"
                         onClick={() => setIsOpen(false)}
                       >
                         Sign in
                       </Link>
                       <Link
                         href="/register"
-                        className="block px-3 py-2 mt-2 text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                        className="block px-3 py-2 mt-2 text-base font-medium text-white bg-slate-900 rounded-md hover:bg-slate-800"
                         onClick={() => setIsOpen(false)}
                       >
                         Sign up
@@ -144,11 +136,11 @@ export function MainNavigation() {
             <div className="flex items-center">
               <Link
                 href="/login"
-                className="whitespace-nowrap text-base font-medium text-gray-500 hover:text-gray-900 mr-8"
+                className="whitespace-nowrap text-base font-medium text-slate-600 hover:text-slate-900 mr-8"
               >
                 Sign in
               </Link>
-              <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
+              <Button asChild className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200">
                 <Link href="/register">Sign up</Link>
               </Button>
             </div>

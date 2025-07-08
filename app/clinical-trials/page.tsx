@@ -849,18 +849,18 @@ export default function ClinicalTrialsPage() {
       <header className="bg-white/90 backdrop-blur-sm border-b border-cyan-100 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold text-gradient">
+            <Link href="/" className="text-2xl font-bold text-slate-900 hover:text-slate-700 transition-colors">
               BaseHealth
             </Link>
             <nav className="flex items-center gap-6">
-              <Link href="/screening" className="text-slate-700 hover:text-sky-600 transition-colors">
+              <Link href="/screening" className="text-slate-700 hover:text-slate-900 transition-colors">
                 Screening
               </Link>
-              <Link href="/second-opinion" className="text-slate-700 hover:text-sky-600 transition-colors">
-                Second Opinion  
-              </Link>
-              <Link href="/patient-portal" className="text-slate-700 hover:text-sky-600 transition-colors">
+              <Link href="/patient-portal" className="text-slate-700 hover:text-slate-900 transition-colors">
                 Patient Portal
+              </Link>
+              <Link href="/second-opinion" className="text-slate-600 hover:text-slate-800 transition-colors opacity-75">
+                Second Opinion  
               </Link>
             </nav>
           </div>

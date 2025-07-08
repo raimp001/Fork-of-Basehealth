@@ -845,3 +845,160 @@ body {
   border: 1px solid #fda4af !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
 }
+
+/* ===== MINIMALISTIC DESIGN SYSTEM - CLEAN & PROFESSIONAL ===== */
+
+/* Core Button Styles */
+.minimal-button {
+  @apply bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 border-0;
+}
+
+.minimal-button-outline {
+  @apply border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-white shadow-sm hover:shadow-md;
+}
+
+.minimal-button-secondary {
+  @apply bg-slate-100 hover:bg-slate-200 text-slate-900 px-4 py-2 rounded-lg font-medium transition-all duration-200 border-0;
+}
+
+/* Card & Layout Styles */
+.minimal-card {
+  @apply bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200;
+}
+
+.minimal-header {
+  @apply bg-white border-b border-slate-200 shadow-sm;
+}
+
+.minimal-page {
+  @apply min-h-screen bg-slate-50;
+}
+
+/* Form Elements */
+.minimal-input {
+  @apply border border-slate-200 rounded-lg px-4 py-2 text-slate-900 bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all duration-200;
+}
+
+.minimal-select {
+  @apply border border-slate-200 rounded-lg px-4 py-2 text-slate-900 bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all duration-200;
+}
+
+.minimal-textarea {
+  @apply border border-slate-200 rounded-lg px-4 py-3 text-slate-900 bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition-all duration-200 resize-none;
+}
+
+/* Icon & Visual Elements */
+.minimal-icon-container {
+  @apply w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center;
+}
+
+.minimal-icon {
+  @apply h-6 w-6 text-slate-700;
+}
+
+.minimal-icon-small {
+  @apply h-4 w-4 text-slate-600;
+}
+
+/* Typography */
+.minimal-text-primary {
+  @apply text-slate-900;
+}
+
+.minimal-text-secondary {
+  @apply text-slate-600;
+}
+
+.minimal-text-muted {
+  @apply text-slate-500;
+}
+
+.minimal-heading {
+  @apply text-slate-900 font-bold;
+}
+
+/* Navigation */
+.minimal-nav-link {
+  @apply text-slate-700 hover:text-slate-900 hover:bg-slate-50 px-4 py-2 rounded-lg font-medium transition-all duration-200;
+}
+
+.minimal-link {
+  @apply text-slate-700 hover:text-slate-900 transition-colors duration-200;
+}
+
+/* Badges & Status */
+.minimal-badge {
+  @apply px-2 py-1 text-xs bg-slate-100 text-slate-700 rounded border border-slate-200;
+}
+
+.minimal-badge-outline {
+  @apply px-2 py-1 text-xs border border-slate-200 text-slate-700 rounded bg-transparent;
+}
+
+/* Second Opinion - Reduced Prominence */
+.second-opinion-button {
+  @apply border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-white shadow-sm hover:shadow-md opacity-75;
+}
+
+.second-opinion-card {
+  @apply bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200 opacity-75;
+}
+
+.second-opinion-icon {
+  @apply h-6 w-6 text-slate-500;
+}
+
+.second-opinion-text {
+  @apply text-slate-500;
+}
+
+.second-opinion-nav {
+  @apply text-slate-600 hover:text-slate-800 transition-colors opacity-75;
+}
+
+/* Utility Classes for Quick Layout */
+.minimal-container {
+  @apply max-w-5xl mx-auto px-4;
+}
+
+.minimal-grid-3 {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-6;
+}
+
+.minimal-grid-4 {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.minimal-flex-center {
+  @apply flex items-center justify-center;
+}
+
+.minimal-flex-between {
+  @apply flex items-center justify-between;
+}
+
+/* Override colorful gradients with minimal styles globally */
+.minimize-gradients .btn-gradient,
+.minimize-gradients .btn-gradient-secondary {
+  background: #0f172a !important;
+  @apply rounded-lg shadow-sm hover:shadow-md transform-none scale-100;
+}
+
+.minimize-gradients .btn-gradient:hover,
+.minimize-gradients .btn-gradient-secondary:hover {
+  background: #334155 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  transform: none !important;
+}
+
+.minimize-gradients .text-gradient {
+  @apply text-slate-900;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+}
+
+/* Clean focus states */
+.minimal-focus {
+  @apply focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-400;
+}

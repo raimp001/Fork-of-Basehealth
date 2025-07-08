@@ -170,87 +170,95 @@ export default function HomePage() {
             
             {/* Subtitle */}
             <p className="text-xl md:text-2xl text-slate-700 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
-              Personalized health starts here. Evidence-based screenings, expert second opinions, 
-              cutting-edge clinical trials, and caregiver bounties—all in one platform.
+              Personalized health starts here. Evidence-based screenings, clinical trials, 
+              caregiver matching, and expert consultations—all in one seamless platform.
             </p>
 
-            {/* Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-center items-center max-w-6xl mx-auto mb-16">
+            {/* Action Buttons - Minimalistic Design */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 justify-center items-center max-w-5xl mx-auto mb-16">
               <Button 
                 asChild 
-                className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center group hover:scale-105"
+                className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-4 text-base rounded-lg font-medium transition-all duration-200 w-full h-16 flex items-center justify-center group border-0 shadow-sm hover:shadow-md"
               >
-                <Link href="/screening" className="flex items-center gap-3 text-white">
-                  <Activity className="h-6 w-6 group-hover:scale-110 transition-transform" />
-                  <span>Start AI Screening</span>
+                <Link href="/screening" className="flex items-center gap-2 text-white">
+                  <Activity className="h-5 w-5" />
+                  <span>AI Screening</span>
+                </Link>
+              </Button>
+
+              <Button 
+                asChild 
+                variant="outline" 
+                className="border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 px-6 py-4 text-base rounded-lg font-medium transition-all duration-200 w-full h-16 flex items-center justify-center group bg-white shadow-sm hover:shadow-md"
+              >
+                <Link href="/clinical-trials" className="flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  <span>Clinical Trials</span>
+                </Link>
+              </Button>
+
+              <Button 
+                asChild 
+                variant="outline" 
+                className="border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 px-6 py-4 text-base rounded-lg font-medium transition-all duration-200 w-full h-16 flex items-center justify-center group bg-white shadow-sm hover:shadow-md"
+              >
+                <Link href="/providers/search?bounty=true" className="flex items-center gap-2">
+                  <Heart className="h-5 w-5" />
+                  <span>Find Caregivers</span>
                 </Link>
               </Button>
               
               <Button 
                 asChild 
                 variant="outline" 
-                className="border-2 border-emerald-600 text-emerald-700 hover:border-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center group bg-white"
+                className="border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50 px-6 py-4 text-base rounded-lg font-medium transition-all duration-200 w-full h-16 flex items-center justify-center group bg-white shadow-sm hover:shadow-md opacity-75"
               >
-                <Link href="/second-opinion" className="flex items-center gap-3">
-                  <Users className="h-6 w-6 group-hover:scale-110 transition-transform" />
-                  <span>Get Second Opinion</span>
-                </Link>
-              </Button>
-
-              <Button 
-                asChild 
-                variant="outline" 
-                className="border-2 border-cyan-600 text-cyan-700 hover:border-cyan-700 hover:bg-cyan-50 hover:text-cyan-800 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center group bg-white"
-              >
-                <Link href="/clinical-trials" className="flex items-center gap-3">
-                  <Search className="h-6 w-6 group-hover:scale-110 transition-transform" />
-                  <span>Find Clinical Trials</span>
-                </Link>
-              </Button>
-
-              <Button 
-                asChild 
-                variant="outline" 
-                className="border-2 border-rose-600 text-rose-700 hover:border-rose-700 hover:bg-rose-50 hover:text-rose-800 px-8 py-6 text-lg rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl w-full h-20 flex items-center justify-center group bg-white"
-              >
-                <Link href="/providers/search?bounty=true" className="flex items-center gap-3">
-                  <Heart className="h-6 w-6 group-hover:scale-110 transition-transform" />
-                  <span>Find Caregivers</span>
+                <Link href="/second-opinion" className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  <span>Second Opinion</span>
                 </Link>
               </Button>
             </div>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-              <div className="healthcare-card hover-lift p-6">
-                <Activity className="h-12 w-12 text-sky-600 mb-4 mx-auto" />
-                <h3 className="text-xl font-semibold text-slate-800 mb-3">AI Health Screening</h3>
-                <p className="text-slate-600">
-                  Get personalized health recommendations based on evidence-based guidelines and your medical history.
+            {/* Features Grid - Clean & Minimal */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 max-w-5xl mx-auto">
+              <div className="bg-white border border-slate-100 rounded-lg p-6 hover:border-slate-200 transition-all duration-200 shadow-sm hover:shadow-md">
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                  <Activity className="h-6 w-6 text-slate-700" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">AI Health Screening</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Personalized health recommendations based on evidence-based guidelines and your medical history.
                 </p>
               </div>
               
-              <div className="healthcare-card hover-lift p-6">
-                <Users className="h-12 w-12 text-emerald-600 mb-4 mx-auto" />
-                <h3 className="text-xl font-semibold text-slate-800 mb-3">Expert Second Opinions</h3>
-                <p className="text-slate-600">
-                  Connect with specialist physicians for expert second opinions on your medical conditions and treatment plans.
-                </p>
-              </div>
-              
-              <div className="healthcare-card hover-lift p-6">
-                <Search className="h-12 w-12 text-violet-600 mb-4 mx-auto" />
-                <h3 className="text-xl font-semibold text-slate-800 mb-3">Clinical Trial Matching</h3>
-                <p className="text-slate-600">
-                  Discover clinical trials that match your profile and medical needs using our AI-powered search engine.
+              <div className="bg-white border border-slate-100 rounded-lg p-6 hover:border-slate-200 transition-all duration-200 shadow-sm hover:shadow-md">
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                  <Search className="h-6 w-6 text-slate-700" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">Clinical Trial Matching</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Discover clinical trials that match your profile and medical needs using AI-powered search.
                 </p>
               </div>
 
-              <div className="healthcare-card hover-lift p-6">
-                <Heart className="h-12 w-12 text-rose-600 mb-4 mx-auto" />
-                <h3 className="text-xl font-semibold text-slate-800 mb-3">Find Caregivers</h3>
-                <p className="text-slate-600">
-                  Connect with qualified healthcare providers and post bounties to find the right caregiver for your specific needs.
+              <div className="bg-white border border-slate-100 rounded-lg p-6 hover:border-slate-200 transition-all duration-200 shadow-sm hover:shadow-md">
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                  <Heart className="h-6 w-6 text-slate-700" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">Find Caregivers</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Connect with qualified healthcare providers and post bounties for specialized care needs.
+                </p>
+              </div>
+              
+              <div className="bg-white border border-slate-100 rounded-lg p-6 hover:border-slate-200 transition-all duration-200 shadow-sm hover:shadow-md opacity-75">
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
+                  <Users className="h-6 w-6 text-slate-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">Expert Second Opinions</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  Connect with specialist physicians for second opinions on medical conditions and treatment plans.
                 </p>
               </div>
             </div>
