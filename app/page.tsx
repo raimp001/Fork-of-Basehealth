@@ -202,7 +202,7 @@ export default function HomePage() {
                 variant="outline" 
                 className="border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 px-6 py-4 text-base rounded-lg font-medium transition-all duration-200 w-full h-16 flex items-center justify-center group bg-white shadow-sm hover:shadow-md"
               >
-                <Link href="/providers/search?bounty=true" className="flex items-center gap-2">
+                <Link href="/caregivers" className="flex items-center gap-2">
                   <Heart className="h-5 w-5" />
                   <span>Find Caregivers</span>
                 </Link>
@@ -215,7 +215,7 @@ export default function HomePage() {
               >
                 <Link href="/second-opinion" className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  <span>Second Opinion</span>
+                  <span>Raise Bounty</span>
                 </Link>
               </Button>
             </div>
@@ -248,7 +248,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">Find Caregivers</h3>
                 <p className="text-slate-600 text-sm leading-relaxed">
-                  Connect with qualified healthcare providers and post bounties for specialized care needs.
+                  Connect with qualified caregivers and schedule compassionate, personalized care that fits your family's needs.
                 </p>
               </div>
               
@@ -256,9 +256,9 @@ export default function HomePage() {
                 <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4">
                   <Users className="h-6 w-6 text-slate-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">Expert Second Opinions</h3>
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">Raise Medical Bounties</h3>
                 <p className="text-slate-500 text-sm leading-relaxed">
-                  Connect with specialist physicians for second opinions on medical conditions and treatment plans.
+                  Post bounties to connect with specialist physicians for expert medical opinions and second opinions.
                 </p>
               </div>
             </div>

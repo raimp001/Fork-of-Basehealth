@@ -860,7 +860,7 @@ export default function ClinicalTrialsPage() {
                 Patient Portal
               </Link>
               <Link href="/second-opinion" className="text-slate-600 hover:text-slate-800 transition-colors opacity-75">
-                Second Opinion  
+                Raise Bounty  
               </Link>
             </nav>
           </div>

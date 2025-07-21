@@ -63,6 +63,12 @@ export default function ProviderSearchPage() {
   
   // Initialize state from URL parameters
   useEffect(() => {
+    // Redirect old bounty system to new caregiver signup page
+    if (isCaregiverMode) {
+      router.push('/providers/caregiver-signup')
+      return
+    }
+    
     const locationParam = searchParams.get('location') || searchParams.get('zipCode') || ''
     const specialtyParam = searchParams.get('specialty') || 'all'
     const queryParam = searchParams.get('query') || ''

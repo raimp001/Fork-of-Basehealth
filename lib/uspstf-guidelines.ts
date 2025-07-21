@@ -7,7 +7,7 @@ export const uspstfGuidelines = [
     frequency: "Every 2 years",
     grade: "B",
     description: "Biennial screening mammography for women aged 40 to 74 years.",
-    riskFactors: [],
+    riskFactors: ["Family history of breast cancer", "Family history of ovarian cancer", "Personal history of cancer", "Previous abnormal mammogram", "Ashkenazi Jewish ancestry (BRCA risk)", "Never had a mammogram"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/breast-cancer-screening"
   },
   {
@@ -18,7 +18,7 @@ export const uspstfGuidelines = [
     frequency: "Every 10 years (colonoscopy); other tests may be more frequent",
     grade: "A",
     description: "Screen adults aged 45 to 75 for colorectal cancer.",
-    riskFactors: [],
+    riskFactors: ["Family history of colorectal cancer", "Personal history of cancer", "Inflammatory bowel disease", "Personal history of polyps", "Previous abnormal colonoscopy"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/colorectal-cancer-screening"
   },
   {
@@ -29,7 +29,7 @@ export const uspstfGuidelines = [
     frequency: "Every 3 years (cytology alone, 21-29); Every 3 years (cytology alone), or every 5 years (hrHPV alone or cotesting, 30-65)",
     grade: "A",
     description: "Screen women aged 21 to 65 years for cervical cancer.",
-    riskFactors: [],
+    riskFactors: ["Sexually active", "Multiple sexual partners (>1 in past year)", "History of sexually transmitted infections", "Previous abnormal pap smear", "Never had a pap smear", "Pap smear overdue (>3 years)", "HIV positive"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/cervical-cancer-screening"
   },
   {
@@ -51,7 +51,7 @@ export const uspstfGuidelines = [
     frequency: "Annually or as clinically indicated",
     grade: "B",
     description: "Prescribe a statin for the primary prevention of CVD for adults aged 40 to 75 years who have 1 or more CVD risk factors and an estimated 10-year CVD risk of 10% or greater.",
-    riskFactors: ["dyslipidemia", "diabetes", "hypertension", "smoking"],
+    riskFactors: ["High cholesterol (dyslipidemia)", "Diabetes or pre-diabetes", "High blood pressure (hypertension)", "Current smoker", "Former smoker", "Family history of heart disease", "Obesity (BMI ≥30)"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/statin-use-in-adults-preventive-medication"
   },
   {
@@ -62,7 +62,7 @@ export const uspstfGuidelines = [
     frequency: "Every 3 years",
     grade: "B",
     description: "Screen for prediabetes and type 2 diabetes in adults aged 35 to 70 years who are overweight or obese.",
-    riskFactors: ["overweight", "obesity"],
+    riskFactors: ["Overweight (BMI 25-29.9)", "Obesity (BMI ≥30)", "Family history of diabetes", "High blood pressure (hypertension)", "High cholesterol (dyslipidemia)", "Sedentary lifestyle"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/screening-for-prediabetes-and-type-2-diabetes"
   },
   {
@@ -73,7 +73,7 @@ export const uspstfGuidelines = [
     frequency: "As clinically indicated",
     grade: "B",
     description: "Screen for osteoporosis in women aged 50 to 64 years whose risk of fracture is equal to or greater than that of a 65-year-old white woman who has no additional risk factors.",
-    riskFactors: ["family history of osteoporosis", "low body weight", "smoking", "excessive alcohol"],
+    riskFactors: ["Family history of osteoporosis", "Low body weight (BMI <18.5)", "Current smoker", "Former smoker", "Excessive alcohol use (>7 drinks/week for women, >14 for men)", "Previous fracture after age 50", "Early menopause (before age 45)", "Long-term steroid use", "Sedentary lifestyle"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/osteoporosis-screening"
   },
   {
@@ -95,7 +95,7 @@ export const uspstfGuidelines = [
     frequency: "Annually (if risk factors present)",
     grade: "B",
     description: "Annual screening for lung cancer with low-dose CT in adults aged 50 to 80 years who have a 20 pack-year smoking history and currently smoke or have quit within the past 15 years.",
-    riskFactors: ["smoking", "20 pack-year history"],
+    riskFactors: ["Current smoker", "Former smoker", "20+ pack-year smoking history", "quit within past 15 years", "smoking"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/lung-cancer-screening"
   },
   {
@@ -106,7 +106,7 @@ export const uspstfGuidelines = [
     frequency: "Annually or as clinically indicated",
     grade: "B",
     description: "Screen for chlamydia and gonorrhea in sexually active women aged 24 years or younger and in women 25 years or older who are at increased risk.",
-    riskFactors: ["sexually active", "multiple partners", "history of STIs"],
+    riskFactors: ["Sexually active", "Multiple sexual partners (>1 in past year)", "History of sexually transmitted infections"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/chlamydia-and-gonorrhea-screening"
   },
   {
@@ -117,7 +117,7 @@ export const uspstfGuidelines = [
     frequency: "Annually or as clinically indicated",
     grade: "B",
     description: "Screen for chlamydia and gonorrhea in women 25 years or older who are at increased risk.",
-    riskFactors: ["sexually active", "multiple partners", "history of STIs"],
+    riskFactors: ["Sexually active", "Multiple sexual partners (>1 in past year)", "History of sexually transmitted infections"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/chlamydia-and-gonorrhea-screening"
   },
   {
@@ -128,7 +128,7 @@ export const uspstfGuidelines = [
     frequency: "Once",
     grade: "B",
     description: "One-time screening for abdominal aortic aneurysm (AAA) with ultrasonography in men aged 65 to 75 years who have ever smoked.",
-    riskFactors: ["smoking history"],
+    riskFactors: ["Current smoker", "Former smoker", "smoking history"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/abdominal-aortic-aneurysm-screening"
   },
   {
@@ -139,7 +139,7 @@ export const uspstfGuidelines = [
     frequency: "Discuss with provider",
     grade: "C",
     description: "The decision to undergo periodic prostate-specific antigen (PSA)–based screening for prostate cancer should be an individual one for men aged 55 to 69 years.",
-    riskFactors: ["family history of prostate cancer", "African American ethnicity"],
+    riskFactors: ["Family history of prostate cancer", "African American ethnicity (prostate cancer risk)", "Personal history of cancer"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/prostate-cancer-screening"
   },
   {

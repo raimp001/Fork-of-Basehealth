@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Heart, Upload, FileText, Award, User, MapPin } from 'lucide-react'
+import { Heart, Upload, FileText, Award, User, MapPin, Calendar, Clock, DollarSign } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function CaregiverSignupPage() {
@@ -35,8 +35,16 @@ export default function CaregiverSignupPage() {
     governmentId: null,
     professionalLicense: null,
     additionalCertifications: null,
-    backgroundCheck: null
+    backgroundCheck: null,
+    // Availability/Request scheduling
+    availableDays: [] as string[],
+    preferredHours: '',
+    minimumNotice: '',
+    requestHourlyRate: '',
+    emergencyRate: ''
   })
+
+  const [showRequestForm, setShowRequestForm] = useState(false)
 
   const [uploadedFiles, setUploadedFiles] = useState({
     governmentId: null as File | null,
@@ -147,11 +155,11 @@ export default function CaregiverSignupPage() {
             <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-500 rounded-lg flex items-center justify-center">
               <Heart className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-slate-900">Join as a Caregiver</h1>
+            <h1 className="text-3xl font-bold text-slate-900">Join Our Caregiving Community</h1>
           </div>
-          <p className="text-slate-600 max-w-2xl">
-            Apply to become a certified caregiver on our platform and start earning from bounty requests in your area.
-          </p>
+                      <p className="text-slate-600 max-w-2xl">
+              Join our trusted network of professional caregivers and connect with families who need compassionate, skilled care.
+            </p>
         </div>
       </div>
 
@@ -160,21 +168,231 @@ export default function CaregiverSignupPage() {
           {/* Benefits Section */}
           <Card className="mb-8 bg-gradient-to-r from-rose-50 to-pink-50 border-rose-200">
             <CardContent className="p-6">
-              <h2 className="text-xl font-semibold text-rose-800 mb-4">Why Join Our Caregiver Network?</h2>
+              <h2 className="text-xl font-semibold text-rose-800 mb-4">Why Join Our Professional Care Network?</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-rose-600" />
-                  <span>Competitive bounty-based earnings</span>
+                  <DollarSign className="h-4 w-4 text-rose-600" />
+                  <span>Competitive compensation & flexible scheduling</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-rose-600" />
-                  <span>Choose your service areas</span>
+                  <span>Work in your preferred locations</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-rose-600" />
-                  <span>Verified professional network</span>
+                  <span>Trusted professional community</span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Care Request Services Section */}
+          <Card className="mb-8 bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-emerald-800 mb-2">Connect with Professional Caregivers</h2>
+                  <p className="text-emerald-700 text-sm">Schedule compassionate, personalized care that fits your family's needs</p>
+                </div>
+                <Button 
+                  onClick={() => setShowRequestForm(!showRequestForm)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  {showRequestForm ? 'Close Care Planner' : 'Plan Care Schedule'}
+                </Button>
+              </div>
+
+              {showRequestForm && (
+                <div className="mt-6 p-6 bg-white rounded-xl border border-emerald-200 shadow-sm">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                      <Heart className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">Care Planning Assistant</h3>
+                      <p className="text-sm text-gray-600">Help caregivers understand your specific needs and schedule</p>
+                    </div>
+                  </div>
+
+                  {/* Care Schedule Planning */}
+                  <div className="space-y-6">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-emerald-600" />
+                        When do you need care?
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="startDate">Care Start Date</Label>
+                          <Input
+                            id="startDate"
+                            type="date"
+                            className="mt-1"
+                            min={new Date().toISOString().split('T')[0]}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="careFrequency">Frequency of Care</Label>
+                          <Select>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="How often?" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border border-slate-200 shadow-lg rounded-lg max-h-64 overflow-y-auto z-50">
+                              <SelectItem value="daily">Daily</SelectItem>
+                              <SelectItem value="weekdays">Weekdays only</SelectItem>
+                              <SelectItem value="weekends">Weekends only</SelectItem>
+                              <SelectItem value="specific-days">Specific days</SelectItem>
+                              <SelectItem value="as-needed">As needed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="careDuration">Duration of Care</Label>
+                          <Select>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="How long?" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border border-slate-200 shadow-lg rounded-lg max-h-64 overflow-y-auto z-50">
+                              <SelectItem value="few-hours">A few hours</SelectItem>
+                              <SelectItem value="half-day">Half day (4 hours)</SelectItem>
+                              <SelectItem value="full-day">Full day (8+ hours)</SelectItem>
+                              <SelectItem value="overnight">Overnight care</SelectItem>
+                              <SelectItem value="live-in">Live-in care</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-blue-600" />
+                        Preferred Care Hours
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {[
+                          { value: 'morning-early', label: 'Early Morning', time: '6-9 AM' },
+                          { value: 'morning', label: 'Morning', time: '9 AM-12 PM' },
+                          { value: 'afternoon', label: 'Afternoon', time: '12-5 PM' },
+                          { value: 'evening', label: 'Evening', time: '5-9 PM' },
+                          { value: 'night', label: 'Night', time: '9 PM-12 AM' },
+                          { value: 'overnight', label: 'Overnight', time: '12-6 AM' },
+                          { value: 'flexible', label: 'Flexible', time: 'Any time' },
+                          { value: 'custom', label: 'Custom Hours', time: 'Specify below' }
+                        ].map((timeSlot) => (
+                          <div key={timeSlot.value} className="flex items-center space-x-2">
+                            <Checkbox id={timeSlot.value} />
+                            <div>
+                              <Label htmlFor={timeSlot.value} className="text-sm font-medium cursor-pointer">
+                                {timeSlot.label}
+                              </Label>
+                              <p className="text-xs text-gray-500">{timeSlot.time}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-rose-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <Heart className="h-4 w-4 text-rose-600" />
+                        Type of Care Needed
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="primaryCareType">Primary Care Type</Label>
+                          <Select>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="What kind of care?" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border border-slate-200 shadow-lg rounded-lg max-h-64 overflow-y-auto z-50">
+                              {specialties.map(specialty => (
+                                <SelectItem key={specialty} value={specialty.toLowerCase().replace(/\s+/g, '-')}>
+                                  {specialty}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="patientCondition">Patient Condition/Needs</Label>
+                          <Select>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Condition level" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border border-slate-200 shadow-lg rounded-lg max-h-64 overflow-y-auto z-50">
+                              <SelectItem value="independent">Mostly independent</SelectItem>
+                              <SelectItem value="assistance">Needs some assistance</SelectItem>
+                              <SelectItem value="supervised">Requires supervision</SelectItem>
+                              <SelectItem value="full-care">Needs full-time care</SelectItem>
+                              <SelectItem value="specialized">Specialized medical needs</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-purple-600" />
+                        Care Investment & Preferences
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="hourlyBudget">Hourly Care Investment (USD)</Label>
+                          <Input
+                            id="hourlyBudget"
+                            type="number"
+                            min="0"
+                            placeholder="e.g., 25"
+                            className="mt-1"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Market range: $15-50+ depending on specialty</p>
+                        </div>
+                        <div>
+                          <Label htmlFor="careUrgency">Timeline</Label>
+                          <Select>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="When do you need to start?" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border border-slate-200 shadow-lg rounded-lg max-h-64 overflow-y-auto z-50">
+                              <SelectItem value="planning">Planning ahead (2+ weeks)</SelectItem>
+                              <SelectItem value="soon">Needed soon (1-2 weeks)</SelectItem>
+                              <SelectItem value="urgent">Urgent need (2-7 days)</SelectItem>
+                              <SelectItem value="immediate">Immediate (within 48 hours)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="careDescription">Tell us about your care needs</Label>
+                      <Textarea
+                        id="careDescription"
+                        placeholder="Share details about the person receiving care, their personality, preferences, daily routine, any special requirements, and what would make them most comfortable..."
+                        className="mt-1"
+                        rows={4}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">This helps caregivers understand how to provide the best possible care</p>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowRequestForm(false)}
+                      >
+                        Save for Later
+                      </Button>
+                      <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <Heart className="h-4 w-4 mr-2" />
+                        Connect with Caregivers
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -346,7 +564,7 @@ export default function CaregiverSignupPage() {
                           checked={formData.acceptsEmergency}
                           onCheckedChange={(checked) => handleInputChange('acceptsEmergency', checked as boolean)}
                         />
-                        <Label htmlFor="acceptsEmergency">I accept urgent/emergency bounty requests</Label>
+                        <Label htmlFor="acceptsEmergency">I'm available for urgent care situations</Label>
                       </div>
                     </div>
                   </div>
@@ -507,25 +725,25 @@ export default function CaregiverSignupPage() {
                   <h3 className="text-lg font-semibold mb-4 text-slate-800">Additional Information</h3>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="about">About You & Your Services *</Label>
+                      <Label htmlFor="about">Your Care Philosophy & Experience *</Label>
                       <Textarea
                         id="about"
                         value={formData.about}
                         onChange={(e) => handleInputChange('about', e.target.value)}
                         className="mt-1"
-                        placeholder="Describe your experience, approach to care, and what makes you a great caregiver..."
+                        placeholder="Share your passion for caregiving, your approach to patient care, relevant experience, and what families can expect when working with you. What makes you a compassionate and skilled caregiver?"
                         rows={4}
                       />
                     </div>
                     
                     <div>
-                      <Label htmlFor="walletAddress">Crypto Wallet Address (Optional)</Label>
+                      <Label htmlFor="walletAddress">Digital Wallet Address (Optional)</Label>
                       <Input
                         id="walletAddress"
                         value={formData.walletAddress}
                         onChange={(e) => handleInputChange('walletAddress', e.target.value)}
                         className="mt-1"
-                        placeholder="For receiving bounty payments in cryptocurrency"
+                        placeholder="For receiving payments in cryptocurrency (Bitcoin, Ethereum, etc.)"
                       />
                     </div>
                   </div>

@@ -90,7 +90,7 @@ interface EMRProvider {
 }
 
 export default function SecondOpinionPage() {
-  const [form, setForm] = useState({ description: '', bounty: '' })
+  const [form, setForm] = useState({ description: '', bounty: '', daysNeeded: '' })
   const [submitted, setSubmitted] = useState(false)
   const [showUploadToast, setShowUploadToast] = useState(false)
   const [showEMRToast, setShowEMRToast] = useState(false)
@@ -480,7 +480,7 @@ export default function SecondOpinionPage() {
                 <Link href="/" className="text-2xl font-bold text-slate-900 hover:text-slate-700 transition-all duration-200">
                   BaseHealth
                 </Link>
-                <span className="text-sm text-slate-500 font-medium">Second Opinion</span>
+                <span className="text-sm text-slate-500 font-medium">Raise Bounty</span>
               </div>
             </div>
             <nav className="flex items-center gap-6">
@@ -518,10 +518,10 @@ export default function SecondOpinionPage() {
               </div>
               
               <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 bg-clip-text text-transparent">
-                Get a Second Opinion
+                Raise Bounty for Medical Expertise
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Connect with world-class specialists for expert medical opinions. Share your case securely via EMR integration with AI-powered OCR and NLP processing, or upload documents directly.
+                Post a bounty and connect with world-class specialists for expert medical opinions. Share your case securely via EMR integration with AI-powered OCR and NLP processing, or upload documents directly.
               </p>
             </div>
 
@@ -920,19 +920,37 @@ export default function SecondOpinionPage() {
                             placeholder="Describe your condition, symptoms, and specific questions for the specialists..." 
                           />
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Consultation Fee (USD)</label>
-                          <input 
-                            name="bounty" 
-                            type="number" 
-                            min="0" 
-                            required 
-                            value={form.bounty} 
-                            onChange={handleChange} 
-                            className="w-full border rounded-xl px-4 py-3" 
-                            placeholder="Enter consultation fee (e.g., 200)" 
-                          />
-                          <p className="text-sm text-gray-500 mt-1">Specialists will review your case and provide detailed opinions</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Amount Willing to Pay (USD)</label>
+                            <input 
+                              name="bounty" 
+                              type="number" 
+                              min="0" 
+                              required 
+                              value={form.bounty} 
+                              onChange={handleChange} 
+                              className="w-full border rounded-xl px-4 py-3" 
+                              placeholder="Enter amount (e.g., 200)" 
+                            />
+                            <p className="text-sm text-gray-500 mt-1">Amount you're willing to pay for expert medical opinion</p>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Days Needed</label>
+                            <input 
+                              name="daysNeeded" 
+                              type="number" 
+                              min="1" 
+                              max="30" 
+                              required 
+                              value={form.daysNeeded} 
+                              onChange={handleChange} 
+                              className="w-full border rounded-xl px-4 py-3" 
+                              placeholder="Enter days (e.g., 3)" 
+                            />
+                            <p className="text-sm text-gray-500 mt-1">How urgently do you need the expert opinion?</p>
+                          </div>
                         </div>
                         
                         {extractedData && (
@@ -948,14 +966,14 @@ export default function SecondOpinionPage() {
                         )}
                         
                         <Button type="submit" className="w-full bg-gradient-to-r from-orange-600 to-amber-600">
-                          Post Case for Expert Review
+                          Post Bounty for Expert Review
                         </Button>
                       </form>
                     ) : (
                       <div className="text-center py-12">
                         <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold mb-4">Case Posted Successfully!</h3>
-                        <p className="mb-6">Your case with processed medical data is now live for specialist review.</p>
+                        <h3 className="text-xl font-bold mb-4">Bounty Posted Successfully!</h3>
+                        <p className="mb-6">Your bounty with processed medical data is now live for specialist review.</p>
                         <Button onClick={() => setTab("responses")}>View Responses</Button>
                       </div>
                     )}
