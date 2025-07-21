@@ -7,7 +7,18 @@ export const uspstfGuidelines = [
     frequency: "Every 2 years",
     grade: "B",
     description: "Biennial screening mammography for women aged 40 to 74 years.",
-    riskFactors: ["Family history of breast cancer", "Family history of ovarian cancer", "Personal history of cancer", "Previous abnormal mammogram", "Ashkenazi Jewish ancestry (BRCA risk)", "Never had a mammogram"],
+    riskFactors: [], // Universal screening for all women in age range
+    link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/breast-cancer-screening"
+  },
+  {
+    screening: "Breast Cancer: Enhanced Screening (High Risk)",
+    gender: "female",
+    minAge: 30,
+    maxAge: 74,
+    frequency: "Annually or as recommended by provider",
+    grade: "B",
+    description: "Enhanced screening for women at high risk for breast cancer, including those with personal/family history.",
+    riskFactors: ["Family history of breast cancer", "Family history of ovarian cancer", "Personal history of cancer", "Previous abnormal mammogram", "Ashkenazi Jewish ancestry", "BRCA genetic mutation"],
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/breast-cancer-screening"
   },
   {
@@ -40,7 +51,7 @@ export const uspstfGuidelines = [
     frequency: "At each visit or at least annually",
     grade: "A",
     description: "Screen for high blood pressure in adults 18 years or older.",
-    riskFactors: [],
+    riskFactors: [], // Universal screening
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/high-blood-pressure-in-adults-screening"
   },
   {

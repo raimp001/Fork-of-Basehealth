@@ -13,36 +13,56 @@ export async function getScreeningRecommendations(
   gender = "all",
   riskFactors: string[] = []
 ): Promise<ScreeningRecommendation[]> {
-  // Use the risk factor logic from the guidelines file
-  return uspstfGuidelines
-    .filter((g) =>
-      (g.gender === gender || g.gender === "all") &&
-      age >= g.minAge &&
-      age <= g.maxAge &&
-      (
-        riskFactors.length === 0 ||
-        g.riskFactors.length === 0 ||
-        g.riskFactors.some(rf =>
-          riskFactors.some(f =>
-            f.toLowerCase().includes(rf.toLowerCase()) || rf.toLowerCase().includes(f.toLowerCase())
-          )
-        )
-      )
-    )
-    .map((g) => ({
-      id: g.screening.replace(/\s+/g, "-").toLowerCase(),
-      name: g.screening,
-      description: g.description,
-      ageRange: { min: g.minAge, max: g.maxAge },
-      gender: g.gender,
-      frequency: g.frequency,
-      importance: g.grade === "A" ? "essential" : g.grade === "B" ? "recommended" : "routine",
-      specialtyNeeded: g.specialtyNeeded || "Primary Care",
-      riskFactors: g.riskFactors,
-      grade: g.grade,
-      specialtyNeeded: "Primary Care",
-      riskFactors: [],
-    }))
+  const normalizedRiskFactors = riskFactors.map(rf => rf.toLowerCase().trim())
+  
+  // Filter guidelines based on age and gender first
+  const ageGenderFilteredGuidelines = uspstfGuidelines.filter((g) =>
+    (g.gender === gender || g.gender === "all") &&
+    age >= g.minAge &&
+    age <= g.maxAge
+  )
+
+  // Then filter by risk factors or include if no specific risk factors required
+  const filteredGuidelines = ageGenderFilteredGuidelines.filter((g) => {
+    // If no risk factors specified by user, include all age/gender appropriate screenings
+    if (riskFactors.length === 0) {
+      return true
+    }
+    
+    // If guideline has no specific risk factors, it's a universal screening
+    if (!g.riskFactors || g.riskFactors.length === 0) {
+      return true
+    }
+    
+    // Check if any user risk factor matches any guideline risk factor
+    const matchesRiskFactor = g.riskFactors.some(guidelineRF => {
+      const normalizedGuidelineRF = guidelineRF.toLowerCase().trim()
+      return normalizedRiskFactors.some(userRF => {
+        // More flexible matching
+        const exactMatch = userRF === normalizedGuidelineRF
+        const containsMatch = userRF.includes(normalizedGuidelineRF) || normalizedGuidelineRF.includes(userRF)
+        return exactMatch || containsMatch
+      })
+    })
+    
+    return matchesRiskFactor
+  })
+
+  // Map to recommendation format
+  const recommendations = filteredGuidelines.map((g) => ({
+    id: g.screening.replace(/\s+/g, "-").toLowerCase(),
+    name: g.screening,
+    description: g.description,
+    ageRange: { min: g.minAge, max: g.maxAge },
+    gender: g.gender,
+    frequency: g.frequency,
+    importance: g.grade === "A" ? "essential" : g.grade === "B" ? "recommended" : "routine",
+    specialtyNeeded: g.specialtyNeeded || "Primary Care",
+    riskFactors: g.riskFactors || [],
+    grade: g.grade,
+  }))
+
+  return recommendations
 }
 
 /**

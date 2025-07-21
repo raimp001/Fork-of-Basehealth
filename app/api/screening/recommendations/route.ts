@@ -25,8 +25,6 @@ export async function GET(request: Request) {
     // Only prioritize, do not filter again
     recommendations = prioritizeRecommendations(recommendations)
 
-    console.log('USPSTF API returning:', recommendations);
-
     return NextResponse.json({ recommendations })
   } catch (error) {
     console.error("Error fetching screening recommendations:", error)
