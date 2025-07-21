@@ -58,8 +58,16 @@ export function ProviderSelection({ patientData, updatePatientData, onComplete }
   }, [patientData.zipCode])
 
   const fetchProviders = async () => {
+    if (!zipCode.trim()) {
+      setError("Please enter a location to search for providers")
+      return
+    }
+
     setIsLoading(true)
     setError(null)
+
+    // Save zipCode to patient data
+    updatePatientData({ zipCode: zipCode.trim() })
 
     try {
       // In a real app, this would be an API call
@@ -210,27 +218,52 @@ export function ProviderSelection({ patientData, updatePatientData, onComplete }
   return (
     <div className="space-y-6">
       <div className="space-y-4">
+        {/* Show selected screenings */}
+        {patientData.selectedScreenings && patientData.selectedScreenings.length > 0 && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="text-sm text-green-800">
+              <strong>Looking for providers for:</strong> {patientData.selectedScreenings.join(", ")}
+            </div>
+          </div>
+        )}
+
+        {!zipCode && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="text-sm text-blue-800">
+              <strong>Find providers near you!</strong> Please enter your ZIP code or location to find healthcare providers who can perform your selected screenings.
+            </div>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
+            <Label htmlFor="provider-location" className="text-sm font-medium block mb-2">
+              Location <span className="text-red-500">*</span>
+            </Label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
+                  id="provider-location"
                   value={zipCode}
                   onChange={(e) => setZipCode(e.target.value)}
-                  placeholder="Enter ZIP code"
+                  placeholder="Enter ZIP code, city, or address"
                   className="pl-10"
-                  maxLength={5}
+                  required
                 />
               </div>
-              <Button variant="outline" onClick={fetchProviders}>
+              <Button variant="outline" onClick={fetchProviders} disabled={!zipCode.trim()}>
                 Search
               </Button>
             </div>
+            <p className="text-xs text-gray-500 mt-1">e.g., 90210, Beverly Hills CA, or Seattle WA</p>
           </div>
           <div>
+            <Label htmlFor="provider-specialty" className="text-sm font-medium block mb-2">
+              Specialty
+            </Label>
             <Select value={specialty} onValueChange={setSpecialty}>
-              <SelectTrigger>
+              <SelectTrigger id="provider-specialty">
                 <SelectValue placeholder="Select specialty" />
               </SelectTrigger>
               <SelectContent>
@@ -304,7 +337,17 @@ export function ProviderSelection({ patientData, updatePatientData, onComplete }
             <div className="space-y-4">
               {filteredProviders.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">No providers found matching your criteria.</p>
+                  <div className="text-muted-foreground">
+                    {!zipCode ? (
+                      <div>
+                        <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-lg font-medium">Ready to find providers?</p>
+                        <p>Enter your location above to search for healthcare providers who can perform your selected screenings.</p>
+                      </div>
+                    ) : (
+                      <p>No providers found matching your criteria. Try adjusting your location or search radius.</p>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <>

@@ -39,7 +39,6 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
   const [age, setAge] = useState<string>(patientData.age?.toString() || "")
   const [gender, setGender] = useState<string>(patientData.gender || "")
   const [medicalHistory, setMedicalHistory] = useState<string[]>(patientData.medicalHistory || [])
-  const [zipCode, setZipCode] = useState<string>(patientData.zipCode || "")
   const [recommendations, setRecommendations] = useState<ScreeningRecommendation[]>([])
   const [selectedScreenings, setSelectedScreenings] = useState<string[]>(patientData.selectedScreenings || [])
   const [isLoading, setIsLoading] = useState(false)
@@ -93,7 +92,6 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
     riskFactors: {
       title: "Key Risk Factors",
       items: [
-        "Current or former smoker",
         "High alcohol consumption",
         "Obesity or significant weight issues", 
         "HIV positive",
@@ -134,12 +132,7 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
     }
   }
 
-  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    if (value === "" || (/^\d+$/.test(value) && value.length <= 5)) {
-      setZipCode(value)
-    }
-  }
+
 
   const handleRecommendationToggle = (id: string, checked: boolean) => {
     if (checked) {
@@ -207,29 +200,17 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
   }
 
   const handleSaveAndContinue = () => {
-    console.log('Save and Continue clicked', { age, gender, medicalHistory, detailedHistory, zipCode, selectedScreenings })
+    console.log('Save and Continue clicked', { age, gender, medicalHistory, detailedHistory, selectedScreenings })
     updatePatientData({
       age: Number.parseInt(age),
       gender,
       medicalHistory,
       detailedHistory,
-      zipCode,
       selectedScreenings,
     })
     
-    // Navigate to provider search with selected screenings
-    if (selectedScreenings.length > 0) {
-      const params = new URLSearchParams()
-      params.append('screenings', selectedScreenings.join(","))
-      if (zipCode.trim()) {
-        params.append('location', zipCode.trim())
-      }
-      console.log('Navigating to provider search with params:', params.toString())
-      router.push(`/providers/search?${params.toString()}`)
-    } else {
-      // If no screenings selected, still call onComplete for any parent workflow
-      onComplete()
-    }
+    // Continue to next step in workflow
+    onComplete()
   }
 
   const getImportanceBadge = (importance: string) => {
@@ -275,20 +256,6 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
               </SelectContent>
             </Select>
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="zipCode">ZIP Code (Optional)</Label>
-          <Input 
-            id="zipCode" 
-            type="text"
-            maxLength={5}
-            value={zipCode} 
-            onChange={handleZipCodeChange} 
-            placeholder="Enter your ZIP code (optional)" 
-            className="w-full max-w-xs"
-          />
-          <p className="text-xs text-gray-500">ZIP code helps find nearby providers for screenings</p>
         </div>
 
         <div className="space-y-6">
@@ -488,7 +455,7 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
               disabled={!isFormComplete || selectedScreenings.length === 0}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {selectedScreenings.length > 0 ? 'Find Providers for Selected Screenings' : 'Save and Continue'}
+              {selectedScreenings.length > 0 ? 'Continue to Find Providers' : 'Save and Continue'}
             </Button>
           </div>
         </div>
@@ -498,7 +465,7 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
           <div className="text-sm text-green-800">
             <strong>Great!</strong> You've selected {selectedScreenings.length} screening{selectedScreenings.length > 1 ? 's' : ''}. 
-            Click "Find Providers" below to search for healthcare providers who can perform these screenings{zipCode ? ` near ${zipCode}` : ''}.
+            Click "Continue to Find Providers" to search for healthcare providers who can perform these screenings.
           </div>
         </div>
       )}
@@ -521,8 +488,7 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
       {isFormComplete && recommendations.length > 0 && selectedScreenings.length === 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
           <div className="text-sm text-amber-800">
-            <strong>Ready to find providers?</strong> Please select at least one screening recommendation above, then click "Find Providers" to search for healthcare providers in your area.
-            {!zipCode && <span className="block mt-1"><strong>Tip:</strong> Adding your ZIP code helps us find providers near you!</span>}
+            <strong>Ready to find providers?</strong> Please select at least one screening recommendation above, then click "Continue to Find Providers" to search for healthcare providers in your area.
           </div>
         </div>
       )}
