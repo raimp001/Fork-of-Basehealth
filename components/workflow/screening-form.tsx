@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, CheckCircle } from "lucide-react"
 import type { PatientData } from "./patient-workflow"
 import { useRouter } from "next/navigation"
@@ -72,20 +73,51 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
     currentMedications: "",
     allergies: "",
     menopauseStatus: "",
+    // Enhanced family history for precise screening recommendations
+    familyHistoryDetails: {
+      colorectalCancer: {
+        hasHistory: false,
+        relatives: [] as Array<{
+          relationship: string; // "parent", "sibling", "grandparent", "aunt-uncle"
+          ageAtDiagnosis: number | null;
+          cancerType: string; // "colon", "rectal", "colorectal", "unknown"
+        }>
+      },
+      breastOvarianCancer: {
+        hasHistory: false,
+        relatives: [] as Array<{
+          relationship: string;
+          ageAtDiagnosis: number | null;
+          cancerType: string; // "breast", "ovarian", "both"
+        }>
+      },
+      otherCancers: {
+        hasHistory: false,
+        relatives: [] as Array<{
+          relationship: string;
+          ageAtDiagnosis: number | null;
+          cancerType: string;
+        }>
+      },
+      lynch: {
+        suspectedLynchSyndrome: false,
+        multipleRelativesWithCRC: false,
+        earlyOnsetCancers: false,
+        endometrialCancer: false,
+      }
+    }
   })
 
-  // Medical history categories for USPSTF compliance - streamlined
+  // Medical history categories for USPSTF compliance - enhanced with detailed family history
   const medicalHistoryCategories = {
     majorConditions: {
       title: "Personal & Family Medical History",
       items: [
         "High blood pressure or heart disease",
-        "Diabetes or pre-diabetes",
+        "Diabetes or pre-diabetes", 
         "Personal history of cancer",
-        "Family history of breast/ovarian cancer",
-        "Family history of colorectal cancer",
-        "Family history of heart disease",
-        "Inflammatory bowel disease",
+        "Personal history of polyps or abnormal colonoscopy",
+        "Inflammatory bowel disease (Crohn's or Ulcerative Colitis)",
         "Previous abnormal screening results"
       ]
     },
@@ -107,7 +139,7 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         "Never had a pap smear or overdue (>3 years)",
         "Never had a mammogram", 
         "Multiple sexual partners or STI history",
-        "Personal history of polyps"
+        "Never had a colonoscopy (age 45+)"
       ]
     }
   }
@@ -154,6 +186,7 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
     try {
       const allRiskFactors = [...medicalHistory]
       
+      // Process smoking history
       if (detailedHistory.smokingStatus === "current") {
         allRiskFactors.push("smoking", "current smoker")
       } else if (detailedHistory.smokingStatus === "former") {
@@ -171,6 +204,7 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         }
       }
       
+      // Process alcohol and weight
       if (detailedHistory.alcoholConsumption === "heavy") {
         allRiskFactors.push("excessive alcohol")
       }
@@ -183,10 +217,59 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         allRiskFactors.push("low body weight")
       }
 
+      // Process detailed family history for colorectal cancer
+      if (detailedHistory.familyHistoryDetails.colorectalCancer.hasHistory) {
+        allRiskFactors.push("family history of colorectal cancer")
+        
+        const firstDegreeRelatives = detailedHistory.familyHistoryDetails.colorectalCancer.relatives.filter(
+          rel => rel.relationship === "parent" || rel.relationship === "sibling"
+        )
+        
+        // Check for early onset in first-degree relatives (< 50 years)
+        const earlyOnsetFirstDegree = firstDegreeRelatives.filter(rel => rel.ageAtDiagnosis && rel.ageAtDiagnosis < 50)
+        if (earlyOnsetFirstDegree.length > 0) {
+          allRiskFactors.push("family history colorectal cancer age < 50")
+          allRiskFactors.push("high risk colorectal cancer family history")
+          const earliestAge = Math.min(...earlyOnsetFirstDegree.map(rel => rel.ageAtDiagnosis!))
+          allRiskFactors.push(`earliest family diagnosis age ${earliestAge}`)
+        }
+        
+        // Check for moderate risk (first-degree relative diagnosed 50-59 years)
+        const moderateOnsetFirstDegree = firstDegreeRelatives.filter(rel => rel.ageAtDiagnosis && rel.ageAtDiagnosis >= 50 && rel.ageAtDiagnosis < 60)
+        if (moderateOnsetFirstDegree.length > 0) {
+          allRiskFactors.push("family history colorectal cancer age 50-59")
+          allRiskFactors.push("moderate risk colorectal cancer family history")
+        }
+        
+        // Check for multiple affected first-degree relatives
+        if (firstDegreeRelatives.length >= 2) {
+          allRiskFactors.push("multiple first degree relatives colorectal cancer")
+          allRiskFactors.push("high risk colorectal cancer family history")
+        }
+        
+        // Any first-degree relative diagnosed ≥60 years
+        const lateOnsetFirstDegree = firstDegreeRelatives.filter(rel => rel.ageAtDiagnosis && rel.ageAtDiagnosis >= 60)
+        if (lateOnsetFirstDegree.length > 0 && earlyOnsetFirstDegree.length === 0 && moderateOnsetFirstDegree.length === 0) {
+          allRiskFactors.push("family history colorectal cancer age >= 60")
+        }
+      }
+
+      // Process Lynch syndrome indicators
+      if (detailedHistory.familyHistoryDetails.lynch.multipleRelativesWithCRC) {
+        allRiskFactors.push("suspected lynch syndrome", "3+ relatives colorectal cancer")
+      }
+      if (detailedHistory.familyHistoryDetails.lynch.earlyOnsetCancers) {
+        allRiskFactors.push("suspected lynch syndrome", "family colorectal cancer age < 45")
+      }
+      if (detailedHistory.familyHistoryDetails.lynch.endometrialCancer) {
+        allRiskFactors.push("suspected lynch syndrome", "family endometrial cancer age < 50")
+      }
+
       const params = new URLSearchParams({
         age,
         gender,
-        riskFactors: allRiskFactors.join(",")
+        riskFactors: allRiskFactors.join(","),
+        familyHistoryDetails: JSON.stringify(detailedHistory.familyHistoryDetails)
       })
       const res = await fetch(`/api/screening/recommendations?${params.toString()}`)
       if (!res.ok) throw new Error("Failed to fetch recommendations")
@@ -284,6 +367,231 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
               </div>
             </div>
           ))}
+
+          {/* Enhanced Family History Section */}
+          <div className="space-y-4 border-t pt-4 mt-6">
+            <h4 className="font-medium text-gray-900 border-b pb-1">Detailed Family History</h4>
+            <p className="text-sm text-muted-foreground">
+              Providing specific details about family cancer history helps us recommend the most appropriate screening schedule for you.
+            </p>
+            
+            {/* Colorectal Cancer Family History */}
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="family-colorectal-cancer"
+                  checked={detailedHistory.familyHistoryDetails.colorectalCancer.hasHistory}
+                  onCheckedChange={(checked) => {
+                    setDetailedHistory({
+                      ...detailedHistory,
+                      familyHistoryDetails: {
+                        ...detailedHistory.familyHistoryDetails,
+                        colorectalCancer: {
+                          ...detailedHistory.familyHistoryDetails.colorectalCancer,
+                          hasHistory: checked === true
+                        }
+                      }
+                    })
+                  }}
+                />
+                <Label htmlFor="family-colorectal-cancer" className="font-medium">
+                  Family history of colorectal cancer
+                </Label>
+              </div>
+              
+              {detailedHistory.familyHistoryDetails.colorectalCancer.hasHistory && (
+                <div className="ml-6 space-y-3 p-3 bg-blue-50 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    Please add details about family members with colorectal cancer. Age at diagnosis is crucial for determining your screening schedule.
+                  </p>
+                  
+                  {detailedHistory.familyHistoryDetails.colorectalCancer.relatives.map((relative, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-white rounded border">
+                      <div>
+                        <Label className="text-xs text-gray-600">Relationship</Label>
+                        <Select
+                          value={relative.relationship}
+                          onValueChange={(value) => {
+                            const newRelatives = [...detailedHistory.familyHistoryDetails.colorectalCancer.relatives]
+                            newRelatives[index] = { ...relative, relationship: value }
+                            setDetailedHistory({
+                              ...detailedHistory,
+                              familyHistoryDetails: {
+                                ...detailedHistory.familyHistoryDetails,
+                                colorectalCancer: {
+                                  ...detailedHistory.familyHistoryDetails.colorectalCancer,
+                                  relatives: newRelatives
+                                }
+                              }
+                            })
+                          }}
+                        >
+                          <SelectTrigger className="text-xs">
+                            <SelectValue placeholder="Select relationship" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="parent">Parent</SelectItem>
+                            <SelectItem value="sibling">Sibling</SelectItem>
+                            <SelectItem value="grandparent">Grandparent</SelectItem>
+                            <SelectItem value="aunt-uncle">Aunt/Uncle</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs text-gray-600">Age at diagnosis</Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g., 45"
+                          value={relative.ageAtDiagnosis || ""}
+                          onChange={(e) => {
+                            const newRelatives = [...detailedHistory.familyHistoryDetails.colorectalCancer.relatives]
+                            newRelatives[index] = { 
+                              ...relative, 
+                              ageAtDiagnosis: e.target.value ? parseInt(e.target.value) : null 
+                            }
+                            setDetailedHistory({
+                              ...detailedHistory,
+                              familyHistoryDetails: {
+                                ...detailedHistory.familyHistoryDetails,
+                                colorectalCancer: {
+                                  ...detailedHistory.familyHistoryDetails.colorectalCancer,
+                                  relatives: newRelatives
+                                }
+                              }
+                            })
+                          }}
+                          className="text-xs"
+                        />
+                      </div>
+                      
+                      <div className="flex items-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newRelatives = detailedHistory.familyHistoryDetails.colorectalCancer.relatives.filter((_, i) => i !== index)
+                            setDetailedHistory({
+                              ...detailedHistory,
+                              familyHistoryDetails: {
+                                ...detailedHistory.familyHistoryDetails,
+                                colorectalCancer: {
+                                  ...detailedHistory.familyHistoryDetails.colorectalCancer,
+                                  relatives: newRelatives
+                                }
+                              }
+                            })
+                          }}
+                          className="text-xs"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newRelatives = [
+                        ...detailedHistory.familyHistoryDetails.colorectalCancer.relatives,
+                        { relationship: "", ageAtDiagnosis: null, cancerType: "colorectal" }
+                      ]
+                      setDetailedHistory({
+                        ...detailedHistory,
+                        familyHistoryDetails: {
+                          ...detailedHistory.familyHistoryDetails,
+                          colorectalCancer: {
+                            ...detailedHistory.familyHistoryDetails.colorectalCancer,
+                            relatives: newRelatives
+                          }
+                        }
+                      })
+                    }}
+                  >
+                    + Add Family Member
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Lynch Syndrome Indicators */}
+            <div className="space-y-3">
+              <h5 className="font-medium text-gray-800">Lynch Syndrome Indicators</h5>
+              <p className="text-xs text-gray-600">These factors may indicate increased genetic risk requiring earlier screening.</p>
+              
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="multiple-relatives-crc"
+                    checked={detailedHistory.familyHistoryDetails.lynch.multipleRelativesWithCRC}
+                    onCheckedChange={(checked) => {
+                      setDetailedHistory({
+                        ...detailedHistory,
+                        familyHistoryDetails: {
+                          ...detailedHistory.familyHistoryDetails,
+                          lynch: {
+                            ...detailedHistory.familyHistoryDetails.lynch,
+                            multipleRelativesWithCRC: checked === true
+                          }
+                        }
+                      })
+                    }}
+                  />
+                  <Label htmlFor="multiple-relatives-crc" className="text-sm">
+                    3+ relatives with colorectal cancer (any age)
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="early-onset-cancers"
+                    checked={detailedHistory.familyHistoryDetails.lynch.earlyOnsetCancers}
+                    onCheckedChange={(checked) => {
+                      setDetailedHistory({
+                        ...detailedHistory,
+                        familyHistoryDetails: {
+                          ...detailedHistory.familyHistoryDetails,
+                          lynch: {
+                            ...detailedHistory.familyHistoryDetails.lynch,
+                            earlyOnsetCancers: checked === true
+                          }
+                        }
+                      })
+                    }}
+                  />
+                  <Label htmlFor="early-onset-cancers" className="text-sm">
+                    Family member with colorectal cancer diagnosed before age 45
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="endometrial-cancer"
+                    checked={detailedHistory.familyHistoryDetails.lynch.endometrialCancer}
+                    onCheckedChange={(checked) => {
+                      setDetailedHistory({
+                        ...detailedHistory,
+                        familyHistoryDetails: {
+                          ...detailedHistory.familyHistoryDetails,
+                          lynch: {
+                            ...detailedHistory.familyHistoryDetails.lynch,
+                            endometrialCancer: checked === true
+                          }
+                        }
+                      })
+                    }}
+                  />
+                  <Label htmlFor="endometrial-cancer" className="text-sm">
+                    Family history of endometrial cancer before age 50
+                  </Label>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <div className="space-y-4 border-t pt-4">
             <h4 className="font-medium text-gray-900">Additional Information (Optional but recommended)</h4>

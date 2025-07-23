@@ -10,6 +10,7 @@ export async function GET(request: Request) {
     const ageParam = searchParams.get("age")
     const gender = searchParams.get("gender") || "all"
     const riskFactors = searchParams.get("riskFactors")?.split(",") || []
+    const familyHistoryDetailsParam = searchParams.get("familyHistoryDetails")
 
     if (!ageParam) {
       return NextResponse.json({ error: "Age parameter is required" }, { status: 400 })
@@ -20,12 +21,30 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Age must be a number" }, { status: 400 })
     }
 
+    // Parse family history details if provided
+    let familyHistoryDetails = null
+    if (familyHistoryDetailsParam) {
+      try {
+        familyHistoryDetails = JSON.parse(familyHistoryDetailsParam)
+      } catch (error) {
+        console.warn("Failed to parse family history details:", error)
+      }
+    }
+
     let recommendations = await getScreeningRecommendations(age, gender, riskFactors)
 
     // Only prioritize, do not filter again
     recommendations = prioritizeRecommendations(recommendations)
 
-    return NextResponse.json({ recommendations })
+    return NextResponse.json({ 
+      recommendations,
+      debug: {
+        age,
+        gender,
+        riskFactors,
+        familyHistoryProvided: !!familyHistoryDetails
+      }
+    })
   } catch (error) {
     console.error("Error fetching screening recommendations:", error)
     return NextResponse.json({ error: "An error occurred while fetching screening recommendations" }, { status: 500 })

@@ -29,8 +29,56 @@ export const uspstfGuidelines = [
     frequency: "Every 10 years (colonoscopy); other tests may be more frequent",
     grade: "A",
     description: "Screen adults aged 45 to 75 for colorectal cancer.",
-    riskFactors: ["Family history of colorectal cancer", "Personal history of cancer", "Inflammatory bowel disease", "Personal history of polyps", "Previous abnormal colonoscopy"],
+    riskFactors: [], // Universal screening for all in age range
     link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/colorectal-cancer-screening"
+  },
+  {
+    screening: "Colorectal Cancer: High Risk Screening (Family History - Early Onset)",
+    gender: "all",
+    minAge: 40,
+    maxAge: 75,
+    frequency: "Every 10 years (colonoscopy), or 10 years before earliest family diagnosis",
+    grade: "A",
+    description: "High-risk screening for individuals with first-degree relatives diagnosed with colorectal cancer before age 50, or with multiple affected first-degree relatives.",
+    riskFactors: ["family history colorectal cancer age < 50", "high risk colorectal cancer family history", "multiple first degree relatives colorectal cancer", "earliest family diagnosis age"],
+    link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/colorectal-cancer-screening",
+    specialtyNeeded: "Gastroenterology"
+  },
+  {
+    screening: "Colorectal Cancer: Moderate Risk Screening (Family History 50-59)",
+    gender: "all",
+    minAge: 40,
+    maxAge: 75,
+    frequency: "Every 10 years (colonoscopy)",
+    grade: "B",
+    description: "Earlier screening for individuals with first-degree relatives diagnosed with colorectal cancer between ages 50-59.",
+    riskFactors: ["family history colorectal cancer age 50-59", "moderate risk colorectal cancer family history"],
+    link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/colorectal-cancer-screening",
+    specialtyNeeded: "Gastroenterology"
+  },
+  {
+    screening: "Colorectal Cancer: Lynch Syndrome Screening",
+    gender: "all",
+    minAge: 25,
+    maxAge: 75,
+    frequency: "Every 1-2 years (colonoscopy)",
+    grade: "A",
+    description: "Intensive screening for individuals with suspected Lynch syndrome or meeting Amsterdam criteria.",
+    riskFactors: ["suspected lynch syndrome", "3+ relatives colorectal cancer", "family colorectal cancer age < 45", "family endometrial cancer age < 50"],
+    link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/colorectal-cancer-screening",
+    specialtyNeeded: "Gastroenterology, Genetic Counseling"
+  },
+  {
+    screening: "Colorectal Cancer: Personal History Risk",
+    gender: "all",
+    minAge: 18,
+    maxAge: 75,
+    frequency: "As recommended by specialist",
+    grade: "A",
+    description: "Enhanced surveillance for individuals with personal history of polyps, IBD, or previous colorectal cancer.",
+    riskFactors: ["Personal history of polyps or abnormal colonoscopy", "Inflammatory bowel disease", "Personal history of cancer"],
+    link: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/colorectal-cancer-screening",
+    specialtyNeeded: "Gastroenterology"
   },
   {
     screening: "Cervical Cancer: Screening",
