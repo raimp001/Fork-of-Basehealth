@@ -110,38 +110,92 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
     }
   })
 
-  // Medical history categories for USPSTF compliance - enhanced with detailed family history
+  // Enhanced medical history categories based on USPSTF high-yield domains
   const medicalHistoryCategories = {
-    majorConditions: {
-      title: "Personal & Family Medical History",
+    personalMedicalHistory: {
+      title: "Personal Medical History",
       items: [
-        "High blood pressure or heart disease",
-        "Diabetes or pre-diabetes", 
-        "Personal history of cancer",
-        "Personal history of polyps or abnormal colonoscopy",
+        "High blood pressure (hypertension)",
+        "Diabetes or pre-diabetes",
+        "High cholesterol or lipid disorders",
+        "Personal history of any cancer",
+        "Personal history of colon polyps",
         "Inflammatory bowel disease (Crohn's or Ulcerative Colitis)",
+        "Osteoporosis or previous fracture after age 50",
+        "HIV positive",
+        "Immune suppression (transplant, long-term steroids)",
         "Previous abnormal screening results"
       ]
     },
-    riskFactors: {
-      title: "Key Risk Factors",
+    reproductiveHistory: {
+      title: "Reproductive & Hormonal History (Women)",
       items: [
-        "High alcohol consumption",
-        "Obesity or significant weight issues", 
-        "HIV positive",
-        "Taking hormone replacement therapy",
-        "African American or Ashkenazi Jewish ancestry",
-        "Early menopause or fracture after age 50",
-        "Immunocompromised"
+        "Age at first menstrual period (before 12 or after 15)",
+        "Never been pregnant or first pregnancy after age 30",
+        "History of gestational diabetes or pre-eclampsia",
+        "Currently taking or previously taken hormone replacement therapy",
+        "Taking oral contraceptives for >5 years",
+        "History of infertility or fertility treatments",
+        "Early menopause (before age 45)",
+        "History of DES (diethylstilbestrol) exposure"
       ]
     },
-    screeningStatus: {
-      title: "Screening History",
+    sexualHealthHistory: {
+      title: "Sexual Health & STI History",
       items: [
-        "Never had a pap smear or overdue (>3 years)",
-        "Never had a mammogram", 
-        "Multiple sexual partners or STI history",
-        "Never had a colonoscopy (age 45+)"
+        "Multiple sexual partners (>4 lifetime)",
+        "History of sexually transmitted infections",
+        "Currently sexually active",
+        "New sexual partner in past year",
+        "Partner with STI history",
+        "Never use barrier protection",
+        "Men who have sex with men"
+      ]
+    },
+    substanceUse: {
+      title: "Substance Use History",
+      items: [
+        "Current or former injection drug use",
+        "Unhealthy alcohol use (binge drinking or daily use)",
+        "History of blood transfusion before 1992",
+        "History of sharing needles or drug equipment",
+        "Regular prescription opioid use"
+      ]
+    },
+    exposureHistory: {
+      title: "Environmental & Occupational Exposures",
+      items: [
+        "Radon exposure in home or workplace",
+        "Asbestos exposure",
+        "Silica or coal dust exposure",
+        "Born in tuberculosis-endemic country",
+        "Born in hepatitis B endemic region",
+        "History of incarceration",
+        "Healthcare worker with blood/body fluid exposure",
+        "History of tattoos or body piercing",
+        "Dialysis patient"
+      ]
+    },
+    mentalHealthSocial: {
+      title: "Mental Health & Social Factors",
+      items: [
+        "History of depression or anxiety",
+        "Current or past intimate partner violence",
+        "Food insecurity or housing instability",
+        "Social isolation or lack of support",
+        "History of suicide attempt or ideation",
+        "High stress levels or major life changes"
+      ]
+    },
+    medicationsTherapies: {
+      title: "Current Medications & Therapies",
+      items: [
+        "Daily aspirin or regular NSAID use",
+        "Tamoxifen or raloxifene (breast cancer prevention)",
+        "Bisphosphonates for bone health",
+        "Immunosuppressive medications",
+        "Anticoagulant medications (blood thinners)",
+        "History of thoracic radiation therapy"
       ]
     }
   }
@@ -219,6 +273,113 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         allRiskFactors.push("low body weight")
       }
 
+      // Process all medical history categories for comprehensive USPSTF assessment
+      
+      // Process reproductive history (affects breast, cervical, bone screening)
+      if (gender === "female") {
+        const reproductiveFactors = medicalHistory.filter(item => 
+          medicalHistoryCategories.reproductiveHistory.items.includes(item)
+        )
+        reproductiveFactors.forEach(factor => {
+          if (factor.includes("hormone replacement therapy")) {
+            allRiskFactors.push("hormone therapy use", "HRT use")
+          }
+          if (factor.includes("first pregnancy after age 30") || factor.includes("Never been pregnant")) {
+            allRiskFactors.push("nulliparity or late first pregnancy")
+          }
+          if (factor.includes("gestational diabetes")) {
+            allRiskFactors.push("history gestational diabetes")
+          }
+          if (factor.includes("Early menopause")) {
+            allRiskFactors.push("early menopause", "osteoporosis risk")
+          }
+        })
+      }
+
+      // Process sexual health factors (affects STI, cervical cancer screening)
+      const sexualHealthFactors = medicalHistory.filter(item => 
+        medicalHistoryCategories.sexualHealthHistory.items.includes(item)
+      )
+      if (sexualHealthFactors.length > 0) {
+        allRiskFactors.push("sexually active")
+        if (sexualHealthFactors.some(f => f.includes("Multiple sexual partners"))) {
+          allRiskFactors.push("multiple sexual partners", "high risk sexual behavior")
+        }
+        if (sexualHealthFactors.some(f => f.includes("sexually transmitted infections"))) {
+          allRiskFactors.push("STI history", "increased cervical cancer risk")
+        }
+        if (sexualHealthFactors.some(f => f.includes("men who have sex with men"))) {
+          allRiskFactors.push("MSM", "high risk population")
+        }
+      }
+
+      // Process substance use (affects hepatitis, HIV screening)
+      const substanceFactors = medicalHistory.filter(item => 
+        medicalHistoryCategories.substanceUse.items.includes(item)
+      )
+      if (substanceFactors.length > 0) {
+        if (substanceFactors.some(f => f.includes("injection drug use"))) {
+          allRiskFactors.push("injection drug use", "hepatitis risk", "HIV risk")
+        }
+        if (substanceFactors.some(f => f.includes("blood transfusion before 1992"))) {
+          allRiskFactors.push("blood transfusion pre-1992", "hepatitis C risk")
+        }
+        if (substanceFactors.some(f => f.includes("Unhealthy alcohol use"))) {
+          allRiskFactors.push("excessive alcohol", "alcohol use disorder")
+        }
+      }
+
+      // Process exposure history (affects TB, hepatitis screening)
+      const exposureFactors = medicalHistory.filter(item => 
+        medicalHistoryCategories.exposureHistory.items.includes(item)
+      )
+      if (exposureFactors.length > 0) {
+        if (exposureFactors.some(f => f.includes("tuberculosis-endemic"))) {
+          allRiskFactors.push("TB risk", "born in endemic region")
+        }
+        if (exposureFactors.some(f => f.includes("hepatitis B endemic"))) {
+          allRiskFactors.push("hepatitis B risk", "endemic region exposure")
+        }
+        if (exposureFactors.some(f => f.includes("asbestos") || f.includes("silica"))) {
+          allRiskFactors.push("occupational lung exposure", "lung cancer risk")
+        }
+        if (exposureFactors.some(f => f.includes("healthcare worker"))) {
+          allRiskFactors.push("occupational exposure", "hepatitis risk")
+        }
+      }
+
+      // Process medications/therapies (affects screening intervals and risk)
+      const medicationFactors = medicalHistory.filter(item => 
+        medicalHistoryCategories.medicationsTherapies.items.includes(item)
+      )
+      if (medicationFactors.length > 0) {
+        if (medicationFactors.some(f => f.includes("aspirin") || f.includes("NSAID"))) {
+          allRiskFactors.push("chronic NSAID use", "bleeding risk")
+        }
+        if (medicationFactors.some(f => f.includes("tamoxifen") || f.includes("raloxifene"))) {
+          allRiskFactors.push("SERM use", "breast cancer prevention therapy")
+        }
+        if (medicationFactors.some(f => f.includes("thoracic radiation"))) {
+          allRiskFactors.push("radiation exposure", "secondary cancer risk")
+        }
+      }
+
+      // Process mental health factors (affects depression screening)
+      const mentalHealthFactors = medicalHistory.filter(item => 
+        medicalHistoryCategories.mentalHealthSocial.items.includes(item)
+      )
+      if (mentalHealthFactors.length > 0) {
+        if (mentalHealthFactors.some(f => f.includes("depression") || f.includes("anxiety"))) {
+          allRiskFactors.push("mental health history", "depression risk")
+        }
+        if (mentalHealthFactors.some(f => f.includes("intimate partner violence"))) {
+          allRiskFactors.push("IPV history", "trauma history")
+        }
+        if (mentalHealthFactors.some(f => f.includes("suicide"))) {
+          allRiskFactors.push("suicide risk", "mental health crisis history")
+        }
+      }
+
       // Process detailed family history for colorectal cancer
       if (detailedHistory.familyHistoryDetails.colorectalCancer.hasHistory) {
         allRiskFactors.push("family history of colorectal cancer")
@@ -256,6 +417,36 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         }
       }
 
+      // Process breast/ovarian cancer family history
+      if (detailedHistory.familyHistoryDetails.breastOvarianCancer.hasHistory) {
+        allRiskFactors.push("family history of breast cancer", "family history of ovarian cancer")
+        
+        const relatives = detailedHistory.familyHistoryDetails.breastOvarianCancer.relatives || []
+        const earlyOnsetBreast = relatives.filter(rel => 
+          rel.cancerType?.includes("breast") && rel.ageAtDiagnosis && rel.ageAtDiagnosis < 50
+        )
+        
+        if (earlyOnsetBreast.length > 0) {
+          allRiskFactors.push("family history breast cancer age < 50")
+          allRiskFactors.push("high risk breast cancer family history")
+        }
+        
+        // Multiple relatives with breast/ovarian cancer
+        if (relatives.length >= 2) {
+          allRiskFactors.push("multiple relatives breast ovarian cancer")
+          allRiskFactors.push("high risk breast cancer family history")
+        }
+
+        // Check for specific high-risk patterns
+        const motherSisterBreast = relatives.filter(rel => 
+          (rel.relationship === "mother" || rel.relationship === "sister") && 
+          rel.cancerType?.includes("breast")
+        )
+        if (motherSisterBreast.length > 0) {
+          allRiskFactors.push("first degree relative breast cancer")
+        }
+      }
+
       // Process Lynch syndrome indicators
       if (detailedHistory.familyHistoryDetails.lynch.multipleRelativesWithCRC) {
         allRiskFactors.push("suspected lynch syndrome", "3+ relatives colorectal cancer")
@@ -265,6 +456,11 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
       }
       if (detailedHistory.familyHistoryDetails.lynch.endometrialCancer) {
         allRiskFactors.push("suspected lynch syndrome", "family endometrial cancer age < 50")
+      }
+
+      // Process cardiovascular family history
+      if (detailedHistory.familyHistoryDetails.otherCancers.hasHistory || detailedHistory.familyHistoryDetails.lynch.suspectedLynchSyndrome) {
+        allRiskFactors.push("family history premature CAD", "cardiovascular risk")
       }
 
       const params = new URLSearchParams({
@@ -537,6 +733,233 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
                   </Button>
                 </div>
               )}
+            </div>
+
+            {/* Breast/Ovarian Cancer Family History */}
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="family-breast-ovarian-cancer"
+                  checked={detailedHistory.familyHistoryDetails.breastOvarianCancer.hasHistory}
+                  onCheckedChange={(checked) => {
+                    setDetailedHistory({
+                      ...detailedHistory,
+                      familyHistoryDetails: {
+                        ...detailedHistory.familyHistoryDetails,
+                        breastOvarianCancer: {
+                          ...detailedHistory.familyHistoryDetails.breastOvarianCancer,
+                          hasHistory: checked === true
+                        }
+                      }
+                    })
+                  }}
+                />
+                <Label htmlFor="family-breast-ovarian-cancer" className="font-medium">
+                  Family history of breast or ovarian cancer
+                </Label>
+              </div>
+              
+              {detailedHistory.familyHistoryDetails.breastOvarianCancer.hasHistory && (
+                <div className="ml-6 space-y-3 p-3 bg-pink-50 rounded-md">
+                  <p className="text-sm text-pink-800">
+                    Family history of breast/ovarian cancer, especially at young ages, affects breast cancer screening recommendations.
+                  </p>
+                  
+                  {detailedHistory.familyHistoryDetails.breastOvarianCancer.relatives.map((relative, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 bg-white rounded border">
+                      <div>
+                        <Label className="text-xs text-gray-600">Relationship</Label>
+                        <Select
+                          value={relative.relationship}
+                          onValueChange={(value) => {
+                            const newRelatives = [...detailedHistory.familyHistoryDetails.breastOvarianCancer.relatives]
+                            newRelatives[index] = { ...relative, relationship: value }
+                            setDetailedHistory({
+                              ...detailedHistory,
+                              familyHistoryDetails: {
+                                ...detailedHistory.familyHistoryDetails,
+                                breastOvarianCancer: {
+                                  ...detailedHistory.familyHistoryDetails.breastOvarianCancer,
+                                  relatives: newRelatives
+                                }
+                              }
+                            })
+                          }}
+                        >
+                          <SelectTrigger className="text-xs">
+                            <SelectValue placeholder="Select relationship" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="mother">Mother</SelectItem>
+                            <SelectItem value="father">Father</SelectItem>
+                            <SelectItem value="sister">Sister</SelectItem>
+                            <SelectItem value="brother">Brother</SelectItem>
+                            <SelectItem value="grandmother">Grandmother</SelectItem>
+                            <SelectItem value="aunt">Aunt</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs text-gray-600">Cancer Type</Label>
+                        <Select
+                          value={relative.cancerType}
+                          onValueChange={(value) => {
+                            const newRelatives = [...detailedHistory.familyHistoryDetails.breastOvarianCancer.relatives]
+                            newRelatives[index] = { ...relative, cancerType: value }
+                            setDetailedHistory({
+                              ...detailedHistory,
+                              familyHistoryDetails: {
+                                ...detailedHistory.familyHistoryDetails,
+                                breastOvarianCancer: {
+                                  ...detailedHistory.familyHistoryDetails.breastOvarianCancer,
+                                  relatives: newRelatives
+                                }
+                              }
+                            })
+                          }}
+                        >
+                          <SelectTrigger className="text-xs">
+                            <SelectValue placeholder="Cancer type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="breast">Breast cancer</SelectItem>
+                            <SelectItem value="ovarian">Ovarian cancer</SelectItem>
+                            <SelectItem value="both">Both breast & ovarian</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs text-gray-600">Age at diagnosis</Label>
+                        <Input
+                          type="number"
+                          placeholder="e.g., 42"
+                          value={relative.ageAtDiagnosis || ""}
+                          onChange={(e) => {
+                            const newRelatives = [...detailedHistory.familyHistoryDetails.breastOvarianCancer.relatives]
+                            newRelatives[index] = { 
+                              ...relative, 
+                              ageAtDiagnosis: e.target.value ? parseInt(e.target.value) : null 
+                            }
+                            setDetailedHistory({
+                              ...detailedHistory,
+                              familyHistoryDetails: {
+                                ...detailedHistory.familyHistoryDetails,
+                                breastOvarianCancer: {
+                                  ...detailedHistory.familyHistoryDetails.breastOvarianCancer,
+                                  relatives: newRelatives
+                                }
+                              }
+                            })
+                          }}
+                          className="text-xs"
+                        />
+                      </div>
+                      
+                      <div className="flex items-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newRelatives = detailedHistory.familyHistoryDetails.breastOvarianCancer.relatives.filter((_, i) => i !== index)
+                            setDetailedHistory({
+                              ...detailedHistory,
+                              familyHistoryDetails: {
+                                ...detailedHistory.familyHistoryDetails,
+                                breastOvarianCancer: {
+                                  ...detailedHistory.familyHistoryDetails.breastOvarianCancer,
+                                  relatives: newRelatives
+                                }
+                              }
+                            })
+                          }}
+                          className="text-xs"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newRelatives = [
+                        ...detailedHistory.familyHistoryDetails.breastOvarianCancer.relatives,
+                        { relationship: "", ageAtDiagnosis: null, cancerType: "" }
+                      ]
+                      setDetailedHistory({
+                        ...detailedHistory,
+                        familyHistoryDetails: {
+                          ...detailedHistory.familyHistoryDetails,
+                          breastOvarianCancer: {
+                            ...detailedHistory.familyHistoryDetails.breastOvarianCancer,
+                            relatives: newRelatives
+                          }
+                        }
+                      })
+                    }}
+                  >
+                    + Add Family Member
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Heart Disease Family History */}
+            <div className="space-y-3">
+              <h5 className="font-medium text-gray-800">Family History of Early Heart Disease</h5>
+              <p className="text-xs text-gray-600">Family history of premature coronary artery disease affects cardiovascular screening recommendations.</p>
+              
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="family-cad-male"
+                    checked={detailedHistory.familyHistoryDetails.otherCancers.hasHistory}
+                    onCheckedChange={(checked) => {
+                      setDetailedHistory({
+                        ...detailedHistory,
+                        familyHistoryDetails: {
+                          ...detailedHistory.familyHistoryDetails,
+                          otherCancers: {
+                            ...detailedHistory.familyHistoryDetails.otherCancers,
+                            hasHistory: checked === true
+                          }
+                        }
+                      })
+                    }}
+                  />
+                  <Label htmlFor="family-cad-male" className="text-sm">
+                    Male relative with heart disease before age 55
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="family-cad-female"
+                    checked={detailedHistory.familyHistoryDetails.lynch.suspectedLynchSyndrome}
+                    onCheckedChange={(checked) => {
+                      setDetailedHistory({
+                        ...detailedHistory,
+                        familyHistoryDetails: {
+                          ...detailedHistory.familyHistoryDetails,
+                          lynch: {
+                            ...detailedHistory.familyHistoryDetails.lynch,
+                            suspectedLynchSyndrome: checked === true
+                          }
+                        }
+                      })
+                    }}
+                  />
+                  <Label htmlFor="family-cad-female" className="text-sm">
+                    Female relative with heart disease before age 65
+                  </Label>
+                </div>
+              </div>
             </div>
 
             {/* Lynch Syndrome Indicators */}
@@ -860,10 +1283,7 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         </div>
       )}
 
-
-      )}
-      
-      {selectedScreenings.length > 0 && !showProviders && (
+      {selectedScreenings.length > 0 && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
           <div className="text-sm text-green-800">
             <strong>Great!</strong> You've selected {selectedScreenings.length} screening{selectedScreenings.length > 1 ? 's' : ''}. 
@@ -896,4 +1316,4 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
       )}
     </div>
   )
-} 
+}
