@@ -1236,14 +1236,13 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
                     }
                     window.open(searchUrl.toString(), '_blank')
                   }}
-                  disabled={!zipCode}
                   size="lg"
                   className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  Find Providers Nearby
+                  {zipCode ? 'Find Providers Nearby' : 'Find All Providers'}
                 </Button>
               </div>
               
@@ -1274,6 +1273,10 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
             <Button
               onClick={() => {
                 const searchUrl = new URL('/providers/search', window.location.origin)
+                // Add ZIP code if available
+                if (zipCode) {
+                  searchUrl.searchParams.set('zipCode', zipCode)
+                }
                 // Add screening recommendations as parameters
                 if (selectedScreenings.length > 0) {
                   searchUrl.searchParams.set('screenings', selectedScreenings.join(','))
@@ -1285,14 +1288,13 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
                 }
                 window.open(searchUrl.toString(), '_blank')
               }}
-              disabled={selectedScreenings.length === 0}
               className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              Find Providers for Selected Screenings
+              {selectedScreenings.length > 0 ? 'Find Providers for Selected Screenings' : 'Find Healthcare Providers'}
             </Button>
           </div>
         </div>
@@ -1301,8 +1303,8 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
       {selectedScreenings.length > 0 && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
           <div className="text-sm text-green-800">
-            <strong>Great!</strong> You've selected {selectedScreenings.length} screening{selectedScreenings.length > 1 ? 's' : ''}. 
-            Enter your ZIP code above to find healthcare providers who can perform these screenings.
+            <strong>🎯 Excellent choice!</strong> You've selected {selectedScreenings.length} screening{selectedScreenings.length > 1 ? 's' : ''}. 
+            {zipCode ? 'Click "Find Providers Nearby" to search in your area.' : 'Enter your ZIP code for location-based results, or click "Find All Providers" to explore options.'}
           </div>
         </div>
       )}
@@ -1323,9 +1325,9 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
         </div>
       )}
       {isFormComplete && recommendations.length > 0 && selectedScreenings.length === 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
-          <div className="text-sm text-amber-800">
-            <strong>Ready to find providers?</strong> Please select at least one screening recommendation above, then click "Continue to Find Providers" to search for healthcare providers in your area.
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+          <div className="text-sm text-blue-800">
+            <strong>💡 Tip:</strong> Select the screenings you're most interested in above to get targeted provider recommendations, or click "Find Healthcare Providers" to explore all available providers in your area.
           </div>
         </div>
       )}
