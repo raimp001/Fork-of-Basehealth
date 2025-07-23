@@ -44,6 +44,13 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isFormComplete, setIsFormComplete] = useState(false)
+  
+  // Provider search state
+  const [providers, setProviders] = useState<any[]>([])
+  const [isLoadingProviders, setIsLoadingProviders] = useState(false)
+  const [providerError, setProviderError] = useState<string | null>(null)
+  const [zipCode, setZipCode] = useState<string>("")
+  const [showProviders, setShowProviders] = useState(false)
 
   // Detailed medical history for USPSTF recommendations
   const [detailedHistory, setDetailedHistory] = useState({
@@ -274,11 +281,62 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
       if (!res.ok) throw new Error("Failed to fetch recommendations")
       const data = await res.json()
       setRecommendations(data.recommendations || [])
+      
+      // Auto-select essential and recommended screenings
+      const autoSelectedScreenings = data.recommendations
+        .filter((rec: any) => rec.importance === "essential" || rec.importance === "recommended")
+        .map((rec: any) => rec.id)
+      setSelectedScreenings(autoSelectedScreenings)
+      
+      // Automatically search for providers if we have recommendations and zip code
+      if (data.recommendations.length > 0 && zipCode) {
+        await searchProviders(data.recommendations, zipCode)
+      }
+      
     } catch (err) {
       setError("Failed to fetch recommendations")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Auto search for providers based on recommendations
+  const searchProviders = async (recommendations: any[], location: string) => {
+    if (!location || recommendations.length === 0) return
+    
+    setIsLoadingProviders(true)
+    setProviderError(null)
+    
+    try {
+      // Get unique specialties from recommendations
+      const specialties = [...new Set(recommendations.map(rec => rec.specialtyNeeded))]
+      const primarySpecialty = specialties[0] || "Primary Care"
+      
+      const response = await fetch(`/api/providers/search?zipCode=${location}&specialty=${encodeURIComponent(primarySpecialty)}&limit=6`)
+      
+      if (!response.ok) {
+        throw new Error("Failed to search providers")
+      }
+      
+      const data = await response.json()
+      setProviders(data.providers || [])
+      setShowProviders(true)
+      
+    } catch (err) {
+      console.error("Provider search error:", err)
+      setProviderError("Unable to find providers in your area. You can search manually later.")
+    } finally {
+      setIsLoadingProviders(false)
+    }
+  }
+
+  const handleProviderSearch = async () => {
+    if (!zipCode) {
+      setProviderError("Please enter your ZIP code to find providers")
+      return
+    }
+    
+    await searchProviders(recommendations, zipCode)
   }
 
   const handleSaveAndContinue = () => {
@@ -289,10 +347,17 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
       medicalHistory,
       detailedHistory,
       selectedScreenings,
+      zipCode,
     })
     
     // Continue to next step in workflow
     onComplete()
+  }
+
+  const handleBookAppointment = (provider: any, screening: any) => {
+    // Navigate to appointment booking with provider and screening info
+    const bookingUrl = `/appointment/book?providerId=${provider.id}&screening=${encodeURIComponent(screening.name)}&specialtyNeeded=${encodeURIComponent(screening.specialtyNeeded)}`
+    window.open(bookingUrl, '_blank')
   }
 
   const getImportanceBadge = (importance: string) => {
@@ -756,23 +821,121 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
             ))}
           </div>
 
+          {/* ZIP Code for Provider Search */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+            <h4 className="font-medium text-blue-900 mb-2">Find Providers in Your Area</h4>
+            <p className="text-sm text-blue-700 mb-3">
+              Enter your ZIP code to automatically find healthcare providers who can perform your recommended screenings.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter ZIP code (e.g., 90210)"
+                value={zipCode}
+                onChange={(e) => setZipCode(e.target.value)}
+                className="flex-1"
+              />
+              <Button 
+                onClick={handleProviderSearch}
+                disabled={!zipCode || isLoadingProviders}
+                variant="outline"
+              >
+                {isLoadingProviders ? "Searching..." : "Find Providers"}
+              </Button>
+            </div>
+            {providerError && (
+              <p className="text-sm text-red-600 mt-2">{providerError}</p>
+            )}
+          </div>
+
           <div className="flex justify-end">
             <Button
               onClick={handleSaveAndContinue}
-              disabled={!isFormComplete || selectedScreenings.length === 0}
+              disabled={!isFormComplete}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {selectedScreenings.length > 0 ? 'Continue to Find Providers' : 'Save and Continue'}
+              Continue
             </Button>
           </div>
         </div>
       )}
 
-      {selectedScreenings.length > 0 && (
+      {/* Providers Section */}
+      {showProviders && providers.length > 0 && (
+        <div className="space-y-4 mt-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium">Available Providers</h3>
+            <span className="text-sm text-gray-600">{providers.length} providers found</span>
+          </div>
+          
+          <div className="grid gap-4">
+            {providers.slice(0, 3).map((provider: any) => (
+              <Card key={provider.id} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium">{provider.name}</h4>
+                        {provider.acceptingPatients && (
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                            Accepting Patients
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">{provider.specialty}</p>
+                      <p className="text-sm text-gray-500">{provider.address}</p>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                        <span>⭐ {provider.rating} ({provider.reviewCount} reviews)</span>
+                        {provider.distance && <span>📍 {provider.distance} miles</span>}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 ml-4">
+                      {selectedScreenings.slice(0, 2).map(screeningId => {
+                        const screening = recommendations.find(r => r.id === screeningId)
+                        return screening ? (
+                          <Button
+                            key={screeningId}
+                            size="sm"
+                            onClick={() => handleBookAppointment(provider, screening)}
+                            className="text-xs"
+                          >
+                            Book {screening.name}
+                          </Button>
+                        ) : null
+                      })}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            
+            {providers.length > 3 && (
+              <Card className="border-dashed">
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-gray-600 mb-2">
+                    {providers.length - 3} more providers available
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const searchUrl = `/providers/search?zipCode=${zipCode}&screenings=${selectedScreenings.join(",")}`
+                      window.open(searchUrl, '_blank')
+                    }}
+                  >
+                    View All Providers
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {selectedScreenings.length > 0 && !showProviders && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
           <div className="text-sm text-green-800">
             <strong>Great!</strong> You've selected {selectedScreenings.length} screening{selectedScreenings.length > 1 ? 's' : ''}. 
-            Click "Continue to Find Providers" to search for healthcare providers who can perform these screenings.
+            Enter your ZIP code above to find healthcare providers who can perform these screenings.
           </div>
         </div>
       )}
