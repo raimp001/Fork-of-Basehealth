@@ -25,10 +25,17 @@ export default function HomePage() {
   }, [])
 
   const checkWalletConnection = async () => {
-    if (blockchainService.isWalletConnected()) {
-      const address = await blockchainService.getWalletAddress()
-      setWalletAddress(address)
-      setIsWalletConnected(true)
+    try {
+      const isConnected = await blockchainService.checkConnection()
+      if (isConnected) {
+        const address = await blockchainService.getWalletAddress()
+        setWalletAddress(address)
+        setIsWalletConnected(true)
+      }
+    } catch (error) {
+      console.error("Failed to check wallet connection:", error)
+      setIsWalletConnected(false)
+      setWalletAddress(null)
     }
   }
 
@@ -41,9 +48,9 @@ export default function HomePage() {
         setWalletAddress(address)
         setIsWalletConnected(true)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to connect wallet:", error)
-      alert("Failed to connect wallet. Please make sure you have a Web3 wallet installed.")
+      alert(error.message || "Failed to connect wallet. Please make sure you have a Web3 wallet installed.")
     } finally {
       setIsConnecting(false)
     }
