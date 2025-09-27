@@ -1,16 +1,38 @@
-import { Coinbase, Wallet, Transfer } from '@coinbase/coinbase-sdk'
 import { parseUnits, formatUnits } from 'viem'
 import { cdpConfig, paymentConfig, baseChain } from './coinbase-config'
 
-// Initialize Coinbase SDK
+// Types for when SDK is not available
+type Wallet = any
+type Transfer = any
+type Coinbase = any
+
+// Dynamic import to avoid SSR issues
+let CoinbaseSDK: any = null
 let coinbaseClient: Coinbase | null = null
 
-export function getCoinbaseClient() {
+async function loadCoinbaseSDK() {
+  if (!CoinbaseSDK && typeof window !== 'undefined') {
+    try {
+      const sdk = await import('@coinbase/coinbase-sdk')
+      CoinbaseSDK = sdk
+      return sdk
+    } catch (error) {
+      console.warn('Coinbase SDK not available:', error)
+      return null
+    }
+  }
+  return CoinbaseSDK
+}
+
+export async function getCoinbaseClient() {
   if (!coinbaseClient && cdpConfig.apiKeyName && cdpConfig.apiKeySecret) {
-    coinbaseClient = new Coinbase({
-      apiKeyName: cdpConfig.apiKeyName,
-      privateKey: cdpConfig.apiKeySecret,
-    })
+    const sdk = await loadCoinbaseSDK()
+    if (sdk && sdk.Coinbase) {
+      coinbaseClient = new sdk.Coinbase({
+        apiKeyName: cdpConfig.apiKeyName,
+        privateKey: cdpConfig.apiKeySecret,
+      })
+    }
   }
   return coinbaseClient
 }
@@ -18,15 +40,21 @@ export function getCoinbaseClient() {
 // Create or get user wallet
 export async function getOrCreateWallet(userId: string): Promise<Wallet | null> {
   try {
-    const client = getCoinbaseClient()
+    const client = await getCoinbaseClient()
     if (!client) {
       console.error('Coinbase client not initialized')
       return null
     }
 
+    const sdk = await loadCoinbaseSDK()
+    if (!sdk || !sdk.Wallet) {
+      console.error('Coinbase SDK not available')
+      return null
+    }
+
     // In production, you'd store wallet info in your database
     // For now, we'll create a new wallet for demo
-    const wallet = await Wallet.create({
+    const wallet = await sdk.Wallet.create({
       networkId: cdpConfig.network,
     })
     

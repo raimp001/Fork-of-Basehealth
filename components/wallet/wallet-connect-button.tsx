@@ -5,7 +5,7 @@ import { useAccount, useBalance } from 'wagmi'
 import { StandardizedButton } from '@/components/ui/standardized-button'
 import { Badge } from '@/components/ui/badge'
 import { Wallet, Copy, ExternalLink, ChevronDown } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { formatUnits } from 'viem'
 import {
   DropdownMenu,
@@ -18,8 +18,23 @@ import {
 import { paymentConfig } from '@/lib/coinbase-config'
 
 export function WalletConnectButton() {
+  const [mounted, setMounted] = useState(false)
   const { address, isConnected } = useAccount()
   const [copied, setCopied] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  
+  // Prevent hydration errors
+  if (!mounted) {
+    return (
+      <StandardizedButton variant="primary" className="gap-2" disabled>
+        <Wallet className="h-4 w-4" />
+        <span className="hidden sm:inline">Connect Wallet</span>
+      </StandardizedButton>
+    )
+  }
   
   // Get USDC balance
   const { data: usdcBalance } = useBalance({
