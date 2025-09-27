@@ -2,20 +2,17 @@
 
 import { StandardizedButton } from '@/components/ui/standardized-button'
 import { Wallet } from 'lucide-react'
-import Link from 'next/link'
 
 export function SimpleWalletButton() {
+  // For now, just show a placeholder button that links to crypto payment page
   return (
-    <StandardizedButton
-      asChild
-      variant="secondary"
-      size="sm"
+    <StandardizedButton 
+      variant="secondary" 
       className="gap-2"
+      onClick={() => window.location.href = '/payment/crypto'}
     >
-      <Link href="/wallet">
-        <Wallet className="h-4 w-4" />
-        <span className="hidden sm:inline">Wallet</span>
-      </Link>
+      <Wallet className="h-4 w-4" />
+      <span className="hidden sm:inline">Crypto</span>
     </StandardizedButton>
   )
 }
