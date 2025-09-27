@@ -33,8 +33,12 @@ const nextConfig = {
       };
     }
     
+    // Fix for @metamask/sdk
+    config.externals.push('pino-pretty', 'lokijs', 'encoding')
+    
     return config;
   },
+  transpilePackages: ['@rainbow-me/rainbowkit', '@coinbase/wallet-sdk'],
 };
 
 export default nextConfig;
