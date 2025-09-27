@@ -54,6 +54,7 @@ interface Caregiver {
 }
 
 // Mock caregiver data
+// Removed mock data - now using real API data
 const mockCaregivers: Caregiver[] = [
   {
     id: "1",
@@ -197,14 +198,34 @@ export default function ProvidersSearchPage() {
   const [caregivers, setCaregivers] = useState<Caregiver[]>([])
   const [showResults, setShowResults] = useState(false)
 
-  // Initialize with sample data on mount
+  // Fetch real caregivers on mount
   useEffect(() => {
-    setIsLoading(true)
-    // Simulate initial load
-    setTimeout(() => {
-      setCaregivers(mockCaregivers)
-      setIsLoading(false)
-    }, 1000)
+    const fetchCaregivers = async () => {
+      setIsLoading(true)
+      try {
+        const response = await fetch('/api/caregivers/search', {
+          method: 'GET'
+        })
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const data = await response.json()
+        if (data.success && data.results) {
+          setCaregivers(data.results)
+        } else {
+          throw new Error(data.error || 'Failed to fetch caregivers')
+        }
+      } catch (error) {
+        console.error('Error fetching caregivers:', error)
+        setError(error instanceof Error ? error : new Error('Failed to fetch caregivers'))
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchCaregivers()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -737,7 +758,8 @@ export default function ProvidersSearchPage() {
                   variant="secondary"
                   onClick={() => {
                     setShowResults(false)
-                    setCaregivers(mockCaregivers)
+                    // Fetch all caregivers again
+                    window.location.reload()
                   }}
                 >
                   Reset search

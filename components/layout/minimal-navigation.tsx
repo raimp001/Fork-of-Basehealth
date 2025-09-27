@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { components } from "@/lib/design-system"
-import { SimpleWalletButton } from "@/components/wallet/simple-wallet-button"
+// Removed wallet button import to fix client-side errors
 import { 
   Menu, 
   X, 
@@ -96,7 +96,6 @@ export function MinimalNavigation() {
             </div>
 
             <div className="hidden md:flex items-center gap-4">
-              <SimpleWalletButton />
               <Button asChild variant="ghost" size="sm" className={components.button.ghost}>
                 <Link href="/login">Sign in</Link>
               </Button>
