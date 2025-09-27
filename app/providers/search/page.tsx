@@ -1,512 +1,811 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { ProviderCard } from '@/components/provider-card'
-import { Loader2, Search, MapPin, Filter, Users, User, Stethoscope, DollarSign, Star, Clock, Heart } from 'lucide-react'
-import { toast } from 'sonner'
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import { Card } from "@/components/ui/card"
+import { StandardizedButton, PrimaryActionButton } from "@/components/ui/standardized-button"
+import { StandardizedInput } from "@/components/ui/standardized-form"
+import { Badge } from "@/components/ui/badge"
+import { ProviderCardSkeleton, LoadingSpinner } from "@/components/ui/loading"
+import { FormError, NetworkError, useErrorHandler } from "@/components/ui/error-boundary"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { components } from "@/lib/design-system"
+import { 
+  Search, 
+  MapPin, 
+  Star, 
+  DollarSign,
+  Filter,
+  X,
+  ChevronDown,
+  Phone,
+  Video,
+  Clock,
+  Heart,
+  Shield,
+  Users,
+  Calendar,
+  FileText,
+  Upload
+} from "lucide-react"
+import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import { MinimalProviderSearch } from "@/components/provider/minimal-provider-search"
+import Link from "next/link"
 
-interface Provider {
+interface Caregiver {
   id: string
   name: string
   specialty: string
-  address: string
-  distance?: number
+  location: string
+  distance: number
   rating: number
   reviewCount: number
-  acceptingPatients: boolean
-  phone: string
-  npi: string
-  credentials: string
-  gender: string
+  hourlyRate: number
   availability: string
-  insurance: string[]
+  isLicensed: boolean
+  isCPRCertified: boolean
+  isBackgroundChecked: boolean
+  experience: string
   languages: string[]
-  website?: string
+  image?: string
 }
 
-export default function ProviderSearchPage() {
+// Mock caregiver data
+const mockCaregivers: Caregiver[] = [
+  {
+    id: "1",
+    name: "Maria Rodriguez",
+    specialty: "Elder Care",
+    location: "San Francisco, CA",
+    distance: 2.1,
+    rating: 4.9,
+    reviewCount: 156,
+    hourlyRate: 25,
+    availability: "Available immediately",
+    isLicensed: true,
+    isCPRCertified: true,
+    isBackgroundChecked: true,
+    experience: "8 years",
+    languages: ["English", "Spanish"],
+    image: "/placeholder.svg"
+  },
+  {
+    id: "2",
+    name: "James Wilson",
+    specialty: "Post-Surgery Care",
+    location: "San Francisco, CA",
+    distance: 3.5,
+    rating: 4.8,
+    reviewCount: 89,
+    hourlyRate: 30,
+    availability: "Next week",
+    isLicensed: true,
+    isCPRCertified: true,
+    isBackgroundChecked: true,
+    experience: "12 years",
+    languages: ["English"],
+    image: "/placeholder.svg"
+  },
+  {
+    id: "3",
+    name: "Sarah Chen",
+    specialty: "Pediatric Care",
+    location: "San Francisco, CA",
+    distance: 1.8,
+    rating: 4.7,
+    reviewCount: 203,
+    hourlyRate: 28,
+    availability: "Available immediately",
+    isLicensed: true,
+    isCPRCertified: true,
+    isBackgroundChecked: true,
+    experience: "6 years",
+    languages: ["English", "Mandarin"],
+    image: "/placeholder.svg"
+  }
+]
+
+const careTypes = [
+  "Elder Care",
+  "Post-Surgery Care", 
+  "Pediatric Care",
+  "Dementia Care",
+  "Hospice Care",
+  "Companion Care",
+  "Medical Equipment Support",
+  "Medication Management"
+]
+
+const durations = [
+  "1-2 weeks",
+  "1 month",
+  "3 months", 
+  "6 months",
+  "1 year",
+  "Ongoing"
+]
+
+const frequencies = [
+  "A few hours per day",
+  "8 hours per day",
+  "12 hours per day",
+  "24/7 care",
+  "Weekends only",
+  "As needed"
+]
+
+const timePreferences = [
+  "Morning (6 AM - 12 PM)",
+  "Afternoon (12 PM - 6 PM)", 
+  "Evening (6 PM - 12 AM)",
+  "Overnight (12 AM - 6 AM)",
+  "Flexible"
+]
+
+const urgencyLevels = [
+  "Immediate (within 24 hours)",
+  "Urgent (within 3 days)",
+  "Standard (within 1 week)",
+  "Planned (within 2 weeks)"
+]
+
+export default function ProvidersSearchPage() {
   const searchParams = useSearchParams()
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [providers, setProviders] = useState<Provider[]>([])
-  const [location, setLocation] = useState('')
-  const [specialty, setSpecialty] = useState('all')
-  const [query, setQuery] = useState('')
+  const isBounty = searchParams.get('bounty') === 'true'
   
-  // Bounty form state
-  const [bountyAmount, setBountyAmount] = useState('100')
-  const [bountyUrgency, setBountyUrgency] = useState('normal')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
+  const { error, handleError, clearError } = useErrorHandler()
   
-  const specialties = [
-    'Primary Care',
-    'Cardiology',
-    'Dermatology',
-    'Endocrinology',
-    'Gastroenterology',
-    'Neurology',
-    'Obstetrics and Gynecology',
-    'Ophthalmology',
-    'Orthopedics',
-    'Pediatrics',
-    'Psychiatry',
-    'Urology'
-  ]
-  
-  // Check if we're in caregiver mode
-  const isCaregiverMode = searchParams.get('bounty') === 'true'
-  
-  // Initialize state from URL parameters
-  useEffect(() => {
-    const locationParam = searchParams.get('location') || searchParams.get('zipCode') || ''
-    const specialtyParam = searchParams.get('specialty') || 'all'
-    const queryParam = searchParams.get('query') || ''
-    const screeningsParam = searchParams.get('screenings') || ''
-    
-    setLocation(locationParam)
-    setSpecialty(specialtyParam)
-    setQuery(queryParam)
-    
-    // If we have screenings from recommendations, auto-search
-    if (locationParam || specialtyParam || queryParam || screeningsParam) {
-      searchProviders(locationParam, specialtyParam, queryParam)
+  const [formData, setFormData] = useState({
+    location: '',
+    careType: '',
+    description: '',
+    condition: '',
+    startDate: '',
+    duration: '',
+    frequency: '',
+    hours: '',
+    days: {
+      monday: false,
+      tuesday: false,
+      wednesday: false,
+      thursday: false,
+      friday: false,
+      saturday: false,
+      sunday: false
+    },
+    budgetPeriod: 'hourly',
+    amount: '',
+    urgency: '',
+    requirements: {
+      licensedNurse: false,
+      cprCertified: false,
+      firstAidCertified: false,
+      backgroundCheck: false,
+      medicalEquipment: false,
+      bilingual: false,
+      petFriendly: false,
+      nonSmoker: false,
+      ownTransportation: false
     }
-  }, [searchParams, isCaregiverMode])
-  
-  const searchProviders = async (loc: string, spec: string, q: string) => {
-    setLoading(true)
+  })
+
+  const [caregivers, setCaregivers] = useState<Caregiver[]>([])
+  const [showResults, setShowResults] = useState(false)
+
+  // Initialize with sample data on mount
+  useEffect(() => {
+    setIsLoading(true)
+    // Simulate initial load
+    setTimeout(() => {
+      setCaregivers(mockCaregivers)
+      setIsLoading(false)
+    }, 1000)
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    clearError()
+    setIsSearching(true)
+    
     try {
-      // Build search parameters
-      const params = new URLSearchParams()
-      if (loc) params.append('location', loc)
-      if (spec && spec !== 'all') params.append('specialty', spec)
-      if (q) params.append('query', q)
-      
-      const response = await fetch(`/api/providers/search?${params.toString()}`)
-      const data = await response.json()
+      const response = await fetch('/api/caregivers/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          location: formData.location,
+          careType: formData.careType,
+          requirements: formData.requirements,
+          urgency: formData.urgency,
+          startDate: formData.startDate,
+          duration: formData.duration,
+          frequency: formData.frequency,
+          maxDistance: 50
+        })
+      })
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch providers')
+        throw new Error('Failed to search caregivers')
       }
       
-      setProviders(data.providers)
+      const data = await response.json()
       
-      if (data.providers.length === 0) {
-        toast.info('No providers found. Try adjusting your search criteria.')
+      if (data.success) {
+        setCaregivers(data.results)
+        setShowResults(true)
       } else {
-        toast.success(`Found ${data.providers.length} provider${data.providers.length !== 1 ? 's' : ''}`)
+        throw new Error(data.error || 'Search failed')
       }
-    } catch (error) {
-      console.error('Error searching providers:', error)
-      toast.error('Failed to search providers. Please try again.')
+      
+    } catch (err) {
+      handleError("Unable to search for providers. Please check your connection and try again.")
     } finally {
-      setLoading(false)
-    }
-  }
-  
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!location.trim()) {
-      toast.error('Please enter a location')
-      return
-    }
-
-    // For caregiver mode, first post bounty then search
-    if (isCaregiverMode) {
-      if (!query.trim()) {
-        toast.error('Please describe your care needs')
-        return
-      }
-
-      try {
-        setLoading(true)
-        
-        // Post the bounty first
-        const bountyData = {
-          amount: parseFloat(bountyAmount) || 100,
-          description: query,
-          location: location,
-          careType: specialty !== 'all' ? specialty : undefined,
-          urgency: bountyUrgency,
-          createdAt: new Date().toISOString(),
-          userId: 'current-user-id', // In real app, get from auth
-          contactInfo: 'user@example.com', // In real app, get from auth
-        }
-
-        // Simulate bounty posting (in real app, this would be an API call)
-        console.log('Bounty posted:', bountyData)
-        toast.success(`Bounty posted successfully! Amount: $${bountyData.amount}`)
-        
-        // Update URL with search parameters
-        const params = new URLSearchParams()
-        if (location) params.append('location', location)
-        if (specialty && specialty !== 'all') params.append('specialty', specialty)
-        if (query) params.append('query', query)
-        params.append('bounty', 'true')
-        
-        router.push(`/providers/search?${params.toString()}`)
-        
-        // Now search for caregivers
-        await searchProviders(location, specialty, query)
-        
-      } catch (error) {
-        console.error('Error posting bounty:', error)
-        toast.error('Failed to post bounty. Searching anyway...')
-        // Still search even if bounty posting fails
-        await searchProviders(location, specialty, query)
-      } finally {
-        setLoading(false)
-      }
-    } else {
-      // Regular provider search
-      // Update URL with search parameters
-      const params = new URLSearchParams()
-      if (location) params.append('location', location)
-      if (specialty && specialty !== 'all') params.append('specialty', specialty)
-      if (query) params.append('query', query)
-      
-      router.push(`/providers/search?${params.toString()}`)
-      
-      // Perform search
-      searchProviders(location, specialty, query)
+      setIsSearching(false)
     }
   }
 
+  const toggleDay = (day: string) => {
+    setFormData(prev => ({
+      ...prev,
+      days: {
+        ...prev.days,
+        [day]: !prev.days[day]
+      }
+    }))
+  }
 
-  
-  return (
-    <div className={`min-h-screen ${isCaregiverMode ? 'caregiver-page-solid bg-white' : 'bg-gray-50'}`}>
+  if (isBounty) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <MinimalNavigation />
+        
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 pt-24">
       {/* Header */}
-      <div className={`${isCaregiverMode ? 'bg-white border-b border-rose-200' : 'bg-white border-b border-slate-200'} sticky top-0 z-40 shadow-sm`}>
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className={`w-10 h-10 ${isCaregiverMode ? 'bg-rose-100' : 'bg-slate-100'} rounded-lg flex items-center justify-center`}>
-              <Stethoscope className={`h-5 w-5 ${isCaregiverMode ? 'text-rose-700' : 'text-slate-700'}`} />
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium mb-4">
+              <Heart className="h-4 w-4" />
+              Professional Caregivers
             </div>
-            <h1 className={`text-3xl font-bold ${isCaregiverMode ? 'text-rose-900' : 'text-slate-900'}`}>
-              {isCaregiverMode ? 'Find Caregivers' : 'Find Healthcare Providers'}
+            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+              Find Professional Caregivers
             </h1>
+            <p className="text-gray-600">
+              Connect with qualified, compassionate caregivers in your area. Describe your needs and we'll match you with the right professionals.
+            </p>
           </div>
-          <p className={`max-w-2xl ${isCaregiverMode ? 'text-rose-700' : 'text-slate-600'}`}>
-            {isCaregiverMode 
-              ? 'Search for qualified caregivers in your area or post a bounty to incentivize providers to reach out to you.'
-              : 'Search for qualified healthcare providers in your area. Find specialists, check availability, and book appointments instantly.'
-            }
-          </p>
+
+          {/* Why Choose Section */}
+          <Card className="p-6 border-gray-100 mb-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Why Choose Our Caregiver Network?</h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="flex items-start gap-3">
+                <Shield className="h-5 w-5 text-green-600 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-gray-900">Background Checked</h3>
+                  <p className="text-sm text-gray-600">All caregivers are background checked & licensed</p>
         </div>
       </div>
-
-      <div className="container mx-auto px-4 py-8">
-        {/* Show screening context if we came from screening recommendations */}
-        {searchParams.get('screenings') && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">✓</span>
+              <div className="flex items-start gap-3">
+                <Star className="h-5 w-5 text-yellow-600 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-gray-900">Rated & Reviewed</h3>
+                  <p className="text-sm text-gray-600">Rated & reviewed by families like yours</p>
+                </div>
               </div>
-              <h3 className="font-semibold text-blue-800">Following up on your screening recommendations</h3>
-            </div>
-            <p className="text-blue-700 text-sm">
-              We're helping you find providers for your recommended screenings. 
-              {location && ` Searching in ${location}.`}
-            </p>
+              <div className="flex items-start gap-3">
+                <Heart className="h-5 w-5 text-red-600 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-gray-900">Compassionate Care</h3>
+                  <p className="text-sm text-gray-600">Compassionate, professional care you can trust</p>
           </div>
-        )}
-
-        {/* Show caregiver bounty context if we came from Find Caregivers */}
-        {searchParams.get('bounty') === 'true' && (
-          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center">
-                <Heart className="w-3 h-3 text-white" />
               </div>
-              <h3 className="font-semibold text-rose-800">Caregiver Bounty & Search</h3>
             </div>
-            <p className="text-rose-700 text-sm">
-              Fill out your care needs below and click "Post Bounty & Search Caregivers" to automatically post a bounty and find qualified providers in your area.
-              {location && ` Searching in ${location}.`}
-            </p>
-          </div>
-        )}
-        
-        {/* Search Form */}
-        <Card className={`${isCaregiverMode ? 'caregiver-card-solid shadow-xl' : 'bg-white border border-slate-200 shadow-lg'} p-8 mb-8 rounded-xl`}>
-          <form onSubmit={handleSearch} className="space-y-6">
-            {isCaregiverMode ? (
-              <div className="space-y-6">
-                {/* Location Input for Caregivers */}
-                <div className="space-y-2">
-                  <label htmlFor="location" className="block text-sm font-semibold caregiver-text-dark">
-                    <MapPin className="h-4 w-4 inline mr-2 text-rose-600" />
-                    Location
-                  </label>
+          </Card>
+
+          {/* Care Request Form */}
+          <Card className="p-6 border-gray-100">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="location" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Your Location *
+                  </Label>
                   <Input
                     id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="ZIP code, city, or address"
-                    className="caregiver-input-solid h-12 text-base"
+                    value={formData.location}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                    placeholder="Enter your city or ZIP code"
+                    className="border-2 border-gray-400 bg-white text-gray-900 placeholder-gray-500 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    required
                   />
-                  <p className="text-xs text-rose-600">e.g., 98101, Seattle WA, or Miami FL</p>
                 </div>
-
-                {/* Care Type for Caregivers */}
-                <div className="space-y-2">
-                  <label htmlFor="careType" className="block text-sm font-semibold caregiver-text-dark">
-                    <Heart className="h-4 w-4 inline mr-2 text-rose-600" />
-                    Type of Care Needed
-                  </label>
-                  <Select value={specialty} onValueChange={setSpecialty}>
-                    <SelectTrigger className="caregiver-select-solid h-12">
-                      <SelectValue placeholder="Select type of care" />
+                <div>
+                  <Label htmlFor="careType" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Type of Care Needed *
+                  </Label>
+                  <Select value={formData.careType} onValueChange={(value) => setFormData(prev => ({ ...prev, careType: value }))}>
+                    <SelectTrigger className="border-2 border-gray-400 bg-white text-gray-900 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                      <SelectValue placeholder="Select care type" />
                     </SelectTrigger>
-                    <SelectContent className="caregiver-select-content-solid max-h-64 overflow-y-auto z-50">
-                      <SelectItem value="all" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">All Types of Care</SelectItem>
-                      <SelectItem value="companionship" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">Companionship</SelectItem>
-                      <SelectItem value="personal-care" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">Personal Care & Hygiene</SelectItem>
-                      <SelectItem value="medical-assistance" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">Medical Assistance</SelectItem>
-                      <SelectItem value="mobility-support" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">Mobility Support</SelectItem>
-                      <SelectItem value="meal-preparation" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">Meal Preparation</SelectItem>
-                      <SelectItem value="medication-management" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">Medication Management</SelectItem>
-                      <SelectItem value="housekeeping" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">Light Housekeeping</SelectItem>
-                      <SelectItem value="transportation" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">Transportation</SelectItem>
-                      <SelectItem value="respite-care" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">Respite Care</SelectItem>
-                      <SelectItem value="overnight-care" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">Overnight Care</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Patient Care Description */}
-                <div className="space-y-2">
-                  <label htmlFor="careDescription" className="block text-sm font-semibold caregiver-text-dark">
-                    <User className="h-4 w-4 inline mr-2 text-rose-600" />
-                    Describe Your Care Needs
-                  </label>
-                  <textarea
-                    id="careDescription"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Please describe the patient's condition, specific care needs, preferred schedule, any special requirements, mobility needs, personality preferences, etc..."
-                    rows={4}
-                    className="caregiver-textarea-solid w-full text-base py-3 px-4 rounded-lg resize-none"
-                  />
-                  <p className="text-xs text-rose-600">Be specific to help caregivers understand if they're a good fit</p>
-                </div>
-
-                {/* Bounty Settings Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Bounty Amount */}
-                  <div className="space-y-2">
-                    <label htmlFor="bountyAmount" className="block text-sm font-semibold caregiver-text-dark">
-                      <DollarSign className="h-4 w-4 inline mr-2 text-rose-600" />
-                      Bounty Amount ($)
-                    </label>
-                    <Input
-                      id="bountyAmount"
-                      type="number"
-                      min="10"
-                      step="10"
-                      value={bountyAmount}
-                      onChange={(e) => setBountyAmount(e.target.value)}
-                      placeholder="100"
-                      className="caregiver-input-solid h-12 text-base"
-                    />
-                    <p className="text-xs text-rose-600">Higher amounts attract more responses</p>
-                  </div>
-
-                  {/* Urgency Level */}
-                  <div className="space-y-2">
-                    <label htmlFor="urgencyLevel" className="block text-sm font-semibold caregiver-text-dark">
-                      <Clock className="h-4 w-4 inline mr-2 text-rose-600" />
-                      Urgency Level
-                    </label>
-                    <Select value={bountyUrgency} onValueChange={setBountyUrgency}>
-                      <SelectTrigger className="caregiver-select-solid h-12">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="caregiver-select-content-solid z-50">
-                        <SelectItem value="low" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-slate-500" />
-                            Low - Within a week
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="normal" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-blue-500" />
-                            Normal - Within 2-3 days
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="high" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-orange-500" />
-                            High - Within 24 hours
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="urgent" className="hover:bg-rose-50 focus:bg-rose-50 cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-red-500" />
-                            Urgent - ASAP
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-rose-600">Response time expectation</p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Location Input for Providers */}
-                <div className="space-y-2">
-                  <label htmlFor="location" className="block text-sm font-semibold text-slate-700">
-                    <MapPin className="h-4 w-4 inline mr-2 text-sky-600" />
-                    Location
-                  </label>
-                  <Input
-                    id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="ZIP code, city, or address"
-                    className="input-healthcare h-12 text-base"
-                  />
-                  <p className="text-xs text-slate-500">e.g., 98101, Seattle WA, or Miami FL</p>
-                </div>
-                
-                {/* Specialty Select for Providers */}
-                <div className="space-y-2">
-                  <label htmlFor="specialty" className="block text-sm font-semibold text-slate-700">
-                    <Filter className="h-4 w-4 inline mr-2 text-sky-600" />
-                    Specialty
-                  </label>
-                  <Select value={specialty} onValueChange={setSpecialty}>
-                    <SelectTrigger className="input-healthcare h-12">
-                      <SelectValue placeholder="Select specialty" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border border-slate-200 shadow-lg rounded-lg max-h-64 overflow-y-auto z-50">
-                      <SelectItem value="all" className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer">All Specialties</SelectItem>
-                      {specialties.map(spec => (
-                        <SelectItem key={spec} value={spec} className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer">{spec}</SelectItem>
+                    <SelectContent className="bg-white border-2 border-gray-300 shadow-lg max-h-60 overflow-y-auto">
+                      {careTypes.map(type => (
+                        <SelectItem key={type} value={type} className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">{type}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="description" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Describe Your Care Needs *
+                </Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe the specific care needs, daily activities, and any special requirements..."
+                  className="min-h-[100px] border-2 border-gray-400 bg-white text-gray-900 placeholder-gray-500 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  required
+                />
+                </div>
+
+              <div>
+                <Label htmlFor="condition" className="text-sm font-medium text-gray-700 mb-2 block">
+                  Patient Condition/Diagnosis (Optional)
+                </Label>
+                <Input
+                  id="condition"
+                  value={formData.condition}
+                  onChange={(e) => setFormData(prev => ({ ...prev, condition: e.target.value }))}
+                  placeholder="e.g., Alzheimer's, post-surgery recovery, etc."
+                  className="border-2 border-gray-400 bg-white text-gray-900 placeholder-gray-500 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
+                </div>
+
+              {/* Care Schedule */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Care Schedule</h3>
                 
-                {/* Provider Name/Organization */}
-                <div className="space-y-2">
-                  <label htmlFor="query" className="block text-sm font-semibold text-slate-700">
-                    <Users className="h-4 w-4 inline mr-2 text-sky-600" />
-                    Provider Name
-                  </label>
-                  <Input
-                    id="query"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Doctor or organization name"
-                    className="input-healthcare h-12 text-base"
-                  />
-                  <p className="text-xs text-slate-500">Search by provider or practice name</p>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="startDate" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Preferred Start Date
+                    </Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                      className="border-2 border-gray-400 bg-white text-gray-900 placeholder-gray-500 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="duration" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Duration Needed
+                    </Label>
+                    <Select value={formData.duration} onValueChange={(value) => setFormData(prev => ({ ...prev, duration: value }))}>
+                      <SelectTrigger className="border-2 border-gray-400 bg-white text-gray-900 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-2 border-gray-300 shadow-lg max-h-60 overflow-y-auto">
+                        {durations.map(duration => (
+                          <SelectItem key={duration} value={duration} className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">{duration}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                          </div>
+                          </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="frequency" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Frequency
+                    </Label>
+                    <Select value={formData.frequency} onValueChange={(value) => setFormData(prev => ({ ...prev, frequency: value }))}>
+                      <SelectTrigger className="border-2 border-gray-400 bg-white text-gray-900 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-2 border-gray-300 shadow-lg max-h-60 overflow-y-auto">
+                        {frequencies.map(freq => (
+                          <SelectItem key={freq} value={freq} className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">{freq}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                          </div>
+                  <div>
+                    <Label htmlFor="hours" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Preferred Hours
+                    </Label>
+                    <Select value={formData.hours} onValueChange={(value) => setFormData(prev => ({ ...prev, hours: value }))}>
+                      <SelectTrigger className="border-2 border-gray-400 bg-white text-gray-900 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <SelectValue placeholder="Select time preference" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-2 border-gray-300 shadow-lg max-h-60 overflow-y-auto">
+                        {timePreferences.map(time => (
+                          <SelectItem key={time} value={time} className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">{time}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                    Preferred Days (Select all that apply)
+                  </Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {Object.entries(formData.days).map(([day, checked]) => (
+                      <label key={day} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={() => toggleDay(day)}
+                        />
+                        <span className="text-sm text-gray-700 capitalize">{day}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
-            )}
+
+              {/* Budget & Investment */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Budget & Investment</h3>
+                
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="budgetPeriod" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Budget Period
+                    </Label>
+                    <Select value={formData.budgetPeriod} onValueChange={(value) => setFormData(prev => ({ ...prev, budgetPeriod: value }))}>
+                      <SelectTrigger className="border-2 border-gray-400 bg-white text-gray-900 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-2 border-gray-300 shadow-lg max-h-60 overflow-y-auto">
+                        <SelectItem value="hourly" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Per Hour</SelectItem>
+                        <SelectItem value="daily" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Per Day</SelectItem>
+                        <SelectItem value="weekly" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Per Week</SelectItem>
+                        <SelectItem value="monthly" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Per Month</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="amount" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Amount ($) *
+                    </Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      value={formData.amount}
+                      onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                      placeholder="Enter budget amount"
+                      className="border-2 border-gray-400 bg-white text-gray-900 placeholder-gray-500 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="urgency" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Urgency Level
+                    </Label>
+                    <Select value={formData.urgency} onValueChange={(value) => setFormData(prev => ({ ...prev, urgency: value }))}>
+                      <SelectTrigger className="border-2 border-gray-400 bg-white text-gray-900 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        <SelectValue placeholder="Select urgency" />
+                    </SelectTrigger>
+                      <SelectContent className="bg-white border-2 border-gray-300 shadow-lg max-h-60 overflow-y-auto">
+                        {urgencyLevels.map(level => (
+                          <SelectItem key={level} value={level} className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">{level}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  </div>
+                </div>
+                </div>
+                
+              {/* Special Requirements */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Special Requirements (Optional)</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3">
+                      <Checkbox
+                        checked={formData.requirements.licensedNurse}
+                        onCheckedChange={(checked) => setFormData(prev => ({ 
+                          ...prev, 
+                          requirements: { ...prev.requirements, licensedNurse: checked as boolean }
+                        }))}
+                      />
+                      <span className="text-sm text-gray-700">Licensed Nurse (RN/LPN)</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <Checkbox
+                        checked={formData.requirements.cprCertified}
+                        onCheckedChange={(checked) => setFormData(prev => ({ 
+                          ...prev, 
+                          requirements: { ...prev.requirements, cprCertified: checked as boolean }
+                        }))}
+                      />
+                      <span className="text-sm text-gray-700">CPR Certified</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <Checkbox
+                        checked={formData.requirements.firstAidCertified}
+                        onCheckedChange={(checked) => setFormData(prev => ({ 
+                          ...prev, 
+                          requirements: { ...prev.requirements, firstAidCertified: checked as boolean }
+                        }))}
+                      />
+                      <span className="text-sm text-gray-700">First Aid Certified</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <Checkbox
+                        checked={formData.requirements.backgroundCheck}
+                        onCheckedChange={(checked) => setFormData(prev => ({ 
+                          ...prev, 
+                          requirements: { ...prev.requirements, backgroundCheck: checked as boolean }
+                        }))}
+                      />
+                      <span className="text-sm text-gray-700">Background Check Required</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <Checkbox
+                        checked={formData.requirements.medicalEquipment}
+                        onCheckedChange={(checked) => setFormData(prev => ({ 
+                          ...prev, 
+                          requirements: { ...prev.requirements, medicalEquipment: checked as boolean }
+                        }))}
+                      />
+                      <span className="text-sm text-gray-700">Experience with Medical Equipment</span>
+                    </label>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3">
+                      <Checkbox
+                        checked={formData.requirements.bilingual}
+                        onCheckedChange={(checked) => setFormData(prev => ({ 
+                          ...prev, 
+                          requirements: { ...prev.requirements, bilingual: checked as boolean }
+                        }))}
+                      />
+                      <span className="text-sm text-gray-700">Bilingual Required</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <Checkbox
+                        checked={formData.requirements.petFriendly}
+                        onCheckedChange={(checked) => setFormData(prev => ({ 
+                          ...prev, 
+                          requirements: { ...prev.requirements, petFriendly: checked as boolean }
+                        }))}
+                      />
+                      <span className="text-sm text-gray-700">Pet Friendly</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <Checkbox
+                        checked={formData.requirements.nonSmoker}
+                        onCheckedChange={(checked) => setFormData(prev => ({ 
+                          ...prev, 
+                          requirements: { ...prev.requirements, nonSmoker: checked as boolean }
+                        }))}
+                      />
+                      <span className="text-sm text-gray-700">Non-Smoker</span>
+                  </label>
+                    <label className="flex items-center gap-3">
+                      <Checkbox
+                        checked={formData.requirements.ownTransportation}
+                        onCheckedChange={(checked) => setFormData(prev => ({ 
+                          ...prev, 
+                          requirements: { ...prev.requirements, ownTransportation: checked as boolean }
+                        }))}
+                      />
+                      <span className="text-sm text-gray-700">Own Transportation</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
             
-            <div className="flex justify-center items-center gap-4 pt-4">
-              <Button 
+              <PrimaryActionButton 
                 type="submit" 
-                className={`${isCaregiverMode ? 'bg-rose-600 hover:bg-rose-700' : 'bg-slate-900 hover:bg-slate-800'} text-white px-6 py-3 text-base font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200`}
-                disabled={loading}
+                loading={isSearching}
+                loadingText="Searching for providers..."
+                className="w-full"
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    {isCaregiverMode ? (
-                      <>
-                        <DollarSign className="mr-2 h-4 w-4" />
-                        Post Bounty & Search Caregivers
-                      </>
-                    ) : (
-                      <>
-                        <Search className="mr-2 h-4 w-4" />
-                        Find Providers
-                      </>
-                    )}
-                  </>
-                )}
-              </Button>
-            </div>
+                Find Caregivers
+              </PrimaryActionButton>
           </form>
         </Card>
         
-        {/* Results Section */}
-        {providers.length > 0 ? (
-          <div className="space-y-6">
-            {/* Results Header */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-slate-900">
-                Search Results
-                <span className="text-sky-600 ml-2">({providers.length})</span>
-              </h2>
-              <div className="text-sm text-slate-600 bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200">
-                Sorted by {location ? 'distance' : 'rating'}
+          {/* Error Display */}
+          {error && (
+            <div className="mt-6">
+              <FormError 
+                message={error}
+                onRetry={() => {
+                  clearError()
+                  handleSubmit(new Event('submit') as any)
+                }}
+              />
+            </div>
+          )}
+          
+          {/* Loading State */}
+          {isLoading && (
+            <div className="mt-6 space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Loading providers...</h3>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <ProviderCardSkeleton key={i} />
+              ))}
+            </div>
+          )}
+
+          {/* Results */}
+          {!isLoading && caregivers.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Matching Caregivers</h2>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {caregivers.map((caregiver) => (
+                  <Card key={caregiver.id} className="p-4 border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="flex gap-4 mb-4">
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 truncate">
+                          {caregiver.name}
+                        </h3>
+                        <p className="text-sm text-gray-600">{caregiver.specialty}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-3.5 w-3.5 text-yellow-500 fill-current" />
+                            <span className="text-sm font-medium">{caregiver.rating}</span>
+                          </div>
+                          <span className="text-sm text-gray-500">
+                            ({caregiver.reviewCount} reviews)
+                          </span>
+                        </div>
               </div>
             </div>
             
-            {/* Provider Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {providers.map((provider) => (
-                <div key={provider.id} className="fade-in-up">
-                  <ProviderCard provider={provider} />
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin className="h-3.5 w-3.5" />
+                        <span>{caregiver.location} • {caregiver.distance} mi</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        <span>${caregiver.hourlyRate}/hour</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span>{caregiver.availability}</span>
                 </div>
-              ))}
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Users className="h-3.5 w-3.5" />
+                        <span>{caregiver.experience} experience</span>
             </div>
           </div>
-        ) : !loading && (
-          <Card className="bg-white border border-slate-200 p-12 text-center shadow-lg rounded-xl">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="h-8 w-8 text-slate-400" />
+
+                    <div className="flex items-center gap-2 mb-4">
+                      {caregiver.isLicensed && (
+                        <Badge variant="secondary" className="text-xs">
+                          Licensed
+                        </Badge>
+                      )}
+                      {caregiver.isCPRCertified && (
+                        <Badge variant="secondary" className="text-xs">
+                          CPR Certified
+                        </Badge>
+                      )}
+                      {caregiver.isBackgroundChecked && (
+                        <Badge variant="secondary" className="text-xs">
+                          Background Checked
+                        </Badge>
+                      )}
             </div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">No providers found</h3>
-            <p className="text-slate-600 max-w-md mx-auto mb-6">
-              Try adjusting your search criteria or expanding your search area to find more providers.
-            </p>
-            <div className="flex justify-center">
-              <Button 
-                onClick={() => {
-                  setLocation('')
-                  setSpecialty('all')
-                  setQuery('')
-                }}
-                variant="outline"
-                className="border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 px-4 py-2 rounded-lg font-medium transition-all duration-200"
-              >
-                Clear Search
+
+                    <div className="flex gap-2">
+                      <Button asChild className="flex-1 bg-gray-900 hover:bg-gray-800 text-white">
+                        <Link href={`/appointment/book?caregiver=${caregiver.id}`}>
+                          Contact Caregiver
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="icon" className="border-gray-200">
+                        <Phone className="h-4 w-4" />
               </Button>
             </div>
           </Card>
-        )}
-        
-        {/* Loading State */}
-        {loading && (
-          <Card className="bg-white border border-slate-200 p-12 text-center shadow-lg rounded-xl">
-            <div className="w-16 h-16 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Loader2 className="h-8 w-8 text-sky-600 animate-spin" />
+                ))}
+              </div>
             </div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">Searching for providers...</h3>
-            <p className="text-slate-600">
-              We're finding the best healthcare providers in your area.
-            </p>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && showResults && caregivers.length === 0 && (
+            <div className="mt-8">
+              <Card className="p-8 text-center border-gray-200">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No caregivers found</h3>
+                <p className="text-gray-600 mb-4 max-w-md mx-auto">
+                  We couldn't find any caregivers matching your criteria. Try adjusting your requirements or location.
+                </p>
+                <StandardizedButton
+                  variant="secondary"
+                  onClick={() => {
+                    setShowResults(false)
+                    setCaregivers(mockCaregivers)
+                  }}
+                >
+                  Reset search
+                </StandardizedButton>
+              </Card>
+            </div>
+          )}
+
+          {/* Caregiver Signup Section */}
+          <div className="mt-12">
+            <Card className="p-6 border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                  Are You a Professional Caregiver?
+                </h2>
+                <p className="text-gray-600 max-w-2xl mx-auto">
+                  Join our trusted network of professional caregivers and connect with families who need compassionate, skilled care. 
+                  Earn competitive rates and work with families in your preferred locations.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6 mb-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <DollarSign className="h-6 w-6 text-green-600" />
+                  </div>
+                  <h3 className="font-medium text-gray-900 mb-1">Competitive Pay</h3>
+                  <p className="text-sm text-gray-600">Earn $25-35/hour with flexible scheduling</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <MapPin className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="font-medium text-gray-900 mb-1">Choose Your Area</h3>
+                  <p className="text-sm text-gray-600">Work in your preferred locations</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <Shield className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <h3 className="font-medium text-gray-900 mb-1">Verified Network</h3>
+                  <p className="text-sm text-gray-600">Background checked & licensed professionals</p>
+                </div>
+            </div>
+
+              <div className="text-center">
+                <PrimaryActionButton asChild className="px-8 py-3">
+                  <Link href="/providers/caregiver-signup">
+                    Apply to Join Our Network
+                  </Link>
+                </PrimaryActionButton>
+                <p className="text-sm text-gray-500 mt-3">
+                  Application takes 5-10 minutes • Background check required
+                </p>
+              </div>
           </Card>
-        )}
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // Regular provider search (existing functionality)
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <MinimalNavigation />
+      <div className="pt-16">
+        <MinimalProviderSearch />
       </div>
     </div>
   )

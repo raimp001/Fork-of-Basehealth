@@ -92,12 +92,25 @@ PROVIDER_SYSTEM_DOCUMENTATION.md       # Complete system documentation
    pnpm install
    ```
 
-2. **Start development server:**
+2. **Set up environment variables:**
+   Create a `.env.local` file in the root directory:
+   ```bash
+   # OpenAI API Key for provider search fallback
+   OPENAI_API_KEY=your-openai-api-key-here
+   
+   # HealthDB API Key (optional)
+   HEALTHDB_API_KEY=your-healthdb-api-key-here
+   
+   # Google Places API Key (optional)
+   GOOGLE_PLACES_API_KEY=your-google-places-api-key-here
+   ```
+
+3. **Start development server:**
    ```bash
    pnpm dev
    ```
 
-3. **Access the system:**
+4. **Access the system:**
    - Provider Signup: `http://localhost:3000/providers/signup`
    - Admin Portal: `http://localhost:3000/admin`
 

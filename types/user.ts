@@ -28,7 +28,7 @@ export interface Provider extends User {
   yearsOfExperience: number
   bio: string
   address: Address
-  availability: Availability
+  availability: Availability | string // Allow flexible availability format
   consultationFee: number
   rating: number
   reviewCount: number
@@ -45,6 +45,15 @@ export interface Provider extends User {
     latitude: number
     longitude: number
   }
+  // Search-related optional properties
+  relevanceScore?: number
+  distance?: number | null
+  npi?: string
+  zip?: string
+  gender?: string
+  languages?: string[]
+  insurance?: string[]
+  acceptingPatients?: boolean
 }
 
 export interface Admin extends User {

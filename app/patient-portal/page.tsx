@@ -1,213 +1,401 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { Card } from "@/components/ui/card"
+import { StandardizedButton, PrimaryActionButton } from "@/components/ui/standardized-button"
+import { Badge } from "@/components/ui/badge"
+import { StandardizedInput, FormSection } from "@/components/ui/standardized-form"
+import { LoadingSpinner, PageLoading } from "@/components/ui/loading"
+import { FormError, useErrorHandler } from "@/components/ui/error-boundary"
+import { components } from "@/lib/design-system"
+import { 
+  Activity, 
+  Calendar, 
+  FileText, 
+  Heart, 
+  Search, 
+  FlaskConical, 
+  ArrowRight,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  TrendingUp,
+  Users,
+  Pill,
+  Lock,
+  User
+} from "lucide-react"
+import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, User, Activity, FileText, Calendar, MessageSquare, Wallet, Shield, Heart, Stethoscope, Pill, ChevronRight, Zap, UserCheck, Database, Settings } from "lucide-react"
 
 export default function PatientPortalPage() {
-  return (
-    <div className="min-h-screen bg-healthcare-hero">
-      {/* Enhanced Header Navigation */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-cyan-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-sky-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                <Heart className="h-6 w-6 text-white" />
-              </div>
-              <div className="flex items-center gap-2">
-                <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-sky-600 to-cyan-600 bg-clip-text text-transparent hover:from-sky-700 hover:to-cyan-700 transition-all duration-200">
-                  BaseHealth
-                </Link>
-                <span className="text-sm text-gray-500 font-medium">Patient Portal</span>
-              </div>
-            </div>
-            <nav className="flex items-center gap-6">
-              <Button 
-                asChild 
-                variant="ghost" 
-                className="text-sky-600 hover:text-sky-700 hover:bg-sky-50 font-medium px-4 py-2 rounded-lg transition-all duration-200"
-              >
-                <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                  <Database className="h-4 w-4" />
-                  HealthDB.ai
-                </a>
-              </Button>
-              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg shadow-sm">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-emerald-700">Patient Portal</span>
-              </div>
-              <Button
-                asChild
-                variant="ghost"
-                className="text-slate-700 hover:text-violet-600 hover:bg-violet-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
-              >
-                <Link href="/settings" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Settings
-                </Link>
-              </Button>
-            </nav>
-          </div>
-        </div>
-      </header>
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [loginForm, setLoginForm] = useState({
+    email: '',
+    password: ''
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const { error, setError, clearError } = useErrorHandler()
 
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+  // Check authentication status on mount
+  useEffect(() => {
+    const authStatus = localStorage.getItem('patient_authenticated')
+    if (authStatus === 'true') {
+      setIsAuthenticated(true)
+    }
+  }, [])
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+
+    // Simulate authentication
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    if (loginForm.email && loginForm.password) {
+      localStorage.setItem('patient_authenticated', 'true')
+      setIsAuthenticated(true)
+    } else {
+      setError('Please enter valid credentials')
+    }
+    setIsLoading(false)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('patient_authenticated')
+    setIsAuthenticated(false)
+    setLoginForm({ email: '', password: '' })
+  }
+
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <MinimalNavigation />
         
-        <main className="relative px-4 sm:px-6 lg:px-8 py-12">
-          <div className="max-w-7xl mx-auto">
-            {/* Header Section */}
-            <div className="text-center mb-12">
-              <div className="flex items-center justify-center gap-4 mb-6">
-                <Link href="/" className="text-sky-500 hover:text-sky-600 transition-colors group">
-                  <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform duration-200" />
-                </Link>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 text-sky-700 text-sm font-medium">
-                  <Shield className="h-4 w-4" />
-                  HIPAA Compliant & Secure
-                </div>
+        <main className="max-w-md mx-auto px-4 sm:px-6 py-8 pt-24">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-4">
+              <Lock className="h-4 w-4" />
+              Secure Access
+            </div>
+            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+              Patient Portal Sign In
+            </h1>
+            <p className="text-gray-600">
+              Access your health dashboard, medical records, and medication management securely.
+            </p>
+          </div>
+
+          <Card className="p-6 border-gray-100">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <StandardizedInput
+                  id="email"
+                  type="email"
+                  label="Email Address"
+                  value={loginForm.email}
+                  onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter your email"
+                  required
+                />
               </div>
               
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">
-                Your Health Dashboard
-              </h1>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                Access your complete health profile, connect with providers, and manage your wellness journey—all in one secure place.
+              <div>
+                <StandardizedInput
+                  id="password"
+                  type="password"
+                  label="Password"
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+
+              {error && (
+                <FormError error={error} onDismiss={clearError} />
+              )}
+
+              <PrimaryActionButton 
+                type="submit" 
+                disabled={isLoading}
+                loading={isLoading}
+                loadingText="Signing in..."
+                className="w-full"
+              >
+                <User className="h-4 w-4" />
+                Sign In to Patient Portal
+              </PrimaryActionButton>
+            </form>
+
+            <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+              <p className="text-sm text-gray-600 mb-3">
+                Don't have an account?
               </p>
+              <StandardizedButton asChild variant="secondary">
+                <Link href="/register">
+                  Create Patient Account
+                </Link>
+              </StandardizedButton>
             </div>
+          </Card>
 
-            {/* Main Service Cards */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {/* My Account - Enhanced */}
-              <div className="group relative overflow-hidden bg-gradient-to-br from-sky-50 to-cyan-100 rounded-3xl p-8 border border-sky-200 hover:shadow-xl transition-all duration-300">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-sky-500/10 rounded-full -mr-10 -mt-10"></div>
-                <div className="relative">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-sky-500 to-cyan-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Shield className="h-8 w-8 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900">My Health Profile</h3>
-                      <p className="text-sm text-sky-600 font-medium">Secure & Private</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-6 leading-relaxed">
-                    Access your complete medical history, lab results, prescriptions, and provider communications in one secure location.
-                  </p>
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      HIPAA Compliant
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      End-to-End Encrypted
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      Real-time Updates
-                    </div>
-                  </div>
-                  <Button asChild className="w-full bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 group-hover:scale-105">
-                    <Link href="/medical-profile" className="flex items-center justify-center gap-2">
-                      Access Profile
-                      <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-
-              {/* AI Screening - Enhanced */}
-              <div className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 to-green-100 rounded-3xl p-8 border border-emerald-200 hover:shadow-xl transition-all duration-300">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full -mr-10 -mt-10"></div>
-                <div className="relative">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Zap className="h-8 w-8 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900">AI Health Screening</h3>
-                      <p className="text-sm text-emerald-600 font-medium">Powered by AI</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-6 leading-relaxed">
-                    Get personalized health recommendations and preventive care suggestions based on your unique health profile and risk factors.
-                  </p>
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      Evidence-based Guidelines
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      Personalized Recommendations
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      Risk Assessment
-                    </div>
-                  </div>
-                  <Button asChild className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 group-hover:scale-105">
-                    <Link href="/screening" className="flex items-center justify-center gap-2">
-                      Start Screening
-                      <Activity className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Health Wallet - Enhanced */}
-              <div className="group relative overflow-hidden bg-gradient-to-br from-violet-50 to-purple-100 rounded-3xl p-8 border border-violet-200 hover:shadow-xl transition-all duration-300">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-violet-500/10 rounded-full -mr-10 -mt-10"></div>
-                <div className="relative">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Wallet className="h-8 w-8 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900">Health Wallet</h3>
-                      <p className="text-sm text-violet-600 font-medium">Smart Payments</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-6 leading-relaxed">
-                    Manage insurance, payments, and financial health tools. Save with crypto payments and track your healthcare spending.
-                  </p>
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
-                      Insurance Management
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
-                      Crypto Payments (2.5% off)
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
-                      Spending Analytics
-                    </div>
-                  </div>
-                  <Button asChild className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 group-hover:scale-105">
-                    <Link href="/wallet" className="flex items-center justify-center gap-2">
-                      Open Wallet
-                      <Wallet className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500">
+              🔒 Your health information is protected by HIPAA and industry-standard encryption
+            </p>
           </div>
         </main>
-
-        {/* Background Pattern */}
-        <style jsx>{`
-          .bg-grid-pattern {
-            background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
-            background-size: 50px 50px;
-          }
-        `}</style>
       </div>
+    )
+  }
+
+  // Show authenticated patient portal
+  return <AuthenticatedPatientPortal onLogout={handleLogout} />
+}
+
+function AuthenticatedPatientPortal({ onLogout }: { onLogout: () => void }) {
+  const [recentActivity] = useState([
+    {
+      id: 1,
+      type: "screening",
+      title: "Health Assessment Completed",
+      description: "Your personalized screening recommendations are ready",
+      date: "2 hours ago",
+      status: "completed"
+    },
+    {
+      id: 2,
+      type: "appointment",
+      title: "Upcoming Appointment",
+      description: "Dr. Sarah Johnson - Cardiology consultation",
+      date: "Tomorrow at 2:00 PM",
+      status: "upcoming"
+    },
+    {
+      id: 3,
+      type: "trial",
+      title: "Clinical Trial Match",
+      description: "3 new trials match your health profile",
+      date: "1 day ago",
+      status: "new"
+    }
+  ])
+
+  const [healthMetrics] = useState({
+    lastScreening: "2 weeks ago",
+    nextScreening: "Due in 2 weeks",
+    activeTrials: 3,
+    upcomingAppointments: 1
+  })
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <MinimalNavigation />
+
+      <main className="pt-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
+                <Activity className="h-4 w-4" />
+                Patient Dashboard
+              </div>
+              <StandardizedButton 
+                onClick={onLogout}
+                variant="secondary"
+                size="sm"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Sign Out
+              </StandardizedButton>
+            </div>
+            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+              Welcome back, John
+            </h1>
+            <p className="text-gray-600">
+              Here's your personalized health overview and next steps
+            </p>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Link href="/screening">
+              <Card className="p-6 border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Heart className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Health Screening</h3>
+                    <p className="text-sm text-gray-600">Update your assessment</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/providers/search">
+              <Card className="p-6 border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Search className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Find Providers</h3>
+                    <p className="text-sm text-gray-600">Book appointments</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/clinical-trials">
+              <Card className="p-6 border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <FlaskConical className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Clinical Trials</h3>
+                    <p className="text-sm text-gray-600">Explore research studies</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/medication">
+              <Card className="p-6 border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Pill className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Medication Management</h3>
+                    <p className="text-sm text-gray-600">Track medications & refills</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          </div>
+
+          {/* Health Overview */}
+          <div className="grid lg:grid-cols-3 gap-8 mb-8">
+            {/* Health Metrics */}
+            <div className="lg:col-span-2">
+              <Card className="p-6 border-gray-100">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Health Overview</h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Last Screening</span>
+                      <span className="text-sm font-medium text-gray-900">{healthMetrics.lastScreening}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Next Screening</span>
+                      <span className="text-sm font-medium text-gray-900">{healthMetrics.nextScreening}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Active Trials</span>
+                      <span className="text-sm font-medium text-gray-900">{healthMetrics.activeTrials}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Upcoming Appointments</span>
+                      <span className="text-sm font-medium text-gray-900">{healthMetrics.upcomingAppointments}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-blue-900">Health Score</p>
+                      <p className="text-2xl font-bold text-blue-600">85/100</p>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-green-900">Care Team</p>
+                      <p className="text-2xl font-bold text-green-600">3</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Recent Activity */}
+            <div>
+              <Card className="p-6 border-gray-100">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Activity</h2>
+                <div className="space-y-4">
+                  {recentActivity.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        activity.status === 'completed' ? 'bg-green-100' :
+                        activity.status === 'upcoming' ? 'bg-blue-100' :
+                        'bg-purple-100'
+                      }`}>
+                        {activity.status === 'completed' ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : activity.status === 'upcoming' ? (
+                          <Clock className="h-4 w-4 text-blue-600" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-purple-600" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                        <p className="text-xs text-gray-600">{activity.description}</p>
+                        <p className="text-xs text-gray-500 mt-1">{activity.date}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <StandardizedButton variant="secondary" className="w-full mt-4">
+                  View all activity
+                </StandardizedButton>
+              </Card>
+            </div>
+          </div>
+
+          {/* Recommended Actions */}
+          <Card className="p-6 border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Recommended Actions</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="h-8 w-8 text-yellow-600" />
+                </div>
+                <h3 className="font-medium text-gray-900 mb-2">Update Health Profile</h3>
+                <p className="text-sm text-gray-600 mb-4">Keep your information current for better recommendations</p>
+                <PrimaryActionButton size="sm">
+                  Update Profile
+                </PrimaryActionButton>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="font-medium text-gray-900 mb-2">Schedule Checkup</h3>
+                <p className="text-sm text-gray-600 mb-4">Book your annual physical examination</p>
+                <PrimaryActionButton size="sm">
+                  Book Appointment
+                </PrimaryActionButton>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FlaskConical className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="font-medium text-gray-900 mb-2">Explore Trials</h3>
+                <p className="text-sm text-gray-600 mb-4">Find clinical trials that match your health profile</p>
+                <PrimaryActionButton size="sm">
+                  Browse Trials
+                </PrimaryActionButton>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </main>
     </div>
   )
-} 
+}

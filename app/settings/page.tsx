@@ -1,197 +1,290 @@
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Heart, Database, User, Shield, Bell, Lock, CreditCard, Users, Mail, Phone, Globe, MapPin, Calendar, Activity } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
+  User, 
+  Bell, 
+  Shield, 
+  Globe,
+  CreditCard,
+  LogOut,
+  ChevronRight
+} from "lucide-react"
+import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 
 export default function SettingsPage() {
+  const [notifications, setNotifications] = useState({
+    appointments: true,
+    trials: true,
+    insights: false
+  })
+
+  const [privacy, setPrivacy] = useState({
+    shareData: false,
+    location: true
+  })
+
   return (
-    <div className="min-h-screen bg-healthcare-hero">
-      {/* Enhanced Header Navigation */}
-      <header className="bg-white/90 backdrop-blur-sm border-b border-cyan-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-sky-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                <Heart className="h-6 w-6 text-white" />
-              </div>
-              <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-sky-600 to-cyan-600 bg-clip-text text-transparent hover:from-sky-700 hover:to-cyan-700 transition-all duration-200">
-                BaseHealth
-              </Link>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      <MinimalNavigation />
 
-            <nav className="flex items-center gap-6">
-              <Button 
-                asChild 
-                variant="ghost" 
-                className="text-sky-600 hover:text-sky-700 hover:bg-sky-50 font-medium px-4 py-2 rounded-lg transition-all duration-200"
-              >
-                <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                  <Database className="h-4 w-4" />
-                  HealthDB.ai
-                </a>
-              </Button>
-              <Button
-                asChild
-                variant="ghost"
-                className="text-slate-700 hover:text-emerald-600 hover:bg-emerald-50 px-4 py-2 rounded-lg font-medium transition-all duration-200"
-              >
-                <Link href="/patient-portal" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Patient Portal
-                </Link>
-              </Button>
-              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-lg shadow-sm">
-                <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-violet-700">Settings</span>
-              </div>
-            </nav>
-          </div>
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 pt-24">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Settings</h1>
+          <p className="text-gray-600">Manage your account and preferences</p>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="px-4 sm:px-6 lg:px-8 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
-            <Link href="/" className="text-gray-500 hover:text-sky-600 transition-colors group">
-              <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform duration-200" />
-            </Link>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">Settings</h1>
-          </div>
+        {/* Settings Tabs */}
+        <Tabs defaultValue="account" className="space-y-6">
+          <TabsList className="w-full justify-start bg-white border border-gray-200 p-1">
+            <TabsTrigger value="account" className="data-[state=active]:bg-gray-100">
+              <User className="h-4 w-4 mr-2" />
+              Account
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="data-[state=active]:bg-gray-100">
+              <Bell className="h-4 w-4 mr-2" />
+              Notifications
+            </TabsTrigger>
+            <TabsTrigger value="privacy" className="data-[state=active]:bg-gray-100">
+              <Shield className="h-4 w-4 mr-2" />
+              Privacy
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="data-[state=active]:bg-gray-100">
+              <Globe className="h-4 w-4 mr-2" />
+              Preferences
+            </TabsTrigger>
+          </TabsList>
 
-          <div className="space-y-6">
-            {/* Account Settings */}
-            <div className="healthcare-card">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-sky-100 rounded-lg">
-                  <User className="h-6 w-6 text-sky-600" />
-                </div>
-                <h2 className="text-xl font-semibold">Account Settings</h2>
-              </div>
+          {/* Account Tab */}
+          <TabsContent value="account">
+            <Card className="p-6 border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Account Information</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                    placeholder="Enter your full name"
+                  <Label htmlFor="name" className="text-sm text-gray-700">Full Name</Label>
+                  <Input 
+                    id="name"
+                    placeholder="John Doe"
+                    className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                  <input 
-                    type="email" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                    placeholder="Enter your email"
+                  <Label htmlFor="email" className="text-sm text-gray-700">Email Address</Label>
+                  <Input 
+                    id="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                    placeholder="City, State or ZIP code"
+                  <Label htmlFor="phone" className="text-sm text-gray-700">Phone Number</Label>
+                  <Input 
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 (555) 123-4567"
+                    className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
                   />
                 </div>
-                <Button className="bg-healthcare-primary hover:bg-sky-700 text-white">
+                <div>
+                  <Label htmlFor="location" className="text-sm text-gray-700">Location</Label>
+                  <Input 
+                    id="location"
+                    placeholder="City, State"
+                    className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
+                  />
+                </div>
+                <Button className="bg-gray-900 hover:bg-gray-800 text-white">
                   Save Changes
                 </Button>
               </div>
-            </div>
+            </Card>
 
-            {/* Notification Settings */}
-            <div className="healthcare-card">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-emerald-100 rounded-lg">
-                  <Bell className="h-6 w-6 text-emerald-600" />
-                </div>
-                <h2 className="text-xl font-semibold">Notifications</h2>
-              </div>
+            {/* Password Change */}
+            <Card className="p-6 border-gray-100 mt-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Change Password</h2>
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Clinical Trial Alerts</h3>
-                    <p className="text-sm text-gray-600">Get notified about new trials matching your conditions</p>
-                  </div>
-                  <input type="checkbox" className="h-4 w-4 text-sky-600 rounded focus:ring-sky-500" defaultChecked aria-label="Clinical trial alerts" />
+                <div>
+                  <Label htmlFor="current-password" className="text-sm text-gray-700">Current Password</Label>
+                  <Input 
+                    id="current-password"
+                    type="password"
+                    className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
+                  />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Appointment Reminders</h3>
-                    <p className="text-sm text-gray-600">Receive reminders for upcoming appointments</p>
-                  </div>
-                  <input type="checkbox" className="h-4 w-4 text-sky-600 rounded focus:ring-sky-500" defaultChecked aria-label="Appointment reminders" />
+                <div>
+                  <Label htmlFor="new-password" className="text-sm text-gray-700">New Password</Label>
+                  <Input 
+                    id="new-password"
+                    type="password"
+                    className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
+                  />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Health Insights</h3>
-                    <p className="text-sm text-gray-600">Weekly health tips and insights</p>
-                  </div>
-                  <input type="checkbox" className="h-4 w-4 text-sky-600 rounded focus:ring-sky-500" aria-label="Health insights" />
+                <div>
+                  <Label htmlFor="confirm-password" className="text-sm text-gray-700">Confirm New Password</Label>
+                  <Input 
+                    id="confirm-password"
+                    type="password"
+                    className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
+                  />
                 </div>
-              </div>
-            </div>
-
-            {/* Privacy Settings */}
-            <div className="healthcare-card">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-violet-100 rounded-lg">
-                  <Shield className="h-6 w-6 text-violet-600" />
-                </div>
-                <h2 className="text-xl font-semibold">Privacy & Security</h2>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Share Data with healthdb.ai</h3>
-                    <p className="text-sm text-gray-600">Contribute anonymized health data for research</p>
-                  </div>
-                  <input type="checkbox" className="h-4 w-4 text-sky-600 rounded focus:ring-sky-500" aria-label="Share data with healthdb.ai" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Location Services</h3>
-                    <p className="text-sm text-gray-600">Allow location access for nearby clinical trials</p>
-                  </div>
-                  <input type="checkbox" className="h-4 w-4 text-sky-600 rounded focus:ring-sky-500" defaultChecked aria-label="Location services" />
-                </div>
-                <Button variant="outline" className="border-red-500 text-red-600 hover:bg-red-50">
-                  Delete Account
+                <Button variant="outline" className="border-gray-200">
+                  Update Password
                 </Button>
               </div>
-            </div>
+            </Card>
+          </TabsContent>
 
-            {/* Language & Region */}
-            <div className="healthcare-card">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-cyan-100 rounded-lg">
-                  <Globe className="h-6 w-6 text-cyan-600" />
+          {/* Notifications Tab */}
+          <TabsContent value="notifications">
+            <Card className="p-6 border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Notification Preferences</h2>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Appointment Reminders</h3>
+                    <p className="text-sm text-gray-600 mt-1">Get notified about upcoming appointments</p>
+                  </div>
+                  <Switch 
+                    checked={notifications.appointments}
+                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, appointments: checked }))}
+                  />
                 </div>
-                <h2 className="text-xl font-semibold">Language & Region</h2>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Clinical Trial Updates</h3>
+                    <p className="text-sm text-gray-600 mt-1">New trials matching your health profile</p>
+                  </div>
+                  <Switch 
+                    checked={notifications.trials}
+                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, trials: checked }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Health Insights</h3>
+                    <p className="text-sm text-gray-600 mt-1">Weekly health tips and recommendations</p>
+                  </div>
+                  <Switch 
+                    checked={notifications.insights}
+                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, insights: checked }))}
+                  />
+                </div>
               </div>
+            </Card>
+          </TabsContent>
+
+          {/* Privacy Tab */}
+          <TabsContent value="privacy">
+            <Card className="p-6 border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Privacy Settings</h2>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Share Health Data</h3>
+                    <p className="text-sm text-gray-600 mt-1">Contribute anonymized data for medical research</p>
+                  </div>
+                  <Switch 
+                    checked={privacy.shareData}
+                    onCheckedChange={(checked) => setPrivacy(prev => ({ ...prev, shareData: checked }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Location Services</h3>
+                    <p className="text-sm text-gray-600 mt-1">Find nearby providers and clinical trials</p>
+                  </div>
+                  <Switch 
+                    checked={privacy.location}
+                    onCheckedChange={(checked) => setPrivacy(prev => ({ ...prev, location: checked }))}
+                  />
+                </div>
+              </div>
+            </Card>
+
+            {/* Data Management */}
+            <Card className="p-6 border-gray-100 mt-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Data Management</h2>
+              <div className="space-y-4">
+                <Button variant="outline" className="w-full justify-between border-gray-200">
+                  Download My Data
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" className="w-full justify-between border-red-200 text-red-600 hover:bg-red-50">
+                  Delete Account
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* Preferences Tab */}
+          <TabsContent value="preferences">
+            <Card className="p-6 border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Preferences</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors" aria-label="Language selection">
-                    <option>English (US)</option>
-                    <option>Spanish</option>
-                    <option>French</option>
-                    <option>German</option>
-                  </select>
+                  <Label htmlFor="language" className="text-sm text-gray-700">Language</Label>
+                  <Select defaultValue="en">
+                    <SelectTrigger id="language" className="mt-1 border-gray-200">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="es">Español</SelectItem>
+                      <SelectItem value="fr">Français</SelectItem>
+                      <SelectItem value="de">Deutsch</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Time Zone</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors" aria-label="Time zone selection">
-                    <option>Pacific Time (PT)</option>
-                    <option>Mountain Time (MT)</option>
-                    <option>Central Time (CT)</option>
-                    <option>Eastern Time (ET)</option>
-                  </select>
+                  <Label htmlFor="timezone" className="text-sm text-gray-700">Time Zone</Label>
+                  <Select defaultValue="pst">
+                    <SelectTrigger id="timezone" className="mt-1 border-gray-200">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pst">Pacific Time (PT)</SelectItem>
+                      <SelectItem value="mst">Mountain Time (MT)</SelectItem>
+                      <SelectItem value="cst">Central Time (CT)</SelectItem>
+                      <SelectItem value="est">Eastern Time (ET)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="units" className="text-sm text-gray-700">Measurement Units</Label>
+                  <Select defaultValue="imperial">
+                    <SelectTrigger id="units" className="mt-1 border-gray-200">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="imperial">Imperial (lb, ft)</SelectItem>
+                      <SelectItem value="metric">Metric (kg, cm)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Sign Out */}
+        <Card className="p-6 border-gray-100 mt-6">
+          <Button variant="outline" className="w-full justify-center border-gray-200 text-gray-700 hover:bg-gray-50">
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </Card>
       </main>
     </div>
   )
-} 
+}

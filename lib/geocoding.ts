@@ -35,6 +35,78 @@ function toRadians(degrees: number): number {
   return degrees * (Math.PI / 180)
 }
 
+// Optimized ZIP code range lookup using binary search approach
+function getStateFromZipRange(zipNum: number): string | undefined {
+  // Sorted ZIP code ranges for efficient lookup
+  const zipRanges = [
+    { min: 1001, max: 5544, state: 'MA' },
+    { min: 6001, max: 6928, state: 'CT' },
+    { min: 7001, max: 8989, state: 'NJ' },
+    { min: 10001, max: 14975, state: 'NY' },
+    { min: 15001, max: 19640, state: 'PA' },
+    { min: 20001, max: 20599, state: 'DC' },
+    { min: 21001, max: 21930, state: 'MD' },
+    { min: 22001, max: 24658, state: 'VA' },
+    { min: 25001, max: 26886, state: 'WV' },
+    { min: 27001, max: 28909, state: 'NC' },
+    { min: 29001, max: 29948, state: 'SC' },
+    { min: 30001, max: 31999, state: 'GA' },
+    { min: 32001, max: 34997, state: 'FL' },
+    { min: 35001, max: 36925, state: 'AL' },
+    { min: 37001, max: 38589, state: 'TN' },
+    { min: 39001, max: 39776, state: 'MS' },
+    { min: 40001, max: 42788, state: 'KY' },
+    { min: 43001, max: 45999, state: 'OH' },
+    { min: 46001, max: 47997, state: 'IN' },
+    { min: 48001, max: 49971, state: 'MI' },
+    { min: 50001, max: 52809, state: 'IA' },
+    { min: 53001, max: 54990, state: 'WI' },
+    { min: 55001, max: 56763, state: 'MN' },
+    { min: 57001, max: 57799, state: 'SD' },
+    { min: 58001, max: 58856, state: 'ND' },
+    { min: 59001, max: 59937, state: 'MT' },
+    { min: 60001, max: 62999, state: 'IL' },
+    { min: 63001, max: 65899, state: 'MO' },
+    { min: 66001, max: 67954, state: 'KS' },
+    { min: 68001, max: 69367, state: 'NE' },
+    { min: 70001, max: 71497, state: 'LA' },
+    { min: 72001, max: 72959, state: 'AR' },
+    { min: 73001, max: 74966, state: 'OK' },
+    { min: 75001, max: 79999, state: 'TX' },
+    { min: 80001, max: 81658, state: 'CO' },
+    { min: 82001, max: 83414, state: 'WY' },
+    { min: 83001, max: 83876, state: 'ID' },
+    { min: 84001, max: 84784, state: 'UT' },
+    { min: 85001, max: 86556, state: 'AZ' },
+    { min: 87001, max: 88441, state: 'NM' },
+    { min: 89001, max: 89883, state: 'NV' },
+    { min: 90001, max: 96162, state: 'CA' },
+    { min: 96701, max: 96898, state: 'HI' },
+    { min: 97001, max: 97920, state: 'OR' },
+    { min: 98001, max: 99403, state: 'WA' },
+    { min: 99501, max: 99950, state: 'AK' }
+  ]
+  
+  // Binary search for efficient lookup
+  let left = 0
+  let right = zipRanges.length - 1
+  
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2)
+    const range = zipRanges[mid]
+    
+    if (zipNum >= range.min && zipNum <= range.max) {
+      return range.state
+    } else if (zipNum < range.min) {
+      right = mid - 1
+    } else {
+      left = mid + 1
+    }
+  }
+  
+  return undefined
+}
+
 // Major US cities and states coordinates database
 export const locationCoordinates: Record<string, Coordinates> = {
   // California cities
@@ -875,98 +947,170 @@ export const zipCodeMapping: Record<string, { city: string, state: string }> = {
   '33199': { city: 'Miami', state: 'FL' },
 }
 
-// Convert ZIP code to city/state for NPI API
+// Optimized ZIP code to city/state conversion with improved accuracy
 export function convertZipToLocation(input: string): { city?: string, state?: string } {
   const trimmed = input.trim()
   
-  // Check if it's a ZIP code (5 digits)
-  if (/^\d{5}$/.test(trimmed)) {
-    const zipData = zipCodeMapping[trimmed]
+  // Check if it's a ZIP code (5 digits, optionally with +4)
+  const zipMatch = trimmed.match(/^(\d{5})(?:-\d{4})?$/)
+  if (zipMatch) {
+    const zipCode = zipMatch[1]
+    const zipData = zipCodeMapping[zipCode]
     if (zipData) {
       return { city: zipData.city, state: zipData.state }
     }
     
-    // If ZIP code not in our mapping, try to infer state from ZIP code ranges
-    const zipNum = parseInt(trimmed)
-    let state = ''
-    
-    // Common ZIP code ranges by state
-    if (zipNum >= 98001 && zipNum <= 99403) state = 'WA'
-    else if (zipNum >= 90001 && zipNum <= 96162) state = 'CA'
-    else if (zipNum >= 75001 && zipNum <= 79999) state = 'TX'
-    else if (zipNum >= 77001 && zipNum <= 77999) state = 'TX'
-    else if (zipNum >= 10001 && zipNum <= 14975) state = 'NY'
-    else if (zipNum >= 60001 && zipNum <= 62999) state = 'IL'
-    else if (zipNum >= 30001 && zipNum <= 31999) state = 'GA'
-    else if (zipNum >= 20001 && zipNum <= 20599) state = 'DC'
-    else if (zipNum >= 21001 && zipNum <= 21930) state = 'MD'
-    else if (zipNum >= 22001 && zipNum <= 24658) state = 'VA'
-    else if (zipNum >= 27001 && zipNum <= 28909) state = 'NC'
-    else if (zipNum >= 29001 && zipNum <= 29948) state = 'SC'
-    else if (zipNum >= 35001 && zipNum <= 36925) state = 'AL'
-    else if (zipNum >= 37001 && zipNum <= 38589) state = 'TN'
-    else if (zipNum >= 39001 && zipNum <= 39776) state = 'MS'
-    else if (zipNum >= 40001 && zipNum <= 42788) state = 'KY'
-    else if (zipNum >= 46001 && zipNum <= 47997) state = 'IN'
-    else if (zipNum >= 48001 && zipNum <= 49971) state = 'MI'
-    else if (zipNum >= 50001 && zipNum <= 52809) state = 'IA'
-    else if (zipNum >= 53001 && zipNum <= 54990) state = 'WI'
-    else if (zipNum >= 55001 && zipNum <= 56763) state = 'MN'
-    else if (zipNum >= 58001 && zipNum <= 58856) state = 'ND'
-    else if (zipNum >= 57001 && zipNum <= 57799) state = 'SD'
-    else if (zipNum >= 59001 && zipNum <= 59937) state = 'MT'
-    else if (zipNum >= 68001 && zipNum <= 69367) state = 'NE'
-    else if (zipNum >= 66001 && zipNum <= 67954) state = 'KS'
-    else if (zipNum >= 70001 && zipNum <= 71497) state = 'LA'
-    else if (zipNum >= 72001 && zipNum <= 72959) state = 'AR'
-    else if (zipNum >= 80001 && zipNum <= 81658) state = 'CO'
-    else if (zipNum >= 82001 && zipNum <= 83414) state = 'WY'
-    else if (zipNum >= 83001 && zipNum <= 83876) state = 'ID'
-    else if (zipNum >= 84001 && zipNum <= 84784) state = 'UT'
-    else if (zipNum >= 85001 && zipNum <= 86556) state = 'AZ'
-    else if (zipNum >= 87001 && zipNum <= 88441) state = 'NM'
-    else if (zipNum >= 89001 && zipNum <= 89883) state = 'NV'
-    else if (zipNum >= 97001 && zipNum <= 97920) state = 'OR'
-    else if (zipNum >= 96701 && zipNum <= 96898) state = 'HI'
-    else if (zipNum >= 99501 && zipNum <= 99950) state = 'AK'
-    else if (zipNum >= 1001 && zipNum <= 5544) state = 'MA'
-    else if (zipNum >= 6001 && zipNum <= 6928) state = 'CT'
-    else if (zipNum >= 7001 && zipNum <= 8989) state = 'NJ'
-    else if (zipNum >= 3001 && zipNum <= 3897) state = 'NH'
-    else if (zipNum >= 4001 && zipNum <= 4992) state = 'ME'
-    else if (zipNum >= 5001 && zipNum <= 5907) state = 'VT'
-    else if (zipNum >= 2801 && zipNum <= 2940) state = 'RI'
-    else if (zipNum >= 19001 && zipNum <= 19640) state = 'PA'
-    else if (zipNum >= 25001 && zipNum <= 26886) state = 'WV'
+    // Optimized ZIP code range detection using array lookup
+    const zipNum = parseInt(zipCode)
+    const state = getStateFromZipRange(zipNum)
     
     if (state) {
       return { state }
     }
     
     // If we can't determine the state, return the ZIP as is for the search
-    return { city: trimmed }
+    return { city: zipCode }
   }
   
-  // If not a ZIP code or not found, parse as city, state
-  const parts = trimmed.split(',').map(part => part.trim())
-  if (parts.length >= 2) {
-    // Handle state abbreviations
-    const state = parts[1].toUpperCase()
-    if (state.length === 2) {
-      return { city: parts[0], state }
+  // Improved parsing for non-ZIP code locations
+  return parseLocationString(trimmed)
+}
+
+// Enhanced location string parsing with better accuracy
+function parseLocationString(input: string): { city?: string, state?: string } {
+  const trimmed = input.trim()
+  
+  // Handle comma-separated format (City, State)
+  if (trimmed.includes(',')) {
+    const parts = trimmed.split(',').map(part => part.trim())
+    if (parts.length >= 2) {
+      const city = parts[0]
+      const stateInput = parts[1].toUpperCase()
+      
+      // Convert full state names to abbreviations if needed
+      const state = normalizeState(stateInput)
+      return { city: properCase(city), state }
     }
-    return { city: parts[0], state: parts[1] }
-  } else if (parts.length === 1) {
-    // Could be just a city or just a state
-    const part = parts[0].toUpperCase()
-    if (part.length === 2) {
-      // Assume it's a state abbreviation
-      return { state: part }
+  }
+  
+  // Handle space-separated format with known multi-word cities
+  const result = parseMultiWordCityState(trimmed)
+  if (result.city || result.state) {
+    return result
+  }
+  
+  // Handle single word or simple space-separated format
+  const parts = trimmed.split(/\s+/)
+  
+  if (parts.length === 1) {
+    const input = parts[0]
+    
+    // Check if it's a state abbreviation
+    if (input.length === 2 && /^[A-Z]{2}$/.test(input.toUpperCase())) {
+      return { state: input.toUpperCase() }
     }
-    return { city: parts[0] }
+    
+    // Check if it's a known major city
+    const cityState = getMajorCityState(input)
+    if (cityState) {
+      return cityState
+    }
+    
+    // Default to treating as city name
+    return { city: properCase(input) }
+  } else if (parts.length === 2) {
+    // Assume "City State" format
+    const cityPart = parts[0]
+    const statePart = parts[1]
+    
+    const state = normalizeState(statePart.toUpperCase())
+    return { city: properCase(cityPart), state }
+  } else {
+    // Multiple words - likely all part of city name
+    return { city: properCase(trimmed) }
+  }
+}
+
+// Parse multi-word cities with state detection
+function parseMultiWordCityState(input: string): { city?: string, state?: string } {
+  const multiWordCities = [
+    'new york', 'los angeles', 'san francisco', 'san diego', 'san antonio', 'san jose',
+    'fort worth', 'el paso', 'las vegas', 'virginia beach', 'colorado springs',
+    'santa ana', 'santa monica', 'long beach', 'baton rouge', 'new orleans',
+    'kansas city', 'oklahoma city', 'salt lake city', 'jersey city', 'saint louis',
+    'st louis', 'st paul', 'st petersburg', 'corpus christi', 'chula vista',
+    'north las vegas', 'colorado springs', 'winston salem'
+  ]
+  
+  const lowerInput = input.toLowerCase()
+  
+  for (const city of multiWordCities) {
+    if (lowerInput.startsWith(city)) {
+      const remaining = input.substring(city.length).trim()
+      const properCity = properCase(city)
+      
+      if (remaining) {
+        // Extract state from remaining text
+        const state = normalizeState(remaining.toUpperCase())
+        return { city: properCity, state }
+      } else {
+        // Just the city name
+        return { city: properCity }
+      }
+    }
   }
   
   return {}
+}
+
+// Get state for major cities
+function getMajorCityState(cityName: string): { city: string, state: string } | undefined {
+  const cityStateMapping: Record<string, string> = {
+    'seattle': 'WA', 'portland': 'OR', 'denver': 'CO', 'phoenix': 'AZ', 'tucson': 'AZ',
+    'vegas': 'NV', 'miami': 'FL', 'tampa': 'FL', 'orlando': 'FL', 'atlanta': 'GA',
+    'charlotte': 'NC', 'raleigh': 'NC', 'chicago': 'IL', 'detroit': 'MI', 
+    'milwaukee': 'WI', 'minneapolis': 'MN', 'houston': 'TX', 'dallas': 'TX', 
+    'austin': 'TX', 'philadelphia': 'PA', 'pittsburgh': 'PA', 'boston': 'MA',
+    'baltimore': 'MD', 'nashville': 'TN', 'memphis': 'TN', 'louisville': 'KY',
+    'cleveland': 'OH', 'columbus': 'OH', 'cincinnati': 'OH', 'indianapolis': 'IN',
+    'omaha': 'NE', 'albuquerque': 'NM', 'sacramento': 'CA', 'fresno': 'CA',
+    'oakland': 'CA', 'riverside': 'CA', 'anaheim': 'CA', 'bakersfield': 'CA'
+  }
+  
+  const lowerCity = cityName.toLowerCase()
+  const state = cityStateMapping[lowerCity]
+  
+  if (state) {
+    return { city: properCase(cityName), state }
+  }
+  
+  return undefined
+}
+
+// Normalize state names and abbreviations
+function normalizeState(state: string): string {
+  const stateMap: Record<string, string> = {
+    'ALABAMA': 'AL', 'ALASKA': 'AK', 'ARIZONA': 'AZ', 'ARKANSAS': 'AR', 'CALIFORNIA': 'CA',
+    'COLORADO': 'CO', 'CONNECTICUT': 'CT', 'DELAWARE': 'DE', 'FLORIDA': 'FL', 'GEORGIA': 'GA',
+    'HAWAII': 'HI', 'IDAHO': 'ID', 'ILLINOIS': 'IL', 'INDIANA': 'IN', 'IOWA': 'IA',
+    'KANSAS': 'KS', 'KENTUCKY': 'KY', 'LOUISIANA': 'LA', 'MAINE': 'ME', 'MARYLAND': 'MD',
+    'MASSACHUSETTS': 'MA', 'MICHIGAN': 'MI', 'MINNESOTA': 'MN', 'MISSISSIPPI': 'MS',
+    'MISSOURI': 'MO', 'MONTANA': 'MT', 'NEBRASKA': 'NE', 'NEVADA': 'NV', 'NEW HAMPSHIRE': 'NH',
+    'NEW JERSEY': 'NJ', 'NEW MEXICO': 'NM', 'NEW YORK': 'NY', 'NORTH CAROLINA': 'NC',
+    'NORTH DAKOTA': 'ND', 'OHIO': 'OH', 'OKLAHOMA': 'OK', 'OREGON': 'OR', 'PENNSYLVANIA': 'PA',
+    'RHODE ISLAND': 'RI', 'SOUTH CAROLINA': 'SC', 'SOUTH DAKOTA': 'SD', 'TENNESSEE': 'TN',
+    'TEXAS': 'TX', 'UTAH': 'UT', 'VERMONT': 'VT', 'VIRGINIA': 'VA', 'WASHINGTON': 'WA',
+    'WEST VIRGINIA': 'WV', 'WISCONSIN': 'WI', 'WYOMING': 'WY'
+  }
+  
+  return stateMap[state] || (state.length === 2 ? state : state)
+}
+
+// Convert string to proper case
+function properCase(str: string): string {
+  return str.split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
 }
 
 // Get coordinates for a location string

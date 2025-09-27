@@ -5,9 +5,11 @@ import { SmartBillingInsights } from "@/components/billing/smart-billing-insight
 import { CMSCompliantBilling } from "@/components/billing/cms-compliant-billing"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { StandardizedButton, PrimaryActionButton } from "@/components/ui/standardized-button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { components } from "@/lib/design-system"
+import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import Link from "next/link"
 import { 
   DollarSign, 
@@ -34,52 +36,27 @@ export default function BillingPage() {
   const providerId = "provider_456"
 
   return (
-    <div className="min-h-screen bg-healthcare-hero">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+    <div className="min-h-screen bg-gray-50">
+      <MinimalNavigation />
       
-      <div className="relative">
-        {/* Enhanced Header */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-cyan-100 sticky top-0 z-40">
-          <div className="container mx-auto px-4 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-sky-600">
-                  <Link href="/patient-portal">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Portal
-                  </Link>
-                </Button>
-                <div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">
-                    Healthcare Billing
-                  </h1>
-                  <p className="text-gray-600 mt-1">
-                    CMS-compliant billing management with smart insights
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">
-                  <Shield className="h-3 w-3 mr-1" />
-                  CMS Compliant
-                </Badge>
-                <Button variant="outline" className="border-sky-200 text-sky-600 hover:bg-sky-50">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Payment Methods
-                </Button>
-                <Button className="bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 shadow-lg">
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Make Payment
-                </Button>
-              </div>
+      <main className="pt-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-4">
+              <DollarSign className="h-4 w-4" />
+              Healthcare Billing
             </div>
+            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+              Billing & Payments
+            </h1>
+            <p className="text-gray-600">
+              CMS-compliant billing management with smart insights
+            </p>
           </div>
-        </header>
 
-        <div className="container mx-auto p-6 space-y-8">
           {/* Regulatory Alert */}
-          <Alert className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200/50 shadow-lg backdrop-blur-sm">
+          <Alert className="border-amber-200 bg-amber-50 mb-6">
             <Gavel className="h-5 w-5 text-amber-600" />
             <AlertDescription className="text-amber-800">
               <strong>2024 CMS Updates:</strong> New billing requirements for telehealth services and updated fee schedules are now in effect.{" "}
@@ -89,9 +66,9 @@ export default function BillingPage() {
             </AlertDescription>
           </Alert>
 
-          {/* Enhanced Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="p-6 border-gray-100 hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="bg-gradient-to-br from-sky-100 to-cyan-100 w-12 h-12 rounded-lg flex items-center justify-center">
@@ -152,22 +129,22 @@ export default function BillingPage() {
             </Card>
           </div>
 
-          {/* Enhanced Main Content */}
+          {/* Main Content */}
           <Tabs defaultValue="dashboard" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-4 h-14 bg-white/60 backdrop-blur-sm p-1 shadow-lg border-0">
-              <TabsTrigger value="dashboard" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-4 h-14 bg-white p-1 border border-gray-200">
+              <TabsTrigger value="dashboard" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
                 Billing Dashboard
               </TabsTrigger>
-              <TabsTrigger value="insights" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
+              <TabsTrigger value="insights" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
                 Smart Insights
               </TabsTrigger>
-              <TabsTrigger value="compliance" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
+              <TabsTrigger value="compliance" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 CMS Compliance
               </TabsTrigger>
-              <TabsTrigger value="documentation" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
+              <TabsTrigger value="documentation" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 Documentation
               </TabsTrigger>
@@ -208,9 +185,9 @@ export default function BillingPage() {
                         <p>Facility Fee: $85.00</p>
                         <p className="font-medium text-gray-900">Total Estimate: $197.00</p>
                       </div>
-                      <Button size="sm" variant="outline" className="mt-3 border-sky-200 text-sky-600 hover:bg-sky-50">
+                      <StandardizedButton size="sm" variant="secondary" className="mt-3">
                         Generate Estimate
-                      </Button>
+                      </StandardizedButton>
                     </div>
                     <div className="p-4 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
                       <h4 className="font-medium mb-2 text-gray-900">Lab Work Panel</h4>
@@ -218,9 +195,9 @@ export default function BillingPage() {
                         <p>Multiple CPT Codes</p>
                         <p className="font-medium text-gray-900">Total Estimate: $125.00 - $185.00</p>
                       </div>
-                      <Button size="sm" variant="outline" className="mt-3 border-sky-200 text-sky-600 hover:bg-sky-50">
+                      <StandardizedButton size="sm" variant="secondary" className="mt-3">
                         Generate Estimate
-                      </Button>
+                      </StandardizedButton>
                     </div>
                   </CardContent>
                 </Card>
@@ -322,9 +299,9 @@ export default function BillingPage() {
                         <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Review Needed</Badge>
                       </div>
                     </div>
-                    <Button variant="outline" className="w-full border-sky-200 text-sky-600 hover:bg-sky-50">
+                    <StandardizedButton variant="secondary" className="w-full">
                       Generate Audit Report
-                    </Button>
+                    </StandardizedButton>
                   </CardContent>
                 </Card>
               </div>
@@ -356,7 +333,7 @@ export default function BillingPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
     </div>
   )
 } 

@@ -120,9 +120,10 @@ export const medicalSpecialties = {
     'Pediatrics'
   ],
   'Cardiology': [
-    'Cardiovascular Disease',
+    'Cardiovascular Disease (Internal Medicine)',
     'Interventional Cardiology',
-    'Cardiac Electrophysiology'
+    'Cardiac Electrophysiology',
+    'Cardiovascular Disease'
   ],
   'Dermatology': [
     'Dermatology',
@@ -239,11 +240,47 @@ export async function searchProvidersBySpecialty(
       }
       
       const response = await searchProviders(searchParams)
-      allResults.push(...response.results)
+      
+      // Handle different response structures
+      if (response && response.results && Array.isArray(response.results)) {
+        allResults.push(...response.results)
+      } else if (response && Array.isArray(response)) {
+        allResults.push(...response)
+      } else if (response && response.Errors) {
+        console.warn(`NPI API Error for taxonomy "${taxonomyDesc}":`, response.Errors)
+        // Continue to next taxonomy instead of failing completely
+        continue
+      } else {
+        console.warn('Unexpected NPI API response structure:', response)
+      }
       
       // Break if we have enough results
       if (allResults.length >= limit) {
         break
+      }
+    }
+    
+    // If no results found with specific taxonomies, try a broader search
+    if (allResults.length === 0) {
+      console.log(`No results with specific taxonomies, trying broader search for specialty: ${specialty}`)
+      const broadSearchParams: NPISearchParams = {
+        enumeration_type: 'NPI-1',
+        limit: limit,
+        city,
+        state
+      }
+      
+      const broadResponse = await searchProviders(broadSearchParams)
+      if (broadResponse && broadResponse.results && Array.isArray(broadResponse.results)) {
+        // Filter results by specialty in the name or other fields
+        const filtered = broadResponse.results.filter(provider => {
+          const specialtyLower = specialty.toLowerCase()
+          return provider.taxonomies?.some(tax => 
+            tax.desc?.toLowerCase().includes(specialtyLower) ||
+            tax.desc?.toLowerCase().includes(specialtyLower.split(' ')[0])
+          )
+        })
+        allResults.push(...filtered.slice(0, limit))
       }
     }
     

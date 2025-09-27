@@ -1,13 +1,17 @@
 import { Suspense } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import HealthDashboardClient from "./client"
+import { EnhancedHealthDashboard } from "./enhanced-dashboard"
+import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 
 export default function HealthDashboardPage() {
   return (
-    <div className="container mx-auto py-6">
-      <Suspense fallback={<DashboardSkeleton />}>
-        <HealthDashboardClient />
-      </Suspense>
+    <div className="min-h-screen bg-gray-50">
+      <MinimalNavigation />
+      <div className="container mx-auto py-6 pt-24">
+        <Suspense fallback={<DashboardSkeleton />}>
+          <EnhancedHealthDashboard />
+        </Suspense>
+      </div>
     </div>
   )
 }
