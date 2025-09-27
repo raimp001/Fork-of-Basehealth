@@ -217,16 +217,17 @@ export default function ProvidersSearchPage() {
         } else {
           throw new Error(data.error || 'Failed to fetch caregivers')
         }
-      } catch (error) {
-        console.error('Error fetching caregivers:', error)
-        setError(error instanceof Error ? error : new Error('Failed to fetch caregivers'))
+      } catch (err) {
+        console.error('Error fetching caregivers:', err)
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch caregivers'
+        handleError(new Error(errorMessage))
       } finally {
         setIsLoading(false)
       }
     }
     
     fetchCaregivers()
-  }, [])
+  }, [handleError])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
