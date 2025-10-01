@@ -208,14 +208,40 @@ export default function CaregiverApplicationsPage() {
     setFilteredApplications(filtered)
   }, [applications, searchQuery, statusFilter])
 
-  const handleStatusChange = (applicationId: string, newStatus: 'approved' | 'rejected') => {
-    setApplications(prev => 
-      prev.map(app => 
-        app.id === applicationId 
-          ? { ...app, status: newStatus }
-          : app
+  const handleStatusChange = async (applicationId: string, newStatus: 'approved' | 'rejected') => {
+    try {
+      // If approving, call the approve API to add caregiver to search
+      if (newStatus === 'approved') {
+        const response = await fetch('/api/caregivers/approve', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ applicationId })
+        })
+        
+        const result = await response.json()
+        
+        if (!result.success) {
+          alert(`Failed to approve: ${result.error}`)
+          return
+        }
+        
+        alert(`Successfully approved ${result.caregiver?.name || 'caregiver'}! They will now appear in caregiver search.`)
+      }
+      
+      // Update local state
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === applicationId 
+            ? { ...app, status: newStatus }
+            : app
+        )
       )
-    )
+    } catch (error) {
+      console.error('Error updating status:', error)
+      alert('Failed to update application status')
+    }
   }
 
   const getStatusBadge = (status: string) => {

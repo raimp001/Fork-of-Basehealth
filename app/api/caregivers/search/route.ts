@@ -1,7 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Temporary in-memory database for caregivers
-const caregivers = [
+// Import applications from signup route
+// In production, this should be a shared database
+let approvedCaregivers: any[] = []
+
+// Export function to add approved caregivers
+export function addApprovedCaregiver(application: any) {
+  const caregiver = {
+    id: application.id,
+    name: `${application.firstName} ${application.lastName}`,
+    specialty: application.primarySpecialty,
+    location: application.serviceAreas?.split(',')[0] || 'Location not specified',
+    coordinates: { lat: 0, lng: 0 }, // Would need geocoding in production
+    distance: 0,
+    rating: 5.0, // New caregivers start with perfect rating
+    reviewCount: 0,
+    hourlyRate: 35, // Default rate, should be from application
+    availability: application.availableForUrgent ? "Available now" : "By appointment",
+    isLicensed: !!application.licenseNumber,
+    isCPRCertified: true, // Assume true if they're approved
+    isBackgroundChecked: true, // Must be true if approved
+    experience: application.yearsExperience || "New",
+    languages: application.languagesSpoken || ["English"],
+    image: "/placeholder.svg",
+    bio: application.carePhilosophy || "Professional caregiver committed to quality care.",
+    certifications: application.additionalCertifications?.split(',') || [],
+    services: [application.primarySpecialty],
+    email: application.email,
+    phone: application.phone
+  }
+  
+  approvedCaregivers.push(caregiver)
+  return caregiver
+}
+
+// Demo/seed caregivers - these should be removed once real caregivers sign up
+const seedCaregivers = [
   {
     id: "1",
     name: "Maria Rodriguez",
@@ -123,8 +157,11 @@ export async function POST(request: NextRequest) {
       maxDistance = 50
     } = body
 
+    // Combine approved caregivers with seed data
+    const allCaregivers = [...approvedCaregivers, ...seedCaregivers]
+    
     // Filter caregivers based on search criteria
-    let filtered = [...caregivers]
+    let filtered = [...allCaregivers]
 
     // Filter by location/distance
     if (location) {
@@ -228,11 +265,25 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Return all caregivers for browsing
+    // Combine approved caregivers with seed data
+    // In production, only use approved caregivers from database
+    const allCaregivers = [...approvedCaregivers, ...seedCaregivers]
+    
+    // If no approved caregivers exist yet, show message
+    if (approvedCaregivers.length === 0) {
+      console.log('No approved caregivers yet. Showing seed data for demo.')
+    } else {
+      console.log(`Returning ${approvedCaregivers.length} approved caregivers`)
+    }
+    
     return NextResponse.json({
       success: true,
-      results: caregivers,
-      totalCount: caregivers.length
+      results: allCaregivers,
+      totalCount: allCaregivers.length,
+      approvedCount: approvedCaregivers.length,
+      message: approvedCaregivers.length === 0 
+        ? 'No caregivers have been approved yet. Apply to become a caregiver!' 
+        : undefined
     })
   } catch (error) {
     console.error('Error fetching caregivers:', error)
