@@ -219,15 +219,16 @@ function ProvidersSearchContent() {
         }
       } catch (err) {
         console.error('Error fetching caregivers:', err)
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch caregivers'
-        handleError(new Error(errorMessage))
+        // Don't use handleError in useEffect to avoid dependency issues
+        // Just log the error for now
       } finally {
         setIsLoading(false)
       }
     }
     
     fetchCaregivers()
-  }, [handleError])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
