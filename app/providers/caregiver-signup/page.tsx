@@ -99,11 +99,53 @@ export default function CaregiverSignupPage() {
     e.preventDefault()
     setLoading(true)
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Redirect to success page
-    window.location.href = '/providers/caregiver-signup/success'
+    try {
+      // Create FormData for file upload
+      const submitData = new FormData()
+      
+      // Add all form fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          submitData.append(key, value.join(','))
+        } else {
+          submitData.append(key, value.toString())
+        }
+      })
+      
+      // Add uploaded files
+      if (uploadedFiles.governmentId) {
+        submitData.append('governmentId', uploadedFiles.governmentId)
+      }
+      if (uploadedFiles.professionalLicense) {
+        submitData.append('professionalLicense', uploadedFiles.professionalLicense)
+      }
+      if (uploadedFiles.additionalCertifications) {
+        submitData.append('additionalCertifications', uploadedFiles.additionalCertifications)
+      }
+      if (uploadedFiles.backgroundCheck) {
+        submitData.append('backgroundCheck', uploadedFiles.backgroundCheck)
+      }
+      
+      // Submit to API
+      const response = await fetch('/api/caregivers/signup', {
+        method: 'POST',
+        body: submitData
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        // Redirect to success page with application ID
+        window.location.href = `/providers/caregiver-signup/success?id=${result.applicationId}`
+      } else {
+        alert(`Error: ${result.error}`)
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('Submission error:', error)
+      alert('Failed to submit application. Please try again.')
+      setLoading(false)
+    }
   }
 
   const handleFileUpload = (field: keyof typeof uploadedFiles, file: File) => {

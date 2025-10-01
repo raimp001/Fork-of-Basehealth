@@ -129,11 +129,63 @@ const mockApplications: CaregiverApplication[] = [
 ]
 
 export default function CaregiverApplicationsPage() {
-  const [applications, setApplications] = useState<CaregiverApplication[]>(mockApplications)
-  const [filteredApplications, setFilteredApplications] = useState<CaregiverApplication[]>(mockApplications)
+  const [applications, setApplications] = useState<CaregiverApplication[]>([])
+  const [filteredApplications, setFilteredApplications] = useState<CaregiverApplication[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedApplication, setSelectedApplication] = useState<CaregiverApplication | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  
+  // Fetch applications from API
+  useEffect(() => {
+    async function fetchApplications() {
+      try {
+        const response = await fetch('/api/caregivers/signup')
+        const data = await response.json()
+        
+        if (data.success) {
+          // If no real applications, use mock data for demo
+          const apps = data.applications.length > 0 ? data.applications.map((app: any) => ({
+            id: app.id || '',
+            firstName: app.firstName || app.name?.split(' ')[0] || '',
+            lastName: app.lastName || app.name?.split(' ')[1] || '',
+            email: app.email || '',
+            phone: app.phone || '',
+            licenseNumber: app.licenseNumber || '',
+            primarySpecialty: app.primarySpecialty || app.specialty || '',
+            yearsExperience: app.yearsExperience || '',
+            serviceAreas: app.serviceAreas || '',
+            languagesSpoken: app.languagesSpoken || [],
+            acceptInsurance: app.acceptInsurance || false,
+            willingToTravel: app.willingToTravel || false,
+            availableForUrgent: app.availableForUrgent || false,
+            carePhilosophy: app.carePhilosophy || '',
+            digitalWalletAddress: app.digitalWalletAddress || '',
+            status: app.status || 'pending',
+            applicationDate: app.submittedAt || new Date().toISOString().split('T')[0],
+            documents: {
+              governmentId: app.hasAllDocuments || false,
+              professionalLicense: app.hasAllDocuments || false,
+              additionalCertifications: false,
+              backgroundCheck: false
+            }
+          })) : mockApplications
+          
+          setApplications(apps)
+          setFilteredApplications(apps)
+        }
+      } catch (error) {
+        console.error('Error fetching applications:', error)
+        // Fall back to mock data
+        setApplications(mockApplications)
+        setFilteredApplications(mockApplications)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchApplications()
+  }, [])
 
   useEffect(() => {
     let filtered = applications
