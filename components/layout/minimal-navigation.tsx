@@ -37,6 +37,8 @@ const userMenuItems = [
   { href: '/patient-portal', label: 'Dashboard', icon: User },
   { href: '/billing', label: 'Billing', icon: CreditCard },
   { href: '/wallet', label: 'Wallet', icon: DollarSign },
+  { href: '/payment/base', label: 'Base Payments', icon: Wallet, badge: 'V1' },
+  { href: '/payment/base-cds', label: 'CDS Payments', icon: Wallet, badge: 'New' },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -181,10 +183,17 @@ export function MinimalNavigation() {
                               key={item.href}
                               href={item.href}
                               onClick={() => setIsOpen(false)}
-                              className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                              className="flex items-center justify-between px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                             >
-                              <item.icon className="h-4 w-4" />
-                              {item.label}
+                              <div className="flex items-center gap-3">
+                                <item.icon className="h-4 w-4" />
+                                {item.label}
+                              </div>
+                              {item.badge && (
+                                <Badge variant="secondary" className={components.badge.primary}>
+                                  {item.badge}
+                                </Badge>
+                              )}
                             </Link>
                           ))}
                         </div>

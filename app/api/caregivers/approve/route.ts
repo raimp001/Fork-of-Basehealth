@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { addApprovedCaregiver } from '../search/route'
+import { getApplicationById, updateApplicationStatus } from '../signup/route'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,20 +13,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    // In production, fetch the application from database
-    // For now, we'll fetch from the signup endpoint
-    const signupResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/caregivers/signup?id=${applicationId}`
-    )
-    
-    if (!signupResponse.ok) {
-      return NextResponse.json({
-        success: false,
-        error: 'Application not found'
-      }, { status: 404 })
-    }
-    
-    const { application } = await signupResponse.json()
+    // Get the application from shared storage
+    const application = getApplicationById(applicationId)
     
     if (!application) {
       return NextResponse.json({
@@ -34,14 +23,17 @@ export async function POST(request: NextRequest) {
       }, { status: 404 })
     }
     
-    // Add to approved caregivers list
+    // Update application status to approved
+    updateApplicationStatus(applicationId, 'approved', 'Application approved by admin', 'Admin')
+    
+    // Add to approved caregivers list (available in search)
     const caregiver = addApprovedCaregiver({
       ...application,
       status: 'approved',
       approvedAt: new Date().toISOString()
     })
     
-    console.log(`Approved caregiver: ${caregiver.name}`)
+    console.log(`Approved caregiver: ${caregiver.name} (ID: ${caregiver.id})`)
     
     return NextResponse.json({
       success: true,

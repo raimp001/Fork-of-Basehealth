@@ -4,14 +4,40 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 
 // In-memory storage for demo (replace with database in production)
-const applications: any[] = []
+export const applications: any[] = []
+
+// Export function to get all applications (used by admin)
+export function getAllApplications() {
+  return applications
+}
+
+// Export function to get application by ID
+export function getApplicationById(id: string) {
+  return applications.find(app => app.id === id)
+}
+
+// Export function to update application status
+export function updateApplicationStatus(id: string, status: string, reviewNotes?: string, reviewedBy?: string) {
+  const index = applications.findIndex(app => app.id === id)
+  if (index !== -1) {
+    applications[index] = {
+      ...applications[index],
+      status,
+      reviewNotes,
+      reviewedBy,
+      reviewedAt: new Date().toISOString()
+    }
+    return applications[index]
+  }
+  return null
+}
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     
     // Extract form fields
-    const applicationData = {
+    const applicationData: any = {
       // Personal Information
       firstName: formData.get('firstName'),
       lastName: formData.get('lastName'),
@@ -40,7 +66,7 @@ export async function POST(request: NextRequest) {
       // Application metadata
       status: 'pending',
       submittedAt: new Date().toISOString(),
-      id: `CG-${Date.now()}`
+      id: `CG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     }
     
     // Handle file uploads
@@ -157,15 +183,10 @@ export async function GET(request: NextRequest) {
         }, { status: 404 })
       }
       
-      // Remove sensitive information
-      const { documents, ...publicInfo } = application
-      
+      // Return full application for admin/internal use
       return NextResponse.json({
         success: true,
-        application: {
-          ...publicInfo,
-          hasDocuments: Object.keys(documents || {}).length > 0
-        }
+        application: application
       })
     }
     
@@ -174,9 +195,9 @@ export async function GET(request: NextRequest) {
       
       return NextResponse.json({
         success: true,
-        applications: userApplications.map(({ documents, ...app }) => ({
+        applications: userApplications.map(app => ({
           ...app,
-          hasDocuments: Object.keys(documents || {}).length > 0
+          documentsCount: Object.keys(app.documents || {}).length
         }))
       })
     }
@@ -184,15 +205,7 @@ export async function GET(request: NextRequest) {
     // Admin endpoint - return all applications (add authentication in production)
     return NextResponse.json({
       success: true,
-      applications: applications.map(app => ({
-        id: app.id,
-        name: `${app.firstName} ${app.lastName}`,
-        email: app.email,
-        specialty: app.primarySpecialty,
-        status: app.status,
-        submittedAt: app.submittedAt,
-        hasAllDocuments: app.documents?.governmentId && app.documents?.professionalLicense
-      })),
+      applications: applications,
       total: applications.length
     })
     

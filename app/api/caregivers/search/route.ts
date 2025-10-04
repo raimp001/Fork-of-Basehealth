@@ -265,15 +265,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Combine approved caregivers with seed data
+    // Prioritize approved caregivers over seed data
     // In production, only use approved caregivers from database
     const allCaregivers = [...approvedCaregivers, ...seedCaregivers]
     
     // If no approved caregivers exist yet, show message
     if (approvedCaregivers.length === 0) {
-      console.log('No approved caregivers yet. Showing seed data for demo.')
+      console.log('⚠️  No approved caregivers yet. Showing seed data for demo.')
     } else {
-      console.log(`Returning ${approvedCaregivers.length} approved caregivers`)
+      console.log(`✅ Returning ${approvedCaregivers.length} approved caregiver(s) + ${seedCaregivers.length} seed caregivers`)
     }
     
     return NextResponse.json({
@@ -281,9 +281,10 @@ export async function GET(request: NextRequest) {
       results: allCaregivers,
       totalCount: allCaregivers.length,
       approvedCount: approvedCaregivers.length,
+      seedCount: seedCaregivers.length,
       message: approvedCaregivers.length === 0 
-        ? 'No caregivers have been approved yet. Apply to become a caregiver!' 
-        : undefined
+        ? 'No caregivers have been approved yet. Showing demo data. Apply to become a caregiver!' 
+        : `Showing ${approvedCaregivers.length} approved caregiver(s)`
     })
   } catch (error) {
     console.error('Error fetching caregivers:', error)

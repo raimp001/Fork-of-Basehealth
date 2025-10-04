@@ -135,27 +135,28 @@ export default function CaregiverApplicationsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedApplication, setSelectedApplication] = useState<CaregiverApplication | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isShowingMockData, setIsShowingMockData] = useState(false)
   
   // Fetch applications from API
   useEffect(() => {
     async function fetchApplications() {
       try {
-        const response = await fetch('/api/caregivers/signup')
+        const response = await fetch('/api/admin/caregiver-applications')
         const data = await response.json()
         
-        if (data.success) {
-          // If no real applications, use mock data for demo
-          const apps = data.applications.length > 0 ? data.applications.map((app: any) => ({
-            id: app.id || '',
-            firstName: app.firstName || app.name?.split(' ')[0] || '',
-            lastName: app.lastName || app.name?.split(' ')[1] || '',
-            email: app.email || '',
-            phone: app.phone || '',
-            licenseNumber: app.licenseNumber || '',
-            primarySpecialty: app.primarySpecialty || app.specialty || '',
-            yearsExperience: app.yearsExperience || '',
-            serviceAreas: app.serviceAreas || '',
-            languagesSpoken: app.languagesSpoken || [],
+        if (data.success && data.applications) {
+          // Transform API data to match our interface
+          const apps = data.applications.map((app: any) => ({
+            id: app.id,
+            firstName: app.firstName,
+            lastName: app.lastName,
+            email: app.email,
+            phone: app.phone,
+            licenseNumber: app.licenseNumber || 'N/A',
+            primarySpecialty: app.primarySpecialty,
+            yearsExperience: app.yearsExperience || 'N/A',
+            serviceAreas: app.serviceAreas || 'N/A',
+            languagesSpoken: Array.isArray(app.languagesSpoken) ? app.languagesSpoken : [],
             acceptInsurance: app.acceptInsurance || false,
             willingToTravel: app.willingToTravel || false,
             availableForUrgent: app.availableForUrgent || false,
@@ -164,21 +165,36 @@ export default function CaregiverApplicationsPage() {
             status: app.status || 'pending',
             applicationDate: app.submittedAt || new Date().toISOString().split('T')[0],
             documents: {
-              governmentId: app.hasAllDocuments || false,
-              professionalLicense: app.hasAllDocuments || false,
-              additionalCertifications: false,
-              backgroundCheck: false
+              governmentId: !!app.documents?.governmentId,
+              professionalLicense: !!app.documents?.professionalLicense,
+              additionalCertifications: !!app.documents?.additionalCertifications,
+              backgroundCheck: !!app.documents?.backgroundCheck
             }
-          })) : mockApplications
+          }))
           
-          setApplications(apps)
-          setFilteredApplications(apps)
+          // If no real applications, use mock data for demo
+          const finalApps = apps.length > 0 ? apps : mockApplications
+          setApplications(finalApps)
+          setFilteredApplications(finalApps)
+          setIsShowingMockData(apps.length === 0)
+          
+          if (apps.length === 0) {
+            console.log('No caregiver applications yet. Showing mock data.')
+          } else {
+            console.log(`Loaded ${apps.length} caregiver application(s)`)
+          }
+        } else {
+          // Fall back to mock data
+          setApplications(mockApplications)
+          setFilteredApplications(mockApplications)
+          setIsShowingMockData(true)
         }
       } catch (error) {
         console.error('Error fetching applications:', error)
         // Fall back to mock data
         setApplications(mockApplications)
         setFilteredApplications(mockApplications)
+        setIsShowingMockData(true)
       } finally {
         setIsLoading(false)
       }
@@ -228,6 +244,26 @@ export default function CaregiverApplicationsPage() {
         }
         
         alert(`Successfully approved ${result.caregiver?.name || 'caregiver'}! They will now appear in caregiver search.`)
+      } else {
+        // For rejection, update via admin API
+        const response = await fetch(`/api/admin/caregiver-applications?id=${applicationId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            status: newStatus,
+            reviewNotes: 'Application rejected by admin',
+            reviewedBy: 'Admin'
+          })
+        })
+        
+        const result = await response.json()
+        
+        if (!result.success) {
+          alert(`Failed to reject application`)
+          return
+        }
       }
       
       // Update local state
@@ -279,6 +315,25 @@ export default function CaregiverApplicationsPage() {
             Review and manage caregiver applications for the professional network.
           </p>
         </div>
+
+        {/* Mock Data Banner */}
+        {isShowingMockData && (
+          <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <User className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-blue-900">
+                  Showing Demo Data
+                </p>
+                <p className="text-xs text-blue-700">
+                  No real applications yet. These are sample applications for demonstration. Real applications will appear here once caregivers submit via the signup form.
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Filters */}
         <Card className="p-6 border-gray-100 mb-6">
@@ -525,6 +580,9 @@ export default function CaregiverApplicationsPage() {
                         {getDocumentStatus(selectedApplication.documents.backgroundCheck)}
                       </div>
                     </div>
+                    <p className="text-xs text-gray-500 mt-3">
+                      Note: Documents are stored in uploads/caregiver-applications/. In production, add a download/view API endpoint.
+                    </p>
                   </div>
 
                   {/* Care Philosophy */}
