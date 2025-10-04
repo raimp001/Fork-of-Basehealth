@@ -24,11 +24,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
     setMounted(true)
   }, [])
   
-  // Don't render wallet components during SSR
-  if (!mounted) {
-    return <>{children}</>
-  }
-  
+  // Always render WagmiProvider but delay wallet features
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
@@ -36,7 +32,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
           modalSize="compact"
           initialChain={process.env.NODE_ENV === 'production' ? base : baseSepolia}
         >
-          {children}
+          {mounted ? children : <div style={{ minHeight: '100vh' }}>{children}</div>}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
