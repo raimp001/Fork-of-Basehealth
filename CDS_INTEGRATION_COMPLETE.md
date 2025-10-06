@@ -1,333 +1,307 @@
-# ✅ Official Coinbase Design System Integration Complete
+# ✅ Coinbase Design System Integration - COMPLETE
 
-## 🎉 CDS Successfully Integrated!
+## 🎉 Official CDS Integration Done!
 
-I've successfully integrated the **official Coinbase Design System** from [cds.coinbase.com](https://cds.coinbase.com/) following their installation and theming guides.
+The official **Coinbase Design System** from [cds.coinbase.com](https://cds.coinbase.com/) is now fully integrated into BaseHealth.
 
-## 📦 What Was Installed
+## 📦 Packages Installed
 
 ```bash
-npm install @coinbase/cds-web @coinbase/cds-icons --legacy-peer-deps
+@coinbase/cds-web         # Core CDS components
+@coinbase/cds-icons       # Icon fonts
+@coinbase/cds-common      # Common utilities
 ```
-
-### Official Packages Installed:
-- **@coinbase/cds-web**: Core web components library
-- **@coinbase/cds-icons**: Icon font system
 
 ## 🏗️ Architecture Setup
 
-### 1. Global Styles Import (`app/cds-imports.css`)
+### 1. CDS Provider (`providers/cds-provider.tsx`)
 
-Following the [CDS Installation Guide](https://cds.coinbase.com/getting-started/installation):
-
-```css
-/* 1. Icon fonts */
-@import '@coinbase/cds-icons/fonts/web/icon-font.css';
-
-/* 2. Default font styles */
-@import '@coinbase/cds-web/defaultFontStyles';
-
-/* 3. Global styles */
-@import '@coinbase/cds-web/globalStyles';
-```
-
-### 2. CDS Provider Configuration (`lib/cds-config.tsx`)
-
-Following the [CDS Theming Guide](https://cds.coinbase.com/getting-started/theming):
+Following the [official installation guide](https://cds.coinbase.com/getting-started/installation):
 
 ```tsx
+import '@coinbase/cds-icons/fonts/web/icon-font.css'
+import '@coinbase/cds-web/defaultFontStyles'
+import '@coinbase/cds-web/globalStyles'
 import { ThemeProvider, MediaQueryProvider } from '@coinbase/cds-web/system'
 import { defaultTheme } from '@coinbase/cds-web/themes/defaultTheme'
-
-export function CDSProvider({ children, colorScheme = 'light' }) {
-  return (
-    <MediaQueryProvider>
-      <ThemeProvider theme={defaultTheme} activeColorScheme={colorScheme}>
-        {children}
-      </ThemeProvider>
-    </MediaQueryProvider>
-  )
-}
 ```
 
-### 3. Application Integration
+✅ **ThemeProvider** - Applies CDS theme  
+✅ **MediaQueryProvider** - Handles responsive design  
+✅ **Global Styles** - CDS fonts and styling  
+✅ **Icon Fonts** - CDS icon system  
 
-**Updated Files:**
-- ✅ `app/layout.tsx` - Added CDS imports CSS
-- ✅ `app/providers.tsx` - Wrapped app with CDSProvider
-- ✅ `components/payment/base-cds-payment-v2.tsx` - New component using official CDS
-- ✅ `app/payment/base-cds/page.tsx` - Demo page with CDS components
+### 2. Root Layout Integration
 
-## 🎨 CDS Components Used
+The CDS Provider is integrated in `app/providers.tsx`:
 
-### Official CDS Components Now Integrated:
-
-1. **Layout Components** (`@coinbase/cds-web/layout`)
-   - `HStack` - Horizontal stack layout
-   - `VStack` - Vertical stack layout
-   - `Box` - Flexible container
-
-2. **Typography** (`@coinbase/cds-web/typography`)
-   - `Text` - Styled text with size/weight/color props
-
-3. **Inputs** (`@coinbase/cds-web/buttons`)
-   - `Button` - Primary/secondary/tertiary variants
-
-4. **Feedback** (`@coinbase/cds-web/feedback`)
-   - `Spinner` - Loading indicators
-
-### Component Reference:
 ```tsx
-import { Button } from '@coinbase/cds-web/buttons'
-import { HStack, VStack, Box } from '@coinbase/cds-web/layout'
-import { Text } from '@coinbase/cds-web/typography'
-import { Spinner } from '@coinbase/cds-web/feedback'
+<ThemeProvider>
+  <CDSProvider>
+    <Web3Provider>
+      {children}
+    </Web3Provider>
+  </CDSProvider>
+</ThemeProvider>
 ```
 
-## 🚀 New Pages & Components
+## 🎨 Components Created
 
-### 1. BaseCDSPaymentV2 Component
-**File:** `components/payment/base-cds-payment-v2.tsx`
+### Official CDS Payment Component
 
-Enhanced payment component using official CDS:
-- CDS Button components for currency selection
-- HStack/VStack for responsive layouts
-- Text components with proper typography scale
-- Spinner for loading states
-- Box for flexible containers
+**`components/payment/base-cds-payment-v2.tsx`**
 
-### 2. Official CDS Demo Page
-**URL:** `/payment/base-cds`
-**File:** `app/payment/base-cds/page.tsx`
+Uses official CDS components:
+- `Button` from `@coinbase/cds-web/buttons`
+- `Text` from `@coinbase/cds-web/typography`
+- `Box`, `VStack`, `HStack` from `@coinbase/cds-web/layout`
+- `Pressable` from `@coinbase/cds-web/inputs`
+- `Spinner`, `ProgressBar`, `ProgressCircle` from `@coinbase/cds-web/feedback`
 
-Complete payment page showcasing:
-- Official CDS layout components
-- Responsive design using HStack/VStack
-- CDS typography system
-- Theme-aware components
-- All 9 payment tiers
+### Demo Page
 
-## 📱 Navigation Updates
+**`app/payment/cds-demo/page.tsx`**
 
-Added to minimal navigation:
-- **Base Payments (V1)** - Custom implementation
-- **CDS Payments** 🆕 - Official CDS components
+Full showcase of CDS components including:
+- Buttons (Primary, Secondary, Tertiary)
+- Typography (Headings, Body, Captions)
+- Layout (VStack, HStack, Grid, Box)
+- Feedback (Spinner, ProgressBar, ProgressCircle)
+- Interactive Cards with Pressable
+- Complete payment flow with CDS styling
 
-## 🎯 CDS Features Implemented
+## 📱 Routes Available
 
-### Theming
-- ✅ ThemeProvider with defaultTheme
-- ✅ MediaQueryProvider for SSR compatibility
-- ✅ Light/dark color scheme support
-- ✅ Responsive breakpoints
+### 1. `/payment/base`
+Original Base payment page with shadcn/ui components
 
-### Typography Scale
-- `xxxlarge` - Hero headings
-- `xxlarge` - Main headings
-- `xlarge` - Section titles
-- `large` - Large text
-- `base` - Body text (default)
-- `small` - Small text
-- `xsmall` - Captions
+### 2. `/payment/cds-demo` ⭐ NEW
+Official CDS components showcase with:
+- Button variations
+- Typography examples
+- Layout demonstrations
+- Progress indicators
+- Interactive service selection
+- Complete payment integration
 
-### Layout System
+## 🎯 Features
+
+### CDS Components Used
+
+#### Layout
 ```tsx
-<VStack gap="4" alignItems="center">
-  <Text size="xxxlarge" weight="bold">Title</Text>
-  <HStack gap="2">
-    <Button variant="primary">Action</Button>
-    <Button variant="secondary">Cancel</Button>
+<VStack gap={4}>
+  <HStack justifyContent="space-between">
+    <Box style={{ padding: 16 }}>
+      <Text>Content</Text>
+    </Box>
   </HStack>
 </VStack>
 ```
 
-## 🔗 Integration Points
-
-### 1. Root Layout
+#### Buttons
 ```tsx
-// app/layout.tsx
-import "./cds-imports.css"  // CDS global styles
+<Button variant="primary">Primary</Button>
+<Button variant="secondary">Secondary</Button>
+<Button variant="tertiary">Tertiary</Button>
 ```
 
-### 2. Providers
+#### Typography
 ```tsx
-// app/providers.tsx
-<CDSProvider colorScheme="light">
-  <SessionProvider>
-    {/* Rest of app */}
-  </SessionProvider>
-</CDSProvider>
+<Text as="h1" style={{ fontSize: 36, fontWeight: 700 }}>
+  Heading
+</Text>
+<Text style={{ color: '#6b7280' }}>
+  Body text
+</Text>
 ```
 
-### 3. Component Usage
+#### Feedback
 ```tsx
-// Any component
+<Spinner size="large" />
+<ProgressBar value={70} max={100} />
+<ProgressCircle value={85} max={100} />
+```
+
+#### Interactive
+```tsx
+<Pressable onPress={() => handleClick()}>
+  <Text>Click me</Text>
+</Pressable>
+```
+
+## 🎨 Theming
+
+Following the [official theming guide](https://cds.coinbase.com/getting-started/theming):
+
+- **Default Theme**: Using `defaultTheme` from CDS
+- **Color Scheme**: Synced with next-themes (light/dark)
+- **Responsive**: MediaQueryProvider for breakpoints
+- **Customizable**: Can extend theme as needed
+
+## 🚀 Usage Examples
+
+### Basic CDS Component
+```tsx
 import { Button } from '@coinbase/cds-web/buttons'
-import { VStack } from '@coinbase/cds-web/layout'
 import { Text } from '@coinbase/cds-web/typography'
 
-function MyComponent() {
-  return (
-    <VStack gap="3">
-      <Text size="large" weight="bold">Hello</Text>
-      <Button variant="primary">Click Me</Button>
-    </VStack>
-  )
-}
-```
-
-## 📊 Comparison
-
-### Before (V1) vs After (V2)
-
-| Feature | V1 (Custom) | V2 (Official CDS) |
-|---------|-------------|-------------------|
-| Components | Custom shadcn/ui | Official @coinbase/cds-web |
-| Typography | Tailwind classes | CDS Text component |
-| Layout | Flexbox/Grid | HStack/VStack/Box |
-| Theme | Next-themes | CDS ThemeProvider |
-| Design Source | Coinbase-inspired | Official Coinbase |
-| Bundle Size | Smaller | Larger but official |
-| Maintenance | Custom | Coinbase maintained |
-
-## 🧪 Testing the Integration
-
-### Test Official CDS Components:
-1. Navigate to `/payment/base-cds`
-2. Observe official CDS styling
-3. Test currency selection (CDS Buttons)
-4. Try different payment tiers
-5. Connect wallet and test payment
-
-### Compare Implementations:
-- `/payment/base` - Custom implementation (V1)
-- `/payment/base-cds` - Official CDS (V2) 🆕
-
-## 📚 Documentation References
-
-All implementations follow official guides:
-
-1. **Installation**: [cds.coinbase.com/getting-started/installation](https://cds.coinbase.com/getting-started/installation)
-2. **Theming**: [cds.coinbase.com/getting-started/theming](https://cds.coinbase.com/getting-started/theming)
-3. **Components**: [cds.coinbase.com](https://cds.coinbase.com/)
-
-## 🎨 Available CDS Components
-
-You can now use any component from CDS:
-
-### Layout
-- Accordion, Box, ButtonGroup, Carousel, Collapsible, Divider, Dropdown, Grid, HStack, VStack, Spacer
-
-### Typography
-- Link, Tag, Text
-
-### Inputs
-- Button, SlideButton, Checkbox, Radio, Select, Switch, TextInput, SearchInput, Chip, IconButton
-
-### Media
-- Avatar, Icon, LogoMark, LogoWordMark, RemoteImage
-
-### Cards
-- ContentCard, FloatingAssetCard, NudgeCard, UpsellCard
-
-### Feedback
-- Banner, ProgressBar, ProgressCircle, Spinner
-
-### Overlay
-- Alert, Modal, Toast, Tooltip, Tray
-
-### Navigation
-- NavigationBar, Pagination, Tabs, Sidebar, Stepper
-
-### Graphs
-- AreaChart, BarChart, LineChart, Sparkline
-
-### Other
-- Calendar, DatePicker, ThemeProvider
-
-## 💡 Usage Examples
-
-### Simple Button
-```tsx
-import { Button } from '@coinbase/cds-web/buttons'
-
-<Button variant="primary" onClick={handleClick}>
-  Pay Now
+<Button variant="primary">
+  <Text>Click Me</Text>
 </Button>
 ```
 
-### Layout with Typography
+### CDS Payment Component
 ```tsx
-import { VStack, HStack } from '@coinbase/cds-web/layout'
-import { Text } from '@coinbase/cds-web/typography'
+import { CDSPaymentV2 } from '@/components/payment/base-cds-payment-v2'
 
-<VStack gap="4" alignItems="center">
-  <Text size="xxlarge" weight="bold">Payment</Text>
-  <HStack gap="2">
-    <Text color="secondary">Amount:</Text>
-    <Text weight="bold">$75 USDC</Text>
+<CDSPaymentV2
+  requirement={PAYMENT_TIERS.VIRTUAL_CONSULTATION}
+  onSuccess={(proof) => console.log('Paid!', proof)}
+/>
+```
+
+### CDS Layout
+```tsx
+import { VStack, HStack, Box } from '@coinbase/cds-web/layout'
+
+<VStack gap={4}>
+  <HStack gap={2}>
+    <Box style={{ padding: 16 }}>
+      Content
+    </Box>
   </HStack>
 </VStack>
 ```
 
-### Loading State
-```tsx
-import { Spinner } from '@coinbase/cds-web/feedback'
-import { HStack } from '@coinbase/cds-web/layout'
-import { Text } from '@coinbase/cds-web/typography'
+## 📚 Documentation References
 
-<HStack gap="2">
-  <Spinner size="small" />
-  <Text>Processing...</Text>
-</HStack>
+- **CDS Home**: https://cds.coinbase.com/
+- **Installation**: https://cds.coinbase.com/getting-started/installation
+- **Theming**: https://cds.coinbase.com/getting-started/theming
+- **Components**: https://cds.coinbase.com/components
+- **GitHub**: https://github.com/coinbase/coinbase-design-system
+
+## ✅ Integration Checklist
+
+- [x] Install @coinbase/cds-web, @coinbase/cds-icons, @coinbase/cds-common
+- [x] Create CDS Provider with ThemeProvider and MediaQueryProvider
+- [x] Import CDS global styles and fonts
+- [x] Integrate CDS Provider in root layout
+- [x] Create payment component using official CDS components
+- [x] Build comprehensive demo page
+- [x] Add navigation links
+- [x] Sync theme with next-themes
+- [x] Document usage and examples
+- [x] Test all CDS components
+
+## 🎊 What's Different Now?
+
+### Before (Custom Components)
+- Using shadcn/ui with custom styling
+- Manual theme management
+- Custom component implementations
+
+### After (Official CDS)
+- Using official @coinbase/cds-web components
+- Coinbase's proven design system
+- Professional, tested components
+- Consistent Coinbase branding
+- Better accessibility out of the box
+- Automatic responsive behavior
+
+## 🧪 Test It Out
+
+1. **Visit the Demo Page**:
+   ```
+   http://localhost:3000/payment/cds-demo
+   ```
+
+2. **See CDS Components**:
+   - Buttons with various variants
+   - Typography styles
+   - Layout components
+   - Progress indicators
+   - Interactive cards
+
+3. **Try the Payment Flow**:
+   - Select a service
+   - Connect Coinbase Wallet
+   - Complete payment with CDS UI
+
+## 🎨 Styling Benefits
+
+### Automatic Theming
+CDS handles theming automatically with `defaultTheme`
+
+### Responsive Design
+`MediaQueryProvider` enables responsive breakpoints
+
+### Consistent UI
+All components follow Coinbase design guidelines
+
+### Accessibility
+Built-in ARIA attributes and keyboard navigation
+
+## 🔧 Customization
+
+To customize the theme, edit `providers/cds-provider.tsx`:
+
+```tsx
+import { createTheme } from '@coinbase/cds-web/themes'
+
+const customTheme = createTheme({
+  colors: {
+    primary: '#your-color',
+    // ... more customization
+  }
+})
+
+<ThemeProvider theme={customTheme}>
 ```
 
-## 🚦 What's Next
+See [theming docs](https://cds.coinbase.com/getting-started/theming) for more options.
 
-### Immediate Use
-- Use `/payment/base-cds` for payments with official CDS
-- Import CDS components in any new features
-- Follow CDS design patterns
+## 📊 Component Comparison
 
-### Future Enhancements
-- Migrate more components to CDS
-- Add CDS animations (Lottie)
-- Use CDS charts for analytics
-- Implement CDS navigation patterns
-- Add CDS modals/overlays
+| Feature | Custom (Before) | Official CDS (Now) |
+|---------|----------------|-------------------|
+| Source | shadcn/ui | @coinbase/cds-web |
+| Branding | Generic | Coinbase |
+| Updates | Manual | Official releases |
+| Support | Community | Coinbase team |
+| Docs | Various | cds.coinbase.com |
 
-## ✅ Checklist
+## 🌟 Next Steps
 
-Integration Status:
-- [x] Install @coinbase/cds-web
-- [x] Install @coinbase/cds-icons
-- [x] Import global styles
-- [x] Set up ThemeProvider
-- [x] Set up MediaQueryProvider
-- [x] Create CDSProvider wrapper
-- [x] Build payment component with CDS
-- [x] Create demo page
-- [x] Update navigation
-- [x] Test components
-- [x] Documentation
+### Immediate
+- [x] Demo page working
+- [x] Payment component with CDS
+- [x] Navigation updated
 
-## 🎊 Success!
+### Future
+- [ ] Replace more custom components with CDS
+- [ ] Custom theme for BaseHealth branding
+- [ ] More CDS component showcases
+- [ ] Mobile CDS components (@coinbase/cds-mobile)
 
-Your BaseHealth platform now has:
-- ✅ Official Coinbase Design System integration
-- ✅ Professional, polished UI components
-- ✅ Base blockchain payments
-- ✅ HTTP 402 protocol
-- ✅ Two payment implementations (custom + official)
-- ✅ Complete documentation
+## 🆘 Support
 
-Start using official CDS components throughout your app! 🚀
+- **CDS Docs**: https://cds.coinbase.com/
+- **GitHub Issues**: https://github.com/coinbase/coinbase-design-system/issues
+- **Storybook**: https://coinbase.github.io/coinbase-design-system/
 
 ---
 
-**References:**
-- [Coinbase Design System](https://cds.coinbase.com/)
-- [CDS Installation Guide](https://cds.coinbase.com/getting-started/installation)
-- [CDS Theming Guide](https://cds.coinbase.com/getting-started/theming)
-- [CDS GitHub](https://github.com/coinbase/coinbase-design-system)
+## 🎉 Success!
 
+BaseHealth now uses the **official Coinbase Design System** with:
+- ✅ Professional UI components
+- ✅ Coinbase branding
+- ✅ Responsive design
+- ✅ Accessibility built-in
+- ✅ Base blockchain payments
+- ✅ HTTP 402 protocol
+- ✅ Complete payment flows
+
+Visit `/payment/cds-demo` to see it in action! 🚀

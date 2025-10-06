@@ -27,7 +27,12 @@ export function addApprovedCaregiver(application: any) {
     certifications: application.additionalCertifications?.split(',') || [],
     services: [application.primarySpecialty],
     email: application.email,
-    phone: application.phone
+    phone: application.phone,
+    // STATUS TRACKING - Only show caregivers marked as active/available
+    status: 'active', // active, inactive, pending, suspended
+    isVerified: true, // Verified, real caregiver (not mock/test data)
+    isMock: false, // Flag to identify mock/test data
+    lastActiveDate: new Date().toISOString(),
   }
   
   approvedCaregivers.push(caregiver)
@@ -154,11 +159,23 @@ export async function POST(request: NextRequest) {
       startDate,
       duration,
       frequency,
-      maxDistance = 50
+      maxDistance = 50,
+      includeMockData = false // Optional flag to include mock data (default: false)
     } = body
 
-    // Combine approved caregivers with seed data
-    const allCaregivers = [...approvedCaregivers, ...seedCaregivers]
+    // ONLY USE APPROVED CAREGIVERS - No mock/seed data in production
+    // Filter to only show verified, active caregivers
+    let allCaregivers = approvedCaregivers.filter(caregiver => 
+      !caregiver.isMock && // Exclude mock data
+      caregiver.isVerified && // Only verified caregivers
+      (caregiver.status === 'active' || caregiver.status === 'available') // Only active/available
+    )
+
+    // Optionally include seed data if explicitly requested (for testing/demo)
+    if (includeMockData && approvedCaregivers.length === 0) {
+      console.warn('⚠️  No real caregivers available. Including mock data for demo purposes.')
+      allCaregivers = seedCaregivers.map(c => ({ ...c, isMock: true }))
+    }
     
     // Filter caregivers based on search criteria
     let filtered = [...allCaregivers]
@@ -265,26 +282,45 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Prioritize approved caregivers over seed data
-    // In production, only use approved caregivers from database
-    const allCaregivers = [...approvedCaregivers, ...seedCaregivers]
+    const { searchParams } = new URL(request.url)
+    const includeMockData = searchParams.get('includeMockData') === 'true'
     
-    // If no approved caregivers exist yet, show message
-    if (approvedCaregivers.length === 0) {
-      console.log('⚠️  No approved caregivers yet. Showing seed data for demo.')
+    // ONLY RETURN VERIFIED, ACTIVE CAREGIVERS - No mock data
+    const realCaregivers = approvedCaregivers.filter(caregiver => 
+      !caregiver.isMock && // Exclude mock data
+      caregiver.isVerified && // Only verified caregivers
+      (caregiver.status === 'active' || caregiver.status === 'available') // Only active/available
+    )
+    
+    // Only include mock data if explicitly requested AND no real caregivers exist
+    let allCaregivers = realCaregivers
+    let message = ''
+    
+    if (realCaregivers.length === 0) {
+      if (includeMockData) {
+        console.warn('⚠️  No real caregivers available. Including mock data for demo.')
+        allCaregivers = seedCaregivers.map(c => ({ ...c, isMock: true }))
+        message = 'No verified caregivers available yet. Showing demo data. Apply to become a caregiver!'
+      } else {
+        message = 'No caregivers currently available. Please check back later or apply to become a caregiver!'
+      }
     } else {
-      console.log(`✅ Returning ${approvedCaregivers.length} approved caregiver(s) + ${seedCaregivers.length} seed caregivers`)
+      console.log(`✅ Returning ${realCaregivers.length} verified, active caregiver(s)`)
+      message = `Showing ${realCaregivers.length} verified, available caregiver(s)`
     }
     
     return NextResponse.json({
       success: true,
       results: allCaregivers,
       totalCount: allCaregivers.length,
-      approvedCount: approvedCaregivers.length,
-      seedCount: seedCaregivers.length,
-      message: approvedCaregivers.length === 0 
-        ? 'No caregivers have been approved yet. Showing demo data. Apply to become a caregiver!' 
-        : `Showing ${approvedCaregivers.length} approved caregiver(s)`
+      verifiedCount: realCaregivers.length,
+      mockCount: allCaregivers.length - realCaregivers.length,
+      message,
+      filters: {
+        onlyVerified: true,
+        onlyActive: true,
+        excludeMockData: !includeMockData
+      }
     })
   } catch (error) {
     console.error('Error fetching caregivers:', error)

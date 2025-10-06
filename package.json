@@ -13,6 +13,7 @@
     "@ai-sdk/groq": "^1.0.8",
     "@ai-sdk/openai": "^1.2.12",
     "@auth/prisma-adapter": "^2.10.0",
+    "@coinbase/cds-common": "^8.13.5",
     "@coinbase/cds-icons": "^5.4.1",
     "@coinbase/cds-web": "^8.13.5",
     "@coinbase/coinbase-sdk": "^0.25.0",

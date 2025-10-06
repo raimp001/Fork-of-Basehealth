@@ -1,0 +1,337 @@
+// Prisma Schema for BaseHealth.xyz
+// Compatible with PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USER MANAGEMENT
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String? // Nullable for OAuth users
+  name      String?
+  role      UserRole @default(PATIENT)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLoginAt DateTime?
+  
+  // Relations
+  patient   Patient?
+  caregiver Caregiver?
+  provider  Provider?
+  bookings  Booking[]
+  
+  @@index([email])
+  @@map("users")
+}
+
+enum UserRole {
+  PATIENT
+  CAREGIVER
+  PROVIDER
+  ADMIN
+}
+
+// ============================================================================
+// PATIENT
+// ============================================================================
+
+model Patient {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Personal Info
+  dateOfBirth   DateTime?
+  phone         String?
+  address       String?
+  emergencyContact String?
+  
+  // Medical Info
+  bloodType     String?
+  allergies     String[]
+  conditions    String[]
+  medications   String[]
+  
+  // Relations
+  bookings      Booking[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("patients")
+}
+
+// ============================================================================
+// CAREGIVER MODEL (Following system prompt requirements)
+// ============================================================================
+
+model Caregiver {
+  id          String           @id @default(cuid())
+  userId      String?          @unique
+  user        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Personal Information
+  firstName   String
+  lastName    String
+  email       String           @unique
+  phone       String?
+  
+  // Professional Information
+  licenseNumber       String?
+  licenseType         String?
+  specialties         String[]         // Array of specialties
+  yearsExperience     String?
+  education           String?
+  certifications      String[]         // Additional certifications
+  
+  // Service Information
+  location            String?
+  serviceAreas        String[]         // Areas they serve
+  languagesSpoken     String[]
+  acceptInsurance     Boolean          @default(false)
+  willingToTravel     Boolean          @default(false)
+  availableForUrgent  Boolean          @default(false)
+  hourlyRate          Decimal?         @db.Decimal(10, 2)
+  
+  // Status & Verification (CRITICAL for filtering)
+  status              CaregiverStatus  @default(PENDING)
+  isMock              Boolean          @default(false)  // Flag mock/test data
+  verified            Boolean          @default(false)  // Verified caregiver
+  isLicensed          Boolean          @default(false)
+  isCPRCertified      Boolean          @default(false)
+  isBackgroundChecked Boolean          @default(false)
+  
+  // Ratings & Reviews
+  rating              Decimal?         @default(0) @db.Decimal(3, 2)
+  reviewCount         Int              @default(0)
+  
+  // Additional
+  bio                 String?          @db.Text
+  carePhilosophy      String?          @db.Text
+  digitalWalletAddress String?
+  
+  // Application metadata
+  applicationStatus   String?          // 'pending', 'approved', 'rejected'
+  submittedAt         DateTime?
+  reviewedAt          DateTime?
+  reviewedBy          String?
+  reviewNotes         String?
+  
+  // Timestamps
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  lastActiveDate      DateTime         @default(now())
+  
+  // Relations
+  bookings            Booking[]
+  
+  @@index([status, verified, isMock])
+  @@index([email])
+  @@index([location])
+  @@map("caregivers")
+}
+
+enum CaregiverStatus {
+  AVAILABLE
+  UNAVAILABLE
+  PENDING
+  SUSPENDED
+  INACTIVE
+}
+
+// ============================================================================
+// PROVIDER (Healthcare Providers)
+// ============================================================================
+
+model Provider {
+  id          String   @id @default(cuid())
+  userId      String?  @unique
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  name        String
+  specialty   String?
+  npiNumber   String?  @unique
+  location    String?
+  phone       String?
+  acceptingPatients Boolean @default(true)
+  verified    Boolean  @default(false)
+  
+  rating      Decimal? @default(0) @db.Decimal(3, 2)
+  reviewCount Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([npiNumber])
+  @@map("providers")
+}
+
+// ============================================================================
+// BOOKING MODEL (For Caregiver Bookings with Payment Integration)
+// ============================================================================
+
+model Booking {
+  id          String        @id @default(cuid())
+  
+  // Relations
+  patientId   String
+  patient     Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  caregiverId String
+  caregiver   Caregiver     @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Booking Details
+  startDate   DateTime
+  endDate     DateTime?
+  duration    String?       // "1-2 weeks", "1 month", etc.
+  frequency   String?       // "Daily", "Weekly", etc.
+  careType    String?       // "Elder Care", "Post-Surgery", etc.
+  urgency     String?       // "Immediate", "Standard", etc.
+  
+  // Requirements
+  requirements Json?        // Store requirements as JSON
+  specialNeeds String?
+  notes       String?       @db.Text
+  
+  // Payment Information
+  amount      Decimal       @db.Decimal(10, 2)
+  currency    String        @default("USD")
+  
+  // Coinbase Commerce Integration
+  paymentProvider  PaymentProvider?
+  paymentProviderId String?    // Coinbase Commerce charge ID or transaction hash
+  checkoutUrl      String?     // Coinbase Commerce hosted checkout URL
+  paymentMetadata  Json?       // Store additional payment data
+  
+  // Booking Status
+  status      BookingStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING)
+  
+  // Timestamps
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  paidAt      DateTime?
+  confirmedAt DateTime?
+  completedAt DateTime?
+  cancelledAt DateTime?
+  
+  @@index([patientId])
+  @@index([caregiverId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([paymentProviderId])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING       // Initial state
+  CONFIRMED     // After payment confirmed
+  IN_PROGRESS   // Care is being provided
+  COMPLETED     // Care completed
+  CANCELLED     // Booking cancelled
+  REFUNDED      // Payment refunded
+}
+
+enum PaymentStatus {
+  PENDING       // Awaiting payment
+  PROCESSING    // Payment in progress
+  PAID          // Payment confirmed
+  FAILED        // Payment failed
+  REFUNDED      // Payment refunded
+  EXPIRED       // Payment window expired
+}
+
+enum PaymentProvider {
+  COINBASE_COMMERCE  // Coinbase Commerce checkout
+  COINBASE_ONCHAIN   // Direct onchain payment
+  BASE_USDC          // Base blockchain USDC
+  BASE_ETH           // Base blockchain ETH
+  STRIPE             // Traditional payment
+}
+
+// ============================================================================
+// TRANSACTION LOG (For payment audit trail)
+// ============================================================================
+
+model Transaction {
+  id              String          @id @default(cuid())
+  bookingId       String?
+  
+  // Transaction Details
+  transactionHash String?         @unique // Blockchain transaction hash
+  provider        PaymentProvider
+  providerId      String?         // External provider ID
+  
+  // Amounts
+  amount          Decimal         @db.Decimal(10, 2)
+  currency        String
+  fee             Decimal?        @db.Decimal(10, 2)
+  netAmount       Decimal?        @db.Decimal(10, 2)
+  
+  // Status
+  status          PaymentStatus   @default(PENDING)
+  
+  // Metadata
+  metadata        Json?
+  webhookData     Json?
+  
+  // Timestamps
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  completedAt     DateTime?
+  
+  @@index([transactionHash])
+  @@index([bookingId])
+  @@index([status])
+  @@map("transactions")
+}
+
+// ============================================================================
+// WEBHOOK EVENTS (For Coinbase Commerce webhooks)
+// ============================================================================
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  
+  // Webhook Details
+  provider    String   // 'coinbase_commerce', 'stripe', etc.
+  eventType   String   // 'charge:confirmed', 'charge:failed', etc.
+  eventId     String?  @unique // External event ID
+  
+  // Payload
+  payload     Json     // Full webhook payload
+  signature   String?  // Webhook signature for verification
+  
+  // Processing
+  processed   Boolean  @default(false)
+  processedAt DateTime?
+  error       String?  @db.Text
+  
+  // Associated Booking
+  bookingId   String?
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([eventId])
+  @@index([processed])
+  @@index([bookingId])
+  @@map("webhook_events")
+}
+

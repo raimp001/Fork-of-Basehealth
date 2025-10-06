@@ -37,8 +37,7 @@ const userMenuItems = [
   { href: '/patient-portal', label: 'Dashboard', icon: User },
   { href: '/billing', label: 'Billing', icon: CreditCard },
   { href: '/wallet', label: 'Wallet', icon: DollarSign },
-  { href: '/payment/base', label: 'Base Payments', icon: Wallet, badge: 'V1' },
-  { href: '/payment/base-cds', label: 'CDS Payments', icon: Wallet, badge: 'New' },
+  { href: '/payment/base', label: 'Base Payments', icon: Wallet, badge: 'New' },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
