@@ -12,6 +12,10 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Search, MapPin, Star, Filter, X } from "lucide-react"
 
+// Force dynamic rendering to avoid static cache
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface Caregiver {
   id: string
   name: string
