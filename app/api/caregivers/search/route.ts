@@ -39,114 +39,8 @@ export function addApprovedCaregiver(application: any) {
   return caregiver
 }
 
-// Demo/seed caregivers - these should be removed once real caregivers sign up
-const seedCaregivers = [
-  {
-    id: "1",
-    name: "Maria Rodriguez",
-    specialty: "Elder Care",
-    location: "San Francisco, CA",
-    coordinates: { lat: 37.7749, lng: -122.4194 },
-    distance: 2.1,
-    rating: 4.9,
-    reviewCount: 127,
-    hourlyRate: 35,
-    availability: "Available now",
-    isLicensed: true,
-    isCPRCertified: true,
-    isBackgroundChecked: true,
-    experience: "8 years",
-    languages: ["English", "Spanish"],
-    image: "/placeholder.svg",
-    bio: "Experienced caregiver specializing in elder care with a compassionate approach.",
-    certifications: ["CNA", "CPR", "First Aid", "Dementia Care"],
-    services: ["Personal Care", "Medication Management", "Companionship", "Light Housekeeping"]
-  },
-  {
-    id: "2",
-    name: "James Wilson",
-    specialty: "Post-Surgery Care",
-    location: "San Francisco, CA",
-    coordinates: { lat: 37.7849, lng: -122.4094 },
-    distance: 3.5,
-    rating: 4.8,
-    reviewCount: 89,
-    hourlyRate: 30,
-    availability: "Next week",
-    isLicensed: true,
-    isCPRCertified: true,
-    isBackgroundChecked: true,
-    experience: "12 years",
-    languages: ["English"],
-    image: "/placeholder.svg",
-    bio: "Specialized in post-surgical recovery care with extensive medical knowledge.",
-    certifications: ["LVN", "CPR", "Wound Care"],
-    services: ["Post-Surgery Care", "Wound Management", "Physical Therapy Support", "Medical Equipment"]
-  },
-  {
-    id: "3",
-    name: "Sarah Chen",
-    specialty: "Pediatric Care",
-    location: "San Francisco, CA",
-    coordinates: { lat: 37.7649, lng: -122.4294 },
-    distance: 1.8,
-    rating: 4.7,
-    reviewCount: 203,
-    hourlyRate: 28,
-    availability: "Available immediately",
-    isLicensed: true,
-    isCPRCertified: true,
-    isBackgroundChecked: true,
-    experience: "6 years",
-    languages: ["English", "Mandarin"],
-    image: "/placeholder.svg",
-    bio: "Caring pediatric specialist with a warm approach to child care.",
-    certifications: ["Pediatric Care", "CPR", "Child Development"],
-    services: ["Child Care", "Special Needs Support", "Educational Activities", "Meal Preparation"]
-  },
-  {
-    id: "4",
-    name: "David Thompson",
-    specialty: "Dementia Care",
-    location: "Oakland, CA",
-    coordinates: { lat: 37.8044, lng: -122.2712 },
-    distance: 8.3,
-    rating: 4.9,
-    reviewCount: 156,
-    hourlyRate: 40,
-    availability: "Available weekends",
-    isLicensed: true,
-    isCPRCertified: true,
-    isBackgroundChecked: true,
-    experience: "15 years",
-    languages: ["English"],
-    image: "/placeholder.svg",
-    bio: "Dementia care specialist with extensive experience in memory care.",
-    certifications: ["Dementia Care Specialist", "CPR", "Alzheimer's Care"],
-    services: ["Memory Care", "Behavioral Management", "Daily Living Support", "Family Education"]
-  },
-  {
-    id: "5",
-    name: "Linda Garcia",
-    specialty: "Hospice Care",
-    location: "San Jose, CA",
-    coordinates: { lat: 37.3382, lng: -121.8863 },
-    distance: 45.2,
-    rating: 5.0,
-    reviewCount: 98,
-    hourlyRate: 45,
-    availability: "By appointment",
-    isLicensed: true,
-    isCPRCertified: true,
-    isBackgroundChecked: true,
-    experience: "20 years",
-    languages: ["English", "Spanish"],
-    image: "/placeholder.svg",
-    bio: "Compassionate hospice care provider focused on comfort and dignity.",
-    certifications: ["Hospice Care", "Pain Management", "Grief Counseling"],
-    services: ["End-of-Life Care", "Pain Management", "Family Support", "Spiritual Care"]
-  }
-]
+// NO MOCK DATA - All seed caregivers removed
+// Only real, approved caregivers will be shown
 
 export async function POST(request: NextRequest) {
   try {
@@ -171,11 +65,8 @@ export async function POST(request: NextRequest) {
       (caregiver.status === 'active' || caregiver.status === 'available') // Only active/available
     )
 
-    // Optionally include seed data if explicitly requested (for testing/demo)
-    if (includeMockData && approvedCaregivers.length === 0) {
-      console.warn('⚠️  No real caregivers available. Including mock data for demo purposes.')
-      allCaregivers = seedCaregivers.map(c => ({ ...c, isMock: true }))
-    }
+    // NO MOCK DATA - Never include seed/mock caregivers
+    // Users will see empty state if no real caregivers are available
     
     // Filter caregivers based on search criteria
     let filtered = [...allCaregivers]
@@ -297,13 +188,7 @@ export async function GET(request: NextRequest) {
     let message = ''
     
     if (realCaregivers.length === 0) {
-      if (includeMockData) {
-        console.warn('⚠️  No real caregivers available. Including mock data for demo.')
-        allCaregivers = seedCaregivers.map(c => ({ ...c, isMock: true }))
-        message = 'No verified caregivers available yet. Showing demo data. Apply to become a caregiver!'
-      } else {
-        message = 'No caregivers currently available. Please check back later or apply to become a caregiver!'
-      }
+      message = 'No caregivers currently available. Please check back later or apply to become a caregiver!'
     } else {
       console.log(`✅ Returning ${realCaregivers.length} verified, active caregiver(s)`)
       message = `Showing ${realCaregivers.length} verified, available caregiver(s)`

@@ -1,101 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requirePatientAuth, logAccess } from '@/lib/auth'
-
-// Mock medical records database (in production, use encrypted database)
-const medicalRecords = {
-  'patient_001': [
-    {
-      id: 1,
-      patientId: 'patient_001',
-      type: "Lab Results",
-      title: "Complete Blood Count (CBC)",
-      date: "2024-01-15",
-      provider: "Dr. Smith - Internal Medicine",
-      status: "Normal",
-      category: "lab",
-      confidential: true
-    },
-    {
-      id: 2,
-      patientId: 'patient_001',
-      type: "Imaging",
-      title: "Chest X-Ray",
-      date: "2024-01-10",
-      provider: "City Medical Center",
-      status: "Normal",
-      category: "imaging",
-      confidential: true
-    },
-    {
-      id: 3,
-      patientId: 'patient_001',
-      type: "Lab Results",
-      title: "Lipid Panel",
-      date: "2024-01-08",
-      provider: "Dr. Johnson - Cardiology",
-      status: "Elevated",
-      category: "lab",
-      confidential: true
-    },
-    {
-      id: 4,
-      patientId: 'patient_001',
-      type: "Visit Summary",
-      title: "Annual Physical Exam",
-      date: "2024-01-05",
-      provider: "Dr. Smith - Internal Medicine",
-      status: "Complete",
-      category: "visit",
-      confidential: true
-    },
-    {
-      id: 5,
-      patientId: 'patient_001',
-      type: "Lab Results",
-      title: "Hemoglobin A1C",
-      date: "2023-12-20",
-      provider: "Dr. Wilson - Endocrinology",
-      status: "Normal",
-      category: "lab",
-      confidential: true
-    },
-    {
-      id: 6,
-      patientId: 'patient_001',
-      type: "Prescription",
-      title: "Lisinopril 10mg",
-      date: "2023-12-15",
-      provider: "Dr. Smith - Internal Medicine",
-      status: "Active",
-      category: "prescription",
-      confidential: true
-    }
-  ],
-  'patient_002': [
-    {
-      id: 7,
-      patientId: 'patient_002',
-      type: "Lab Results",
-      title: "Thyroid Function Test",
-      date: "2024-01-12",
-      provider: "Dr. Wilson - Endocrinology",
-      status: "Normal",
-      category: "lab",
-      confidential: true
-    },
-    {
-      id: 8,
-      patientId: 'patient_002',
-      type: "Visit Summary",
-      title: "Routine Checkup",
-      date: "2024-01-08",
-      provider: "Dr. Brown - Family Medicine",
-      status: "Complete",
-      category: "visit",
-      confidential: true
-    }
-  ]
-}
+// NO MOCK DATA - Use real database or return empty state
 
 export async function GET(request: NextRequest) {
   try {
@@ -117,19 +22,21 @@ export async function GET(request: NextRequest) {
       userAgent: userAgent
     })
     
-    // Get records for the authenticated patient only
-    const patientRecords = medicalRecords[user.patientId as keyof typeof medicalRecords] || []
+    // TODO: Replace with real database query
+    // const patientRecords = await prisma.medicalRecord.findMany({
+    //   where: { patientId: user.patientId }
+    // })
     
-    // Additional security: Verify each record belongs to the patient
-    const secureRecords = patientRecords.filter(record => record.patientId === user.patientId)
-    
+    // NO MOCK DATA - Return empty state
     return NextResponse.json({
       success: true,
-      records: secureRecords,
+      records: [],
       patient: {
         id: user.patientId,
-        name: `${user.firstName} ${user.lastName}`
-      }
+        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Patient'
+      },
+      message: 'No medical records available. Connect your EMR or upload records to get started.',
+      isEmpty: true
     })
     
   } catch (error) {
@@ -179,41 +86,28 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Get all patient records
-    const patientRecords = medicalRecords[user.patientId as keyof typeof medicalRecords] || []
+    // TODO: Replace with real database query
+    // const record = await prisma.medicalRecord.findFirst({
+    //   where: { 
+    //     id: recordId,
+    //     patientId: user.patientId 
+    //   }
+    // })
     
-    // Find the specific record and verify ownership
-    const record = patientRecords.find(r => r.id === recordId && r.patientId === user.patientId)
-    
-    if (!record) {
-      // Log unauthorized access attempt
-      logAccess({
-        userId: user.id,
-        action: 'UNAUTHORIZED_RECORD_ACCESS',
-        resource: `medical-record-${recordId}`,
-        ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
-        userAgent: request.headers.get('user-agent') || 'unknown'
-      })
-      
-      return NextResponse.json(
-        { error: 'Record not found or access denied' },
-        { status: 404 }
-      )
-    }
-    
-    // Log successful record access
+    // NO MOCK DATA - Return not found
     logAccess({
       userId: user.id,
-      action: 'VIEW_SPECIFIC_RECORD',
+      action: 'VIEW_SPECIFIC_RECORD_NOT_FOUND',
       resource: `medical-record-${recordId}`,
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown'
     })
     
     return NextResponse.json({
-      success: true,
-      record: record
-    })
+      success: false,
+      error: 'Record not found',
+      message: 'No medical records available. Connect your EMR or upload records to get started.'
+    }, { status: 404 })
     
   } catch (error) {
     console.error('Specific record access error:', error)

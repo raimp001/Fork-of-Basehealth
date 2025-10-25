@@ -4,23 +4,35 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { MinimalProviderSearch } from "@/components/provider/minimal-provider-search"
+import { CaregiverList } from "@/components/caregiver/caregiver-list"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { Search, MapPin, Star } from "lucide-react"
+import { Search, MapPin, Star, Filter, X } from "lucide-react"
 
 interface Caregiver {
   id: string
   name: string
   specialty: string
   location: string
+  distance?: number
   hourlyRate: number
   rating: number
   reviewCount: number
   isLicensed: boolean
   isCPRCertified: boolean
   isBackgroundChecked: boolean
+  experience: string
+  languages: string[]
+  availability: string
+  bio?: string
+  certifications?: string[]
+  services?: string[]
+  status?: string
+  isVerified?: boolean
+  isMock?: boolean
 }
 
 function CaregiverSearchContent() {
@@ -28,6 +40,7 @@ function CaregiverSearchContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchLocation, setSearchLocation] = useState("")
+  const [resultMessage, setResultMessage] = useState("")
 
   useEffect(() => {
     fetchCaregivers()
@@ -36,6 +49,7 @@ function CaregiverSearchContent() {
   async function fetchCaregivers(location?: string) {
     try {
       setIsLoading(true)
+      setError(null)
       const url = location 
         ? `/api/caregivers/search?location=${encodeURIComponent(location)}`
         : '/api/caregivers/search'
@@ -45,11 +59,12 @@ function CaregiverSearchContent() {
       
       if (data.success) {
         setCaregivers(data.results || [])
+        setResultMessage(data.message || '')
       } else {
         setError('Failed to load caregivers')
       }
     } catch (err) {
-      setError('Network error')
+      setError('Network error. Please try again.')
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -60,43 +75,71 @@ function CaregiverSearchContent() {
     e.preventDefault()
     if (searchLocation.trim()) {
       fetchCaregivers(searchLocation.trim())
+    } else {
+      fetchCaregivers()
     }
   }
 
+  const clearSearch = () => {
+    setSearchLocation("")
+    fetchCaregivers()
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       <MinimalNavigation />
       
-      <main className="container mx-auto px-4 pt-24 pb-12">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Find Professional Caregivers
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Connect with licensed, background-checked caregivers in your area
-          </p>
+      <main className="container mx-auto px-4 pt-24 pb-16">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              Find Professional Caregivers
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Connect with verified, licensed caregivers in your area
+            </p>
+          </div>
 
-          {/* Search Form */}
-          <Card className="p-6 mb-8">
-            <form onSubmit={handleSearch} className="flex gap-4">
+          {/* Search Form - Improved UI */}
+          <Card className="p-6 mb-8 shadow-sm">
+            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     type="text"
-                    placeholder="Enter city or ZIP code"
+                    placeholder="Enter city, state, or ZIP code"
                     value={searchLocation}
                     onChange={(e) => setSearchLocation(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-12"
                   />
+                  {searchLocation && (
+                    <button
+                      type="button"
+                      onClick={clearSearch}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </div>
-              <Button type="submit">
+              <Button type="submit" size="lg" className="md:px-8">
                 <Search className="h-4 w-4 mr-2" />
                 Search
               </Button>
             </form>
           </Card>
+
+          {/* Result Info */}
+          {resultMessage && !isLoading && (
+            <div className="mb-6 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {resultMessage}
+              </p>
+            </div>
+          )}
 
           {isLoading && (
             <div className="text-center py-12">
