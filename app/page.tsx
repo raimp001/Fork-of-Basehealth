@@ -1,13 +1,31 @@
 "use client"
 
+/**
+ * BaseHealth Homepage - Palantir-Grade Enterprise UI
+ * Seamless, premium user experience
+ */
+
 import Link from "next/link"
-import { StandardizedButton, PrimaryActionButton } from "@/components/ui/standardized-button"
-import { Activity, Search, Heart, FlaskConical, ArrowRight, Brain, User, Settings, Shield, CheckCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
-import { components, colors, healthcare } from "@/lib/design-system"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import {
+  Activity,
+  Search,
+  Heart,
+  FlaskConical,
+  ArrowRight,
+  Brain,
+  User,
+  FileText,
+  Shield,
+  Lock,
+  Zap,
+  CheckCircle,
+  ChevronRight,
+  Sparkles,
+} from "lucide-react"
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false)
@@ -17,317 +35,337 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       <MinimalNavigation />
 
-      {/* Hero Section - Minimal */}
-      <main className="pt-16">
-        <section className="px-4 sm:px-6 py-20 sm:py-32">
-          <div className="max-w-6xl mx-auto">
-            <div className="max-w-3xl">
-              <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-semibold text-gray-900 leading-tight ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-                Healthcare,{' '}
-                <span className="text-gray-400">simplified.</span>
+      {/* Hero Section - Palantir-inspired */}
+      <section className="relative overflow-hidden">
+        {/* Subtle grid background */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30" />
+        
+        <div className="relative px-6 pt-32 pb-24 md:pt-40 md:pb-32">
+          <div className="max-w-7xl mx-auto">
+            <div className="max-w-4xl">
+              {/* Badge */}
+              <div className={`inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full text-sm font-medium mb-8 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+                <Sparkles className="h-4 w-4" />
+                <span>Enterprise Healthcare Platform</span>
+              </div>
+
+              {/* Hero Headline */}
+              <h1 className={`text-5xl md:text-7xl font-bold text-slate-900 tracking-tight mb-8 ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
+                Healthcare,{" "}
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  simplified
+                </span>
               </h1>
-              
-              <p className={`mt-6 text-lg sm:text-xl text-gray-600 leading-relaxed max-w-2xl ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
-                Evidence-based health screenings, clinical trial matching, and expert care—all in one seamless platform.
+
+              {/* Subtitle */}
+              <p className={`text-xl md:text-2xl text-slate-600 leading-relaxed mb-12 ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
+                Evidence-based health screenings, clinical trial matching, and expert care—all in one seamless, HIPAA-compliant platform.
               </p>
 
-              <div className={`mt-10 flex flex-col sm:flex-row gap-4 ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
-                <PrimaryActionButton asChild className="px-8">
-                  <Link href="/screening" className="flex items-center gap-2">
-                    Start health assessment
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </PrimaryActionButton>
-                <StandardizedButton asChild variant="secondary" size="lg">
-                  <Link href="/providers/search">
-                    Find providers
-                  </Link>
-                </StandardizedButton>
+              {/* CTAs */}
+              <div className={`flex flex-col sm:flex-row gap-4 ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
+                <Link
+                  href="/screening"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  Start Health Assessment
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+                <Link
+                  href="/providers/search"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-slate-900 border-2 border-slate-200 rounded-xl font-semibold hover:border-slate-900 transition-all duration-300"
+                >
+                  Find Providers
+                </Link>
+              </div>
+
+              {/* Trust indicators */}
+              <div className={`mt-16 flex flex-wrap items-center gap-8 text-sm text-slate-500 ${mounted ? 'animate-fade-in animation-delay-400' : 'opacity-0'}`}>
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-green-600" />
+                  <span className="font-medium">HIPAA Compliant</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium">End-to-End Encrypted</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-purple-600" />
+                  <span className="font-medium">Base Blockchain</span>
+                </div>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Features Grid - Enhanced */}
-        <section className="px-4 sm:px-6 py-20 border-t border-gray-100">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-semibold text-gray-900 mb-4">
-                Comprehensive Healthcare Platform
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Everything you need to manage your health in one secure, HIPAA-compliant platform
-              </p>
-            </div>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-              <Card className={`p-6 ${components.card.elevated} group hover:shadow-xl transition-all duration-300`}>
-                <Link href="/screening" className="block">
-                  <div className="mb-4">
-                    <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                      <Activity className="h-7 w-7 text-blue-600" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">AI Health Screening</h3>
-                    <Badge className={components.badge.primary}>New</Badge>
-                  </div>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Personalized recommendations based on USPSTF guidelines
-                  </p>
-                  <div className="flex items-center text-blue-600 text-sm font-medium group-hover:text-blue-700">
-                    Learn more <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              </Card>
-
-              <Card className={`p-6 ${components.card.elevated} group hover:shadow-xl transition-all duration-300`}>
-                <Link href="/clinical-trials" className="block">
-                  <div className="mb-4">
-                    <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                      <FlaskConical className="h-7 w-7 text-purple-600" />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Clinical Trials</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Match with research studies based on your health profile
-                  </p>
-                  <div className="flex items-center text-purple-600 text-sm font-medium group-hover:text-purple-700">
-                    Explore trials <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              </Card>
-
-              <Card className={`p-6 ${components.card.elevated} group hover:shadow-xl transition-all duration-300`}>
-                <Link href="/providers/search" className="block">
-                  <div className="mb-4">
-                    <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                      <Search className="h-7 w-7 text-green-600" />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Find Providers</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Connect with verified healthcare professionals
-                  </p>
-                  <div className="flex items-center text-green-600 text-sm font-medium group-hover:text-green-700">
-                    Search providers <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              </Card>
-
-              <Card className={`p-6 ${components.card.elevated} group hover:shadow-xl transition-all duration-300`}>
-                <Link href="/providers/search?bounty=true" className="block">
-                  <div className="mb-4">
-                    <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center group-hover:bg-red-200 transition-colors">
-                      <Heart className="h-7 w-7 text-red-600" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">Caregiver Matching</h3>
-                    <Badge className={components.badge.warning}>Hot</Badge>
-                  </div>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Find specialized care through our bounty system
-                  </p>
-                  <div className="flex items-center text-red-600 text-sm font-medium group-hover:text-red-700">
-                    Find caregivers <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              </Card>
-            </div>
-
-            {/* Additional features row */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mt-12 pt-12 border-t border-gray-100">
-              <Card className={`p-6 ${components.card.base} group hover:shadow-md transition-all duration-300`}>
-                <Link href="/second-opinion" className="block">
-                  <div className="mb-4">
-                    <div className="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center group-hover:bg-amber-200 transition-colors">
-                      <Brain className="h-7 w-7 text-amber-600" />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Medical Bounty</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Get expert second opinions from specialist physicians
-                  </p>
-                  <div className="flex items-center text-amber-600 text-sm font-medium group-hover:text-amber-700">
-                    Raise bounty <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              </Card>
-
-              <Card className={`p-6 ${components.card.base} group hover:shadow-md transition-all duration-300`}>
-                <Link href="/patient-portal" className="block">
-                  <div className="mb-4">
-                    <div className="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
-                      <User className="h-7 w-7 text-indigo-600" />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Patient Portal</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Access your health dashboard and medical records
-                  </p>
-                  <div className="flex items-center text-indigo-600 text-sm font-medium group-hover:text-indigo-700">
-                    Access portal <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              </Card>
-
-              <Card className={`p-6 ${components.card.base} group hover:shadow-md transition-all duration-300`}>
-                <a href="https://healthdb.ai" target="_blank" rel="noopener noreferrer" className="block">
-                  <div className="mb-4">
-                    <div className="w-14 h-14 bg-teal-100 rounded-xl flex items-center justify-center group-hover:bg-teal-200 transition-colors">
-                      <Activity className="h-7 w-7 text-teal-600" />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">HealthDB.ai</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Contribute data for personalized recommendations
-                  </p>
-                  <div className="flex items-center text-teal-600 text-sm font-medium group-hover:text-teal-700">
-                    Visit HealthDB <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </a>
-              </Card>
-
-              <Card className={`p-6 ${components.card.base} group hover:shadow-md transition-all duration-300`}>
-                <Link href="/settings" className="block">
-                  <div className="mb-4">
-                    <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-                      <Settings className="h-7 w-7 text-gray-600" />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Settings</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    Customize your health profile and preferences
-                  </p>
-                  <div className="flex items-center text-gray-600 text-sm font-medium group-hover:text-gray-700">
-                    Manage settings <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* Trust & Security Section */}
-        <section className="px-4 sm:px-6 py-20 bg-gray-50 border-t border-gray-100">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-medium mb-4">
-                <Shield className="h-4 w-4" />
-                Trusted & Secure
-              </div>
-              <h2 className="text-3xl font-semibold text-gray-900 mb-4">
-                Your Health Data is Protected
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Built with enterprise-grade security and full HIPAA compliance to keep your health information safe
-              </p>
-            </div>
-            
-            <div className="grid md:grid-cols-3 gap-8">
-              <Card className={`p-6 ${components.card.base} text-center`}>
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Shield className="h-6 w-6 text-green-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">HIPAA Compliant</h3>
-                <p className="text-sm text-gray-600">
-                  Full compliance with healthcare privacy regulations and data protection standards
-                </p>
-              </Card>
-              
-              <Card className={`p-6 ${components.card.base} text-center`}>
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">End-to-End Encryption</h3>
-                <p className="text-sm text-gray-600">
-                  All data is encrypted in transit and at rest using industry-standard encryption
-                </p>
-              </Card>
-              
-              <Card className={`p-6 ${components.card.base} text-center`}>
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Settings className="h-6 w-6 text-purple-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Privacy Controls</h3>
-                <p className="text-sm text-gray-600">
-                  You control who has access to your data and can revoke permissions anytime
-                </p>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section - Minimal */}
-        <section className="px-4 sm:px-6 py-20 border-t border-gray-100">
-          <div className="max-w-6xl mx-auto text-center">
-            <h2 className="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4">
-              Ready to take control of your health?
+      {/* Features Section - Premium Grid */}
+      <section className="px-6 py-24 md:py-32">
+        <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+              Comprehensive Healthcare Platform
             </h2>
-            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join thousands who are already benefiting from personalized health insights.
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Everything you need to manage your health in one secure, enterprise-grade platform
             </p>
-            <PrimaryActionButton asChild className="px-10">
-              <Link href="/register">
-                Get started free
-              </Link>
-            </PrimaryActionButton>
           </div>
-        </section>
-      </main>
 
-      {/* Minimal Footer */}
-      <footer className="border-t border-gray-100 px-4 sm:px-6 py-12">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="text-sm text-gray-600">
+          {/* Primary Features */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* AI Health Screening */}
+            <Link href="/screening" className="group">
+              <Card className="p-8 h-full border-slate-200 hover:border-slate-300 hover:shadow-premium-lg transition-all duration-500">
+                <div className="mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <Activity className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-xl font-semibold text-slate-900">AI Health Screening</h3>
+                  <Badge className="bg-blue-600 text-white text-xs">New</Badge>
+                </div>
+                <p className="text-slate-600 leading-relaxed mb-6">
+                  Personalized recommendations based on USPSTF evidence-based guidelines
+                </p>
+                <div className="flex items-center text-blue-600 font-medium group-hover:gap-2 transition-all">
+                  Learn more
+                  <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Card>
+            </Link>
+
+            {/* Clinical Trials */}
+            <Link href="/clinical-trials" className="group">
+              <Card className="p-8 h-full border-slate-200 hover:border-slate-300 hover:shadow-premium-lg transition-all duration-500">
+                <div className="mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <FlaskConical className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">Clinical Trials</h3>
+                <p className="text-slate-600 leading-relaxed mb-6">
+                  Match with cutting-edge research studies based on your health profile
+                </p>
+                <div className="flex items-center text-purple-600 font-medium group-hover:gap-2 transition-all">
+                  Explore trials
+                  <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Card>
+            </Link>
+
+            {/* Find Providers */}
+            <Link href="/providers/search" className="group">
+              <Card className="p-8 h-full border-slate-200 hover:border-slate-300 hover:shadow-premium-lg transition-all duration-500">
+                <div className="mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <Search className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">Find Providers</h3>
+                <p className="text-slate-600 leading-relaxed mb-6">
+                  Connect with verified healthcare professionals in your area
+                </p>
+                <div className="flex items-center text-emerald-600 font-medium group-hover:gap-2 transition-all">
+                  Search providers
+                  <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Card>
+            </Link>
+
+            {/* Caregiver Matching */}
+            <Link href="/providers/search?bounty=true" className="group">
+              <Card className="p-8 h-full border-slate-200 hover:border-slate-300 hover:shadow-premium-lg transition-all duration-500 bg-gradient-to-br from-white to-rose-50/30">
+                <div className="mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <Heart className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-xl font-semibold text-slate-900">Caregiver Matching</h3>
+                  <Badge className="bg-gradient-to-r from-orange-500 to-rose-500 text-white text-xs">Hot</Badge>
+                </div>
+                <p className="text-slate-600 leading-relaxed mb-6">
+                  Find specialized care through our verified caregiver network
+                </p>
+                <div className="flex items-center text-rose-600 font-medium group-hover:gap-2 transition-all">
+                  Find caregivers
+                  <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Card>
+            </Link>
+          </div>
+
+          {/* Secondary Features */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Link href="/second-opinion" className="group">
+              <Card className="p-6 border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <Brain className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900">Medical Bounty</h3>
+                </div>
+                <p className="text-sm text-slate-600 mb-3">
+                  Get expert second opinions from specialist physicians
+                </p>
+                <div className="flex items-center text-amber-600 text-sm font-medium">
+                  Raise bounty <ChevronRight className="h-4 w-4" />
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/patient-portal" className="group">
+              <Card className="p-6 border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <User className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900">Patient Portal</h3>
+                </div>
+                <p className="text-sm text-slate-600 mb-3">
+                  Access your health dashboard and medical records securely
+                </p>
+                <div className="flex items-center text-blue-600 text-sm font-medium">
+                  Access portal <ChevronRight className="h-4 w-4" />
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/payment/base" className="group">
+              <Card className="p-6 border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-blue-50/30">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                    <Zap className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">Base Payments</h3>
+                    <Badge className="bg-blue-600 text-white text-xs mt-1">New</Badge>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 mb-3">
+                  Pay with USDC/ETH on Base blockchain - Fast & low fees
+                </p>
+                <div className="flex items-center text-blue-600 text-sm font-medium">
+                  Try payments <ChevronRight className="h-4 w-4" />
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/settings" className="group">
+              <Card className="p-6 border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-slate-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900">Settings</h3>
+                </div>
+                <p className="text-sm text-slate-600 mb-3">
+                  Customize your health profile and privacy preferences
+                </p>
+                <div className="flex items-center text-slate-600 text-sm font-medium">
+                  Manage settings <ChevronRight className="h-4 w-4" />
+                </div>
+              </Card>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Section - Premium */}
+      <section className="px-6 py-24 md:py-32 bg-slate-900 text-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-sm font-medium mb-6">
+              <Shield className="h-4 w-4" />
+              <span>Trusted & Secure</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Your Health Data is Protected
+            </h2>
+            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              Built with enterprise-grade security and full HIPAA compliance to keep your health information safe
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-12">
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <CheckCircle className="h-10 w-10 text-green-400" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-4">HIPAA Compliant</h3>
+              <p className="text-slate-300 leading-relaxed">
+                Full compliance with healthcare privacy regulations and data protection standards
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <Lock className="h-10 w-10 text-blue-400" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-4">End-to-End Encryption</h3>
+              <p className="text-slate-300 leading-relaxed">
+                All data is encrypted in transit and at rest using industry-standard encryption
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <Shield className="h-10 w-10 text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-4">Privacy Controls</h3>
+              <p className="text-slate-300 leading-relaxed">
+                You control who has access to your data and can revoke permissions anytime
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section - Minimal & Bold */}
+      <section className="px-6 py-24 md:py-32">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
+            Ready to take control of your health?
+          </h2>
+          <p className="text-xl text-slate-600 mb-12">
+            Join thousands who are already benefiting from personalized health insights.
+          </p>
+          <Link
+            href="/register"
+            className="inline-flex items-center gap-2 px-10 py-5 bg-slate-900 text-white rounded-xl text-lg font-semibold hover:bg-slate-800 transition-all duration-300 shadow-premium hover:shadow-premium-lg transform hover:-translate-y-0.5"
+          >
+            Get started free
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer - Minimal */}
+      <footer className="border-t border-slate-200 px-6 py-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-sm text-slate-500">
               © 2024 BaseHealth. All rights reserved.
             </div>
-            <nav className="flex gap-6">
-              <Link href="/privacy" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            <div className="flex items-center gap-8">
+              <Link href="/privacy" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
                 Privacy
               </Link>
-              <Link href="/terms" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="/terms" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
                 Terms
               </Link>
-              <Link href="/contact" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="/contact" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
                 Contact
               </Link>
-            </nav>
+            </div>
           </div>
         </div>
       </footer>
-
-      <style jsx>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out forwards;
-        }
-
-        .animation-delay-100 {
-          animation-delay: 0.1s;
-          opacity: 0;
-        }
-
-        .animation-delay-200 {
-          animation-delay: 0.2s;
-          opacity: 0;
-        }
-      `}</style>
     </div>
   )
 }

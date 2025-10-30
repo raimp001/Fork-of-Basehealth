@@ -44,7 +44,7 @@ export function EmptyState({
       {/* Title */}
       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
         {title}
-      </h3}
+      </h3>
 
       {/* Description */}
       <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-md">
