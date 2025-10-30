@@ -44,6 +44,9 @@ interface Caregiver {
 }
 
 function CaregiverSearchContent() {
+  const searchParams = useSearchParams()
+  const isCaregiverMode = searchParams?.get('bounty') === 'true'
+  
   const [caregivers, setCaregivers] = useState<Caregiver[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -53,8 +56,10 @@ function CaregiverSearchContent() {
 
   useEffect(() => {
     setMounted(true)
-    fetchCaregivers()
-  }, [])
+    if (isCaregiverMode) {
+      fetchCaregivers()
+    }
+  }, [isCaregiverMode])
 
   async function fetchCaregivers(location?: string) {
     try {
@@ -95,6 +100,21 @@ function CaregiverSearchContent() {
     fetchCaregivers()
   }
 
+  // If NOT in caregiver mode, show provider search (for doctors/physicians)
+  if (!isCaregiverMode) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-rose-50/10">
+        <MinimalNavigation />
+        <main className="pt-24 pb-20">
+          <div className="max-w-7xl mx-auto px-6">
+            <MinimalProviderSearch />
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // Caregiver search mode
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-rose-50/10">
       <MinimalNavigation />
