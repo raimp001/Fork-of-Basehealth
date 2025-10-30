@@ -96,53 +96,53 @@ function CaregiverSearchContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-rose-50/10">
       <MinimalNavigation />
       
       <main className="pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-6">
-          {/* Header Section - Enterprise Style */}
+          {/* Header Section - Calming warm grey */}
           <div className="mb-12">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full text-sm font-medium mb-6 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <div className={`inline-flex items-center gap-2 px-4 py-2 bg-stone-700 text-stone-50 rounded-full text-sm font-medium mb-6 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
               <Users className="h-4 w-4" />
               <span>Professional Caregivers</span>
             </div>
 
-            <h1 className={`text-5xl md:text-6xl font-bold text-slate-900 mb-6 tracking-tight ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
+            <h1 className={`text-5xl md:text-6xl font-bold text-stone-800 mb-6 tracking-tight ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
               Find Professional{" "}
-              <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-rose-600 via-rose-500 to-stone-600 bg-clip-text text-transparent">
                 Caregivers
               </span>
             </h1>
 
-            <p className={`text-xl text-slate-600 max-w-3xl leading-relaxed ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
+            <p className={`text-xl text-stone-600 max-w-3xl leading-relaxed ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
               Connect with verified, licensed, and background-checked caregivers in your area. All caregivers are real, approved professionals—no mock data.
             </p>
           </div>
 
-          {/* Search Bar - Premium Design */}
-          <Card className={`p-8 mb-12 border-slate-200 shadow-premium ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
+          {/* Search Bar - Calming design */}
+          <Card className={`p-8 mb-12 border-stone-200 shadow-premium bg-white ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
             <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-stone-400" />
                 <Input
                   type="text"
                   placeholder="Enter city, state, or ZIP code..."
                   value={searchLocation}
                   onChange={(e) => setSearchLocation(e.target.value)}
-                  className="pl-12 h-14 text-lg border-slate-200 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+                  className="pl-12 h-14 text-lg border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20"
                 />
                 {searchLocation && (
                   <button
                     type="button"
                     onClick={clearSearch}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
                   >
                     <X className="h-5 w-5" />
                   </button>
                 )}
               </div>
-              <Button type="submit" size="lg" className="h-14 px-10 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
+              <Button type="submit" size="lg" className="h-14 px-10 bg-stone-800 hover:bg-stone-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
                 <Search className="h-5 w-5 mr-2" />
                 Search
               </Button>

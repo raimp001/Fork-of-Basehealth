@@ -115,13 +115,21 @@
     text-wrap: pretty;
   }
 
-  /* Premium gradients */
+  /* Calming gradients - Warm grey & rose */
   .gradient-hero {
-    background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 25%, #f0fdfa 50%, #faf5ff 75%, #fffbeb 100%);
+    background: linear-gradient(135deg, #fafafa 0%, #fef2f2 20%, #f5f5f4 40%, #fef2f2 60%, #fafafa 100%);
   }
 
   .gradient-dark {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    background: linear-gradient(135deg, #57534e 0%, #78716c 50%, #a8a29e 100%);
+  }
+  
+  .gradient-warm {
+    background: linear-gradient(135deg, #fafaf9 0%, #fef2f2 50%, #fff1f2 100%);
+  }
+  
+  .gradient-calm {
+    background: linear-gradient(to bottom, #fafafa 0%, #ffffff 50%, #fef2f2 100%);
   }
 
   .gradient-shimmer {
@@ -160,66 +168,70 @@
 }
 
 :root {
-  /* Enterprise Color Palette - Palantir-inspired */
-  --background: 255 255 255;
-  --foreground: 15 23 42;
+  /* Calming Grey & Warm Palette - Healthcare Premium */
+  --background: 252 252 252;
+  --foreground: 64 64 64;
   
   --card: 255 255 255;
-  --card-foreground: 15 23 42;
+  --card-foreground: 64 64 64;
   
   --popover: 255 255 255;
-  --popover-foreground: 15 23 42;
+  --popover-foreground: 64 64 64;
   
-  --primary: 15 23 42;
-  --primary-foreground: 248 250 252;
+  /* Warm grey primary */
+  --primary: 82 82 91;
+  --primary-foreground: 250 250 250;
   
-  --secondary: 241 245 249;
-  --secondary-foreground: 15 23 42;
+  /* Soft reddish-grey secondary */
+  --secondary: 245 243 244;
+  --secondary-foreground: 82 82 91;
   
-  --muted: 248 250 252;
-  --muted-foreground: 100 116 139;
+  /* Muted warm grey */
+  --muted: 247 246 246;
+  --muted-foreground: 120 113 108;
   
-  --accent: 241 245 249;
-  --accent-foreground: 15 23 42;
+  /* Soft rose accent */
+  --accent: 254 242 242;
+  --accent-foreground: 136 19 55;
   
-  --destructive: 239 68 68;
-  --destructive-foreground: 248 250 252;
+  --destructive: 220 38 38;
+  --destructive-foreground: 254 242 242;
   
-  --border: 226 232 240;
-  --input: 226 232 240;
-  --ring: 15 23 42;
+  --border: 231 229 228;
+  --input: 231 229 228;
+  --ring: 168 162 158;
   
   --radius: 0.75rem;
 }
 
 .dark {
-  --background: 15 23 42;
-  --foreground: 248 250 252;
+  --background: 28 25 23;
+  --foreground: 250 250 249;
   
-  --card: 30 41 59;
-  --card-foreground: 248 250 252;
+  --card: 41 37 36;
+  --card-foreground: 250 250 249;
   
-  --popover: 30 41 59;
-  --popover-foreground: 248 250 252;
+  --popover: 41 37 36;
+  --popover-foreground: 250 250 249;
   
-  --primary: 248 250 252;
-  --primary-foreground: 15 23 42;
+  --primary: 231 229 228;
+  --primary-foreground: 28 25 23;
   
-  --secondary: 51 65 85;
-  --secondary-foreground: 248 250 252;
+  --secondary: 68 64 60;
+  --secondary-foreground: 250 250 249;
   
-  --muted: 30 41 59;
-  --muted-foreground: 148 163 184;
+  --muted: 41 37 36;
+  --muted-foreground: 168 162 158;
   
-  --accent: 51 65 85;
-  --accent-foreground: 248 250 252;
+  --accent: 87 83 78;
+  --accent-foreground: 254 242 242;
   
   --destructive: 220 38 38;
-  --destructive-foreground: 248 250 252;
+  --destructive-foreground: 254 242 242;
   
-  --border: 51 65 85;
-  --input: 51 65 85;
-  --ring: 148 163 184;
+  --border: 68 64 60;
+  --input: 68 64 60;
+  --ring: 168 162 158;
 }
 
 /* Remove default browser styles */
