@@ -283,7 +283,7 @@ export default function CaregiverApplicationsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pending</Badge>
+        return <Badge variant="secondary" className="bg-stone-100 text-stone-700">Pending</Badge>
       case 'approved':
         return <Badge variant="secondary" className="bg-green-100 text-green-800">Approved</Badge>
       case 'rejected':

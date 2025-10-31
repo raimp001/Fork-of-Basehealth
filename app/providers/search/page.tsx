@@ -383,7 +383,7 @@ function SearchPageContent() {
 
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                          <Star className="h-4 w-4 fill-stone-400 text-stone-400" />
                           <span className="text-sm font-medium">{provider.rating.toFixed(1)}</span>
                           <span className="text-xs text-stone-500">({provider.reviewCount})</span>
                         </div>

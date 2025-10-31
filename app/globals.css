@@ -168,70 +168,71 @@
 }
 
 :root {
-  /* Calming Grey & Warm Palette - Healthcare Premium */
-  --background: 252 252 252;
-  --foreground: 64 64 64;
+  /* High-Contrast Grey Palette - Clear & Readable */
+  --background: 255 255 255;
+  --foreground: 23 23 23;
   
   --card: 255 255 255;
-  --card-foreground: 64 64 64;
+  --card-foreground: 23 23 23;
   
   --popover: 255 255 255;
-  --popover-foreground: 64 64 64;
+  --popover-foreground: 23 23 23;
   
-  /* Warm grey primary */
-  --primary: 82 82 91;
-  --primary-foreground: 250 250 250;
+  /* Dark grey primary - High contrast */
+  --primary: 38 38 38;
+  --primary-foreground: 255 255 255;
   
-  /* Soft reddish-grey secondary */
-  --secondary: 245 243 244;
-  --secondary-foreground: 82 82 91;
+  /* Light grey secondary */
+  --secondary: 245 245 245;
+  --secondary-foreground: 38 38 38;
   
-  /* Muted warm grey */
-  --muted: 247 246 246;
-  --muted-foreground: 120 113 108;
+  /* Muted grey - Clear contrast */
+  --muted: 250 250 250;
+  --muted-foreground: 82 82 82;
   
-  /* Soft rose accent */
+  /* Soft rose accent - NO yellow */
   --accent: 254 242 242;
   --accent-foreground: 136 19 55;
   
   --destructive: 220 38 38;
-  --destructive-foreground: 254 242 242;
+  --destructive-foreground: 255 255 255;
   
-  --border: 231 229 228;
-  --input: 231 229 228;
-  --ring: 168 162 158;
+  /* Clear borders - Good contrast */
+  --border: 229 229 229;
+  --input: 229 229 229;
+  --ring: 120 120 120;
   
   --radius: 0.75rem;
 }
 
 .dark {
-  --background: 28 25 23;
-  --foreground: 250 250 249;
+  --background: 23 23 23;
+  --foreground: 250 250 250;
   
-  --card: 41 37 36;
-  --card-foreground: 250 250 249;
+  --card: 38 38 38;
+  --card-foreground: 250 250 250;
   
-  --popover: 41 37 36;
-  --popover-foreground: 250 250 249;
+  --popover: 38 38 38;
+  --popover-foreground: 250 250 250;
   
-  --primary: 231 229 228;
-  --primary-foreground: 28 25 23;
+  --primary: 245 245 245;
+  --primary-foreground: 23 23 23;
   
-  --secondary: 68 64 60;
-  --secondary-foreground: 250 250 249;
+  --secondary: 64 64 64;
+  --secondary-foreground: 245 245 245;
   
-  --muted: 41 37 36;
-  --muted-foreground: 168 162 158;
+  --muted: 38 38 38;
+  --muted-foreground: 163 163 163;
   
-  --accent: 87 83 78;
+  --accent: 82 82 82;
   --accent-foreground: 254 242 242;
   
   --destructive: 220 38 38;
-  --destructive-foreground: 254 242 242;
+  --destructive-foreground: 255 255 255;
   
-  --border: 68 64 60;
-  --input: 68 64 60;
-  --ring: 168 162 158;
+  --border: 64 64 64;
+  --input: 64 64 64;
+  --ring: 163 163 163;
 }
 
 /* Remove default browser styles */

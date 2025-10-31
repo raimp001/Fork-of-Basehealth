@@ -129,7 +129,7 @@ export default function BasePaymentPage() {
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <DollarSign className="h-8 w-8 mx-auto mb-2 text-yellow-600" />
+            <DollarSign className="h-8 w-8 mx-auto mb-2 text-stone-600" />
             <h3 className="font-semibold mb-1">Stablecoins</h3>
             <p className="text-sm text-muted-foreground">Pay with USDC or ETH</p>
           </CardContent>

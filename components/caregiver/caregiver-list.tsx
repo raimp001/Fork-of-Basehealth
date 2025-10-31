@@ -109,7 +109,7 @@ export function CaregiverList({
             {/* Rating */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <Star className="h-4 w-4 fill-stone-400 text-stone-400" />
                 <span className="font-semibold">{caregiver.rating.toFixed(1)}</span>
                 <span className="text-sm text-muted-foreground">
                   ({caregiver.reviewCount} reviews)
