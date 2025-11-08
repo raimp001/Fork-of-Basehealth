@@ -98,7 +98,7 @@ export default function RegisterPage() {
                     value={formData.firstName}
                     onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                     placeholder="John"
-                    className="border-2 border-stone-300 bg-white text-stone-900 placeholder-stone-400 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11 transition-all duration-200"
+                    className="border-2 border-stone-300 bg-white text-stone-900 placeholder:text-stone-600 placeholder:font-normal hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11 transition-all duration-200"
                     required
                   />
                 </div>
@@ -112,7 +112,7 @@ export default function RegisterPage() {
                     value={formData.lastName}
                     onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                     placeholder="Doe"
-                    className="border-2 border-stone-300 bg-white text-stone-900 placeholder-stone-400 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11 transition-all duration-200"
+                    className="border-2 border-stone-300 bg-white text-stone-900 placeholder:text-stone-600 placeholder:font-normal hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11 transition-all duration-200"
                     required
                   />
                 </div>

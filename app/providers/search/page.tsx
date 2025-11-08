@@ -247,7 +247,7 @@ function SearchPageContent() {
                     placeholder={isCaregiverMode ? "Enter city, state, or ZIP code..." : "e.g., cardiologist in San Francisco"}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 pr-10 h-14 text-lg border-2 border-stone-300 bg-white text-stone-900 placeholder-stone-500 focus:border-stone-700 focus:ring-2 focus:ring-stone-500/30 rounded-xl transition-all duration-200 font-medium"
+                    className="pl-12 pr-10 h-14 text-lg border-2 border-stone-300 bg-white text-stone-900 placeholder:text-stone-600 placeholder:font-normal focus:border-stone-700 focus:ring-2 focus:ring-stone-500/30 rounded-xl transition-all duration-200 font-medium"
                   />
                   {searchQuery && (
                     <button
@@ -282,8 +282,8 @@ function SearchPageContent() {
 
               {/* Example searches for providers */}
               {!isCaregiverMode && !isLoading && providers.length === 0 && (
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-sm font-semibold text-stone-700">Examples:</span>
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <span className="text-sm font-bold text-stone-900">Try searching for:</span>
                   {exampleSearches.map((example, i) => (
                     <button
                       key={i}
@@ -292,7 +292,7 @@ function SearchPageContent() {
                         setSearchQuery(example)
                         searchProviders(example)
                       }}
-                      className="text-xs px-4 py-2 bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-800 font-medium rounded-lg transition-all duration-200 hover:shadow-md"
+                      className="text-sm px-5 py-2.5 bg-white hover:bg-stone-50 border-2 border-stone-300 hover:border-stone-400 text-stone-900 font-semibold rounded-lg transition-all duration-200 hover:shadow-md shadow-sm"
                     >
                       {example}
                     </button>
