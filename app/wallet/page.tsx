@@ -101,241 +101,80 @@ export default function HealthWalletPage() {
           </Card>
         </div>
 
-        {/* Enhanced Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <Card className="text-center border-stone-200 hover:shadow-lg transition-all duration-300">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-8">
+          <Card className="text-center border-stone-200">
             <CardContent className="p-6">
-              <DollarSign className="h-10 w-10 mx-auto mb-3 text-green-500" />
-              <p className="text-3xl font-bold text-stone-900">--</p>
-              <p className="text-sm text-stone-600 font-medium">Balance</p>
+              <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-600" />
+              <p className="text-2xl font-bold text-stone-900">--</p>
+              <p className="text-sm text-stone-600">Balance</p>
             </CardContent>
           </Card>
           
-          <Card className="text-center border-stone-200 hover:shadow-lg transition-all duration-300">
+          <Card className="text-center border-stone-200">
             <CardContent className="p-6">
-              <FileText className="h-10 w-10 mx-auto mb-3 text-orange-500" />
-              <p className="text-3xl font-bold text-stone-900">--</p>
-              <p className="text-sm text-stone-600 font-medium">Pending Bills</p>
+              <FileText className="h-8 w-8 mx-auto mb-2 text-orange-600" />
+              <p className="text-2xl font-bold text-stone-900">--</p>
+              <p className="text-sm text-stone-600">Pending Bills</p>
             </CardContent>
           </Card>
           
-          <Card className="text-center border-stone-200 hover:shadow-lg transition-all duration-300">
+          <Card className="text-center border-stone-200">
             <CardContent className="p-6">
-              <Shield className="h-10 w-10 mx-auto mb-3 text-blue-500" />
-              <p className="text-3xl font-bold text-stone-900">Active</p>
-              <p className="text-sm text-stone-600 font-medium">Insurance</p>
+              <Shield className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+              <p className="text-2xl font-bold text-stone-900">Active</p>
+              <p className="text-sm text-stone-600">Insurance</p>
             </CardContent>
           </Card>
           
-          <Card className="text-center border-stone-200 hover:shadow-lg transition-all duration-300">
+          <Card className="text-center border-stone-200">
             <CardContent className="p-6">
-              <CheckCircle className="h-10 w-10 mx-auto mb-3 text-green-500" />
-              <p className="text-3xl font-bold text-stone-900">0</p>
-              <p className="text-sm text-stone-600 font-medium">Claims</p>
+              <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-600" />
+              <p className="text-2xl font-bold text-stone-900">0</p>
+              <p className="text-sm text-stone-600">Claims</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Enhanced Secondary Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Secondary Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
           <Button 
             onClick={() => setActiveTab("insights")}
             variant="outline"
-            className="h-24 flex-col gap-2 border-stone-200 hover:border-stone-400 hover:bg-stone-50 transition-all duration-300"
+            className="h-20 flex-col gap-2 border-stone-300 text-stone-700 hover:bg-stone-50 hover:text-stone-900"
           >
-            <BarChart3 className="h-6 w-6 text-stone-600" />
-            <span className="font-medium text-stone-700">View Spending Analytics</span>
+            <BarChart3 className="h-6 w-6" />
+            <span>View Spending Analytics</span>
           </Button>
           
           <Button 
             onClick={() => setActiveTab("wallet")}
             variant="outline"
-            className="h-24 flex-col gap-2 border-stone-200 hover:border-stone-400 hover:bg-stone-50 transition-all duration-300"
+            className="h-20 flex-col gap-2 border-stone-300 text-stone-700 hover:bg-stone-50 hover:text-stone-900"
           >
-            <Wallet className="h-6 w-6 text-stone-600" />
-            <span className="font-medium text-stone-700">Connect Crypto Wallet</span>
+            <Wallet className="h-6 w-6" />
+            <span>Connect Crypto Wallet</span>
           </Button>
           
           <Button 
             onClick={() => setActiveTab("compliance")}
             variant="outline"
-            className="h-24 flex-col gap-2 border-stone-200 hover:border-stone-400 hover:bg-stone-50 transition-all duration-300"
+            className="h-20 flex-col gap-2 border-stone-300 text-stone-700 hover:bg-stone-50 hover:text-stone-900"
           >
-            <Gavel className="h-6 w-6 text-stone-600" />
-            <span className="font-medium text-stone-700">CMS Compliance</span>
+            <Gavel className="h-6 w-6" />
+            <span>CMS Compliance</span>
           </Button>
         </div>
 
-      {/* Payment Flow Modal */}
-      {showPaymentFlow && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <ImprovedPaymentFlow
-              amount={0}
-              appointmentId=""
-              patientId=""
-              providerId=""
-              cptCode=""
-              isUninsured={false}
-              onSuccess={(result) => {
-                console.log('Payment successful:', result)
-                setShowPaymentFlow(false)
-              }}
-              onCancel={() => setShowPaymentFlow(false)}
-            />
+        {/* Enhanced Footer */}
+        <div className="text-center text-sm text-stone-500 border-t pt-8 space-y-4">
+          <div className="flex justify-center gap-3">
+            <Badge variant="outline" className="border-stone-300 text-stone-600">HIPAA Secure</Badge>
+            <Badge variant="outline" className="border-stone-300 text-stone-600">PCI Compliant</Badge>
+            <Badge variant="outline" className="border-stone-300 text-stone-600">CMS Certified</Badge>
           </div>
+          <p className="text-stone-600">Your health data is protected with enterprise-grade encryption</p>
         </div>
-      )}
-
-      {/* Simplified Tabs - Only Show When Needed */}
-      {activeTab !== "overview" && (
-        <>
-          <div className="flex items-center gap-4 border-b pb-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => setActiveTab("overview")}
-              className="flex items-center gap-2"
-            >
-              ← Back to Overview
-            </Button>
-            <div className="text-lg font-semibold">
-              {activeTab === "insurance" && "Insurance & Claims Management"}
-              {activeTab === "billing" && "Bills & Payments"}
-              {activeTab === "wallet" && "Crypto Wallet"}
-              {activeTab === "insights" && "Spending Analytics"}
-              {activeTab === "compliance" && "CMS Compliance"}
-            </div>
-          </div>
-
-          {/* Tab Content */}
-          {activeTab === "insurance" && (
-            <div className="space-y-6">
-              <Alert>
-                <Shield className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Tip:</strong> Upload both sides of your insurance card for automatic information extraction and faster claims processing.
-                </AlertDescription>
-              </Alert>
-              <InsuranceManagement />
-            </div>
-          )}
-
-          {activeTab === "billing" && (
-            <div className="space-y-6">
-              <Alert>
-                <CreditCard className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Save Money:</strong> Pay with cryptocurrency and get 2.5% discount on all medical bills.
-                </AlertDescription>
-              </Alert>
-              <EnhancedBillingDashboard />
-            </div>
-          )}
-
-          {activeTab === "wallet" && (
-            <div className="space-y-6">
-              <Alert>
-                <Wallet className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Crypto Benefits:</strong> Lower fees, instant payments, and automatic discounts when you pay with cryptocurrency.
-                </AlertDescription>
-              </Alert>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <SimplifiedWalletConnect />
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Why Use Crypto?</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>2.5% automatic discount</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span>Instant payments</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <span>Lower transaction fees</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                      <span>Enhanced security</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "insights" && (
-            <div className="space-y-6">
-              <Alert>
-                <Lightbulb className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>AI Insights:</strong> Get personalized recommendations to save money on your healthcare expenses.
-                </AlertDescription>
-              </Alert>
-              <SmartBillingInsights />
-            </div>
-          )}
-
-          {activeTab === "compliance" && (
-            <div className="space-y-6">
-              <Alert>
-                <Gavel className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>CMS Compliance:</strong> All billing practices meet Medicare & Medicaid Services guidelines for transparency and patient protection.
-                </AlertDescription>
-              </Alert>
-              <CMSCompliantBilling />
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Overview Content - Show detailed dashboard when on overview */}
-      {activeTab === "overview" && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>Your latest healthcare financial activity</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="font-medium">No recent activity</p>
-                <p className="text-sm">Your payments and claims will appear here</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Billing Overview</CardTitle>
-              <CardDescription>Your healthcare spending summary</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <EnhancedBillingDashboard />
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Enhanced Footer */}
-      <div className="text-center text-sm text-stone-500 border-t pt-8 space-y-4">
-        <div className="flex justify-center gap-3">
-          <Badge variant="outline" className="border-stone-300 text-stone-600">HIPAA Secure</Badge>
-          <Badge variant="outline" className="border-stone-300 text-stone-600">PCI Compliant</Badge>
-          <Badge variant="outline" className="border-stone-300 text-stone-600">CMS Certified</Badge>
-        </div>
-        <p className="text-stone-600">Your health data is protected with enterprise-grade encryption</p>
       </div>
     </div>
   )
