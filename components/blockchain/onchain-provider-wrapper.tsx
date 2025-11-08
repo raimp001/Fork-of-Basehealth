@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react"
 import { OnchainKitProvider } from '@coinbase/onchainkit'
-import { onchainKitConfig, baseChain } from '@/lib/onchainkit-config'
+import { baseChain, onchainKitConfig } from '@/lib/onchainkit-config'
 
 /**
  * OnchainKit Provider Wrapper for Base Chain
@@ -10,7 +10,12 @@ import { onchainKitConfig, baseChain } from '@/lib/onchainkit-config'
  */
 export function OnchainProviderWrapper({ children }: { children: ReactNode }) {
   return (
-    <OnchainKitProvider config={onchainKitConfig} chain={baseChain}>
+    <OnchainKitProvider
+      chain={baseChain}
+      apiKey={onchainKitConfig.apiKey}
+      rpcUrl={onchainKitConfig.rpcUrl}
+      config={onchainKitConfig.config}
+    >
       {children}
     </OnchainKitProvider>
   )
