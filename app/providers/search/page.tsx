@@ -186,42 +186,50 @@ function SearchPageContent() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-rose-50/10">
+    <div className="min-h-screen bg-white">
       <MinimalNavigation />
       
       <main className="pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-6">
           {/* Header Section */}
           <div className="mb-12">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 bg-stone-700 text-stone-50 rounded-full text-sm font-medium mb-6 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <div className={`inline-flex items-center gap-2 px-5 py-2.5 bg-stone-900 text-white rounded-full text-sm font-semibold mb-6 shadow-md ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
               {isCaregiverMode ? <Heart className="h-4 w-4" /> : <Stethoscope className="h-4 w-4" />}
               <span>{isCaregiverMode ? 'Professional Caregivers' : 'Healthcare Providers'}</span>
             </div>
 
-            <h1 className={`text-5xl md:text-6xl font-bold text-stone-800 mb-6 tracking-tight ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
+            <h1 className={`text-5xl md:text-6xl font-bold text-stone-900 mb-6 tracking-tight ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
               {isCaregiverMode ? 'Find Professional ' : 'Find Healthcare '}
-              <span className="bg-gradient-to-r from-rose-600 via-rose-500 to-stone-600 bg-clip-text text-transparent">
+              <span className="text-stone-700">
                 {isCaregiverMode ? 'Caregivers' : 'Providers'}
               </span>
             </h1>
 
-            <p className={`text-xl text-stone-600 max-w-3xl leading-relaxed ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
+            <p className={`text-lg md:text-xl text-stone-700 max-w-3xl leading-relaxed font-medium ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
               {isCaregiverMode 
                 ? 'Connect with verified, licensed, and background-checked caregivers. All caregivers are real, approved professionals—no mock data.'
                 : 'Search for doctors and specialists using natural language. All providers from real NPI Registry—no mock data.'}
             </p>
 
             {/* Mode toggle */}
-            <div className="mt-6 flex gap-3">
+            <div className="mt-8 flex gap-3">
               <Link
                 href="/providers/search"
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${!isCaregiverMode ? 'bg-stone-800 text-white' : 'bg-white text-stone-600 border border-stone-200 hover:border-stone-300'}`}
+                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  !isCaregiverMode 
+                    ? 'bg-stone-900 text-white shadow-lg hover:shadow-xl' 
+                    : 'bg-white text-stone-700 border-2 border-stone-300 hover:border-stone-400 hover:bg-stone-50'
+                }`}
               >
                 Doctors & Specialists
               </Link>
               <Link
                 href="/providers/search?bounty=true"
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${isCaregiverMode ? 'bg-stone-800 text-white' : 'bg-white text-stone-600 border border-stone-200 hover:border-stone-300'}`}
+                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  isCaregiverMode 
+                    ? 'bg-stone-900 text-white shadow-lg hover:shadow-xl' 
+                    : 'bg-white text-stone-700 border-2 border-stone-300 hover:border-stone-400 hover:bg-stone-50'
+                }`}
               >
                 Caregivers
               </Link>
@@ -229,22 +237,23 @@ function SearchPageContent() {
           </div>
 
           {/* Search Bar */}
-          <Card className={`p-8 mb-12 border-stone-200 shadow-lg bg-white ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
+          <Card className={`p-8 mb-12 border-2 border-stone-300 shadow-xl bg-white ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
             <form onSubmit={handleSearch} className="space-y-4">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
-                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-stone-500 z-10" />
+                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-stone-700 z-10" />
                   <Input
                     type="text"
                     placeholder={isCaregiverMode ? "Enter city, state, or ZIP code..." : "e.g., cardiologist in San Francisco"}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 pr-10 h-14 text-lg border-2 border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-xl transition-all duration-200"
+                    className="pl-12 pr-10 h-14 text-lg border-2 border-stone-300 bg-white text-stone-900 placeholder-stone-500 focus:border-stone-700 focus:ring-2 focus:ring-stone-500/30 rounded-xl transition-all duration-200 font-medium"
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={clearSearch}
+                      aria-label="Clear search"
                       className="absolute right-4 top-1/2 transform -translate-y-1/2 text-stone-400 hover:text-stone-700 transition-colors p-1 rounded-full hover:bg-stone-100"
                     >
                       <X className="h-5 w-5" />
@@ -274,7 +283,7 @@ function SearchPageContent() {
               {/* Example searches for providers */}
               {!isCaregiverMode && !isLoading && providers.length === 0 && (
                 <div className="flex flex-wrap gap-2">
-                  <span className="text-sm text-stone-500">Examples:</span>
+                  <span className="text-sm font-semibold text-stone-700">Examples:</span>
                   {exampleSearches.map((example, i) => (
                     <button
                       key={i}
@@ -283,7 +292,7 @@ function SearchPageContent() {
                         setSearchQuery(example)
                         searchProviders(example)
                       }}
-                      className="text-xs px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-full transition-colors"
+                      className="text-xs px-4 py-2 bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-800 font-medium rounded-lg transition-all duration-200 hover:shadow-md"
                     >
                       {example}
                     </button>
@@ -339,36 +348,36 @@ function SearchPageContent() {
           {/* Provider Results (Doctors) */}
           {!isCaregiverMode && !error && !isLoading && providers.length > 0 && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold text-stone-900">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl md:text-4xl font-bold text-stone-900">
                   {providers.length} {providers.length === 1 ? 'Provider' : 'Providers'} Found
                 </h2>
               </div>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {providers.map((provider) => (
-                  <Card key={provider.npi} className="p-6 hover:shadow-xl transition-all duration-300 border-stone-200 hover:border-stone-400 cursor-pointer group">
-                    <div className="mb-5">
-                      <h3 className="text-lg font-bold text-stone-900 mb-1 group-hover:text-stone-700 transition-colors">
+                  <Card key={provider.npi} className="p-6 hover:shadow-2xl transition-all duration-300 border-2 border-stone-300 hover:border-stone-500 cursor-pointer group bg-white">
+                    <div className="mb-6">
+                      <h3 className="text-xl font-bold text-stone-900 mb-2 group-hover:text-stone-700 transition-colors">
                         {provider.name}
                       </h3>
-                      <p className="text-sm text-stone-600 font-medium">{provider.credentials}</p>
+                      <p className="text-sm text-stone-700 font-semibold">{provider.credentials}</p>
                     </div>
 
-                    <div className="space-y-4 mb-5">
+                    <div className="space-y-4 mb-6">
                       <div>
-                        <div className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1">Specialty</div>
-                        <div className="text-sm font-medium text-stone-900">{provider.specialty}</div>
+                        <div className="text-xs font-bold text-stone-600 uppercase tracking-wide mb-2">Specialty</div>
+                        <div className="text-base font-semibold text-stone-900">{provider.specialty}</div>
                       </div>
 
                       <div>
                         <div className="flex items-start gap-2">
-                          <MapPin className="h-4 w-4 text-stone-500 mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-stone-700">
+                          <MapPin className="h-5 w-5 text-stone-700 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm text-stone-800 font-medium">
                             {provider.address}<br />
                             {provider.city}, {provider.state} {provider.zip}
                             {provider.distance && (
-                              <Badge variant="outline" className="ml-2 text-xs font-semibold border-stone-300">
+                              <Badge variant="outline" className="ml-2 text-xs font-bold border-2 border-stone-400 text-stone-800">
                                 {provider.distance.toFixed(1)} mi
                               </Badge>
                             )}
@@ -377,26 +386,26 @@ function SearchPageContent() {
                       </div>
 
                       {provider.phone && (
-                        <div className="text-sm text-stone-700 font-medium">
+                        <div className="text-sm text-stone-800 font-semibold">
                           📞 {provider.phone}
                         </div>
                       )}
 
-                      <div className="flex items-center gap-4 pt-2 border-t border-stone-100">
+                      <div className="flex items-center gap-4 pt-3 border-t-2 border-stone-200">
                         <div className="flex items-center gap-1.5">
-                          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                          <span className="text-sm font-bold text-stone-900">{provider.rating.toFixed(1)}</span>
-                          <span className="text-xs text-stone-500">({provider.reviewCount})</span>
+                          <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
+                          <span className="text-base font-bold text-stone-900">{provider.rating.toFixed(1)}</span>
+                          <span className="text-xs text-stone-600 font-medium">({provider.reviewCount})</span>
                         </div>
                         {provider.acceptingPatients && (
-                          <Badge className="bg-emerald-100 text-emerald-800 text-xs font-semibold border-emerald-200">
+                          <Badge className="bg-emerald-600 text-white text-xs font-bold border-0">
                             Accepting Patients
                           </Badge>
                         )}
                       </div>
                     </div>
 
-                    <Button className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                    <Button className="w-full bg-stone-900 hover:bg-stone-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-200 h-12 text-base">
                       View Profile
                     </Button>
                   </Card>

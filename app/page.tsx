@@ -35,7 +35,7 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="min-h-screen gradient-calm">
+    <div className="min-h-screen bg-white">
       <MinimalNavigation />
 
       {/* Hero Section - Calming design */}
@@ -52,16 +52,16 @@ export default function HomePage() {
                 <span>Enterprise Healthcare Platform</span>
               </div>
 
-              {/* Hero Headline - Warm grey with rose accent */}
+              {/* Hero Headline - High contrast */}
               <h1 className={`text-5xl md:text-6xl lg:text-7xl font-bold text-stone-900 tracking-tight mb-8 leading-[1.1] ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
                 Healthcare,{" "}
-                <span className="bg-gradient-to-r from-rose-600 via-rose-500 to-stone-600 bg-clip-text text-transparent">
+                <span className="text-stone-700">
                   simplified
                 </span>
               </h1>
 
-              {/* Subtitle - Muted warm grey */}
-              <p className={`text-lg md:text-xl lg:text-2xl text-stone-600 leading-relaxed mb-12 max-w-3xl ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
+              {/* Subtitle - High contrast */}
+              <p className={`text-lg md:text-xl lg:text-2xl text-stone-800 leading-relaxed mb-12 max-w-3xl font-medium ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
                 Evidence-based health screenings, clinical trial matching, and expert care—all in one seamless, HIPAA-compliant platform.
               </p>
 
@@ -119,7 +119,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {/* AI Health Screening */}
             <Link href="/screening" className="group">
-              <Card className="p-8 h-full border-stone-200 hover:border-stone-400 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-stone-50/50 cursor-pointer">
+              <Card className="p-8 h-full border-2 border-stone-300 hover:border-stone-500 hover:shadow-2xl transition-all duration-300 bg-white cursor-pointer">
                 <div className="mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-stone-700 to-stone-800 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                     <Activity className="h-8 w-8 text-white" />
@@ -141,7 +141,7 @@ export default function HomePage() {
 
             {/* Clinical Trials */}
             <Link href="/clinical-trials" className="group">
-              <Card className="p-8 h-full border-stone-200 hover:border-rose-300 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-rose-50/30 cursor-pointer">
+              <Card className="p-8 h-full border-2 border-stone-300 hover:border-stone-500 hover:shadow-2xl transition-all duration-300 bg-white cursor-pointer">
                 <div className="mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                     <FlaskConical className="h-8 w-8 text-white" />
@@ -160,7 +160,7 @@ export default function HomePage() {
 
             {/* Find Providers */}
             <Link href="/providers/search" className="group">
-              <Card className="p-8 h-full border-stone-200 hover:border-stone-400 hover:shadow-xl transition-all duration-300 cursor-pointer">
+              <Card className="p-8 h-full border-2 border-stone-300 hover:border-stone-500 hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white">
                 <div className="mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-stone-600 to-stone-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                     <Search className="h-8 w-8 text-white" />
@@ -179,7 +179,7 @@ export default function HomePage() {
 
             {/* Caregiver Matching */}
             <Link href="/providers/search?bounty=true" className="group">
-              <Card className="p-8 h-full border-rose-200 hover:border-rose-400 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white via-rose-50/40 to-stone-50/30 cursor-pointer">
+              <Card className="p-8 h-full border-2 border-stone-300 hover:border-stone-500 hover:shadow-2xl transition-all duration-300 bg-white cursor-pointer">
                 <div className="mb-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-rose-600 to-rose-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                     <Heart className="h-8 w-8 text-white" />

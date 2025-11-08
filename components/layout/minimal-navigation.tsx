@@ -70,14 +70,14 @@ export function MinimalNavigation() {
     <>
       {/* Desktop Navigation */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 shadow-md backdrop-blur-lg' : 'bg-white/90 backdrop-blur-md'
-      } border-b border-gray-100/80`}>
+        scrolled ? 'bg-white shadow-lg' : 'bg-white shadow-sm'
+      } border-b-2 border-stone-300`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-18">
             <div className="flex items-center gap-8 lg:gap-12">
               <Link 
                 href="/" 
-                className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight hover:text-stone-700 transition-colors duration-200"
+                className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight hover:text-stone-700 transition-colors duration-200"
               >
                 BaseHealth
               </Link>
@@ -87,10 +87,10 @@ export function MinimalNavigation() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    className={`relative px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
                       pathname === item.href
-                        ? 'text-stone-900 bg-stone-50'
-                        : 'text-gray-600 hover:text-stone-900 hover:bg-stone-50/50'
+                        ? 'text-stone-900 bg-stone-100'
+                        : 'text-stone-700 hover:text-stone-900 hover:bg-stone-50'
                     }`}
                   >
                     {item.label}
@@ -267,7 +267,7 @@ export function MinimalNavigation() {
       </header>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-100 md:hidden z-50 shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-stone-300 md:hidden z-50 shadow-lg">
         <div className="grid grid-cols-5 h-16">
           {navigationItems.map((item) => (
             <Link
