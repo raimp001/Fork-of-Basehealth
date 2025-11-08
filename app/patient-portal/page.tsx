@@ -71,24 +71,24 @@ export default function PatientPortalPage() {
   // Show login form if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
         <MinimalNavigation />
         
         <main className="max-w-md mx-auto px-4 sm:px-6 py-8 pt-24">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-4">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-6 shadow-md">
               <Lock className="h-4 w-4" />
               Secure Access
             </div>
-            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+            <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
               Patient Portal Sign In
             </h1>
-            <p className="text-gray-600">
+            <p className="text-lg text-stone-600 leading-relaxed">
               Access your health dashboard, medical records, and medication management securely.
             </p>
           </div>
 
-          <Card className="p-6 border-gray-100">
+          <Card className="p-8 border-2 border-stone-200 shadow-lg bg-white">
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <StandardizedInput

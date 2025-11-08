@@ -36,21 +36,21 @@ export default function BillingPage() {
   const providerId = "provider_456"
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
       <MinimalNavigation />
       
-      <main className="pt-16">
+      <main className="pt-20 md:pt-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {/* Header */}
-          <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-4">
+          <div className="mb-10">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-6 shadow-md">
               <DollarSign className="h-4 w-4" />
               Healthcare Billing
             </div>
-            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+            <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
               Billing & Payments
             </h1>
-            <p className="text-gray-600">
+            <p className="text-lg text-stone-600 leading-relaxed">
               CMS-compliant billing management with smart insights
             </p>
           </div>

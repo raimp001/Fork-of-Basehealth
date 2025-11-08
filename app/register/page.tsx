@@ -59,27 +59,27 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
       <MinimalNavigation />
 
-      <main className="pt-16">
+      <main className="pt-20 md:pt-24">
         <div className="max-w-md mx-auto px-4 sm:px-6 py-12">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium mb-4">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-6 shadow-md">
               <CheckCircle className="h-4 w-4" />
               Join BaseHealth
             </div>
-            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+            <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
               Create your account
             </h1>
-            <p className="text-gray-600">
+            <p className="text-lg text-stone-600 leading-relaxed">
               Start your personalized health journey today
             </p>
           </div>
 
           {/* Registration Form */}
-          <Card className="p-6 border-gray-100 shadow-sm">
+          <Card className="p-8 border-2 border-stone-200 shadow-lg bg-white">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <Alert className="border-red-200 bg-red-50">
@@ -89,7 +89,7 @@ export default function RegisterPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 mb-2 block">
+                  <Label htmlFor="firstName" className="text-sm font-semibold text-stone-900 mb-2 block">
                     First name
                   </Label>
                   <Input
@@ -98,12 +98,12 @@ export default function RegisterPage() {
                     value={formData.firstName}
                     onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                     placeholder="John"
-                    className="border-2 border-gray-400 bg-white text-gray-900 placeholder-gray-500 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="border-2 border-stone-300 bg-white text-stone-900 placeholder-stone-400 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11 transition-all duration-200"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700 mb-2 block">
+                  <Label htmlFor="lastName" className="text-sm font-semibold text-stone-900 mb-2 block">
                     Last name
                   </Label>
                   <Input
@@ -112,7 +112,7 @@ export default function RegisterPage() {
                     value={formData.lastName}
                     onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                     placeholder="Doe"
-                    className="border-2 border-gray-400 bg-white text-gray-900 placeholder-gray-500 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="border-2 border-stone-300 bg-white text-stone-900 placeholder-stone-400 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11 transition-all duration-200"
                     required
                   />
                 </div>
@@ -213,7 +213,7 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 h-12 rounded-xl"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">

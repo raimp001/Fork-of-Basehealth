@@ -69,38 +69,53 @@ export function MinimalNavigation() {
   return (
     <>
       {/* Desktop Navigation */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
-        scrolled ? 'bg-white shadow-sm' : 'bg-white/80 backdrop-blur-md'
-      } border-b border-gray-100`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-8">
-              <Link href="/" className="text-xl font-semibold text-gray-900">
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white/95 shadow-md backdrop-blur-lg' : 'bg-white/90 backdrop-blur-md'
+      } border-b border-gray-100/80`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 md:h-18">
+            <div className="flex items-center gap-8 lg:gap-12">
+              <Link 
+                href="/" 
+                className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight hover:text-stone-700 transition-colors duration-200"
+              >
                 BaseHealth
               </Link>
               
-              <nav className="hidden md:flex items-center gap-6">
+              <nav className="hidden md:flex items-center gap-1 lg:gap-2">
                 {navigationItems.slice(1, 4).map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`text-sm transition-colors ${
+                    className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                       pathname === item.href
-                        ? 'text-gray-900 font-medium'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'text-stone-900 bg-stone-50'
+                        : 'text-gray-600 hover:text-stone-900 hover:bg-stone-50/50'
                     }`}
                   >
                     {item.label}
+                    {pathname === item.href && (
+                      <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-stone-800 rounded-full" />
+                    )}
                   </Link>
                 ))}
               </nav>
             </div>
 
-            <div className="hidden md:flex items-center gap-4">
-              <Button asChild variant="ghost" size="sm" className={components.button.ghost}>
+            <div className="hidden md:flex items-center gap-3">
+              <Button 
+                asChild 
+                variant="ghost" 
+                size="sm" 
+                className="h-9 px-4 text-sm font-medium text-gray-700 hover:text-stone-900 hover:bg-stone-50 transition-all duration-200"
+              >
                 <Link href="/login">Sign in</Link>
               </Button>
-              <Button asChild size="sm" className={components.button.primary}>
+              <Button 
+                asChild 
+                size="sm" 
+                className="h-9 px-5 bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-sm hover:shadow-md transition-all duration-200"
+              >
                 <Link href="/register">Get started</Link>
               </Button>
             </div>
@@ -108,46 +123,46 @@ export function MinimalNavigation() {
             {/* Mobile Menu Button */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon" className="text-gray-600">
+                <Button variant="ghost" size="icon" className="text-gray-700 hover:bg-stone-50 h-9 w-9">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0">
+              <SheetContent side="right" className="w-[300px] sm:w-[360px] p-0 bg-white">
                 <div className="flex flex-col h-full">
-                  <div className="flex items-center justify-between p-4 border-b">
-                    <span className="text-lg font-semibold">Menu</span>
+                  <div className="flex items-center justify-between p-5 border-b border-gray-100">
+                    <span className="text-lg font-bold text-stone-900">Menu</span>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setIsOpen(false)}
-                      className="text-gray-600"
+                      className="text-gray-600 hover:text-stone-900 hover:bg-stone-50 h-9 w-9"
                     >
                       <X className="h-5 w-5" />
                     </Button>
                   </div>
                   
-                  <nav className="flex-1 py-4">
+                  <nav className="flex-1 py-6 overflow-y-auto">
                     <div className="px-4 space-y-1">
                       {navigationItems.map((item) => (
                         <Link
                           key={item.href}
                           href={item.href}
                           onClick={() => setIsOpen(false)}
-                          className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                             pathname === item.href
-                              ? 'bg-gray-100 text-gray-900 font-medium'
-                              : 'text-gray-700 hover:bg-gray-50'
+                              ? 'bg-stone-100 text-stone-900 font-semibold shadow-sm'
+                              : 'text-gray-700 hover:bg-stone-50 hover:text-stone-900'
                           }`}
                         >
-                          <item.icon className="h-4 w-4" />
+                          <item.icon className={`h-5 w-5 ${pathname === item.href ? 'text-stone-700' : 'text-gray-500'}`} />
                           {item.label}
                         </Link>
                       ))}
                     </div>
                     
-                    <div className="mt-4 pt-4 border-t">
-                      <div className="px-4 mb-4">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                    <div className="mt-6 pt-6 border-t border-gray-100">
+                      <div className="px-4 mb-6">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                           Quick Actions
                         </p>
                         <div className="space-y-1">
@@ -156,14 +171,14 @@ export function MinimalNavigation() {
                               key={item.href}
                               href={item.href}
                               onClick={() => setIsOpen(false)}
-                              className="flex items-center justify-between px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                              className="flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 hover:bg-stone-50 hover:text-stone-900 transition-all duration-200"
                             >
                               <div className="flex items-center gap-3">
-                                <item.icon className="h-4 w-4" />
-                                {item.label}
+                                <item.icon className="h-5 w-5 text-gray-500" />
+                                <span className="font-medium">{item.label}</span>
                               </div>
                               {item.badge && (
-                                <Badge variant="secondary" className={components.badge.primary}>
+                                <Badge variant="secondary" className="bg-rose-100 text-rose-700 text-xs font-semibold">
                                   {item.badge}
                                 </Badge>
                               )}
@@ -172,8 +187,8 @@ export function MinimalNavigation() {
                         </div>
                       </div>
                       
-                      <div className="px-4">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                      <div className="px-4 mb-6">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                           Account
                         </p>
                         <div className="space-y-1">
@@ -182,14 +197,14 @@ export function MinimalNavigation() {
                               key={item.href}
                               href={item.href}
                               onClick={() => setIsOpen(false)}
-                              className="flex items-center justify-between px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                              className="flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 hover:bg-stone-50 hover:text-stone-900 transition-all duration-200"
                             >
                               <div className="flex items-center gap-3">
-                                <item.icon className="h-4 w-4" />
-                                {item.label}
+                                <item.icon className="h-5 w-5 text-gray-500" />
+                                <span className="font-medium">{item.label}</span>
                               </div>
                               {item.badge && (
-                                <Badge variant="secondary" className={components.badge.primary}>
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs font-semibold">
                                   {item.badge}
                                 </Badge>
                               )}
@@ -199,8 +214,8 @@ export function MinimalNavigation() {
                       </div>
 
                       {/* Admin Section */}
-                      <div className="px-4 pt-4 border-t border-gray-200">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                      <div className="px-4 pt-6 border-t border-gray-100">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                           Administration
                         </p>
                         <div className="space-y-1">
@@ -209,14 +224,14 @@ export function MinimalNavigation() {
                               key={item.href}
                               href={item.href}
                               onClick={() => setIsOpen(false)}
-                              className="flex items-center justify-between px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                              className="flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 hover:bg-stone-50 hover:text-stone-900 transition-all duration-200"
                             >
                               <div className="flex items-center gap-3">
-                                <item.icon className="h-4 w-4" />
-                                {item.label}
+                                <item.icon className="h-5 w-5 text-gray-500" />
+                                <span className="font-medium">{item.label}</span>
                               </div>
                               {item.badge && (
-                                <Badge variant="secondary" className={components.badge.error}>
+                                <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs font-semibold">
                                   {item.badge}
                                 </Badge>
                               )}
@@ -227,11 +242,20 @@ export function MinimalNavigation() {
                     </div>
                   </nav>
                   
-                  <div className="p-4 border-t space-y-3">
-                    <Button asChild variant="outline" className={`w-full ${components.button.secondary}`} onClick={() => setIsOpen(false)}>
+                  <div className="p-5 border-t border-gray-100 bg-stone-50/50 space-y-3">
+                    <Button 
+                      asChild 
+                      variant="outline" 
+                      className="w-full h-11 border-2 border-gray-200 hover:border-gray-300 bg-white text-gray-900 font-semibold hover:bg-stone-50 transition-all duration-200" 
+                      onClick={() => setIsOpen(false)}
+                    >
                       <Link href="/login">Sign in</Link>
                     </Button>
-                    <Button asChild className={`w-full ${components.button.primary}`} onClick={() => setIsOpen(false)}>
+                    <Button 
+                      asChild 
+                      className="w-full h-11 bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" 
+                      onClick={() => setIsOpen(false)}
+                    >
                       <Link href="/register">Get started</Link>
                     </Button>
                   </div>
@@ -243,20 +267,27 @@ export function MinimalNavigation() {
       </header>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 md:hidden z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-100 md:hidden z-50 shadow-lg">
         <div className="grid grid-cols-5 h-16">
           {navigationItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+              className={`flex flex-col items-center justify-center gap-1 transition-all duration-200 relative ${
                 pathname === item.href
-                  ? 'text-gray-900'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-stone-900'
+                  : 'text-gray-500 hover:text-stone-700'
               }`}
             >
-              <item.icon className="h-5 w-5" />
-              <span className="text-xs font-medium">{item.label}</span>
+              <div className={`relative ${pathname === item.href ? 'scale-110' : ''} transition-transform duration-200`}>
+                <item.icon className={`h-5 w-5 ${pathname === item.href ? 'text-stone-900' : ''}`} />
+                {pathname === item.href && (
+                  <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-stone-900 rounded-full" />
+                )}
+              </div>
+              <span className={`text-xs font-medium ${pathname === item.href ? 'font-semibold' : ''}`}>
+                {item.label}
+              </span>
             </Link>
           ))}
         </div>

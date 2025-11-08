@@ -39,21 +39,21 @@ export default function HomePage() {
       <MinimalNavigation />
 
       {/* Hero Section - Calming design */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden pt-20 md:pt-24">
         {/* Subtle grid background - warm grey */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#a8a29e10_1px,transparent_1px),linear-gradient(to_bottom,#a8a29e10_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#a8a29e08_1px,transparent_1px),linear-gradient(to_bottom,#a8a29e08_1px,transparent_1px)] bg-[size:4rem_4rem]" />
         
-        <div className="relative px-6 pt-32 pb-24 md:pt-40 md:pb-32">
+        <div className="relative px-6 pt-32 pb-28 md:pt-44 md:pb-36 lg:pt-48 lg:pb-40">
           <div className="max-w-7xl mx-auto">
             <div className="max-w-4xl">
               {/* Badge - Warm grey */}
-              <div className={`inline-flex items-center gap-2 px-4 py-2 bg-stone-700 text-stone-50 rounded-full text-sm font-medium mb-8 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+              <div className={`inline-flex items-center gap-2 px-5 py-2.5 bg-stone-800 text-white rounded-full text-sm font-semibold mb-10 shadow-md ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
                 <Sparkles className="h-4 w-4" />
                 <span>Enterprise Healthcare Platform</span>
               </div>
 
               {/* Hero Headline - Warm grey with rose accent */}
-              <h1 className={`text-5xl md:text-7xl font-bold text-stone-800 tracking-tight mb-8 ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
+              <h1 className={`text-5xl md:text-6xl lg:text-7xl font-bold text-stone-900 tracking-tight mb-8 leading-[1.1] ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
                 Healthcare,{" "}
                 <span className="bg-gradient-to-r from-rose-600 via-rose-500 to-stone-600 bg-clip-text text-transparent">
                   simplified
@@ -61,40 +61,40 @@ export default function HomePage() {
               </h1>
 
               {/* Subtitle - Muted warm grey */}
-              <p className={`text-xl md:text-2xl text-stone-600 leading-relaxed mb-12 ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
+              <p className={`text-lg md:text-xl lg:text-2xl text-stone-600 leading-relaxed mb-12 max-w-3xl ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
                 Evidence-based health screenings, clinical trial matching, and expert care—all in one seamless, HIPAA-compliant platform.
               </p>
 
               {/* CTAs - Warm grey tones */}
-              <div className={`flex flex-col sm:flex-row gap-4 ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
+              <div className={`flex flex-col sm:flex-row gap-4 mb-16 ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
                 <Link
                   href="/screening"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-stone-800 text-stone-50 rounded-xl font-semibold hover:bg-stone-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-stone-900 text-white rounded-xl font-semibold hover:bg-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
                 >
                   Start Health Assessment
                   <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link
                   href="/providers/search"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-stone-800 border-2 border-stone-200 rounded-xl font-semibold hover:border-stone-400 transition-all duration-300"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-stone-900 border-2 border-stone-300 rounded-xl font-semibold hover:border-stone-400 hover:bg-stone-50 transition-all duration-300 shadow-sm hover:shadow-md"
                 >
                   Find Providers
                 </Link>
               </div>
 
               {/* Trust indicators - Calming colors */}
-              <div className={`mt-16 flex flex-wrap items-center gap-8 text-sm text-stone-500 ${mounted ? 'animate-fade-in animation-delay-400' : 'opacity-0'}`}>
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-emerald-700" />
-                  <span className="font-medium">HIPAA Compliant</span>
+              <div className={`flex flex-wrap items-center gap-6 md:gap-8 text-sm ${mounted ? 'animate-fade-in animation-delay-400' : 'opacity-0'}`}>
+                <div className="flex items-center gap-2.5 px-4 py-2 bg-emerald-50 rounded-lg">
+                  <Shield className="h-5 w-5 text-emerald-700 flex-shrink-0" />
+                  <span className="font-semibold text-emerald-900">HIPAA Compliant</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Lock className="h-5 w-5 text-stone-600" />
-                  <span className="font-medium">End-to-End Encrypted</span>
+                <div className="flex items-center gap-2.5 px-4 py-2 bg-stone-50 rounded-lg">
+                  <Lock className="h-5 w-5 text-stone-700 flex-shrink-0" />
+                  <span className="font-semibold text-stone-900">End-to-End Encrypted</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-rose-600" />
-                  <span className="font-medium">Base Blockchain</span>
+                <div className="flex items-center gap-2.5 px-4 py-2 bg-rose-50 rounded-lg">
+                  <Zap className="h-5 w-5 text-rose-700 flex-shrink-0" />
+                  <span className="font-semibold text-rose-900">Base Blockchain</span>
                 </div>
               </div>
             </div>
@@ -103,36 +103,36 @@ export default function HomePage() {
       </section>
 
       {/* Features Section - Premium Grid */}
-      <section className="px-6 py-24 md:py-32">
+      <section className="px-6 py-24 md:py-32 lg:py-40">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+          <div className="text-center mb-20 md:mb-24">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-stone-900 mb-6 tracking-tight">
               Comprehensive Healthcare Platform
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-stone-600 max-w-3xl mx-auto leading-relaxed">
               Everything you need to manage your health in one secure, enterprise-grade platform
             </p>
           </div>
 
           {/* Primary Features - Calming warm grey & rose tones */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {/* AI Health Screening */}
             <Link href="/screening" className="group">
-              <Card className="p-8 h-full border-stone-200 hover:border-stone-300 hover:shadow-premium-lg transition-all duration-500 bg-gradient-to-br from-white to-stone-50/50">
+              <Card className="p-8 h-full border-stone-200 hover:border-stone-400 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-stone-50/50 cursor-pointer">
                 <div className="mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-stone-600 to-stone-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-stone-700 to-stone-800 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                     <Activity className="h-8 w-8 text-white" />
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-xl font-semibold text-stone-800">AI Health Screening</h3>
-                  <Badge className="bg-rose-600 text-white text-xs">New</Badge>
+                  <h3 className="text-xl font-bold text-stone-900">AI Health Screening</h3>
+                  <Badge className="bg-rose-600 text-white text-xs font-semibold px-2 py-0.5">New</Badge>
                 </div>
-                <p className="text-stone-600 leading-relaxed mb-6">
+                <p className="text-stone-600 leading-relaxed mb-6 text-sm">
                   Personalized recommendations based on USPSTF evidence-based guidelines
                 </p>
-                <div className="flex items-center text-stone-700 font-medium group-hover:gap-2 transition-all">
+                <div className="flex items-center text-stone-900 font-semibold group-hover:gap-2 transition-all">
                   Learn more
                   <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -141,17 +141,17 @@ export default function HomePage() {
 
             {/* Clinical Trials */}
             <Link href="/clinical-trials" className="group">
-              <Card className="p-8 h-full border-stone-200 hover:border-stone-300 hover:shadow-premium-lg transition-all duration-500 bg-gradient-to-br from-white to-rose-50/20">
+              <Card className="p-8 h-full border-stone-200 hover:border-rose-300 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-rose-50/30 cursor-pointer">
                 <div className="mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-rose-400 to-rose-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                     <FlaskConical className="h-8 w-8 text-white" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-stone-800 mb-3">Clinical Trials</h3>
-                <p className="text-stone-600 leading-relaxed mb-6">
+                <h3 className="text-xl font-bold text-stone-900 mb-3">Clinical Trials</h3>
+                <p className="text-stone-600 leading-relaxed mb-6 text-sm">
                   Match with cutting-edge research studies based on your health profile
                 </p>
-                <div className="flex items-center text-rose-600 font-medium group-hover:gap-2 transition-all">
+                <div className="flex items-center text-rose-700 font-semibold group-hover:gap-2 transition-all">
                   Explore trials
                   <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -160,17 +160,17 @@ export default function HomePage() {
 
             {/* Find Providers */}
             <Link href="/providers/search" className="group">
-              <Card className="p-8 h-full border-stone-200 hover:border-stone-300 hover:shadow-premium-lg transition-all duration-500">
+              <Card className="p-8 h-full border-stone-200 hover:border-stone-400 hover:shadow-xl transition-all duration-300 cursor-pointer">
                 <div className="mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-stone-500 to-stone-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-stone-600 to-stone-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                     <Search className="h-8 w-8 text-white" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-stone-800 mb-3">Find Providers</h3>
-                <p className="text-stone-600 leading-relaxed mb-6">
+                <h3 className="text-xl font-bold text-stone-900 mb-3">Find Providers</h3>
+                <p className="text-stone-600 leading-relaxed mb-6 text-sm">
                   Connect with verified healthcare professionals in your area
                 </p>
-                <div className="flex items-center text-stone-700 font-medium group-hover:gap-2 transition-all">
+                <div className="flex items-center text-stone-900 font-semibold group-hover:gap-2 transition-all">
                   Search providers
                   <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -179,20 +179,20 @@ export default function HomePage() {
 
             {/* Caregiver Matching */}
             <Link href="/providers/search?bounty=true" className="group">
-              <Card className="p-8 h-full border-rose-200 hover:border-rose-300 hover:shadow-premium-lg transition-all duration-500 bg-gradient-to-br from-white via-rose-50/30 to-stone-50/30">
+              <Card className="p-8 h-full border-rose-200 hover:border-rose-400 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white via-rose-50/40 to-stone-50/30 cursor-pointer">
                 <div className="mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-rose-600 to-rose-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                     <Heart className="h-8 w-8 text-white" />
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-xl font-semibold text-stone-800">Caregiver Matching</h3>
-                  <Badge className="bg-gradient-to-r from-rose-500 to-rose-600 text-white text-xs">Hot</Badge>
+                  <h3 className="text-xl font-bold text-stone-900">Caregiver Matching</h3>
+                  <Badge className="bg-gradient-to-r from-rose-600 to-rose-700 text-white text-xs font-semibold px-2 py-0.5">Hot</Badge>
                 </div>
-                <p className="text-stone-600 leading-relaxed mb-6">
+                <p className="text-stone-600 leading-relaxed mb-6 text-sm">
                   Find specialized care through our verified caregiver network
                 </p>
-                <div className="flex items-center text-rose-600 font-medium group-hover:gap-2 transition-all">
+                <div className="flex items-center text-rose-700 font-semibold group-hover:gap-2 transition-all">
                   Find caregivers
                   <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -277,17 +277,17 @@ export default function HomePage() {
       </section>
 
       {/* Trust Section - Warm dark grey */}
-      <section className="px-6 py-24 md:py-32 bg-gradient-to-br from-stone-800 via-stone-700 to-stone-800 text-white">
+      <section className="px-6 py-24 md:py-32 lg:py-40 bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 text-white">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-sm font-medium mb-6">
+          <div className="text-center mb-16 md:mb-20">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-sm rounded-full text-sm font-semibold mb-8 border border-white/20">
               <Shield className="h-4 w-4" />
               <span>Trusted & Secure</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
               Your Health Data is Protected
             </h2>
-            <p className="text-xl text-stone-200 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-stone-200 max-w-3xl mx-auto leading-relaxed">
               Built with enterprise-grade security and full HIPAA compliance to keep your health information safe
             </p>
           </div>
@@ -327,17 +327,17 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section - Warm grey accent */}
-      <section className="px-6 py-24 md:py-32 bg-gradient-to-br from-stone-50 to-rose-50/20">
+      <section className="px-6 py-24 md:py-32 lg:py-40 bg-gradient-to-br from-stone-50 via-white to-rose-50/30">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-stone-800 mb-6">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-stone-900 mb-6 tracking-tight">
             Ready to take control of your health?
           </h2>
-          <p className="text-xl text-stone-600 mb-12">
+          <p className="text-lg md:text-xl text-stone-600 mb-12 leading-relaxed">
             Join thousands who are already benefiting from personalized health insights.
           </p>
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 px-10 py-5 bg-stone-800 text-white rounded-xl text-lg font-semibold hover:bg-stone-700 transition-all duration-300 shadow-premium hover:shadow-premium-lg transform hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 px-10 py-5 bg-stone-900 text-white rounded-xl text-lg font-semibold hover:bg-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
           >
             Get started free
             <ArrowRight className="h-5 w-5" />

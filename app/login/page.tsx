@@ -69,27 +69,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
       <MinimalNavigation />
 
-      <main className="pt-16">
+      <main className="pt-20 md:pt-24">
         <div className="max-w-md mx-auto px-4 sm:px-6 py-8 md:py-12">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-6">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-6 shadow-md">
               <Shield className="h-4 w-4" />
               Secure Login
             </div>
-            <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-3">
+            <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
               Welcome back
             </h1>
-            <p className="text-gray-600 text-sm md:text-base">
+            <p className="text-lg text-stone-600 leading-relaxed">
               Sign in to access your personalized health dashboard
             </p>
           </div>
 
           {/* Login Form */}
-          <Card className={`p-6 md:p-8 ${components.card.base}`}>
+          <Card className="p-8 border-2 border-stone-200 shadow-lg bg-white">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <FormError 
@@ -138,7 +138,7 @@ export default function LoginPage() {
                   type="submit"
                   loading={isLoading}
                   loadingText="Signing in..."
-                  className="w-full"
+                  className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 h-12"
                   rightIcon={!isLoading ? <ArrowRight className="h-4 w-4" /> : undefined}
                 >
                   Sign in to your account

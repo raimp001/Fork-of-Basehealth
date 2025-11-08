@@ -229,23 +229,23 @@ function SearchPageContent() {
           </div>
 
           {/* Search Bar */}
-          <Card className={`p-8 mb-12 border-stone-200 shadow-premium bg-white ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
+          <Card className={`p-8 mb-12 border-stone-200 shadow-lg bg-white ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
             <form onSubmit={handleSearch} className="space-y-4">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
-                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-stone-400" />
+                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-stone-500 z-10" />
                   <Input
                     type="text"
                     placeholder={isCaregiverMode ? "Enter city, state, or ZIP code..." : "e.g., cardiologist in San Francisco"}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 h-14 text-lg border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20"
+                    className="pl-12 pr-10 h-14 text-lg border-2 border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-xl transition-all duration-200"
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={clearSearch}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-stone-400 hover:text-stone-700 transition-colors p-1 rounded-full hover:bg-stone-100"
                     >
                       <X className="h-5 w-5" />
                     </button>
@@ -255,7 +255,7 @@ function SearchPageContent() {
                   type="submit" 
                   size="lg" 
                   disabled={isLoading}
-                  className="h-14 px-10 bg-stone-800 hover:bg-stone-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
+                  className="h-14 px-10 bg-stone-900 hover:bg-stone-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:transform-none disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
@@ -304,11 +304,12 @@ function SearchPageContent() {
 
           {/* Error state */}
           {error && (
-            <Card className="p-12 text-center border-rose-200 bg-gradient-to-br from-white to-rose-50/30 mb-8">
-              <div className="w-16 h-16 mx-auto mb-6 bg-rose-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="h-8 w-8 text-rose-600" />
+            <Card className="p-12 text-center border-2 border-rose-200 bg-gradient-to-br from-white to-rose-50/40 mb-8 shadow-lg">
+              <div className="w-16 h-16 mx-auto mb-6 bg-rose-100 rounded-full flex items-center justify-center shadow-md">
+                <AlertCircle className="h-8 w-8 text-rose-700" />
               </div>
-              <h3 className="text-xl font-semibold text-rose-900 mb-4">{error}</h3>
+              <h3 className="text-xl font-bold text-rose-900 mb-2">{error}</h3>
+              <p className="text-stone-600 mb-6">Please try a different search or check your connection.</p>
               <Button 
                 onClick={() => {
                   setError(null)
@@ -317,7 +318,7 @@ function SearchPageContent() {
                   }
                 }} 
                 variant="outline"
-                className="mt-4"
+                className="mt-4 border-2 border-stone-300 hover:border-stone-400 font-semibold px-6"
               >
                 Try Again
               </Button>
@@ -338,36 +339,36 @@ function SearchPageContent() {
           {/* Provider Results (Doctors) */}
           {!isCaregiverMode && !error && !isLoading && providers.length > 0 && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-semibold text-stone-800">
-                  {providers.length} Providers Found
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold text-stone-900">
+                  {providers.length} {providers.length === 1 ? 'Provider' : 'Providers'} Found
                 </h2>
               </div>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {providers.map((provider) => (
-                  <Card key={provider.npi} className="p-6 hover:shadow-lg transition-shadow border-stone-200 hover:border-stone-300">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-stone-800 mb-1">
+                  <Card key={provider.npi} className="p-6 hover:shadow-xl transition-all duration-300 border-stone-200 hover:border-stone-400 cursor-pointer group">
+                    <div className="mb-5">
+                      <h3 className="text-lg font-bold text-stone-900 mb-1 group-hover:text-stone-700 transition-colors">
                         {provider.name}
                       </h3>
-                      <p className="text-sm text-stone-600">{provider.credentials}</p>
+                      <p className="text-sm text-stone-600 font-medium">{provider.credentials}</p>
                     </div>
 
-                    <div className="space-y-3 mb-4">
+                    <div className="space-y-4 mb-5">
                       <div>
-                        <div className="text-sm font-medium text-stone-700 mb-1">Specialty</div>
-                        <div className="text-sm text-stone-600">{provider.specialty}</div>
+                        <div className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1">Specialty</div>
+                        <div className="text-sm font-medium text-stone-900">{provider.specialty}</div>
                       </div>
 
                       <div>
                         <div className="flex items-start gap-2">
-                          <MapPin className="h-4 w-4 text-stone-400 mt-0.5" />
-                          <div className="text-sm text-stone-600">
+                          <MapPin className="h-4 w-4 text-stone-500 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm text-stone-700">
                             {provider.address}<br />
                             {provider.city}, {provider.state} {provider.zip}
                             {provider.distance && (
-                              <Badge variant="outline" className="ml-2 text-xs">
+                              <Badge variant="outline" className="ml-2 text-xs font-semibold border-stone-300">
                                 {provider.distance.toFixed(1)} mi
                               </Badge>
                             )}
@@ -376,26 +377,26 @@ function SearchPageContent() {
                       </div>
 
                       {provider.phone && (
-                        <div className="text-sm text-stone-600">
+                        <div className="text-sm text-stone-700 font-medium">
                           📞 {provider.phone}
                         </div>
                       )}
 
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-stone-400 text-stone-400" />
-                          <span className="text-sm font-medium">{provider.rating.toFixed(1)}</span>
+                      <div className="flex items-center gap-4 pt-2 border-t border-stone-100">
+                        <div className="flex items-center gap-1.5">
+                          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                          <span className="text-sm font-bold text-stone-900">{provider.rating.toFixed(1)}</span>
                           <span className="text-xs text-stone-500">({provider.reviewCount})</span>
                         </div>
                         {provider.acceptingPatients && (
-                          <Badge className="bg-emerald-100 text-emerald-700 text-xs">
+                          <Badge className="bg-emerald-100 text-emerald-800 text-xs font-semibold border-emerald-200">
                             Accepting Patients
                           </Badge>
                         )}
                       </div>
                     </div>
 
-                    <Button className="w-full bg-stone-800 hover:bg-stone-700 text-white">
+                    <Button className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                       View Profile
                     </Button>
                   </Card>

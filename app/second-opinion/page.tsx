@@ -86,17 +86,17 @@ export default function SecondOpinionPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
       <MinimalNavigation />
       
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pt-24">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium mb-4">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-6 shadow-md">
             <Brain className="h-4 w-4" />
             Expert Network
           </div>
-          <h1 className="text-3xl font-semibold text-gray-900 mb-2">
+          <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
             Raise Bounty for Medical Expertise
           </h1>
           <p className="text-gray-600 max-w-3xl mx-auto">

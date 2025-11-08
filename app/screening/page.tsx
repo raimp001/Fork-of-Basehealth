@@ -366,15 +366,15 @@ export default function ScreeningPage() {
       
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 pt-20">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-4">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold mb-6 shadow-sm">
             <Brain className="h-4 w-4" />
             Health Screening
           </div>
-          <h1 className="text-3xl font-semibold text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
             Personalized Health Assessment
           </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed">
             Get personalized health screening recommendations based on your unique profile and risk factors.
           </p>
         </div>
@@ -387,17 +387,17 @@ export default function ScreeningPage() {
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
-          <Card className="p-4 border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Health Screening Assessment</h2>
-            <p className="text-gray-600 mb-4 text-sm">
+          <Card className="p-6 md:p-8 border-2 border-stone-200 shadow-md">
+            <h2 className="text-xl font-bold text-stone-900 mb-3">Basic Health Information</h2>
+            <p className="text-stone-600 mb-6 text-sm leading-relaxed">
               Help us understand your health profile to provide personalized screening recommendations.
             </p>
             
-            <div className="grid md:grid-cols-3 gap-3 mb-4">
+            <div className="grid md:grid-cols-3 gap-4 mb-6">
               <div>
-                <Label htmlFor="age" className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label htmlFor="age" className="text-sm font-semibold text-stone-900 mb-2 block">
                   Age *
                 </Label>
                 <Input
@@ -408,37 +408,37 @@ export default function ScreeningPage() {
                   value={formData.age}
                   onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
                   placeholder="Enter your age"
-                  className="border-2 border-gray-400 bg-white text-gray-900 placeholder-gray-500 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  className="border-2 border-stone-300 bg-white text-stone-900 placeholder-stone-400 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11 transition-all duration-200"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="gender" className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label htmlFor="gender" className="text-sm font-semibold text-stone-900 mb-2 block">
                   Gender *
                 </Label>
                 <Select value={formData.gender} onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}>
-                  <SelectTrigger className="border-2 border-gray-400 bg-white text-gray-900 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                  <SelectTrigger className="border-2 border-stone-300 bg-white text-stone-900 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-2 border-gray-300 shadow-lg max-h-60 overflow-y-auto">
-                    <SelectItem value="male" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Male</SelectItem>
-                    <SelectItem value="female" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Female</SelectItem>
-                    <SelectItem value="other" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Other</SelectItem>
+                  <SelectContent className="bg-white border-2 border-stone-300 shadow-xl rounded-lg">
+                    <SelectItem value="male" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Male</SelectItem>
+                    <SelectItem value="female" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Female</SelectItem>
+                    <SelectItem value="other" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="smokingStatus" className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label htmlFor="smokingStatus" className="text-sm font-semibold text-stone-900 mb-2 block">
                   Smoking Status
                 </Label>
                 <Select value={formData.smokingStatus} onValueChange={(value) => setFormData(prev => ({ ...prev, smokingStatus: value }))}>
-                  <SelectTrigger className="border-2 border-gray-400 bg-white text-gray-900 hover:border-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                  <SelectTrigger className="border-2 border-stone-300 bg-white text-stone-900 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11">
                     <SelectValue placeholder="Select smoking status" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-2 border-gray-300 shadow-lg max-h-60 overflow-y-auto">
-                    <SelectItem value="never" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Never smoked</SelectItem>
-                    <SelectItem value="former" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Former smoker</SelectItem>
-                    <SelectItem value="current" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Current smoker</SelectItem>
+                  <SelectContent className="bg-white border-2 border-stone-300 shadow-xl rounded-lg">
+                    <SelectItem value="never" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Never smoked</SelectItem>
+                    <SelectItem value="former" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Former smoker</SelectItem>
+                    <SelectItem value="current" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Current smoker</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -482,29 +482,32 @@ export default function ScreeningPage() {
           </Card>
 
           {/* Medical History & Risk Factors */}
-          <Card className="p-4 border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Medical History & Risk Factors</h2>
-            <p className="text-gray-600 mb-4 text-sm">
+          <Card className="p-6 md:p-8 border-2 border-stone-200 shadow-md">
+            <h2 className="text-xl font-bold text-stone-900 mb-3">Medical History & Risk Factors</h2>
+            <p className="text-stone-600 mb-6 text-sm leading-relaxed">
               Select all that apply to help us provide accurate screening recommendations.
             </p>
 
             {/* Personal Medical History */}
-            <div className="mb-4">
-              <h3 className="text-base font-medium text-gray-900 mb-2">Personal Medical History</h3>
-              <div className="grid md:grid-cols-3 gap-1">
+            <div className="mb-6">
+              <h3 className="text-base font-bold text-stone-900 mb-4 flex items-center gap-2">
+                <div className="w-1 h-5 bg-blue-600 rounded-full"></div>
+                Personal Medical History
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {medicalHistoryOptions.map((option) => (
-                  <label key={option} className={`flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-all ${
+                  <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                     formData.medicalHistory.includes(option) 
-                      ? 'border-blue-500 bg-blue-50 shadow-sm' 
-                      : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
+                      ? 'border-blue-500 bg-blue-50 shadow-md' 
+                      : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
                   }`}>
                     <Checkbox
                       checked={formData.medicalHistory.includes(option)}
                       onCheckedChange={() => handleCheckboxChange('medicalHistory', option)}
-                      className="h-4 w-4 border-2 border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                      className="h-5 w-5 border-2 border-stone-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 mt-0.5"
                     />
-                    <span className={`text-sm font-medium ${
-                      formData.medicalHistory.includes(option) ? 'text-blue-900' : 'text-gray-700'
+                    <span className={`text-sm font-medium leading-relaxed ${
+                      formData.medicalHistory.includes(option) ? 'text-blue-900' : 'text-stone-700'
                     }`}>{option}</span>
                   </label>
                 ))}
@@ -676,26 +679,26 @@ export default function ScreeningPage() {
           </Card>
 
           {/* Submit Button */}
-          <div className="text-center">
+          <div className="text-center pt-6">
             <Button 
               type="submit" 
               disabled={isLoading || !formData.age || !formData.gender}
-              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 disabled:bg-gray-300"
+              className="bg-stone-900 hover:bg-stone-800 text-white px-10 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   Processing Assessment...
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5" />
                   Get Screening Recommendations
                 </div>
               )}
             </Button>
             {(!formData.age || !formData.gender) && (
-              <p className="text-sm text-gray-500 mt-3">
+              <p className="text-sm text-stone-500 mt-4 font-medium">
                 Please enter your age and select gender to see screening recommendations.
               </p>
             )}

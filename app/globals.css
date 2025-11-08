@@ -165,6 +165,26 @@
   .focus-premium {
     @apply focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2;
   }
+
+  /* Enhanced button hover effects */
+  .btn-hover-lift {
+    @apply transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  /* Smooth card transitions */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:border-stone-400;
+  }
+
+  /* Professional input focus */
+  .input-focus {
+    @apply transition-all duration-200 focus:ring-2 focus:ring-stone-400/20 focus:border-stone-500;
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    @apply animate-pulse bg-stone-200 rounded;
+  }
 }
 
 :root {
@@ -286,4 +306,73 @@ input:-webkit-autofill:active {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Enhanced link transitions */
+a {
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+a:hover {
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+/* Smooth button transitions */
+button {
+  transition: all 0.2s ease;
+}
+
+/* Better form input transitions */
+input, textarea, select {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Card hover effects */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Professional scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f4;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a8a29e;
+  border-radius: 5px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #78716c;
+}
+
+/* Better selection color */
+::selection {
+  background-color: rgba(41, 37, 36, 0.15);
+  color: inherit;
+}
+
+/* Smooth page transitions */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent layout shift */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Better disabled states */
+:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
