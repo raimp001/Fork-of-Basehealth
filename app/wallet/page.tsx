@@ -39,126 +39,132 @@ export default function HealthWalletPage() {
   const [showPaymentFlow, setShowPaymentFlow] = useState(false)
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      {/* Simplified Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Health Wallet</h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Your complete healthcare financial hub - manage payments, insurance, and get insights all in one place
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
+      <div className="container mx-auto p-4 space-y-6 pt-24">
+        {/* Enhanced Header */}
+        <div className="text-center space-y-4 mb-10">
+          <div className="inline-flex items-center px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold shadow-md">
+            Health Wallet
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold text-stone-900 tracking-tight">
+            Your Complete Healthcare Financial Hub
+          </h1>
+          <p className="text-lg md:text-xl text-stone-600 max-w-3xl mx-auto">
+            Manage payments, insurance, and get insights all in one secure place
+          </p>
+        </div>
 
-      {/* Big Action Cards - Most Important Features First */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer">
-          <CardHeader className="text-center">
-            <div className="mx-auto p-4 bg-blue-500 rounded-full w-16 h-16 flex items-center justify-center">
-              <Camera className="h-8 w-8 text-white" />
-            </div>
-            <CardTitle className="text-xl">Add Insurance Card</CardTitle>
-            <CardDescription>
-              Upload your insurance card and we'll automatically extract all your information
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={() => setActiveTab("insurance")}
-              className="w-full"
-              size="lg"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Upload Insurance Card
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Enhanced Action Cards with consistent styling */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-8">
+          <Card className="border-2 border-stone-300 bg-white p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer rounded-2xl">
+            <CardHeader className="text-center space-y-6">
+              <div className="mx-auto p-4 bg-stone-900 rounded-full w-16 h-16 flex items-center justify-center">
+                <Camera className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-2xl font-bold text-stone-900">Add Insurance Card</CardTitle>
+              <CardDescription className="text-stone-600 text-lg">
+                Upload your insurance card and we'll automatically extract all your information
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => setActiveTab("insurance")}
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-lg"
+                size="lg"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Upload Insurance Card
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card className="border-2 border-green-500 bg-green-50 hover:bg-green-100 transition-colors cursor-pointer">
-          <CardHeader className="text-center">
-            <div className="mx-auto p-4 bg-green-500 rounded-full w-16 h-16 flex items-center justify-center">
-              <CreditCard className="h-8 w-8 text-white" />
-            </div>
-            <CardTitle className="text-xl">Make a Payment</CardTitle>
-            <CardDescription>
-              Pay your medical bills with credit card or cryptocurrency and save money
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={() => setShowPaymentFlow(true)}
-              className="w-full"
-              size="lg"
-            >
-              <DollarSign className="h-5 w-5 mr-2" />
-              Pay Bills Now
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+          <Card className="border-2 border-stone-300 bg-white p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer rounded-2xl">
+            <CardHeader className="text-center space-y-6">
+              <div className="mx-auto p-4 bg-stone-900 rounded-full w-16 h-16 flex items-center justify-center">
+                <CreditCard className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-2xl font-bold text-stone-900">Make a Payment</CardTitle>
+              <CardDescription className="text-stone-600 text-lg">
+                Pay your medical bills with credit card or cryptocurrency and save money
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => setShowPaymentFlow(true)}
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-lg"
+                size="lg"
+              >
+                <DollarSign className="h-5 w-5 mr-2" />
+                Pay Bills Now
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Quick Stats in Simple Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="text-center">
-          <CardContent className="p-4">
-            <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-500" />
-            <p className="text-2xl font-bold">--</p>
-            <p className="text-sm text-muted-foreground">Balance</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center">
-          <CardContent className="p-4">
-            <FileText className="h-8 w-8 mx-auto mb-2 text-orange-500" />
-            <p className="text-2xl font-bold">--</p>
-            <p className="text-sm text-muted-foreground">Pending Bills</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center">
-          <CardContent className="p-4">
-            <Shield className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-            <p className="text-2xl font-bold">Active</p>
-            <p className="text-sm text-muted-foreground">Insurance</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center">
-          <CardContent className="p-4">
-            <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-500" />
-            <p className="text-2xl font-bold">0</p>
-            <p className="text-sm text-muted-foreground">Claims</p>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Enhanced Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <Card className="text-center border-stone-200 hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6">
+              <DollarSign className="h-10 w-10 mx-auto mb-3 text-green-500" />
+              <p className="text-3xl font-bold text-stone-900">--</p>
+              <p className="text-sm text-stone-600 font-medium">Balance</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="text-center border-stone-200 hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6">
+              <FileText className="h-10 w-10 mx-auto mb-3 text-orange-500" />
+              <p className="text-3xl font-bold text-stone-900">--</p>
+              <p className="text-sm text-stone-600 font-medium">Pending Bills</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="text-center border-stone-200 hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6">
+              <Shield className="h-10 w-10 mx-auto mb-3 text-blue-500" />
+              <p className="text-3xl font-bold text-stone-900">Active</p>
+              <p className="text-sm text-stone-600 font-medium">Insurance</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="text-center border-stone-200 hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6">
+              <CheckCircle className="h-10 w-10 mx-auto mb-3 text-green-500" />
+              <p className="text-3xl font-bold text-stone-900">0</p>
+              <p className="text-sm text-stone-600 font-medium">Claims</p>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Secondary Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Button 
-          onClick={() => setActiveTab("insights")}
-          variant="outline"
-          className="h-20 flex-col gap-2"
-        >
-          <BarChart3 className="h-6 w-6" />
-          <span>View Spending Analytics</span>
-        </Button>
-        
-        <Button 
-          onClick={() => setActiveTab("wallet")}
-          variant="outline"
-          className="h-20 flex-col gap-2"
-        >
-          <Wallet className="h-6 w-6" />
-          <span>Connect Crypto Wallet</span>
-        </Button>
-        
-        <Button 
-          onClick={() => setActiveTab("compliance")}
-          variant="outline"
-          className="h-20 flex-col gap-2"
-        >
-          <Gavel className="h-6 w-6" />
-          <span>CMS Compliance</span>
-        </Button>
-      </div>
+        {/* Enhanced Secondary Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Button 
+            onClick={() => setActiveTab("insights")}
+            variant="outline"
+            className="h-24 flex-col gap-2 border-stone-200 hover:border-stone-400 hover:bg-stone-50 transition-all duration-300"
+          >
+            <BarChart3 className="h-6 w-6 text-stone-600" />
+            <span className="font-medium text-stone-700">View Spending Analytics</span>
+          </Button>
+          
+          <Button 
+            onClick={() => setActiveTab("wallet")}
+            variant="outline"
+            className="h-24 flex-col gap-2 border-stone-200 hover:border-stone-400 hover:bg-stone-50 transition-all duration-300"
+          >
+            <Wallet className="h-6 w-6 text-stone-600" />
+            <span className="font-medium text-stone-700">Connect Crypto Wallet</span>
+          </Button>
+          
+          <Button 
+            onClick={() => setActiveTab("compliance")}
+            variant="outline"
+            className="h-24 flex-col gap-2 border-stone-200 hover:border-stone-400 hover:bg-stone-50 transition-all duration-300"
+          >
+            <Gavel className="h-6 w-6 text-stone-600" />
+            <span className="font-medium text-stone-700">CMS Compliance</span>
+          </Button>
+        </div>
 
       {/* Payment Flow Modal */}
       {showPaymentFlow && (
@@ -322,14 +328,14 @@ export default function HealthWalletPage() {
         </div>
       )}
 
-      {/* Simple Footer */}
-      <div className="text-center text-sm text-muted-foreground border-t pt-6 space-y-2">
-        <div className="flex justify-center gap-2">
-          <Badge variant="outline">HIPAA Secure</Badge>
-          <Badge variant="outline">PCI Compliant</Badge>
-          <Badge variant="outline">CMS Certified</Badge>
+      {/* Enhanced Footer */}
+      <div className="text-center text-sm text-stone-500 border-t pt-8 space-y-4">
+        <div className="flex justify-center gap-3">
+          <Badge variant="outline" className="border-stone-300 text-stone-600">HIPAA Secure</Badge>
+          <Badge variant="outline" className="border-stone-300 text-stone-600">PCI Compliant</Badge>
+          <Badge variant="outline" className="border-stone-300 text-stone-600">CMS Certified</Badge>
         </div>
-        <p>Your health data is protected with enterprise-grade encryption</p>
+        <p className="text-stone-600">Your health data is protected with enterprise-grade encryption</p>
       </div>
     </div>
   )

@@ -105,17 +105,27 @@ function BookingContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
       <MinimalNavigation />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pt-24">
-        {/* Header */}
+        {/* Enhanced Header */}
         <div className="mb-8">
-          <Link href="/providers/search" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4">
+          <Link href="/providers/search" className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-900 transition-colors mb-6">
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm">Back to search</span>
+            <span className="text-sm font-medium">Back to search</span>
           </Link>
-          <h1 className="text-2xl font-semibold text-gray-900">Book Appointment</h1>
+          <div className="mb-10">
+            <div className="inline-flex items-center px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold shadow-md mb-6">
+              Book Appointment
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
+              Schedule Your Appointment
+            </h1>
+            <p className="text-lg md:text-xl text-stone-600 max-w-2xl">
+              Book your healthcare appointment quickly and securely
+            </p>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
