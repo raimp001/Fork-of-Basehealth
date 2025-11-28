@@ -49,7 +49,7 @@ export default function HomePage() {
               {/* Badge - Warm grey */}
               <div className={`inline-flex items-center gap-2 px-5 py-2.5 bg-stone-800 text-white rounded-full text-sm font-semibold mb-10 shadow-md ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
                 <Sparkles className="h-4 w-4" />
-                <span>Enterprise Healthcare Platform</span>
+                <span>For patients & providers</span>
               </div>
 
               {/* Hero Headline - High contrast */}
@@ -62,7 +62,7 @@ export default function HomePage() {
 
               {/* Subtitle - High contrast */}
               <p className={`text-lg md:text-xl lg:text-2xl text-stone-800 leading-relaxed mb-12 max-w-3xl font-medium ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
-                Health screenings, clinical trials, and expert care for patients and providers.
+                Evidence-based screenings, clinical trials, and verified care—in one place.
               </p>
 
               {/* CTAs - Warm grey tones */}
@@ -95,7 +95,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-center gap-2.5 px-4 py-2 bg-rose-50 rounded-lg">
                   <Zap className="h-5 w-5 text-rose-700 flex-shrink-0" />
-                  <span className="font-semibold text-rose-900">Base Blockchain</span>
+                  <span className="font-semibold text-rose-900">Secure payments</span>
                 </div>
               </div>
             </div>
@@ -186,10 +186,7 @@ export default function HomePage() {
                     <Heart className="h-8 w-8 text-white" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-xl font-bold text-stone-900">Find caregivers</h3>
-                  <Badge className="bg-gradient-to-r from-rose-600 to-rose-700 text-white text-xs font-semibold px-2 py-0.5">Hot</Badge>
-                </div>
+                <h3 className="text-xl font-bold text-stone-900 mb-3">Find caregivers</h3>
                 <p className="text-stone-600 leading-relaxed mb-6 text-sm">
                   Connect with specialized caregivers in our verified network.
                 </p>
@@ -243,7 +240,7 @@ export default function HomePage() {
                   <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center">
                     <Brain className="h-6 w-6 text-stone-700" />
                   </div>
-                  <h3 className="text-lg font-semibold text-stone-800">Expert review</h3>
+                  <h3 className="text-lg font-semibold text-stone-800">Specialist opinions</h3>
                 </div>
                 <p className="text-sm text-stone-600 mb-3">
                   Get specialist second opinions from expert physicians.
@@ -277,13 +274,10 @@ export default function HomePage() {
                   <div className="w-12 h-12 bg-rose-500 rounded-xl flex items-center justify-center">
                     <Zap className="h-6 w-6 text-white" />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-stone-800">Fast, secure payouts</h3>
-                    <Badge className="bg-rose-600 text-white text-xs mt-1">New</Badge>
-                  </div>
+                  <h3 className="text-lg font-semibold text-stone-800">Digital payments</h3>
                 </div>
                 <p className="text-sm text-stone-600 mb-3">
-                  Pay with crypto on Base blockchain. Low fees, instant confirmations.
+                  Low fees, instant settlement. Powered by Base blockchain.
                 </p>
                 <div className="flex items-center text-rose-600 text-sm font-medium">
                   Try payments <ChevronRight className="h-4 w-4" />

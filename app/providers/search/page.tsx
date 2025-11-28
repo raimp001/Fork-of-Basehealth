@@ -208,7 +208,7 @@ function SearchPageContent() {
             <p className={`text-lg md:text-xl text-stone-700 max-w-3xl leading-relaxed font-medium ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
               {isCaregiverMode 
                 ? 'Connect with verified, licensed, and background-checked caregivers. All caregivers are real, approved professionals—no mock data.'
-                : 'Search for doctors and specialists using natural language. All providers from real NPI Registry—no mock data.'}
+                : 'Search verified doctors and specialists. Real NPI data, natural language.'}
             </p>
 
             {/* Mode toggle */}
@@ -440,19 +440,26 @@ function SearchPageContent() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-stone-800 mb-2">
-                    Become a Verified Caregiver
+                    We're building our verified caregiver network in your area
                   </h3>
                   <p className="text-stone-600 mb-4 leading-relaxed">
-                    Join our professional caregiver network. Get matched with patients in need of quality care. 
-                    Earn competitive rates with secure, blockchain-based payments.
+                    Be the first to join or check back soon. All caregivers are verified, licensed, and background-checked.
                   </p>
-                  <Link
-                    href="/providers/caregiver-signup"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-stone-800 text-white rounded-lg font-medium hover:bg-stone-700 transition-all duration-300"
-                  >
-                    Apply Now
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Link
+                      href="/providers/caregiver-signup"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-stone-800 text-white rounded-lg font-medium hover:bg-stone-700 transition-all duration-300"
+                    >
+                      Apply Now
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                    <Link
+                      href="/providers/search"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-white text-stone-700 border-2 border-stone-300 rounded-lg font-medium hover:border-stone-400 hover:bg-stone-50 transition-all duration-300"
+                    >
+                      Looking for doctors or specialists instead?
+                    </Link>
+                  </div>
                 </div>
               </div>
             </Card>

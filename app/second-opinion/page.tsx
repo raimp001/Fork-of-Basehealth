@@ -97,10 +97,10 @@ export default function SecondOpinionPage() {
             Expert Network
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
-            Raise Bounty for Medical Expertise
+            Get a Specialist Second Opinion
           </h1>
           <p className="text-gray-600 max-w-3xl mx-auto">
-            Post a bounty and connect with world-class specialists for expert medical opinions. Share your case securely via EMR integration with AI-powered OCR and NLP processing, or upload documents directly.
+            Connect securely with board-certified specialists for expert review. Share records via EMR or upload directly.
           </p>
         </div>
 
@@ -181,7 +181,7 @@ export default function SecondOpinionPage() {
               {/* EMR Integration Section */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Connect Your EMR</h3>
-                <p className="text-sm text-gray-600 mb-4">Securely connect to your healthcare provider's system</p>
+                <p className="text-sm text-gray-600 mb-4">We'll access your patient summary, labs, medications, and imaging—you control what's shared.</p>
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   {emrSystems.map((emr) => (
@@ -268,7 +268,7 @@ export default function SecondOpinionPage() {
           <div>
             <Card className="p-6 border-gray-100 sticky top-24">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Processing Pipeline</h3>
-              <p className="text-sm text-gray-600 mb-6">Advanced OCR and NLP analysis of your medical data</p>
+              <p className="text-sm text-gray-600 mb-6">Our AI extracts and structures your data for expert review—fully HIPAA-compliant.</p>
               
               <div className="space-y-4">
                 {processingSteps.map((step, index) => (
@@ -407,7 +407,7 @@ export default function SecondOpinionPage() {
                     Processing...
                   </div>
                 ) : (
-                  "Raise Bounty"
+                  "Submit for Review"
                 )}
               </Button>
             </form>

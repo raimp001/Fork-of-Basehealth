@@ -230,8 +230,11 @@ export default function ClinicalTrialsPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
             Find Clinical Trials
           </h1>
-          <p className="text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed mb-2">
             Search for clinical trials and research studies using natural language.
+          </p>
+          <p className="text-sm text-stone-500 max-w-2xl mx-auto">
+            Powered by ClinicalTrials.gov. Get matches in seconds.
           </p>
         </div>
 

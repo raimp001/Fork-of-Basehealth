@@ -89,6 +89,10 @@ export default function PatientPortalPage() {
           </div>
 
           <Card className="p-8 border-2 border-stone-200 shadow-lg bg-white">
+            <div className="mb-6 flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-blue-900">Your health information is protected by HIPAA and industry-standard encryption</p>
+            </div>
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <StandardizedInput
@@ -112,6 +116,9 @@ export default function PatientPortalPage() {
                   placeholder="Enter your password"
                   required
                 />
+                <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800 mt-2 inline-block">
+                  Forgot password?
+                </Link>
               </div>
 
               {error && (
@@ -134,19 +141,13 @@ export default function PatientPortalPage() {
               <p className="text-sm text-gray-600 mb-3">
                 Don't have an account?
               </p>
-              <StandardizedButton asChild variant="secondary">
+              <StandardizedButton asChild variant="primary" className="bg-stone-900 hover:bg-stone-800 text-white">
                 <Link href="/register">
                   Create Patient Account
                 </Link>
               </StandardizedButton>
             </div>
           </Card>
-
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
-              🔒 Your health information is protected by HIPAA and industry-standard encryption
-            </p>
-          </div>
         </main>
       </div>
     )

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Stethoscope, Building2 } from "lucide-react"
+import { Loader2, Stethoscope, Building2, Shield } from "lucide-react"
 
 export default function ProviderSignupPage() {
   const router = useRouter()
@@ -124,12 +124,16 @@ export default function ProviderSignupPage() {
             <CardDescription className="text-center text-stone-600 mt-2">
               Sign up as a healthcare provider or health app
             </CardDescription>
+            <p className="text-center text-stone-600 mt-4 text-sm">
+              Join in under 5 minutes. We'll verify your credentials and notify you within 2 business days.
+            </p>
           </CardHeader>
           <CardContent className="p-6 md:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Provider Type Selection */}
               <div className="space-y-4">
                 <Label className="text-base font-semibold text-stone-900">I am a:</Label>
+                <p className="text-xs text-stone-500 mb-2">Health App/Clinic includes telehealth platforms, EHR vendors, and care navigation apps.</p>
                 <RadioGroup
                   value={providerType}
                   onValueChange={(value) => setProviderType(value as "PHYSICIAN" | "APP")}
@@ -322,6 +326,11 @@ export default function ProviderSignupPage() {
                 <AlertDescription className="text-red-800 font-medium">{error}</AlertDescription>
               </Alert>
             )}
+
+            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+              <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-blue-900">Your information is HIPAA-compliant and never sold.</p>
+            </div>
 
             <Button 
               type="submit" 

@@ -80,6 +80,10 @@ export default function RegisterPage() {
 
           {/* Registration Form */}
           <Card className="p-8 border-2 border-stone-200 shadow-lg bg-white">
+            <div className="mb-6 flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-blue-900">Your health data is HIPAA-compliant and never sold.</p>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <Alert className="border-red-200 bg-red-50">
@@ -155,6 +159,7 @@ export default function RegisterPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                <p className="text-xs text-stone-500 mt-1">At least 8 characters, one number, one special character</p>
               </div>
 
               <div>
