@@ -31,6 +31,7 @@ const navigationItems = [
   { href: '/providers/search', label: 'Find Care', icon: Search },
   { href: '/clinical-trials', label: 'Research', icon: FlaskConical },
   { href: '/providers/search?bounty=true', label: 'Caregivers', icon: Heart },
+  { href: '/provider/signup', label: 'Become a Provider', icon: User, badge: 'New' },
 ]
 
 const userMenuItems = [
@@ -103,6 +104,14 @@ export function MinimalNavigation() {
             </div>
 
             <div className="hidden md:flex items-center gap-3">
+              <Button 
+                asChild 
+                variant="ghost" 
+                size="sm" 
+                className="h-9 px-4 text-sm font-medium text-gray-700 hover:text-stone-900 hover:bg-stone-50 transition-all duration-200"
+              >
+                <Link href="/provider/signup">Become a Provider</Link>
+              </Button>
               <Button 
                 asChild 
                 variant="ghost" 
@@ -243,6 +252,14 @@ export function MinimalNavigation() {
                   </nav>
                   
                   <div className="p-5 border-t border-gray-100 bg-stone-50/50 space-y-3">
+                    <Button 
+                      asChild 
+                      variant="outline" 
+                      className="w-full h-11 border-2 border-blue-200 hover:border-blue-300 bg-blue-50 text-blue-900 font-semibold hover:bg-blue-100 transition-all duration-200" 
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Link href="/provider/signup">Become a Provider</Link>
+                    </Button>
                     <Button 
                       asChild 
                       variant="outline" 

@@ -80,6 +80,13 @@ export default function HomePage() {
                 >
                   Find Providers
                 </Link>
+                <Link
+                  href="/provider/signup"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+                >
+                  Become a Provider
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
               </div>
 
               {/* Trust indicators - Calming colors */}
@@ -198,6 +205,40 @@ export default function HomePage() {
                 </div>
               </Card>
             </Link>
+          </div>
+
+          {/* Provider Signup Section */}
+          <div className="mt-12 md:mt-16">
+            <Card className="p-8 md:p-12 border-2 border-blue-200 bg-gradient-to-br from-blue-50 via-white to-blue-50/30">
+              <div className="max-w-3xl mx-auto text-center">
+                <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-semibold mb-6">
+                  <User className="h-4 w-4" />
+                  <span>For Healthcare Providers</span>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold text-stone-900 mb-4">
+                  Join BaseHealth as a Provider
+                </h2>
+                <p className="text-lg text-stone-600 mb-8 leading-relaxed">
+                  Physicians and health apps can now register to provide care on our platform. 
+                  Simple signup process, comprehensive dashboard, and integration with labs, pharmacies, and EMRs.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link
+                    href="/provider/signup"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  >
+                    Sign Up as Provider
+                    <ArrowRight className="h-5 w-5" />
+                  </Link>
+                  <Link
+                    href="/provider/dashboard"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-blue-600 border-2 border-blue-300 rounded-xl font-semibold hover:border-blue-400 hover:bg-blue-50 transition-all duration-300"
+                  >
+                    Provider Dashboard
+                  </Link>
+                </div>
+              </div>
+            </Card>
           </div>
 
           {/* Secondary Features - Calming grey tones */}
