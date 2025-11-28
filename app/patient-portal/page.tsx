@@ -23,7 +23,8 @@ import {
   Users,
   Pill,
   Lock,
-  User
+  User,
+  Shield
 } from "lucide-react"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import Link from "next/link"
