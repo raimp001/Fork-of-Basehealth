@@ -22,9 +22,12 @@ import {
   Clock,
   Target,
   Users,
-  Zap
+  Zap,
+  ChevronDown,
+  Lock
 } from "lucide-react"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 interface ScreeningRecommendation {
   id: string
@@ -374,9 +377,13 @@ export default function ScreeningPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
             Personalized Health Assessment
           </h1>
-          <p className="text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed">
-            Get personalized health screening recommendations based on your unique profile and risk factors.
+          <p className="text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed mb-4">
+            Takes ~3 minutes. You'll get a personalized list of screenings to discuss with your clinician.
           </p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-100 text-stone-700 text-sm max-w-xl mx-auto">
+            <AlertCircle className="h-4 w-4" />
+            <span>Only age and gender are required. Everything else is optional and improves accuracy.</span>
+          </div>
         </div>
 
         {/* Error Alert */}
@@ -392,7 +399,7 @@ export default function ScreeningPage() {
           <Card className="p-6 md:p-8 border-2 border-stone-200 shadow-md">
             <h2 className="text-xl font-bold text-stone-900 mb-3">Basic Health Information</h2>
             <p className="text-stone-600 mb-6 text-sm leading-relaxed">
-              Help us understand your health profile to provide personalized screening recommendations.
+              Only age and gender are required. Everything else is optional and used to refine your recommendations.
             </p>
             
             <div className="grid md:grid-cols-3 gap-4 mb-6">
@@ -476,8 +483,34 @@ export default function ScreeningPage() {
                     <SelectItem value="obese" className="text-gray-900 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer">Obese (≥ 30)</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-gray-500 mt-1">Important for diabetes and other screening recommendations</p>
+                <p className="text-sm text-gray-500 mt-1">Optional, improves accuracy</p>
               </div>
+            </div>
+
+            {/* First CTA after basic info */}
+            <div className="mt-6 pt-6 border-t border-stone-200">
+              <Button 
+                type="submit" 
+                disabled={isLoading || !formData.age || !formData.gender}
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white px-10 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Processing Assessment...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5" />
+                    Get Screening Recommendations
+                  </div>
+                )}
+              </Button>
+              {(!formData.age || !formData.gender) && (
+                <p className="text-sm text-stone-500 mt-4 font-medium text-center">
+                  Please enter your age and select gender to see screening recommendations.
+                </p>
+              )}
             </div>
           </Card>
 
@@ -485,197 +518,248 @@ export default function ScreeningPage() {
           <Card className="p-6 md:p-8 border-2 border-stone-200 shadow-md">
             <h2 className="text-xl font-bold text-stone-900 mb-3">Medical History & Risk Factors</h2>
             <p className="text-stone-600 mb-6 text-sm leading-relaxed">
-              Select all that apply to help us provide accurate screening recommendations.
+              Optional, improves accuracy. Select all that apply.
             </p>
 
-            {/* Personal Medical History */}
-            <div className="mb-6">
-              <h3 className="text-base font-bold text-stone-900 mb-4 flex items-center gap-2">
-                <div className="w-1 h-5 bg-blue-600 rounded-full"></div>
-                Personal Medical History
-              </h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {medicalHistoryOptions.map((option) => (
-                  <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                    formData.medicalHistory.includes(option) 
-                      ? 'border-blue-500 bg-blue-50 shadow-md' 
-                      : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
-                  }`}>
-                    <Checkbox
-                      checked={formData.medicalHistory.includes(option)}
-                      onCheckedChange={() => handleCheckboxChange('medicalHistory', option)}
-                      className="h-5 w-5 border-2 border-stone-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 mt-0.5"
-                    />
-                    <span className={`text-sm font-medium leading-relaxed ${
-                      formData.medicalHistory.includes(option) ? 'text-blue-900' : 'text-stone-700'
-                    }`}>{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Reproductive & Hormonal History (Women) */}
-            {formData.gender === 'female' && (
-              <div className="mb-4">
-                <h3 className="text-base font-medium text-gray-900 mb-2">Reproductive & Hormonal History (Women)</h3>
-                <div className="grid md:grid-cols-3 gap-1">
-                  {reproductiveHistoryOptions.map((option) => (
-                    <label key={option} className={`flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-all ${
-                      formData.reproductiveHistory.includes(option) 
-                        ? 'border-pink-500 bg-pink-50 shadow-sm' 
-                        : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
-                    }`}>
-                      <Checkbox
-                        checked={formData.reproductiveHistory.includes(option)}
-                        onCheckedChange={() => handleCheckboxChange('reproductiveHistory', option)}
-                        className="h-4 w-4 border-2 border-gray-400 data-[state=checked]:bg-pink-600 data-[state=checked]:border-pink-600"
-                      />
-                      <span className={`text-sm font-medium ${
-                        formData.reproductiveHistory.includes(option) ? 'text-pink-900' : 'text-gray-700'
-                      }`}>{option}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Sexual Health & STI History */}
-            <div className="mb-4">
-              <h3 className="text-base font-medium text-gray-900 mb-2">Sexual Health & STI History</h3>
-              <div className="grid md:grid-cols-3 gap-1">
-                {sexualHealthOptions.map((option) => (
-                  <label key={option} className={`flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-all ${
-                    formData.sexualHealth.includes(option) 
-                      ? 'border-green-500 bg-green-50 shadow-sm' 
-                      : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
-                  }`}>
-                    <Checkbox
-                      checked={formData.sexualHealth.includes(option)}
-                      onCheckedChange={() => handleCheckboxChange('sexualHealth', option)}
-                      className="h-4 w-4 border-2 border-gray-400 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                    />
-                    <span className={`text-sm font-medium ${
-                      formData.sexualHealth.includes(option) ? 'text-green-900' : 'text-gray-700'
-                    }`}>{option}</span>
-                  </label>
-                ))}
-              </div>
-                </div>
-
-            {/* Substance Use History */}
-            <div className="mb-4">
-              <h3 className="text-base font-medium text-gray-900 mb-2">Substance Use History</h3>
-              <div className="grid md:grid-cols-3 gap-1">
-                {substanceUseOptions.map((option) => (
-                  <label key={option} className={`flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-all ${
-                    formData.substanceUse.includes(option) 
-                      ? 'border-orange-500 bg-orange-50 shadow-sm' 
-                      : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
-                  }`}>
-                    <Checkbox
-                      checked={formData.substanceUse.includes(option)}
-                      onCheckedChange={() => handleCheckboxChange('substanceUse', option)}
-                      className="h-4 w-4 border-2 border-gray-400 data-[state=checked]:bg-orange-600 data-[state=checked]:border-orange-600"
-                    />
-                    <span className={`text-sm font-medium ${
-                      formData.substanceUse.includes(option) ? 'text-orange-900' : 'text-gray-700'
-                    }`}>{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Environmental & Occupational Exposures */}
-            <div className="mb-4">
-              <h3 className="text-base font-medium text-gray-900 mb-2">Environmental & Occupational Exposures</h3>
-              <div className="grid md:grid-cols-3 gap-1">
-                {environmentalExposuresOptions.map((option) => (
-                  <label key={option} className={`flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-all ${
-                    formData.environmentalExposures.includes(option) 
-                      ? 'border-purple-500 bg-purple-50 shadow-sm' 
-                      : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
-                  }`}>
-                    <Checkbox
-                      checked={formData.environmentalExposures.includes(option)}
-                      onCheckedChange={() => handleCheckboxChange('environmentalExposures', option)}
-                      className="h-4 w-4 border-2 border-gray-400 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
-                    />
-                    <span className={`text-sm font-medium ${
-                      formData.environmentalExposures.includes(option) ? 'text-purple-900' : 'text-gray-700'
-                    }`}>{option}</span>
-                  </label>
-                ))}
-              </div>
-                    </div>
-
-            {/* Mental Health & Social Factors */}
-            <div className="mb-4">
-              <h3 className="text-base font-medium text-gray-900 mb-2">Mental Health & Social Factors</h3>
-              <div className="grid md:grid-cols-3 gap-1">
-                {mentalHealthOptions.map((option) => (
-                  <label key={option} className={`flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-all ${
-                    formData.mentalHealth.includes(option) 
-                      ? 'border-indigo-500 bg-indigo-50 shadow-sm' 
-                      : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
-                  }`}>
-                    <Checkbox
-                      checked={formData.mentalHealth.includes(option)}
-                      onCheckedChange={() => handleCheckboxChange('mentalHealth', option)}
-                      className="h-4 w-4 border-2 border-gray-400 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-                    />
-                    <span className={`text-sm font-medium ${
-                      formData.mentalHealth.includes(option) ? 'text-indigo-900' : 'text-gray-700'
-                    }`}>{option}</span>
-                  </label>
-                ))}
+            <Accordion type="multiple" className="space-y-4">
+              {/* Personal Medical History */}
+              <AccordionItem value="medical-history" className="border-b border-stone-200">
+                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                  Medical history
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {medicalHistoryOptions.map((option) => (
+                      <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                        formData.medicalHistory.includes(option) 
+                          ? 'border-blue-500 bg-blue-50 shadow-md' 
+                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                      }`}>
+                        <Checkbox
+                          checked={formData.medicalHistory.includes(option)}
+                          onCheckedChange={() => handleCheckboxChange('medicalHistory', option)}
+                          className="h-5 w-5 border-2 border-stone-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 mt-0.5"
+                        />
+                        <span className={`text-sm font-medium leading-relaxed ${
+                          formData.medicalHistory.includes(option) ? 'text-blue-900' : 'text-stone-700'
+                        }`}>{option}</span>
+                      </label>
+                    ))}
                   </div>
-                </div>
-                
-            {/* Current Medications & Therapies */}
-            <div className="mb-4">
-              <h3 className="text-base font-medium text-gray-900 mb-2">Current Medications & Therapies</h3>
-              <div className="grid md:grid-cols-3 gap-1">
-                {currentMedicationsOptions.map((option) => (
-                  <label key={option} className={`flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-all ${
-                    formData.currentMedications.includes(option) 
-                      ? 'border-teal-500 bg-teal-50 shadow-sm' 
-                      : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
-                  }`}>
-                    <Checkbox
-                      checked={formData.currentMedications.includes(option)}
-                      onCheckedChange={() => handleCheckboxChange('currentMedications', option)}
-                      className="h-4 w-4 border-2 border-gray-400 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
-                    />
-                    <span className={`text-sm font-medium ${
-                      formData.currentMedications.includes(option) ? 'text-teal-900' : 'text-gray-700'
-                    }`}>{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+                </AccordionContent>
+              </AccordionItem>
 
-            {/* Family History */}
-            <div className="mb-4">
-              <h3 className="text-base font-medium text-gray-900 mb-2">Family History</h3>
-              <div className="grid md:grid-cols-3 gap-1">
-                {familyHistoryOptions.map((option) => (
-                  <label key={option} className={`flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-all ${
-                    formData.familyHistory.includes(option) 
-                      ? 'border-red-500 bg-red-50 shadow-sm' 
-                      : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
-                  }`}>
-                    <Checkbox
-                      checked={formData.familyHistory.includes(option)}
-                      onCheckedChange={() => handleCheckboxChange('familyHistory', option)}
-                      className="h-4 w-4 border-2 border-gray-400 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
-                    />
-                    <span className={`text-sm font-medium ${
-                      formData.familyHistory.includes(option) ? 'text-red-900' : 'text-gray-700'
-                    }`}>{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+              {/* Reproductive & Hormonal History (Women) */}
+              {formData.gender === 'female' && (
+                <AccordionItem value="reproductive-history" className="border-b border-stone-200">
+                  <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                    Reproductive history
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-2 pb-4">
+                    <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {reproductiveHistoryOptions.map((option) => (
+                        <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                          formData.reproductiveHistory.includes(option) 
+                            ? 'border-pink-500 bg-pink-50 shadow-md' 
+                            : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                        }`}>
+                          <Checkbox
+                            checked={formData.reproductiveHistory.includes(option)}
+                            onCheckedChange={() => handleCheckboxChange('reproductiveHistory', option)}
+                            className="h-5 w-5 border-2 border-stone-400 data-[state=checked]:bg-pink-600 data-[state=checked]:border-pink-600 mt-0.5"
+                          />
+                          <span className={`text-sm font-medium leading-relaxed ${
+                            formData.reproductiveHistory.includes(option) ? 'text-pink-900' : 'text-stone-700'
+                          }`}>{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+
+              {/* Sexual Health & STI History */}
+              <AccordionItem value="sexual-health" className="border-b border-stone-200">
+                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                  Sexual health
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  <div className="flex items-start gap-2 p-3 mb-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <Lock className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-blue-900">Your answers are private and not shared with employers or insurers.</p>
+                  </div>
+                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {sexualHealthOptions.map((option) => (
+                      <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                        formData.sexualHealth.includes(option) 
+                          ? 'border-green-500 bg-green-50 shadow-md' 
+                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                      }`}>
+                        <Checkbox
+                          checked={formData.sexualHealth.includes(option)}
+                          onCheckedChange={() => handleCheckboxChange('sexualHealth', option)}
+                          className="h-5 w-5 border-2 border-stone-400 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 mt-0.5"
+                        />
+                        <span className={`text-sm font-medium leading-relaxed ${
+                          formData.sexualHealth.includes(option) ? 'text-green-900' : 'text-stone-700'
+                        }`}>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Substance Use History */}
+              <AccordionItem value="substance-use" className="border-b border-stone-200">
+                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                  Substance use
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  <div className="flex items-start gap-2 p-3 mb-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <Lock className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-blue-900">Your answers are private and not shared with employers or insurers.</p>
+                  </div>
+                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {substanceUseOptions.map((option) => (
+                      <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                        formData.substanceUse.includes(option) 
+                          ? 'border-orange-500 bg-orange-50 shadow-md' 
+                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                      }`}>
+                        <Checkbox
+                          checked={formData.substanceUse.includes(option)}
+                          onCheckedChange={() => handleCheckboxChange('substanceUse', option)}
+                          className="h-5 w-5 border-2 border-stone-400 data-[state=checked]:bg-orange-600 data-[state=checked]:border-orange-600 mt-0.5"
+                        />
+                        <span className={`text-sm font-medium leading-relaxed ${
+                          formData.substanceUse.includes(option) ? 'text-orange-900' : 'text-stone-700'
+                        }`}>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Environmental & Occupational Exposures */}
+              <AccordionItem value="environmental" className="border-b border-stone-200">
+                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                  Environmental exposures
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {environmentalExposuresOptions.map((option) => (
+                      <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                        formData.environmentalExposures.includes(option) 
+                          ? 'border-purple-500 bg-purple-50 shadow-md' 
+                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                      }`}>
+                        <Checkbox
+                          checked={formData.environmentalExposures.includes(option)}
+                          onCheckedChange={() => handleCheckboxChange('environmentalExposures', option)}
+                          className="h-5 w-5 border-2 border-stone-400 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 mt-0.5"
+                        />
+                        <span className={`text-sm font-medium leading-relaxed ${
+                          formData.environmentalExposures.includes(option) ? 'text-purple-900' : 'text-stone-700'
+                        }`}>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Mental Health & Social Factors */}
+              <AccordionItem value="mental-health" className="border-b border-stone-200">
+                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                  Mental health
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  <div className="flex items-start gap-2 p-3 mb-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <Lock className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-blue-900">Your answers are private and not shared with employers or insurers.</p>
+                  </div>
+                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {mentalHealthOptions.map((option) => (
+                      <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                        formData.mentalHealth.includes(option) 
+                          ? 'border-indigo-500 bg-indigo-50 shadow-md' 
+                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                      }`}>
+                        <Checkbox
+                          checked={formData.mentalHealth.includes(option)}
+                          onCheckedChange={() => handleCheckboxChange('mentalHealth', option)}
+                          className="h-5 w-5 border-2 border-stone-400 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 mt-0.5"
+                        />
+                        <span className={`text-sm font-medium leading-relaxed ${
+                          formData.mentalHealth.includes(option) ? 'text-indigo-900' : 'text-stone-700'
+                        }`}>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+                
+              {/* Current Medications & Therapies */}
+              <AccordionItem value="medications" className="border-b border-stone-200">
+                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                  Current medications
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {currentMedicationsOptions.map((option) => (
+                      <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                        formData.currentMedications.includes(option) 
+                          ? 'border-teal-500 bg-teal-50 shadow-md' 
+                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                      }`}>
+                        <Checkbox
+                          checked={formData.currentMedications.includes(option)}
+                          onCheckedChange={() => handleCheckboxChange('currentMedications', option)}
+                          className="h-5 w-5 border-2 border-stone-400 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600 mt-0.5"
+                        />
+                        <span className={`text-sm font-medium leading-relaxed ${
+                          formData.currentMedications.includes(option) ? 'text-teal-900' : 'text-stone-700'
+                        }`}>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Family History */}
+              <AccordionItem value="family-history" className="border-b border-stone-200">
+                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                  Family history
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {familyHistoryOptions.map((option) => (
+                      <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                        formData.familyHistory.includes(option) 
+                          ? 'border-red-500 bg-red-50 shadow-md' 
+                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                      }`}>
+                        <Checkbox
+                          checked={formData.familyHistory.includes(option)}
+                          onCheckedChange={() => handleCheckboxChange('familyHistory', option)}
+                          className="h-5 w-5 border-2 border-stone-400 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600 mt-0.5"
+                        />
+                        <span className={`text-sm font-medium leading-relaxed ${
+                          formData.familyHistory.includes(option) ? 'text-red-900' : 'text-stone-700'
+                        }`}>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </Card>
 
           {/* Submit Button */}
@@ -705,63 +789,47 @@ export default function ScreeningPage() {
           </div>
         </form>
 
-        {/* Benefits Section */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">Preventive Care Benefits</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Heart className="h-6 w-6 text-green-600" />
+        {/* Benefits Section - Compact visual block */}
+        <Card className="mt-8 p-6 border-2 border-stone-200 bg-gradient-to-br from-stone-50 to-white">
+          <h2 className="text-xl font-semibold text-stone-900 mb-4 text-center">Why preventive care matters</h2>
+          <div className="grid md:grid-cols-4 gap-4 mb-6">
+            <div className="flex items-start gap-3">
+              <Heart className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-stone-900 text-sm mb-1">Early detection</h3>
+                <p className="text-xs text-stone-600">Catch conditions early</p>
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">Early detection</h3>
-              <p className="text-sm text-gray-600">Early detection of health conditions</p>
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Shield className="h-6 w-6 text-blue-600" />
+            <div className="flex items-start gap-3">
+              <Shield className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-stone-900 text-sm mb-1">Lower costs</h3>
+                <p className="text-xs text-stone-600">Save money over time</p>
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">Reduced costs</h3>
-              <p className="text-sm text-gray-600">Reduced healthcare costs over time</p>
             </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Activity className="h-6 w-6 text-purple-600" />
+            <div className="flex items-start gap-3">
+              <Activity className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-stone-900 text-sm mb-1">Better outcomes</h3>
+                <p className="text-xs text-stone-600">Improve long-term health</p>
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">Better outcomes</h3>
-              <p className="text-sm text-gray-600">Better long-term health outcomes</p>
-                </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Star className="h-6 w-6 text-orange-600" />
-              </div>
-              <h3 className="font-medium text-gray-900 mb-1">Peace of mind</h3>
-              <p className="text-sm text-gray-600">Peace of mind and health confidence</p>
             </div>
-          </div>
-        </div>
-
-        {/* Trust Indicators */}
-        <div className="mt-12 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Trusted by Millions</h3>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              USPSTF Grade A & B recommendations
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              Clinically validated guidelines
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              Regular updates with new research
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              Privacy-first approach
+            <div className="flex items-start gap-3">
+              <Star className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-stone-900 text-sm mb-1">Peace of mind</h3>
+                <p className="text-xs text-stone-600">Feel confident about your health</p>
               </div>
             </div>
           </div>
+          
+          {/* Trust Indicators - Compact */}
+          <div className="pt-4 border-t border-stone-200 text-center">
+            <p className="text-sm text-stone-600 mb-2">
+              <strong className="text-stone-900">Trusted by millions.</strong> Based on USPSTF Grade A & B recommendations—national, evidence-based preventive care guidelines.
+            </p>
+          </div>
+        </Card>
         </main>
     </div>
   )
