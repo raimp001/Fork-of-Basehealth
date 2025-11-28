@@ -340,6 +340,7 @@ export default function ProviderSignupPage() {
           </form>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }
