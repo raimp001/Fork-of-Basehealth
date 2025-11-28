@@ -27,18 +27,18 @@ import {
 
 const navigationItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/screening', label: 'Screening', icon: Activity },
-  { href: '/providers/search', label: 'Find Care', icon: Search },
-  { href: '/clinical-trials', label: 'Research', icon: FlaskConical },
+  { href: '/screening', label: 'Screenings', icon: Activity },
+  { href: '/providers/search', label: 'Find care', icon: Search },
+  { href: '/clinical-trials', label: 'Clinical trials', icon: FlaskConical },
   { href: '/providers/search?bounty=true', label: 'Caregivers', icon: Heart },
-  { href: '/provider/signup', label: 'Become a Provider', icon: User, badge: 'New' },
+  { href: '/provider/signup', label: 'Join as provider', icon: User, badge: 'New' },
 ]
 
 const userMenuItems = [
-  { href: '/patient-portal', label: 'Dashboard', icon: User },
+  { href: '/patient-portal', label: 'Portal', icon: User },
   { href: '/billing', label: 'Billing', icon: CreditCard },
   { href: '/wallet', label: 'Wallet', icon: DollarSign },
-  { href: '/payment/base', label: 'Base Payments', icon: Wallet, badge: 'New' },
+  { href: '/payment/base', label: 'Payments', icon: Wallet, badge: 'New' },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -49,7 +49,7 @@ const adminMenuItems = [
 ]
 
 const quickActions = [
-  { href: '/second-opinion', label: 'Medical Bounty', icon: Brain, badge: 'New' },
+  { href: '/second-opinion', label: 'Expert review', icon: Brain, badge: 'New' },
   { href: '/chat', label: 'Health Chat', icon: Activity, badge: null },
 ]
 

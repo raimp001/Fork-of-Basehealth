@@ -62,7 +62,7 @@ export default function HomePage() {
 
               {/* Subtitle - High contrast */}
               <p className={`text-lg md:text-xl lg:text-2xl text-stone-800 leading-relaxed mb-12 max-w-3xl font-medium ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
-                Evidence-based health screenings, clinical trial matching, and expert care—all in one seamless, HIPAA-compliant platform.
+                Health screenings, clinical trials, and expert care for patients and providers.
               </p>
 
               {/* CTAs - Warm grey tones */}
@@ -71,20 +71,14 @@ export default function HomePage() {
                   href="/screening"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-stone-900 text-white rounded-xl font-semibold hover:bg-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
                 >
-                  Start Health Assessment
+                  Start health assessment
                   <ArrowRight className="h-5 w-5" />
-                </Link>
-                <Link
-                  href="/providers/search"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-stone-900 border-2 border-stone-300 rounded-xl font-semibold hover:border-stone-400 hover:bg-stone-50 transition-all duration-300 shadow-sm hover:shadow-md"
-                >
-                  Find Providers
                 </Link>
                 <Link
                   href="/provider/signup"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
                 >
-                  Become a Provider
+                  Become a provider
                   <ArrowRight className="h-5 w-5" />
                 </Link>
               </div>
@@ -118,7 +112,7 @@ export default function HomePage() {
               Comprehensive Healthcare Platform
             </h2>
             <p className="text-lg md:text-xl text-stone-600 max-w-3xl mx-auto leading-relaxed">
-              Everything you need to manage your health in one secure, enterprise-grade platform
+              Everything you need to manage your health in one secure platform
             </p>
           </div>
 
@@ -133,11 +127,11 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-xl font-bold text-stone-900">AI Health Screening</h3>
+                  <h3 className="text-xl font-bold text-stone-900">Find the right care</h3>
                   <Badge className="bg-rose-600 text-white text-xs font-semibold px-2 py-0.5">New</Badge>
                 </div>
                 <p className="text-stone-600 leading-relaxed mb-6 text-sm">
-                  Personalized recommendations based on USPSTF evidence-based guidelines
+                  Get personalized health recommendations based on your profile.
                 </p>
                 <div className="flex items-center text-stone-900 font-semibold group-hover:gap-2 transition-all">
                   Learn more
@@ -154,9 +148,9 @@ export default function HomePage() {
                     <FlaskConical className="h-8 w-8 text-white" />
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-stone-900 mb-3">Clinical Trials</h3>
+                <h3 className="text-xl font-bold text-stone-900 mb-3">Join research studies</h3>
                 <p className="text-stone-600 leading-relaxed mb-6 text-sm">
-                  Match with cutting-edge research studies based on your health profile
+                  Match with clinical trials that fit your health needs.
                 </p>
                 <div className="flex items-center text-rose-700 font-semibold group-hover:gap-2 transition-all">
                   Explore trials
@@ -173,9 +167,9 @@ export default function HomePage() {
                     <Search className="h-8 w-8 text-white" />
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-stone-900 mb-3">Find Providers</h3>
+                <h3 className="text-xl font-bold text-stone-900 mb-3">Find providers</h3>
                 <p className="text-stone-600 leading-relaxed mb-6 text-sm">
-                  Connect with verified healthcare professionals in your area
+                  Connect with verified healthcare professionals near you.
                 </p>
                 <div className="flex items-center text-stone-900 font-semibold group-hover:gap-2 transition-all">
                   Search providers
@@ -193,11 +187,11 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-xl font-bold text-stone-900">Caregiver Matching</h3>
+                  <h3 className="text-xl font-bold text-stone-900">Find caregivers</h3>
                   <Badge className="bg-gradient-to-r from-rose-600 to-rose-700 text-white text-xs font-semibold px-2 py-0.5">Hot</Badge>
                 </div>
                 <p className="text-stone-600 leading-relaxed mb-6 text-sm">
-                  Find specialized care through our verified caregiver network
+                  Connect with specialized caregivers in our verified network.
                 </p>
                 <div className="flex items-center text-rose-700 font-semibold group-hover:gap-2 transition-all">
                   Find caregivers
@@ -249,13 +243,13 @@ export default function HomePage() {
                   <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center">
                     <Brain className="h-6 w-6 text-stone-700" />
                   </div>
-                  <h3 className="text-lg font-semibold text-stone-800">Medical Bounty</h3>
+                  <h3 className="text-lg font-semibold text-stone-800">Expert review</h3>
                 </div>
                 <p className="text-sm text-stone-600 mb-3">
-                  Get expert second opinions from specialist physicians
+                  Get specialist second opinions from expert physicians.
                 </p>
                 <div className="flex items-center text-stone-700 text-sm font-medium">
-                  Raise bounty <ChevronRight className="h-4 w-4" />
+                  Get review <ChevronRight className="h-4 w-4" />
                 </div>
               </Card>
             </Link>
@@ -284,12 +278,12 @@ export default function HomePage() {
                     <Zap className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-stone-800">Base Payments</h3>
+                    <h3 className="text-lg font-semibold text-stone-800">Fast, secure payouts</h3>
                     <Badge className="bg-rose-600 text-white text-xs mt-1">New</Badge>
                   </div>
                 </div>
                 <p className="text-sm text-stone-600 mb-3">
-                  Pay with USDC/ETH on Base blockchain - Fast & low fees
+                  Pay with crypto on Base blockchain. Low fees, instant confirmations.
                 </p>
                 <div className="flex items-center text-rose-600 text-sm font-medium">
                   Try payments <ChevronRight className="h-4 w-4" />
@@ -328,8 +322,8 @@ export default function HomePage() {
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
               Your Health Data is Protected
             </h2>
-            <p className="text-lg md:text-xl text-stone-200 max-w-3xl mx-auto leading-relaxed">
-              Built with enterprise-grade security and full HIPAA compliance to keep your health information safe
+            <p className="text-lg md:text-xl text-stone-200 max-w-3xl mx-auto leading-relaxed mb-8">
+              Your health information is private, secure, and never sold.
             </p>
           </div>
 
@@ -340,7 +334,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-2xl font-semibold mb-4">HIPAA Compliant</h3>
               <p className="text-stone-300 leading-relaxed">
-                Full compliance with healthcare privacy regulations and data protection standards
+                Full compliance with healthcare privacy regulations.
               </p>
             </div>
 
@@ -350,7 +344,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-2xl font-semibold mb-4">End-to-End Encryption</h3>
               <p className="text-stone-300 leading-relaxed">
-                All data is encrypted in transit and at rest using industry-standard encryption
+                All data encrypted in transit and at rest.
               </p>
             </div>
 
@@ -360,7 +354,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-2xl font-semibold mb-4">Privacy Controls</h3>
               <p className="text-stone-300 leading-relaxed">
-                You control who has access to your data and can revoke permissions anytime
+                Your identifiable health data is never sold.
               </p>
             </div>
           </div>
