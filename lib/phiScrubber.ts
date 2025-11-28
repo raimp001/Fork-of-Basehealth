@@ -125,7 +125,7 @@ export function sanitizeInput(input: string): PHIScrubResult {
 
   // 8. Detect and replace obvious IDs / MRNs (Medical Record Numbers)
   // Common patterns: MRN-12345, ID: ABC123, etc.
-  const idRegex = /\b(?:MRN|ID|Patient\s*ID|Record\s*#?)[\s:-\-]?([A-Z0-9]{4,})\b/gi
+  const idRegex = /\b(?:MRN|ID|Patient\s*ID|Record\s*#?)[\s:\-]?([A-Z0-9]{4,})\b/gi
   cleanedText = cleanedText.replace(idRegex, (match) => {
     if (!mapping[match]) {
       mapping[match] = '[ID]'
