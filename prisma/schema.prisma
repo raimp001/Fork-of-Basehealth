@@ -152,7 +152,7 @@ enum CaregiverStatus {
 }
 
 // ============================================================================
-// PROVIDER (Healthcare Providers)
+// PROVIDER (Healthcare Providers - Physicians and Health Apps)
 // ============================================================================
 
 model Provider {
@@ -160,13 +160,30 @@ model Provider {
   userId      String?  @unique
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   
-  name        String
-  specialty   String?
-  npiNumber   String?  @unique
-  location    String?
+  // Provider Type: PHYSICIAN or APP
+  type        ProviderType @default(PHYSICIAN)
+  
+  // For Physicians
+  fullName    String?  // For physicians: "Dr. John Smith"
+  // For Apps/Clinics
+  organizationName String? // For apps: "HealthApp Inc."
+  
+  email       String   @unique
+  passwordHash String? // Hashed password (nullable for OAuth)
   phone       String?
+  
+  // Professional Information (for physicians)
+  npiNumber   String?  @unique // NPI for physicians (nullable for apps)
+  licenseState String?
+  specialties String[] // Array of specialties
+  bio         String?  @db.Text
+  
+  // Location
+  location    String?
+  
+  // Status
   acceptingPatients Boolean @default(true)
-  verified    Boolean  @default(false)
+  isVerified  Boolean  @default(false)
   
   rating      Decimal? @default(0) @db.Decimal(3, 2)
   reviewCount Int      @default(0)
@@ -175,7 +192,14 @@ model Provider {
   updatedAt   DateTime @updatedAt
   
   @@index([npiNumber])
+  @@index([email])
+  @@index([type])
   @@map("providers")
+}
+
+enum ProviderType {
+  PHYSICIAN
+  APP
 }
 
 // ============================================================================

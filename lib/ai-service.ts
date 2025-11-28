@@ -1,5 +1,3 @@
-import { openai } from "@ai-sdk/openai"
-import { generateText } from "ai"
 import { extractJsonFromText } from "@/lib/utils"
 import type { Provider } from "@/types/user"
 import { searchNPIProviders } from "@/lib/npi-service"
@@ -298,8 +296,9 @@ export async function searchProviders(zipCode: string, specialtyOrType?: string)
       }))
     }
 
-    // If no NPI providers found, use OpenAI to find real providers in the area
-    console.log("No NPI providers found, using OpenAI to research real providers")
+    // If no NPI providers found, use AI to find real providers in the area
+    // NOTE: This now goes through the central LLM API route which scrubs PHI
+    console.log("No NPI providers found, using AI to research real providers")
 
     const prompt = `
       I need information about real healthcare providers near ZIP code ${zipCode}${
@@ -332,13 +331,39 @@ export async function searchProviders(zipCode: string, specialtyOrType?: string)
       3. Return ONLY the JSON array with no additional text
     `
 
-    const { text } = await generateText({
-      model: openai("gpt-4o"),
-      prompt: prompt,
-      temperature: 0.3, // Lower temperature for more factual responses
-      maxTokens: 2000,
-      response_format: { type: "json_object" },
+    // Call the central LLM API route (which handles PHI scrubbing and API key management)
+    // Since this is server-side code, we need to construct the full URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                    "http://localhost:3000"
+    
+    const response = await fetch(`${baseUrl}/api/llm`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        input: prompt,
+        options: {
+          model: "gpt-4o",
+          temperature: 0.3, // Lower temperature for more factual responses
+          maxTokens: 2000,
+          stream: false,
+        },
+      }),
     })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`LLM API error: ${response.statusText} - ${errorText}`)
+    }
+
+    const result = await response.json()
+    if (!result.success) {
+      throw new Error(result.error || "LLM API request failed")
+    }
+    
+    const text = result.text || ""
 
     // Extract JSON from the response text
     const providersData: any = extractJsonFromText(text)

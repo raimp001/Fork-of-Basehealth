@@ -1,6 +1,7 @@
 import { groq } from "@ai-sdk/groq"
 import { streamText } from "ai"
 import { NextResponse } from "next/server"
+import { sanitizeInput } from "@/lib/phiScrubber"
 
 // System prompt that defines the AI's behavior with MCP server integration
 const SYSTEM_PROMPT = `You are a helpful health assistant for the BaseHealth platform with blockchain awareness powered by the Model Context Protocol server.
@@ -26,9 +27,24 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json()
 
+    // IMPORTANT: Scrub PHI from user messages before sending to LLM
+    const scrubbedMessages = messages.map((msg: any) => {
+      if (msg.role === "user" && typeof msg.content === "string") {
+        const { cleanedText } = sanitizeInput(msg.content)
+        return { ...msg, content: cleanedText }
+      }
+      return msg
+    })
+
+    // Log that scrubbing occurred (but NOT the original content)
+    const userMessages = messages.filter((m: any) => m.role === "user")
+    if (userMessages.length > 0) {
+      console.log(`[MCP Chat API] Scrubbed ${userMessages.length} user message(s) for PHI`)
+    }
+
     const result = streamText({
       model: groq("llama3-70b-8192"),
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...scrubbedMessages],
     })
 
     return result.toDataStreamResponse()

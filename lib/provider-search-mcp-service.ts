@@ -1,8 +1,6 @@
 import { MCPClient } from "@modelcontextprotocol/sdk"
 import type { Provider } from "@/types/user"
 import { searchProviders } from "@/lib/provider-search-service"
-import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
 
 // Initialize the MCP client
 const mcpClient = new MCPClient({
@@ -146,15 +144,38 @@ async function rankProvidersWithAI(providers: EnhancedProvider[], query: string)
       Format: ["provider-id-1", "provider-id-2", ...]
     `
 
-    // Generate text with OpenAI
-    const { text } = await generateText({
-      model: openai("gpt-4o"),
-      prompt,
-      temperature: 0.2,
-      response_format: { type: "json_object" },
+    // Call the central LLM API route (which handles PHI scrubbing and API key management)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                    "http://localhost:3000"
+    
+    const response = await fetch(`${baseUrl}/api/llm`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        input: prompt,
+        options: {
+          model: "gpt-4o",
+          temperature: 0.2,
+          maxTokens: 1000,
+          stream: false,
+        },
+      }),
     })
 
+    if (!response.ok) {
+      throw new Error(`LLM API error: ${response.statusText}`)
+    }
+
+    const result = await response.json()
+    if (!result.success) {
+      throw new Error(result.error || "LLM API request failed")
+    }
+
     // Parse the AI response
+    const text = result.text || ""
     const rankedIds = JSON.parse(text)
 
     // Sort providers based on the AI ranking

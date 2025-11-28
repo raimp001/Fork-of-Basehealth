@@ -1,6 +1,7 @@
 import { groq } from "@ai-sdk/groq"
 import { streamText } from "ai"
 import { NextResponse } from "next/server"
+import { sanitizeInput } from "@/lib/phiScrubber"
 
 // System prompt that defines the AI's behavior and knowledge
 const SYSTEM_PROMPT = `You are a helpful health assistant for the BaseHealth platform. 
@@ -35,9 +36,24 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json()
 
+    // IMPORTANT: Scrub PHI from user messages before sending to LLM
+    const scrubbedMessages = messages.map((msg: any) => {
+      if (msg.role === "user" && typeof msg.content === "string") {
+        const { cleanedText } = sanitizeInput(msg.content)
+        return { ...msg, content: cleanedText }
+      }
+      return msg
+    })
+
+    // Log that scrubbing occurred (but NOT the original content)
+    const userMessages = messages.filter((m: any) => m.role === "user")
+    if (userMessages.length > 0) {
+      console.log(`[Chat API] Scrubbed ${userMessages.length} user message(s) for PHI`)
+    }
+
     const result = streamText({
       model: groq("llama3-70b-8192"),
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...scrubbedMessages],
     })
 
     return result.toDataStreamResponse()
@@ -49,12 +65,16 @@ export async function POST(req: Request) {
 
 // Function to analyze symptoms and provide recommendations
 export async function analyzeSymptoms(symptoms: string, age: number, gender: string, additionalContext = "") {
+  // IMPORTANT: Scrub PHI from input before sending to LLM
+  const { cleanedText: scrubbedSymptoms } = sanitizeInput(symptoms)
+  const { cleanedText: scrubbedContext } = sanitizeInput(additionalContext)
+  
   const prompt = `
     Patient information:
     - Age: ${age}
     - Gender: ${gender}
-    - Reported symptoms: ${symptoms}
-    - Additional context: ${additionalContext}
+    - Reported symptoms: ${scrubbedSymptoms}
+    - Additional context: ${scrubbedContext}
     
     Based on the above information, please provide:
     1. What are possible causes for these symptoms that should be discussed with a healthcare provider?

@@ -87,32 +87,243 @@ PROVIDER_SYSTEM_DOCUMENTATION.md       # Complete system documentation
 
 ## 🚀 Getting Started
 
+### Installation
+
 1. **Install dependencies:**
    ```bash
    pnpm install
    ```
 
 2. **Set up environment variables:**
-   Create a `.env.local` file in the root directory:
+   
+   Create a `.env.local` file in the root directory (copy from `.env.example` if it exists):
    ```bash
-   # OpenAI API Key for provider search fallback
+   # Database (REQUIRED)
+   DATABASE_URL=postgresql://user:password@localhost:5432/basehealth
+   
+   # OpenAI API Key (REQUIRED for AI features)
    OPENAI_API_KEY=your-openai-api-key-here
    
-   # HealthDB API Key (optional)
-   HEALTHDB_API_KEY=your-healthdb-api-key-here
+   # NextAuth Secret (REQUIRED)
+   NEXTAUTH_SECRET=your-secret-key-here
+   NEXTAUTH_URL=http://localhost:3000
    
-   # Google Places API Key (optional)
+   # Healthcare Vendor Integration (for production)
+   # Get these from your vendor after signing BAA
+   HEALTH_INTEGRATION_BASE_URL=https://api.your-vendor.com
+   HEALTH_INTEGRATION_API_KEY=your-vendor-api-key-here
+   HEALTH_INTEGRATION_TIMEOUT=30000  # Optional: timeout in milliseconds
+   
+   # Optional API Keys
+   HEALTHDB_API_KEY=your-healthdb-api-key-here
    GOOGLE_PLACES_API_KEY=your-google-places-api-key-here
+   STRIPE_SECRET_KEY=your-stripe-secret-key-here
+   ```
+   
+   **For Vercel deployment:**
+   - Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+   - Add all the variables from your `.env.local` file
+   - Never commit `.env.local` to git!
+
+3. **Set up the database:**
+   ```bash
+   # Generate Prisma client
+   npx prisma generate
+   
+   # Run migrations (if you have a database set up)
+   npx prisma migrate dev
    ```
 
-3. **Start development server:**
+4. **Start development server:**
    ```bash
    pnpm dev
    ```
 
-4. **Access the system:**
-   - Provider Signup: `http://localhost:3000/providers/signup`
+5. **Access the system:**
+   - Main App: `http://localhost:3000`
+   - Provider Signup: `http://localhost:3000/provider/signup`
+   - Provider Dashboard: `http://localhost:3000/provider/dashboard`
    - Admin Portal: `http://localhost:3000/admin`
+
+---
+
+## 🤖 How the AI Works (Simple Explanation)
+
+### Where the AI Lives
+
+The AI "lives" in a special backend route called `/api/llm`. Think of it like a secure mailbox:
+- Your website sends messages to this mailbox
+- The mailbox scrubs out any personal information (like names, addresses, phone numbers)
+- Then it sends the cleaned message to OpenAI
+- OpenAI sends back a response
+- The mailbox sends the response back to your website
+
+**Important:** The AI never sees your real personal information because it gets scrubbed first!
+
+### How Your Website Talks to the AI
+
+1. **User types something** → Frontend (your browser)
+2. **Frontend sends to backend** → `/api/llm` route
+3. **Backend scrubs PHI** → Removes names, emails, addresses, etc.
+4. **Backend calls OpenAI** → Sends only the cleaned text
+5. **OpenAI responds** → Backend receives the AI response
+6. **Backend sends to frontend** → User sees the response
+
+### How PHI Scrubbing Protects Patient Data
+
+Before any text goes to OpenAI, our PHI scrubber automatically finds and replaces:
+- **Names** → `[NAME_1]`, `[NAME_2]`
+- **Email addresses** → `[EMAIL]`
+- **Phone numbers** → `[PHONE]`
+- **Addresses** → `[ADDRESS]`
+- **ZIP codes** → `[ZIP]`
+- **Dates of birth** → `[DOB]`
+- **Medical record numbers** → `[ID]`
+
+So if someone types: *"My name is John Smith, email john@example.com, phone 555-1234"*
+
+The AI sees: *"My name is [NAME_1], email [EMAIL], phone [PHONE]"*
+
+This way, OpenAI never learns real patient information!
+
+---
+
+## 👨‍⚕️ Provider/App Signup (Like Uber Drivers)
+
+### How It Works
+
+1. **Physicians or Health Apps visit** `/provider/signup`
+2. **They choose their type:**
+   - **Physician**: Individual doctors
+   - **Health App/Clinic**: Organizations or apps
+3. **Fill out a simple form** with basic information
+4. **Submit** → Account is created (pending verification)
+5. **Access dashboard** → See their profile and future features
+
+### What Providers Can Do
+
+Once signed up, providers get a dashboard (`/provider/dashboard`) with:
+- ✅ **Profile information** (view and edit)
+- 🔜 **Patient requests** (coming soon)
+- 🔜 **Lab orders** (coming soon)
+- 🔜 **Prescription sending** (coming soon)
+- 🔜 **Imaging orders** (coming soon)
+- 🔜 **EMR integration** (coming soon)
+- 🔜 **Scheduling** (coming soon)
+
+### Future: Ordering Labs, Prescriptions, Imaging, EMR
+
+In the future, a doctor on the platform will be able to:
+1. **Click "Order Lab Test"** → System sends order to lab vendor
+2. **Click "Send Prescription"** → System sends prescription to pharmacy
+3. **Click "Order Imaging"** → System schedules imaging study
+4. **Click "Push to EMR"** → System sends clinical summary to patient's EMR
+
+Right now, these are **MOCK implementations** - they log what would happen but don't actually send anything to real vendors.
+
+---
+
+## 🔌 Healthcare Vendor Integrations
+
+### Production-Ready Integration Clients
+
+We've built production-ready integration clients that can talk to real healthcare vendors:
+
+- **Labs** (`lib/integrations/labs.ts`) - Lab orders and results
+- **Pharmacy** (`lib/integrations/pharmacy.ts`) - E-prescribing
+- **Radiology** (`lib/integrations/radiology.ts`) - Imaging orders
+- **EMR** (`lib/integrations/emr.ts`) - Electronic medical records (FHIR)
+
+### API Routes
+
+- `POST /api/orders/lab` - Place a lab order
+- `POST /api/orders/prescription` - Send a prescription
+- `POST /api/orders/imaging` - Place an imaging order
+- `POST /api/orders/emr-summary` - Push clinical summary to EMR
+
+### Integration Vendors
+
+These clients are designed to work with HIPAA-compliant integration vendors such as:
+- **Redox** - Healthcare data exchange platform
+- **Particle Health** - Healthcare data network
+- **Zus** - Healthcare data platform
+- **E-prescribing partners** - Surescripts and similar networks
+- **Lab vendors** - LabCorp, Quest Diagnostics (via integration platforms)
+- **EMR vendors** - Epic, Cerner, Allscripts (via integration platforms)
+
+### Setting Up Real Vendor Integration
+
+**Before you can use these integrations in production:**
+
+1. **Sign Contracts & BAAs**
+   - Contact vendors (Redox, Particle Health, Zus, etc.)
+   - Sign Business Associate Agreements (BAAs)
+   - Complete vendor onboarding process
+
+2. **Get API Credentials**
+   - Obtain sandbox API keys for testing
+   - Get production API keys when ready
+   - Receive base URL for vendor API (e.g., `https://api.redoxengine.com`)
+
+3. **Set Environment Variables**
+   ```bash
+   # In your .env.local or Vercel environment variables:
+   HEALTH_INTEGRATION_BASE_URL=https://api.your-vendor.com
+   HEALTH_INTEGRATION_API_KEY=your-api-key-here
+   HEALTH_INTEGRATION_TIMEOUT=30000  # Optional: timeout in milliseconds
+   ```
+
+4. **Test with Sandbox**
+   - Use sandbox credentials first
+   - Test all integration endpoints
+   - Verify data formats match vendor expectations
+
+5. **Go to Production**
+   - Switch to production credentials
+   - Monitor API calls and responses
+   - Handle vendor-specific response formats
+
+### How It Works
+
+**Backend → Vendor Communication:**
+
+1. Provider clicks a button in their dashboard (e.g., "Order Lab Test")
+2. Frontend sends request to your API route (e.g., `POST /api/orders/lab`)
+3. API route validates the request
+4. Integration client (`lib/integrations/baseClient.ts`) makes HTTP call to vendor:
+   - Uses `HEALTH_INTEGRATION_BASE_URL` for the base URL
+   - Uses `HEALTH_INTEGRATION_API_KEY` for authentication
+   - Sends JSON payload with order details
+5. Vendor processes the request and returns response
+6. Your API route returns the vendor's response to the frontend
+
+**Example Flow:**
+```
+Provider Dashboard → POST /api/orders/lab → createLabOrder() → 
+Vendor API (Redox/Particle/etc.) → Response → Provider Dashboard
+```
+
+### HIPAA Compliance Notes
+
+- ✅ All vendor communications happen from secured backend (never from browser)
+- ✅ API keys stored in environment variables (never hard-coded)
+- ✅ All communications encrypted (HTTPS)
+- ✅ Uses internal patient/provider IDs (vendor maps to their records)
+- ✅ Requires BAA with vendor before production use
+
+---
+
+## ⚠️ What to Avoid (For Now)
+
+1. **Don't put real PHI in mocks** - The mock integrations are for testing structure only
+2. **Don't use as production EMR** - This is a development platform
+3. **Don't skip HIPAA compliance** - When you add real vendors, ensure proper BAAs and encryption
+4. **Don't hardcode API keys** - Always use environment variables
+5. **Don't commit `.env.local`** - Keep secrets out of git
+
+---
+
+## 📋 Next Development Phase
 
 ## 📋 Next Development Phase
 
