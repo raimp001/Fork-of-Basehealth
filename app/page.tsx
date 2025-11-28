@@ -126,10 +126,7 @@ export default function HomePage() {
                     <Activity className="h-8 w-8 text-white" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-xl font-bold text-stone-900">Find the right care</h3>
-                  <Badge className="bg-rose-600 text-white text-xs font-semibold px-2 py-0.5">New</Badge>
-                </div>
+                <h3 className="text-xl font-bold text-stone-900 mb-3">Find the right care</h3>
                 <p className="text-stone-600 leading-relaxed mb-6 text-sm">
                   Get personalized health recommendations based on your profile.
                 </p>
@@ -321,7 +318,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
             <div className="text-center">
               <div className="w-20 h-20 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
                 <CheckCircle className="h-10 w-10 text-emerald-400" />
@@ -349,6 +346,16 @@ export default function HomePage() {
               <h3 className="text-2xl font-semibold mb-4">Privacy Controls</h3>
               <p className="text-stone-300 leading-relaxed">
                 Your identifiable health data is never sold.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <Shield className="h-10 w-10 text-blue-400" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-4">U.S. Data Residency</h3>
+              <p className="text-stone-300 leading-relaxed">
+                Your data is stored in HIPAA-compliant U.S. data centers and never transferred internationally.
               </p>
             </div>
           </div>

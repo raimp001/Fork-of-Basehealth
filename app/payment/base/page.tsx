@@ -6,8 +6,9 @@
  * Integrated with HTTP 402 protocol and Coinbase Design System
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { MinimalNavigation } from '@/components/layout/minimal-navigation'
 import { BaseCDSPayment } from '@/components/payment/base-cds-payment'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -29,10 +30,16 @@ import {
 } from 'lucide-react'
 import { PAYMENT_TIERS, type PaymentProof } from '@/lib/http-402-service'
 import { toast } from 'sonner'
+import { LoadingSpinner } from '@/components/ui/loading'
 
 export default function BasePaymentPage() {
   const router = useRouter()
   const [selectedTier, setSelectedTier] = useState<keyof typeof PAYMENT_TIERS>('VIRTUAL_CONSULTATION')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handlePaymentSuccess = async (proof: PaymentProof) => {
     try {
@@ -84,8 +91,24 @@ export default function BasePaymentPage() {
     })
   }
 
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-white">
+        <MinimalNavigation />
+        <div className="container mx-auto py-8 px-4 max-w-7xl flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <LoadingSpinner size="lg" />
+            <p className="mt-4 text-stone-600">Loading payment page...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="min-h-screen bg-white">
+      <MinimalNavigation />
+      <div className="container mx-auto py-8 px-4 max-w-7xl">
       {/* Header */}
       <div className="mb-8 text-center space-y-4">
         <div className="flex items-center justify-center gap-2">
@@ -98,9 +121,9 @@ export default function BasePaymentPage() {
             HTTP 402 Protocol
           </Badge>
         </div>
-        <h1 className="text-4xl font-bold">Base Blockchain Payments</h1>
+        <h1 className="text-4xl font-bold">Fast, Secure Payouts</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Pay for healthcare services with crypto on Base - Fast, secure, and affordable
+          Low fees, instant settlement, no chargebacks. Powered by Base blockchain.
         </p>
       </div>
 
@@ -217,15 +240,35 @@ export default function BasePaymentPage() {
             </CardContent>
           </Card>
 
-          {/* Info Card */}
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertTitle>About Base Payments</AlertTitle>
-            <AlertDescription className="text-xs">
-              Base is Coinbase's Layer 2 blockchain offering fast, cheap transactions. 
-              All payments are secured on-chain with instant confirmation.
-            </AlertDescription>
-          </Alert>
+          {/* FAQ Section */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Info className="h-5 w-5 text-blue-600" />
+                Frequently Asked Questions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-sm mb-2">What is Base blockchain?</h4>
+                <p className="text-sm text-muted-foreground">
+                  Base is Coinbase's Layer 2 blockchain built on Ethereum. It offers fast, low-cost transactions while maintaining security through Ethereum's network.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm mb-2">Do I need crypto to pay?</h4>
+                <p className="text-sm text-muted-foreground">
+                  Yes, you'll need USDC (a stablecoin) or ETH in a crypto wallet. You can purchase crypto through Coinbase or other exchanges, then transfer to your wallet.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm mb-2">How do I get started?</h4>
+                <p className="text-sm text-muted-foreground">
+                  Connect a crypto wallet (like MetaMask or Coinbase Wallet), ensure you're on the Base network, and have USDC or ETH available. The payment component will guide you through the process.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Payment Component */}
@@ -349,6 +392,7 @@ export default function BasePaymentPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

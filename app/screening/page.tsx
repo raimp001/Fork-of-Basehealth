@@ -525,10 +525,11 @@ export default function ScreeningPage() {
               {/* Personal Medical History */}
               <AccordionItem value="medical-history" className="border-b border-stone-200">
                 <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
-                  Medical history
+                  Personal Medical History
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
-                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <p className="text-sm text-stone-600 mb-2">Optional, improves accuracy</p>
+                  <p className="text-xs text-stone-500 mb-4 italic">Your answers are encrypted and never shared with employers or insurers.</p>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {medicalHistoryOptions.map((option) => (
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${

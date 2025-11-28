@@ -10,6 +10,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { CaregiverList } from "@/components/caregiver/caregiver-list"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -459,6 +460,25 @@ function SearchPageContent() {
                     >
                       Looking for doctors or specialists instead?
                     </Link>
+                  </div>
+                  
+                  {/* Verification Explainer */}
+                  <div className="mt-6 pt-6 border-t border-stone-200">
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="verification" className="border-none">
+                        <AccordionTrigger className="text-sm font-semibold text-stone-700 hover:no-underline py-2">
+                          How verification works
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-2 pb-0">
+                          <div className="bg-stone-50 rounded-lg p-4 border border-stone-200">
+                            <h4 className="font-semibold text-stone-900 mb-2 text-sm">Verified, Licensed Caregivers</h4>
+                            <p className="text-sm text-stone-600 leading-relaxed">
+                              All caregivers complete background checks, license verification, and reference checks before joining our network. We verify credentials through state licensing boards and NPI databases.
+                            </p>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   </div>
                 </div>
               </div>

@@ -159,7 +159,20 @@ export default function RegisterPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-stone-500 mt-1">At least 8 characters, one number, one special character</p>
+                <div className="mt-2 space-y-1">
+                  <div className={`flex items-center gap-2 text-xs ${formData.password.length >= 8 ? 'text-green-600' : 'text-stone-500'}`}>
+                    {formData.password.length >= 8 ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-stone-300" />}
+                    <span>At least 8 characters</span>
+                  </div>
+                  <div className={`flex items-center gap-2 text-xs ${/\d/.test(formData.password) ? 'text-green-600' : 'text-stone-500'}`}>
+                    {/\d/.test(formData.password) ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-stone-300" />}
+                    <span>One number</span>
+                  </div>
+                  <div className={`flex items-center gap-2 text-xs ${/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'text-green-600' : 'text-stone-500'}`}>
+                    {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-stone-300" />}
+                    <span>One special character</span>
+                  </div>
+                </div>
               </div>
 
               <div>
