@@ -36,7 +36,7 @@ export default function PatientPortalPage() {
     password: ''
   })
   const [isLoading, setIsLoading] = useState(false)
-  const { error, setError, clearError } = useErrorHandler()
+  const { error, handleError, clearError } = useErrorHandler()
 
   // Check authentication status on mount
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function PatientPortalPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError('')
+    clearError()
 
     // Simulate authentication
     await new Promise(resolve => setTimeout(resolve, 1000))
@@ -58,7 +58,7 @@ export default function PatientPortalPage() {
       localStorage.setItem('patient_authenticated', 'true')
       setIsAuthenticated(true)
     } else {
-      setError('Please enter valid credentials')
+      handleError('Please enter valid credentials')
     }
     setIsLoading(false)
   }
@@ -123,7 +123,7 @@ export default function PatientPortalPage() {
               </div>
 
               {error && (
-                <FormError error={error} onDismiss={clearError} />
+                <FormError message={error} onRetry={clearError} />
               )}
 
               <PrimaryActionButton 
