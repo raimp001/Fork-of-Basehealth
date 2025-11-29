@@ -10,6 +10,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MinimalNavigation } from '@/components/layout/minimal-navigation'
 import { BaseCDSPayment } from '@/components/payment/base-cds-payment'
+import { PrivyX402Payment } from '@/components/payment/privy-x402-payment'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -245,14 +246,41 @@ export default function BasePaymentPage() {
         </div>
 
         {/* Payment Component */}
-        <div className="lg:col-span-2">
-          <BaseCDSPayment
-            requirement={PAYMENT_TIERS[selectedTier]}
-            onSuccess={handlePaymentSuccess}
-            onError={handlePaymentError}
-            showHeader={true}
-            compact={false}
-          />
+        <div className="lg:col-span-2 space-y-6">
+          {/* Privy x402 Payment (Recommended) */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 mb-2">Recommended: Privy x402</h3>
+            <PrivyX402Payment
+              requirement={PAYMENT_TIERS[selectedTier]}
+              resourceUrl={`/api/payments/402/resource/${PAYMENT_TIERS[selectedTier].resource}`}
+              onSuccess={(data) => {
+                handlePaymentSuccess({
+                  transactionHash: data.txHash || 'pending',
+                  from: 'privy-wallet',
+                  to: 'recipient',
+                  amount: PAYMENT_TIERS[selectedTier].amount.toString(),
+                  currency: PAYMENT_TIERS[selectedTier].currency,
+                  network: process.env.NODE_ENV === 'production' ? 'base' : 'base-sepolia',
+                  timestamp: Date.now(),
+                })
+              }}
+              onError={handlePaymentError}
+              showHeader={true}
+              compact={false}
+            />
+          </div>
+
+          {/* Legacy Base CDS Payment (Alternative) */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 mb-2">Alternative: Direct Wallet</h3>
+            <BaseCDSPayment
+              requirement={PAYMENT_TIERS[selectedTier]}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+              showHeader={false}
+              compact={true}
+            />
+          </div>
 
           {/* Features List */}
           <Card className="mt-6">
