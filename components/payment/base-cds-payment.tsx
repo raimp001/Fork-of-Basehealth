@@ -30,6 +30,13 @@ import {
 } from 'lucide-react'
 import { paymentConfig, baseChain } from '@/lib/coinbase-config'
 import { type PaymentRequirement, type PaymentProof } from '@/lib/http-402-service'
+import { 
+  encodePaymentPayload, 
+  createBasePaymentRequirement,
+  type PaymentPayload,
+  type ExactSchemePayload,
+  X402_VERSION 
+} from '@/lib/x402-protocol'
 import { cn } from '@/lib/utils'
 
 // USDC Contract ABI
@@ -75,6 +82,7 @@ export function BaseCDSPayment({
   const [error, setError] = useState<string | null>(null)
   const [txHash, setTxHash] = useState<string | null>(null)
 
+  // Wagmi hooks - must be called unconditionally
   const { address, isConnected } = useAccount()
   const publicClient = usePublicClient()
 
@@ -86,6 +94,9 @@ export function BaseCDSPayment({
   const { data: tokenBalance, refetch: refetchBalance } = useBalance({
     address,
     token: selectedCurrency === 'USDC' ? tokenAddress : undefined,
+    query: {
+      enabled: !!address && !!tokenAddress,
+    },
   })
 
   // Contract write hook
@@ -94,6 +105,9 @@ export function BaseCDSPayment({
   // Wait for transaction
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
+    query: {
+      enabled: !!hash,
+    },
   })
 
   // Check if user has sufficient balance
@@ -145,25 +159,46 @@ export function BaseCDSPayment({
 
   // Monitor transaction confirmation
   useEffect(() => {
-    if (isConfirmed && hash) {
+    if (isConfirmed && hash && address) {
       setTxHash(hash)
       setIsProcessing(false)
 
-      // Create payment proof
+      const network = baseChain.id === 8453 ? 'base' : 'base-sepolia'
+      
+      // Create x402 Payment Payload (exact scheme)
+      const exactPayload: ExactSchemePayload = {
+        txHash: hash,
+        from: address,
+        to: paymentConfig.recipientAddress,
+        amount: (BigInt(Math.floor(requirement.amount * Math.pow(10, selectedCurrency === 'ETH' ? 18 : 6)))).toString(),
+      }
+
+      const paymentPayload: PaymentPayload = {
+        x402Version: X402_VERSION,
+        scheme: 'exact',
+        network,
+        payload: exactPayload,
+      }
+
+      // Encode as X-PAYMENT header
+      const xPaymentHeader = encodePaymentPayload(paymentPayload)
+
+      // Also create legacy PaymentProof for backward compatibility
       const proof: PaymentProof = {
         transactionHash: hash,
-        from: address!,
+        from: address,
         to: paymentConfig.recipientAddress,
         amount: requirement.amount.toString(),
         currency: selectedCurrency,
-        network: baseChain.network as 'base' | 'base-sepolia',
+        network: network as 'base' | 'base-sepolia',
         timestamp: Date.now(),
       }
 
+      // Call success handler with both x402 payload and legacy proof
       onSuccess?.(proof)
       refetchBalance()
     }
-  }, [isConfirmed, hash])
+  }, [isConfirmed, hash, address, requirement, selectedCurrency, onSuccess, refetchBalance])
 
   // Handle write errors
   useEffect(() => {
@@ -192,7 +227,7 @@ export function BaseCDSPayment({
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Transaction:</span>
                 <a
-                  href={`https://${baseChain.network === 'base' ? 'basescan.org' : 'sepolia.basescan.org'}/tx/${txHash}`}
+                  href={`https://${baseChain.id === 8453 ? 'basescan.org' : 'sepolia.basescan.org'}/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
@@ -301,7 +336,7 @@ export function BaseCDSPayment({
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription className="text-xs">
-              Payment will be processed on {baseChain.network === 'base' ? 'Base Mainnet' : 'Base Sepolia Testnet'}. 
+              Payment will be processed on {baseChain.id === 8453 ? 'Base Mainnet' : 'Base Sepolia Testnet'}. 
               Transaction fees are minimal thanks to Base's L2 scaling.
             </AlertDescription>
           </Alert>
@@ -310,7 +345,9 @@ export function BaseCDSPayment({
 
       <CardFooter className="flex flex-col gap-3">
         {!isConnected ? (
-          <WalletConnectButton className="w-full" />
+          <div className="w-full">
+            <WalletConnectButton />
+          </div>
         ) : (
           <PrimaryActionButton
             onClick={handlePayment}
@@ -318,10 +355,10 @@ export function BaseCDSPayment({
             className="w-full"
           >
             {isProcessing || isConfirming ? (
-              <>
+              <div className="flex items-center gap-2">
                 <LoadingSpinner size="sm" className="mr-2" />
-                {isConfirming ? 'Confirming...' : 'Processing...'}
-              </>
+                <span>{isConfirming ? 'Confirming...' : 'Processing...'}</span>
+              </div>
             ) : (
               <>
                 Pay {requirement.amount} {selectedCurrency}
