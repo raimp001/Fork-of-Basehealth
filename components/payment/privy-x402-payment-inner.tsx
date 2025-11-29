@@ -60,7 +60,7 @@ export function PrivyX402PaymentInner({
 
   // Use Privy hooks (must be called unconditionally)
   const { wallets } = useWallets()
-  const x402FetchFn = useX402Fetch()
+  const { wrapFetchWithPayment } = useX402Fetch()
 
   const connectedWallet = wallets[0]
   const isConnected = !!connectedWallet
@@ -84,8 +84,15 @@ export function PrivyX402PaymentInner({
     setError(null)
 
     try {
+      // Wrap fetch with Privy's x402 payment handler
+      const fetchWithPayment = wrapFetchWithPayment({
+        walletAddress: connectedWallet.address,
+        fetch,
+        maxValue: maxPaymentValue,
+      })
+
       // Use Privy's x402 fetch - automatically handles 402 responses
-      const response = await x402FetchFn(resourceUrl, {
+      const response = await fetchWithPayment(resourceUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
