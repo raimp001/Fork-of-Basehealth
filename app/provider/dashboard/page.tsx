@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Loader2, User, Calendar, Pill, FileText, Stethoscope } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import Link from "next/link"
 
 interface Provider {
   id: string
@@ -56,33 +58,46 @@ export default function ProviderDashboard() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-16 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen bg-gray-50">
+        <MinimalNavigation />
+        <div className="container mx-auto px-4 py-16 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </div>
       </div>
     )
   }
 
   if (error || !provider) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-2xl">
-        <Alert variant="destructive">
-          <AlertDescription>{error || "Provider not found"}</AlertDescription>
-        </Alert>
+      <div className="min-h-screen bg-gray-50">
+        <MinimalNavigation />
+        <div className="container mx-auto px-4 py-16 max-w-2xl pt-24">
+          <Alert variant="destructive">
+            <AlertDescription>{error || "Provider not found"}</AlertDescription>
+          </Alert>
+          <div className="mt-6">
+            <Link href="/provider/signup">
+              <Button>Sign Up as Provider</Button>
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="min-h-screen bg-gray-50">
+      <MinimalNavigation />
+      <div className="container mx-auto px-4 py-8 max-w-6xl pt-24">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-4xl font-bold text-black mb-2">
           Welcome, {provider.fullName || provider.organizationName || "Provider"}!
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-gray-600 mt-2">
           {provider.isVerified ? (
-            <span className="text-green-600">✓ Verified Account</span>
+            <span className="text-green-600 font-medium">✓ Verified Account</span>
           ) : (
-            <span className="text-yellow-600">⏳ Account Pending Verification</span>
+            <span className="text-yellow-600 font-medium">⏳ Account Pending Verification</span>
           )}
         </p>
       </div>
@@ -220,6 +235,7 @@ export default function ProviderDashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   )

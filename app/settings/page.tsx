@@ -33,18 +33,14 @@ export default function SettingsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
+    <div className="min-h-screen bg-gray-50">
       <MinimalNavigation />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 pt-24">
         {/* Header */}
         <div className="mb-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-6 shadow-md">
-            <User className="h-4 w-4" />
-            Account Settings
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">Settings</h1>
-          <p className="text-lg text-stone-600 leading-relaxed">Manage your account and preferences</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-black mb-4 tracking-tight">Settings</h1>
+          <p className="text-lg text-gray-600 leading-relaxed">Manage your account and preferences</p>
         </div>
 
         {/* Settings Tabs */}
