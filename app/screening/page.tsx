@@ -419,7 +419,7 @@ export default function ScreeningPage() {
                   value={formData.age}
                   onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
                   placeholder="Enter your age"
-                  className="border-2 border-stone-300 bg-white text-stone-900 placeholder:text-stone-600 placeholder:font-normal hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11 transition-all duration-200"
+                  className="border-2 border-gray-300 bg-white text-stone-900 placeholder:text-gray-500 placeholder:font-normal hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11 transition-all duration-200"
                   required
                 />
               </div>
@@ -431,10 +431,10 @@ export default function ScreeningPage() {
                   <SelectTrigger className="border-2 border-stone-300 bg-white text-stone-900 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-2 border-stone-300 shadow-xl rounded-lg">
-                    <SelectItem value="male" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Male</SelectItem>
-                    <SelectItem value="female" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Female</SelectItem>
-                    <SelectItem value="other" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Other</SelectItem>
+                  <SelectContent className="bg-white border-2 border-gray-300 shadow-xl rounded-lg">
+                    <SelectItem value="male" className="text-stone-900 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer">Male</SelectItem>
+                    <SelectItem value="female" className="text-stone-900 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer">Female</SelectItem>
+                    <SelectItem value="other" className="text-stone-900 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -446,10 +446,10 @@ export default function ScreeningPage() {
                   <SelectTrigger className="border-2 border-stone-300 bg-white text-stone-900 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11">
                     <SelectValue placeholder="Select smoking status" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-2 border-stone-300 shadow-xl rounded-lg">
-                    <SelectItem value="never" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Never smoked</SelectItem>
-                    <SelectItem value="former" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Former smoker</SelectItem>
-                    <SelectItem value="current" className="text-stone-900 hover:bg-stone-50 focus:bg-stone-50 cursor-pointer">Current smoker</SelectItem>
+                  <SelectContent className="bg-white border-2 border-gray-300 shadow-xl rounded-lg">
+                    <SelectItem value="never" className="text-stone-900 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer">Never smoked</SelectItem>
+                    <SelectItem value="former" className="text-stone-900 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer">Former smoker</SelectItem>
+                    <SelectItem value="current" className="text-stone-900 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer">Current smoker</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
