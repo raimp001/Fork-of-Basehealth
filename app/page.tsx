@@ -38,64 +38,55 @@ export default function HomePage() {
     <div className="min-h-screen bg-white">
       <MinimalNavigation />
 
-      {/* Hero Section - Calming design */}
-      <section className="relative overflow-hidden pt-20 md:pt-24">
-        {/* Subtle grid background - warm grey */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#a8a29e08_1px,transparent_1px),linear-gradient(to_bottom,#a8a29e08_1px,transparent_1px)] bg-[size:4rem_4rem]" />
-        
-        <div className="relative px-6 pt-32 pb-28 md:pt-44 md:pb-36 lg:pt-48 lg:pb-40">
+      {/* Hero Section - Palantir-Grade Enterprise */}
+      <section className="relative overflow-hidden pt-20 md:pt-24 bg-gradient-to-b from-gray-50 to-white">
+        <div className="relative px-6 pt-32 pb-28 md:pt-44 md:pb-36 lg:pt-56 lg:pb-48">
           <div className="max-w-7xl mx-auto">
-            <div className="max-w-4xl">
-              {/* Badge - Warm grey */}
-              <div className={`inline-flex items-center gap-2 px-5 py-2.5 bg-stone-800 text-white rounded-full text-sm font-semibold mb-10 shadow-md ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-                <Sparkles className="h-4 w-4" />
-                <span>For patients & providers</span>
-              </div>
-
-              {/* Hero Headline - High contrast */}
-              <h1 className={`text-5xl md:text-6xl lg:text-7xl font-bold text-stone-900 tracking-tight mb-8 leading-[1.1] ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
+            <div className="max-w-5xl">
+              {/* Hero Headline - Large, bold, Palantir-style */}
+              <h1 className={`text-6xl md:text-7xl lg:text-[72px] font-bold text-black tracking-tight mb-8 leading-[1.1] ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
                 Healthcare,{" "}
-                <span className="text-stone-700">
+                <span className="text-gray-700">
                   simplified
                 </span>
               </h1>
 
-              {/* Subtitle - High contrast */}
-              <p className={`text-lg md:text-xl lg:text-2xl text-stone-800 leading-relaxed mb-12 max-w-3xl font-medium ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
+              {/* Subtitle - Generous spacing */}
+              <p className={`text-xl md:text-2xl text-gray-600 leading-relaxed mb-16 max-w-3xl font-normal ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
                 Evidence-based screenings, clinical trials, and verified care—in one place.
               </p>
 
-              {/* CTAs - Warm grey tones */}
-              <div className={`flex flex-col sm:flex-row gap-4 mb-16 ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
+              {/* CTAs - Premium black buttons */}
+              <div className={`flex flex-col sm:flex-row gap-4 mb-20 ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
                 <Link
                   href="/screening"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-stone-900 text-white rounded-xl font-semibold hover:bg-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-black text-white rounded-lg font-medium hover:bg-gray-900 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] border-2 border-transparent hover:border-white"
                 >
                   Start health assessment
                   <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link
                   href="/provider/signup"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-black rounded-lg font-medium border-2 border-gray-300 hover:border-black hover:bg-black hover:text-white transition-all duration-300 shadow-sm hover:shadow-md hover:scale-[1.02]"
                 >
                   Become a provider
                   <ArrowRight className="h-5 w-5" />
                 </Link>
               </div>
 
-              {/* Trust indicators - Calming colors */}
-              <div className={`flex flex-wrap items-center gap-6 md:gap-8 text-sm ${mounted ? 'animate-fade-in animation-delay-400' : 'opacity-0'}`}>
-                <div className="flex items-center gap-2.5 px-4 py-2 bg-emerald-50 rounded-lg">
-                  <Shield className="h-5 w-5 text-emerald-700 flex-shrink-0" />
-                  <span className="font-semibold text-emerald-900">HIPAA Compliant</span>
+              {/* Trust indicators - Monochrome, minimal */}
+              <div className={`flex flex-wrap items-center gap-8 md:gap-12 ${mounted ? 'animate-fade-in animation-delay-300' : 'opacity-0'}`}>
+                <div className="flex items-center gap-3 text-gray-600 hover:text-black transition-colors">
+                  <Shield className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                  <span className="text-sm font-medium">HIPAA Compliant</span>
                 </div>
-                <div className="flex items-center gap-2.5 px-4 py-2 bg-stone-50 rounded-lg">
-                  <Lock className="h-5 w-5 text-stone-700 flex-shrink-0" />
-                  <span className="font-semibold text-stone-900">End-to-End Encrypted</span>
+                <div className="flex items-center gap-3 text-gray-600 hover:text-black transition-colors">
+                  <Lock className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                  <span className="text-sm font-medium">End-to-End Encrypted</span>
                 </div>
-                <div className="flex items-center gap-2.5 px-4 py-2 bg-rose-50 rounded-lg">
-                  <Zap className="h-5 w-5 text-rose-700 flex-shrink-0" />
-                  <span className="font-semibold text-rose-900">Secure payments</span>
+                <div className="flex items-center gap-3 text-gray-600 hover:text-black transition-colors">
+                  <Zap className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                  <span className="text-sm font-medium">Secure payments</span>
                 </div>
               </div>
             </div>
