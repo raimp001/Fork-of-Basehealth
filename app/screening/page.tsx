@@ -149,12 +149,16 @@ export default function ScreeningPage() {
   ]
 
   const handleCheckboxChange = (category: keyof typeof formData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [category]: prev[category].includes(value)
-        ? prev[category].filter(item => item !== value)
-        : [...prev[category], value]
-    }))
+    setFormData(prev => {
+      const currentValue = prev[category]
+      const currentArray = Array.isArray(currentValue) ? currentValue : []
+      return {
+        ...prev,
+        [category]: currentArray.includes(value)
+          ? currentArray.filter((item: string) => item !== value)
+          : [...currentArray, value]
+      }
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
