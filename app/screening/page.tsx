@@ -428,7 +428,7 @@ export default function ScreeningPage() {
                   Gender *
                 </Label>
                 <Select value={formData.gender} onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}>
-                  <SelectTrigger className="border-2 border-stone-300 bg-white text-stone-900 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11">
+                  <SelectTrigger className="border-2 border-gray-300 bg-white text-stone-900 hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-2 border-gray-300 shadow-xl rounded-lg">
@@ -443,7 +443,7 @@ export default function ScreeningPage() {
                   Smoking Status
                 </Label>
                 <Select value={formData.smokingStatus} onValueChange={(value) => setFormData(prev => ({ ...prev, smokingStatus: value }))}>
-                  <SelectTrigger className="border-2 border-stone-300 bg-white text-stone-900 hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11">
+                  <SelectTrigger className="border-2 border-gray-300 bg-white text-stone-900 hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11">
                     <SelectValue placeholder="Select smoking status" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-2 border-gray-300 shadow-xl rounded-lg">
@@ -539,7 +539,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.medicalHistory.includes(option) 
                           ? 'border-blue-500 bg-blue-50 shadow-md' 
-                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                       }`}>
                         <Checkbox
                           checked={formData.medicalHistory.includes(option)}
@@ -568,7 +568,7 @@ export default function ScreeningPage() {
                         <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                           formData.reproductiveHistory.includes(option) 
                             ? 'border-pink-500 bg-pink-50 shadow-md' 
-                            : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                            : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                         }`}>
                           <Checkbox
                             checked={formData.reproductiveHistory.includes(option)}
@@ -601,7 +601,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.sexualHealth.includes(option) 
                           ? 'border-green-500 bg-green-50 shadow-md' 
-                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                       }`}>
                         <Checkbox
                           checked={formData.sexualHealth.includes(option)}
@@ -633,7 +633,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.substanceUse.includes(option) 
                           ? 'border-orange-500 bg-orange-50 shadow-md' 
-                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                       }`}>
                         <Checkbox
                           checked={formData.substanceUse.includes(option)}
@@ -661,7 +661,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.environmentalExposures.includes(option) 
                           ? 'border-purple-500 bg-purple-50 shadow-md' 
-                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                       }`}>
                         <Checkbox
                           checked={formData.environmentalExposures.includes(option)}
@@ -693,7 +693,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.mentalHealth.includes(option) 
                           ? 'border-indigo-500 bg-indigo-50 shadow-md' 
-                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                       }`}>
                         <Checkbox
                           checked={formData.mentalHealth.includes(option)}
@@ -721,7 +721,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.currentMedications.includes(option) 
                           ? 'border-teal-500 bg-teal-50 shadow-md' 
-                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                       }`}>
                         <Checkbox
                           checked={formData.currentMedications.includes(option)}
@@ -749,7 +749,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.familyHistory.includes(option) 
                           ? 'border-red-500 bg-red-50 shadow-md' 
-                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                       }`}>
                         <Checkbox
                           checked={formData.familyHistory.includes(option)}
