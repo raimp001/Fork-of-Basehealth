@@ -6,7 +6,7 @@
  * Based on: https://docs.privy.io/recipes/x402
  */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { StandardizedButton, PrimaryActionButton } from '@/components/ui/standardized-button'
 import { Badge } from '@/components/ui/badge'
@@ -27,7 +27,19 @@ import {
 } from 'lucide-react'
 import { type PaymentRequirement } from '@/lib/http-402-service'
 import { cn } from '@/lib/utils'
-import { formatUnits, parseUnits } from 'viem'
+import { parseUnits } from 'viem'
+
+// Conditionally import Privy hooks
+let useX402Fetch: any = null
+let useWallets: any = null
+
+try {
+  const privy = require('@privy-io/react-auth')
+  useX402Fetch = privy.useX402Fetch
+  useWallets = privy.useWallets
+} catch (error) {
+  // Privy not available - component will show fallback UI
+}
 
 interface PrivyX402PaymentProps {
   requirement: PaymentRequirement
@@ -55,26 +67,13 @@ export function PrivyX402Payment({
   const [responseData, setResponseData] = useState<any>(null)
   const [txHash, setTxHash] = useState<string | null>(null)
 
-  const [privyAvailable, setPrivyAvailable] = useState(false)
-  const [wallets, setWallets] = useState<any[]>([])
-  const [x402Fetch, setX402Fetch] = useState<((url: string, options?: any) => Promise<Response>) | null>(null)
+  // Use Privy hooks if available (must be called unconditionally)
+  const privyWallets = useWallets ? useWallets() : { wallets: [] }
+  const x402FetchFn = useX402Fetch ? useX402Fetch() : null
 
-  useEffect(() => {
-    // Dynamically load Privy hooks to avoid build issues
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const privy = require('@privy-io/react-auth')
-      setPrivyAvailable(true)
-      // Note: In a real component, these would be hooks, but for dynamic loading
-      // we'll need to handle this differently
-    } catch (error) {
-      console.warn('Privy not available:', error)
-      setPrivyAvailable(false)
-    }
-  }, [])
-
-  const connectedWallet = wallets[0]
-  const isConnected = !!connectedWallet && privyAvailable
+  const connectedWallet = privyWallets.wallets?.[0]
+  const isConnected = !!connectedWallet && !!x402FetchFn
+  const privyAvailable = !!useX402Fetch && !!useWallets
 
   // Convert amount to atomic units for maxValue protection
   const requirementAmountAtomic = parseUnits(
@@ -95,12 +94,12 @@ export function PrivyX402Payment({
     setError(null)
 
     try {
-      if (!x402Fetch) {
-        throw new Error('Privy x402 is not available. Please configure NEXT_PUBLIC_PRIVY_APP_ID.')
+      if (!x402FetchFn) {
+        throw new Error('Privy x402 is not available. Please configure NEXT_PUBLIC_PRIVY_APP_ID in your environment variables.')
       }
 
       // Use Privy's x402 fetch - automatically handles 402 responses
-      const response = await x402Fetch(resourceUrl, {
+      const response = await x402FetchFn(resourceUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -254,7 +253,15 @@ export function PrivyX402Payment({
       </CardContent>
 
       <CardFooter className="flex flex-col gap-3">
-        {!isConnected ? (
+        {!privyAvailable ? (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Privy x402 is not configured. Please set NEXT_PUBLIC_PRIVY_APP_ID in your environment variables to enable Privy payments.
+              You can still use the "Alternative: Direct Wallet" option below.
+            </AlertDescription>
+          </Alert>
+        ) : !isConnected ? (
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
