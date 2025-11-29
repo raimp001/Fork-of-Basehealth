@@ -30,6 +30,8 @@ const nextConfig = {
         crypto: false,
         stream: false,
         zlib: false,
+        '@solana-program/system': false,
+        '@solana/web3.js': false,
       };
     }
     
