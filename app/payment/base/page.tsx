@@ -128,33 +128,26 @@ export default function BasePaymentPage() {
       </div>
 
       {/* Benefits Section */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <Card className="border-2 border-stone-200 shadow-md">
           <CardContent className="pt-6 text-center">
-            <Zap className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-            <h3 className="font-semibold mb-1">Lightning Fast</h3>
-            <p className="text-sm text-muted-foreground">~2 second confirmations</p>
+            <TrendingDown className="h-10 w-10 mx-auto mb-3 text-green-600" />
+            <h3 className="text-lg font-semibold mb-2 text-stone-900">Low fees</h3>
+            <p className="text-sm text-stone-600">Less than $0.01 per transaction</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-2 border-stone-200 shadow-md">
           <CardContent className="pt-6 text-center">
-            <TrendingDown className="h-8 w-8 mx-auto mb-2 text-green-600" />
-            <h3 className="font-semibold mb-1">Ultra Low Fees</h3>
-            <p className="text-sm text-muted-foreground">&lt;$0.01 per transaction</p>
+            <Clock className="h-10 w-10 mx-auto mb-3 text-blue-600" />
+            <h3 className="text-lg font-semibold mb-2 text-stone-900">Instant settlement</h3>
+            <p className="text-sm text-stone-600">~2 second confirmations</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-2 border-stone-200 shadow-md">
           <CardContent className="pt-6 text-center">
-            <Shield className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-            <h3 className="font-semibold mb-1">Secure</h3>
-            <p className="text-sm text-muted-foreground">Base L2 blockchain</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <DollarSign className="h-8 w-8 mx-auto mb-2 text-stone-600" />
-            <h3 className="font-semibold mb-1">Stablecoins</h3>
-            <p className="text-sm text-muted-foreground">Pay with USDC or ETH</p>
+            <Shield className="h-10 w-10 mx-auto mb-3 text-purple-600" />
+            <h3 className="text-lg font-semibold mb-2 text-stone-900">No chargebacks</h3>
+            <p className="text-sm text-stone-600">Secure blockchain transactions</p>
           </CardContent>
         </Card>
       </div>

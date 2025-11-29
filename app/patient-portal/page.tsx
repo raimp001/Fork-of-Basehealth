@@ -136,18 +136,15 @@ export default function PatientPortalPage() {
                 <User className="h-4 w-4" />
                 Sign In to Patient Portal
               </PrimaryActionButton>
+              
+              <div className="mt-4">
+                <StandardizedButton asChild variant="secondary" className="w-full border-2 border-stone-300 hover:border-stone-400 hover:bg-stone-50 text-stone-900">
+                  <Link href="/register">
+                    Create Patient Account
+                  </Link>
+                </StandardizedButton>
+              </div>
             </form>
-
-            <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-              <p className="text-sm text-gray-600 mb-3">
-                Don't have an account?
-              </p>
-              <StandardizedButton asChild variant="primary" className="bg-stone-900 hover:bg-stone-800 text-white">
-                <Link href="/register">
-                  Create Patient Account
-                </Link>
-              </StandardizedButton>
-            </div>
           </Card>
         </main>
       </div>

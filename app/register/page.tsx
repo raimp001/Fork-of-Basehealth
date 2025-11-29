@@ -91,7 +91,7 @@ export default function RegisterPage() {
                 </Alert>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName" className="text-sm font-semibold text-stone-900 mb-2 block">
                     First name
