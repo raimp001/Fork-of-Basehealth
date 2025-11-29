@@ -59,27 +59,23 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
+    <div className="min-h-screen bg-gray-50">
       <MinimalNavigation />
 
       <main className="pt-20 md:pt-24">
         <div className="max-w-md mx-auto px-4 sm:px-6 py-12">
           {/* Header */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-6 shadow-md">
-              <CheckCircle className="h-4 w-4" />
-              Join BaseHealth
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-bold text-black mb-4 tracking-tight">
               Create your account
             </h1>
-            <p className="text-lg text-stone-600 leading-relaxed">
+            <p className="text-lg text-gray-600 leading-relaxed">
               Start your personalized health journey today
             </p>
           </div>
 
           {/* Registration Form */}
-          <Card className="p-8 border-2 border-stone-200 shadow-lg bg-white">
+          <Card className="p-8 border-2 border-gray-200 shadow-sm bg-white">
             <div className="mb-6 flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-blue-900">Your health data is HIPAA-compliant and never sold.</p>
@@ -93,7 +89,7 @@ export default function RegisterPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName" className="text-sm font-semibold text-stone-900 mb-2 block">
+                  <Label htmlFor="firstName" className="text-sm font-semibold text-black mb-2 block">
                     First name
                   </Label>
                   <Input
@@ -102,12 +98,12 @@ export default function RegisterPage() {
                     value={formData.firstName}
                     onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                     placeholder="John"
-                    className="border-2 border-stone-300 bg-white text-stone-900 placeholder:text-stone-600 placeholder:font-normal hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11 transition-all duration-200"
+                    className="border-2 border-gray-300 bg-white text-black placeholder:text-gray-500 placeholder:font-normal hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11 transition-all duration-200"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName" className="text-sm font-semibold text-stone-900 mb-2 block">
+                  <Label htmlFor="lastName" className="text-sm font-semibold text-black mb-2 block">
                     Last name
                   </Label>
                   <Input
@@ -116,7 +112,7 @@ export default function RegisterPage() {
                     value={formData.lastName}
                     onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                     placeholder="Doe"
-                    className="border-2 border-stone-300 bg-white text-stone-900 placeholder:text-stone-600 placeholder:font-normal hover:border-stone-400 focus:border-stone-500 focus:ring-2 focus:ring-stone-400/20 rounded-lg h-11 transition-all duration-200"
+                    className="border-2 border-gray-300 bg-white text-black placeholder:text-gray-500 placeholder:font-normal hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11 transition-all duration-200"
                     required
                   />
                 </div>
@@ -160,16 +156,16 @@ export default function RegisterPage() {
                   </button>
                 </div>
                 <div className="mt-2 space-y-1">
-                  <div className={`flex items-center gap-2 text-xs ${formData.password.length >= 8 ? 'text-green-600' : 'text-stone-500'}`}>
-                    {formData.password.length >= 8 ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-stone-300" />}
+                  <div className={`flex items-center gap-2 text-xs ${formData.password.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
+                    {formData.password.length >= 8 ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-gray-300" />}
                     <span>At least 8 characters</span>
                   </div>
-                  <div className={`flex items-center gap-2 text-xs ${/\d/.test(formData.password) ? 'text-green-600' : 'text-stone-500'}`}>
-                    {/\d/.test(formData.password) ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-stone-300" />}
+                  <div className={`flex items-center gap-2 text-xs ${/\d/.test(formData.password) ? 'text-green-600' : 'text-gray-500'}`}>
+                    {/\d/.test(formData.password) ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-gray-300" />}
                     <span>One number</span>
                   </div>
-                  <div className={`flex items-center gap-2 text-xs ${/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'text-green-600' : 'text-stone-500'}`}>
-                    {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-stone-300" />}
+                  <div className={`flex items-center gap-2 text-xs ${/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'text-green-600' : 'text-gray-500'}`}>
+                    {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-gray-300" />}
                     <span>One special character</span>
                   </div>
                 </div>
@@ -231,7 +227,7 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 h-12 rounded-xl"
+                className="w-full bg-black hover:bg-gray-900 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 h-12 rounded-xl"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
