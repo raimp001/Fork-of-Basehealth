@@ -293,59 +293,55 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trust Section - Warm dark grey */}
-      <section className="px-6 py-24 md:py-32 lg:py-40 bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 text-white">
+      {/* Trust Section - Enterprise Dark Background */}
+      <section className="px-6 py-24 md:py-32 lg:py-40 bg-[#0F1419]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 md:mb-20">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-sm rounded-full text-sm font-semibold mb-8 border border-white/20">
-              <Shield className="h-4 w-4" />
-              <span>Trusted & Secure</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl lg:text-[48px] font-semibold text-white mb-6 tracking-tight">
               Your Health Data is Protected
             </h2>
-            <p className="text-lg md:text-xl text-stone-200 max-w-3xl mx-auto leading-relaxed mb-8">
+            <p className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
               Your health information is private, secure, and never sold.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <CheckCircle className="h-10 w-10 text-emerald-400" />
+            <div className="text-center group">
+              <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
+                <CheckCircle className="h-8 w-8" />
               </div>
-              <h3 className="text-2xl font-semibold mb-4">HIPAA Compliant</h3>
-              <p className="text-stone-300 leading-relaxed">
+              <h3 className="text-xl font-medium text-white mb-3">HIPAA Compliant</h3>
+              <p className="text-base text-gray-400 leading-relaxed">
                 Full compliance with healthcare privacy regulations.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <Lock className="h-10 w-10 text-stone-300" />
+            <div className="text-center group">
+              <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
+                <Lock className="h-8 w-8" />
               </div>
-              <h3 className="text-2xl font-semibold mb-4">End-to-End Encryption</h3>
-              <p className="text-stone-300 leading-relaxed">
+              <h3 className="text-xl font-medium text-white mb-3">End-to-End Encryption</h3>
+              <p className="text-base text-gray-400 leading-relaxed">
                 All data encrypted in transit and at rest.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <Shield className="h-10 w-10 text-rose-400" />
+            <div className="text-center group">
+              <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
+                <Shield className="h-8 w-8" />
               </div>
-              <h3 className="text-2xl font-semibold mb-4">Privacy Controls</h3>
-              <p className="text-stone-300 leading-relaxed">
+              <h3 className="text-xl font-medium text-white mb-3">Privacy Controls</h3>
+              <p className="text-base text-gray-400 leading-relaxed">
                 Your identifiable health data is never sold.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <Shield className="h-10 w-10 text-blue-400" />
+            <div className="text-center group">
+              <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
+                <Shield className="h-8 w-8" />
               </div>
-              <h3 className="text-2xl font-semibold mb-4">U.S. Data Residency</h3>
-              <p className="text-stone-300 leading-relaxed">
+              <h3 className="text-xl font-medium text-white mb-3">U.S. Data Residency</h3>
+              <p className="text-base text-gray-400 leading-relaxed">
                 Your data is stored in HIPAA-compliant U.S. data centers and never transferred internationally.
               </p>
             </div>
