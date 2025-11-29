@@ -707,11 +707,11 @@ export default function ScreeningPage() {
                 
               {/* Current Medications & Therapies */}
               <AccordionItem value="medications" className="border-b border-stone-200">
-                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Current medications
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
-                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <p className="text-sm text-stone-900 mb-4 font-medium">Optional, improves accuracy</p>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {currentMedicationsOptions.map((option) => (
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
@@ -768,7 +768,7 @@ export default function ScreeningPage() {
             <Button 
               type="submit" 
               disabled={isLoading || !formData.age || !formData.gender}
-              className="bg-stone-900 hover:bg-stone-800 text-white px-10 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:transform-none"
+              className="bg-stone-900 hover:bg-stone-800 text-white px-10 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 disabled:bg-stone-400 disabled:text-stone-200 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <div className="flex items-center gap-3">
