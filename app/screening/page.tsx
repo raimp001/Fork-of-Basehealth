@@ -377,7 +377,7 @@ export default function ScreeningPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
             Personalized Health Assessment
           </h1>
-          <p className="text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed mb-4">
+          <p className="text-lg text-stone-700 max-w-2xl mx-auto leading-relaxed mb-4">
             Takes ~3 minutes. You'll get a personalized list of screenings to discuss with your clinician.
           </p>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-100 text-stone-700 text-sm max-w-xl mx-auto">
@@ -398,7 +398,7 @@ export default function ScreeningPage() {
           {/* Basic Information */}
           <Card className="p-6 md:p-8 border-2 border-stone-200 shadow-md">
             <h2 className="text-xl font-bold text-stone-900 mb-3">Basic Health Information</h2>
-            <p className="text-stone-600 mb-6 text-sm leading-relaxed">
+            <p className="text-stone-900 mb-6 text-sm leading-relaxed font-medium">
               Only age and gender are required. Everything else is optional and used to refine your recommendations.
             </p>
             
@@ -492,7 +492,7 @@ export default function ScreeningPage() {
               <Button 
                 type="submit" 
                 disabled={isLoading || !formData.age || !formData.gender}
-                className="w-full bg-stone-900 hover:bg-stone-800 text-white px-10 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 disabled:bg-stone-300 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white px-10 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 disabled:bg-stone-400 disabled:text-stone-200 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-3">
@@ -507,7 +507,7 @@ export default function ScreeningPage() {
                 )}
               </Button>
               {(!formData.age || !formData.gender) && (
-                <p className="text-sm text-stone-500 mt-4 font-medium text-center">
+                <p className="text-sm text-stone-700 mt-4 font-medium text-center">
                   Please enter your age and select gender to see screening recommendations.
                 </p>
               )}
@@ -517,19 +517,19 @@ export default function ScreeningPage() {
           {/* Medical History & Risk Factors */}
           <Card className="p-6 md:p-8 border-2 border-stone-200 shadow-md">
             <h2 className="text-xl font-bold text-stone-900 mb-3">Medical History & Risk Factors</h2>
-            <p className="text-stone-600 mb-6 text-sm leading-relaxed">
+            <p className="text-stone-900 mb-6 text-sm leading-relaxed font-medium">
               Optional, improves accuracy. Select all that apply.
             </p>
 
             <Accordion type="multiple" className="space-y-4">
               {/* Personal Medical History */}
               <AccordionItem value="medical-history" className="border-b border-stone-200">
-                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Personal Medical History
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
-                  <p className="text-sm text-stone-600 mb-2">Optional, improves accuracy</p>
-                  <p className="text-xs text-stone-500 mb-4 italic">Your answers are encrypted and never shared with employers or insurers.</p>
+                  <p className="text-sm text-stone-900 mb-2 font-medium">Optional, improves accuracy</p>
+                  <p className="text-xs text-stone-700 mb-4 italic">Your answers are encrypted and never shared with employers or insurers.</p>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {medicalHistoryOptions.map((option) => (
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
@@ -554,11 +554,11 @@ export default function ScreeningPage() {
               {/* Reproductive & Hormonal History (Women) */}
               {formData.gender === 'female' && (
                 <AccordionItem value="reproductive-history" className="border-b border-stone-200">
-                  <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                  <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                     Reproductive history
                   </AccordionTrigger>
                   <AccordionContent className="pt-2 pb-4">
-                    <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                    <p className="text-sm text-stone-900 mb-4 font-medium">Optional, improves accuracy</p>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {reproductiveHistoryOptions.map((option) => (
                         <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
@@ -583,7 +583,7 @@ export default function ScreeningPage() {
 
               {/* Sexual Health & STI History */}
               <AccordionItem value="sexual-health" className="border-b border-stone-200">
-                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Sexual health
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
@@ -591,7 +591,7 @@ export default function ScreeningPage() {
                     <Lock className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                     <p className="text-sm text-blue-900">Your answers are private and not shared with employers or insurers.</p>
                   </div>
-                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <p className="text-sm text-stone-900 mb-4 font-medium">Optional, improves accuracy</p>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {sexualHealthOptions.map((option) => (
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
@@ -615,7 +615,7 @@ export default function ScreeningPage() {
 
               {/* Substance Use History */}
               <AccordionItem value="substance-use" className="border-b border-stone-200">
-                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Substance use
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
@@ -623,7 +623,7 @@ export default function ScreeningPage() {
                     <Lock className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                     <p className="text-sm text-blue-900">Your answers are private and not shared with employers or insurers.</p>
                   </div>
-                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <p className="text-sm text-stone-900 mb-4 font-medium">Optional, improves accuracy</p>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {substanceUseOptions.map((option) => (
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
@@ -647,11 +647,11 @@ export default function ScreeningPage() {
 
               {/* Environmental & Occupational Exposures */}
               <AccordionItem value="environmental" className="border-b border-stone-200">
-                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Environmental exposures
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
-                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <p className="text-sm text-stone-900 mb-4 font-medium">Optional, improves accuracy</p>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {environmentalExposuresOptions.map((option) => (
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
@@ -675,7 +675,7 @@ export default function ScreeningPage() {
 
               {/* Mental Health & Social Factors */}
               <AccordionItem value="mental-health" className="border-b border-stone-200">
-                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Mental health
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
@@ -683,7 +683,7 @@ export default function ScreeningPage() {
                     <Lock className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                     <p className="text-sm text-blue-900">Your answers are private and not shared with employers or insurers.</p>
                   </div>
-                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <p className="text-sm text-stone-900 mb-4 font-medium">Optional, improves accuracy</p>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {mentalHealthOptions.map((option) => (
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
@@ -735,11 +735,11 @@ export default function ScreeningPage() {
 
               {/* Family History */}
               <AccordionItem value="family-history" className="border-b border-stone-200">
-                <AccordionTrigger className="text-base font-semibold text-stone-900 hover:no-underline py-4">
+                <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Family history
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
-                  <p className="text-sm text-stone-600 mb-4">Optional, improves accuracy</p>
+                  <p className="text-sm text-stone-900 mb-4 font-medium">Optional, improves accuracy</p>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {familyHistoryOptions.map((option) => (
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
@@ -783,7 +783,7 @@ export default function ScreeningPage() {
               )}
             </Button>
             {(!formData.age || !formData.gender) && (
-              <p className="text-sm text-stone-500 mt-4 font-medium">
+              <p className="text-sm text-stone-700 mt-4 font-medium">
                 Please enter your age and select gender to see screening recommendations.
               </p>
             )}
@@ -826,7 +826,7 @@ export default function ScreeningPage() {
           
           {/* Trust Indicators - Compact */}
           <div className="pt-4 border-t border-stone-200 text-center">
-            <p className="text-sm text-stone-600 mb-2">
+            <p className="text-sm text-stone-900 mb-2 font-medium">
               <strong className="text-stone-900">Trusted by millions.</strong> Based on USPSTF Grade A & B recommendations—national, evidence-based preventive care guidelines.
             </p>
           </div>
