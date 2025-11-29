@@ -6,7 +6,7 @@
  * Integrated with HTTP 402 protocol and Coinbase Design System
  */
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MinimalNavigation } from '@/components/layout/minimal-navigation'
 import { BaseCDSPayment } from '@/components/payment/base-cds-payment'
@@ -30,16 +30,10 @@ import {
 } from 'lucide-react'
 import { PAYMENT_TIERS, type PaymentProof } from '@/lib/http-402-service'
 import { toast } from 'sonner'
-import { LoadingSpinner } from '@/components/ui/loading'
 
 export default function BasePaymentPage() {
   const router = useRouter()
   const [selectedTier, setSelectedTier] = useState<keyof typeof PAYMENT_TIERS>('VIRTUAL_CONSULTATION')
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const handlePaymentSuccess = async (proof: PaymentProof) => {
     try {
@@ -91,20 +85,6 @@ export default function BasePaymentPage() {
     })
   }
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-white">
-        <MinimalNavigation />
-        <div className="container mx-auto py-8 px-4 max-w-7xl flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <LoadingSpinner size="lg" />
-            <p className="mt-4 text-stone-600">Loading payment page...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-white">
       <MinimalNavigation />
@@ -121,33 +101,33 @@ export default function BasePaymentPage() {
             HTTP 402 Protocol
           </Badge>
         </div>
-        <h1 className="text-4xl font-bold">Fast, Secure Payouts</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+        <h1 className="text-4xl md:text-5xl font-bold text-black">Fast, Secure Payouts</h1>
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
           Low fees, instant settlement, no chargebacks. Powered by Base blockchain.
         </p>
       </div>
 
       {/* Benefits Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <Card className="border-2 border-stone-200 shadow-md">
+        <Card className="border-2 border-gray-200 shadow-sm bg-white">
           <CardContent className="pt-6 text-center">
             <TrendingDown className="h-10 w-10 mx-auto mb-3 text-green-600" />
-            <h3 className="text-lg font-semibold mb-2 text-stone-900">Low fees</h3>
-            <p className="text-sm text-stone-600">Less than $0.01 per transaction</p>
+            <h3 className="text-lg font-semibold mb-2 text-black">Low fees</h3>
+            <p className="text-sm text-gray-600">Less than $0.01 per transaction</p>
           </CardContent>
         </Card>
-        <Card className="border-2 border-stone-200 shadow-md">
+        <Card className="border-2 border-gray-200 shadow-sm bg-white">
           <CardContent className="pt-6 text-center">
             <Clock className="h-10 w-10 mx-auto mb-3 text-blue-600" />
-            <h3 className="text-lg font-semibold mb-2 text-stone-900">Instant settlement</h3>
-            <p className="text-sm text-stone-600">~2 second confirmations</p>
+            <h3 className="text-lg font-semibold mb-2 text-black">Instant settlement</h3>
+            <p className="text-sm text-gray-600">~2 second confirmations</p>
           </CardContent>
         </Card>
-        <Card className="border-2 border-stone-200 shadow-md">
+        <Card className="border-2 border-gray-200 shadow-sm bg-white">
           <CardContent className="pt-6 text-center">
             <Shield className="h-10 w-10 mx-auto mb-3 text-purple-600" />
-            <h3 className="text-lg font-semibold mb-2 text-stone-900">No chargebacks</h3>
-            <p className="text-sm text-stone-600">Secure blockchain transactions</p>
+            <h3 className="text-lg font-semibold mb-2 text-black">No chargebacks</h3>
+            <p className="text-sm text-gray-600">Secure blockchain transactions</p>
           </CardContent>
         </Card>
       </div>
