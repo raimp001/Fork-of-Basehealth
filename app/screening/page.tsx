@@ -384,7 +384,7 @@ export default function ScreeningPage() {
           <p className="text-lg text-stone-700 max-w-2xl mx-auto leading-relaxed mb-4">
             Takes ~3 minutes. You'll get a personalized list of screenings to discuss with your clinician.
           </p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-stone-100 text-stone-700 text-sm max-w-xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50 text-gray-700 text-sm max-w-xl mx-auto border border-gray-200">
             <AlertCircle className="h-4 w-4" />
             <span>Only age and gender are required. Everything else is optional and improves accuracy.</span>
           </div>
@@ -400,7 +400,7 @@ export default function ScreeningPage() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
-          <Card className="p-6 md:p-8 border-2 border-stone-200 shadow-md">
+          <Card className="p-6 md:p-8 border-2 border-gray-200 bg-white shadow-sm">
             <h2 className="text-xl font-bold text-stone-900 mb-3">Basic Health Information</h2>
             <p className="text-stone-900 mb-6 text-sm leading-relaxed font-medium">
               Only age and gender are required. Everything else is optional and used to refine your recommendations.
@@ -492,7 +492,7 @@ export default function ScreeningPage() {
             </div>
 
             {/* First CTA after basic info */}
-            <div className="mt-6 pt-6 border-t border-stone-200">
+            <div className="mt-6 pt-6 border-t border-gray-200">
               <Button 
                 type="submit" 
                 disabled={isLoading || !formData.age || !formData.gender}
@@ -519,7 +519,7 @@ export default function ScreeningPage() {
           </Card>
 
           {/* Medical History & Risk Factors */}
-          <Card className="p-6 md:p-8 border-2 border-stone-200 shadow-md">
+          <Card className="p-6 md:p-8 border-2 border-gray-200 bg-white shadow-sm">
             <h2 className="text-xl font-bold text-stone-900 mb-3">Medical History & Risk Factors</h2>
             <p className="text-stone-900 mb-6 text-sm leading-relaxed font-medium">
               Optional, improves accuracy. Select all that apply.
@@ -527,7 +527,7 @@ export default function ScreeningPage() {
 
             <Accordion type="multiple" className="space-y-4">
               {/* Personal Medical History */}
-              <AccordionItem value="medical-history" className="border-b border-stone-200">
+              <AccordionItem value="medical-history" className="border-b border-gray-200">
                 <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Personal Medical History
                 </AccordionTrigger>
@@ -539,7 +539,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.medicalHistory.includes(option) 
                           ? 'border-blue-500 bg-blue-50 shadow-md' 
-                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
                       }`}>
                         <Checkbox
                           checked={formData.medicalHistory.includes(option)}
@@ -557,7 +557,7 @@ export default function ScreeningPage() {
 
               {/* Reproductive & Hormonal History (Women) */}
               {formData.gender === 'female' && (
-                <AccordionItem value="reproductive-history" className="border-b border-stone-200">
+                <AccordionItem value="reproductive-history" className="border-b border-gray-200">
                   <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                     Reproductive history
                   </AccordionTrigger>
@@ -568,7 +568,7 @@ export default function ScreeningPage() {
                         <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                           formData.reproductiveHistory.includes(option) 
                             ? 'border-pink-500 bg-pink-50 shadow-md' 
-                            : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                            : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
                         }`}>
                           <Checkbox
                             checked={formData.reproductiveHistory.includes(option)}
@@ -586,7 +586,7 @@ export default function ScreeningPage() {
               )}
 
               {/* Sexual Health & STI History */}
-              <AccordionItem value="sexual-health" className="border-b border-stone-200">
+              <AccordionItem value="sexual-health" className="border-b border-gray-200">
                 <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Sexual health
                 </AccordionTrigger>
@@ -601,7 +601,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.sexualHealth.includes(option) 
                           ? 'border-green-500 bg-green-50 shadow-md' 
-                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
                       }`}>
                         <Checkbox
                           checked={formData.sexualHealth.includes(option)}
@@ -618,7 +618,7 @@ export default function ScreeningPage() {
               </AccordionItem>
 
               {/* Substance Use History */}
-              <AccordionItem value="substance-use" className="border-b border-stone-200">
+              <AccordionItem value="substance-use" className="border-b border-gray-200">
                 <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Substance use
                 </AccordionTrigger>
@@ -633,7 +633,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.substanceUse.includes(option) 
                           ? 'border-orange-500 bg-orange-50 shadow-md' 
-                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
                       }`}>
                         <Checkbox
                           checked={formData.substanceUse.includes(option)}
@@ -650,7 +650,7 @@ export default function ScreeningPage() {
               </AccordionItem>
 
               {/* Environmental & Occupational Exposures */}
-              <AccordionItem value="environmental" className="border-b border-stone-200">
+              <AccordionItem value="environmental" className="border-b border-gray-200">
                 <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Environmental exposures
                 </AccordionTrigger>
@@ -661,7 +661,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.environmentalExposures.includes(option) 
                           ? 'border-purple-500 bg-purple-50 shadow-md' 
-                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
                       }`}>
                         <Checkbox
                           checked={formData.environmentalExposures.includes(option)}
@@ -678,7 +678,7 @@ export default function ScreeningPage() {
               </AccordionItem>
 
               {/* Mental Health & Social Factors */}
-              <AccordionItem value="mental-health" className="border-b border-stone-200">
+              <AccordionItem value="mental-health" className="border-b border-gray-200">
                 <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Mental health
                 </AccordionTrigger>
@@ -693,7 +693,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.mentalHealth.includes(option) 
                           ? 'border-indigo-500 bg-indigo-50 shadow-md' 
-                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
                       }`}>
                         <Checkbox
                           checked={formData.mentalHealth.includes(option)}
@@ -710,7 +710,7 @@ export default function ScreeningPage() {
               </AccordionItem>
                 
               {/* Current Medications & Therapies */}
-              <AccordionItem value="medications" className="border-b border-stone-200">
+              <AccordionItem value="medications" className="border-b border-gray-200">
                 <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Current medications
                 </AccordionTrigger>
@@ -721,7 +721,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.currentMedications.includes(option) 
                           ? 'border-teal-500 bg-teal-50 shadow-md' 
-                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
                       }`}>
                         <Checkbox
                           checked={formData.currentMedications.includes(option)}
@@ -738,7 +738,7 @@ export default function ScreeningPage() {
               </AccordionItem>
 
               {/* Family History */}
-              <AccordionItem value="family-history" className="border-b border-stone-200">
+              <AccordionItem value="family-history" className="border-b border-gray-200">
                 <AccordionTrigger className="text-lg font-bold text-stone-900 hover:no-underline py-4">
                   Family history
                 </AccordionTrigger>
@@ -749,7 +749,7 @@ export default function ScreeningPage() {
                       <label key={option} className={`flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                         formData.familyHistory.includes(option) 
                           ? 'border-red-500 bg-red-50 shadow-md' 
-                          : 'border-stone-200 bg-white hover:border-stone-300 hover:bg-stone-50'
+                          : 'border-gray-200 bg-white hover:border-stone-300 hover:bg-stone-50'
                       }`}>
                         <Checkbox
                           checked={formData.familyHistory.includes(option)}
@@ -795,7 +795,7 @@ export default function ScreeningPage() {
         </form>
 
         {/* Benefits Section - Compact visual block */}
-        <Card className="mt-8 p-6 border-2 border-stone-200 bg-gradient-to-br from-stone-50 to-white">
+        <Card className="mt-8 p-6 border-2 border-gray-200 bg-white shadow-sm">
           <h2 className="text-xl font-semibold text-stone-900 mb-4 text-center">Why preventive care matters</h2>
           <div className="grid md:grid-cols-4 gap-4 mb-6">
             <div className="flex items-start gap-3">
@@ -829,7 +829,7 @@ export default function ScreeningPage() {
           </div>
           
           {/* Trust Indicators - Compact */}
-          <div className="pt-4 border-t border-stone-200 text-center">
+          <div className="pt-4 border-t border-gray-200 text-center">
             <p className="text-sm text-stone-900 mb-2 font-medium">
               <strong className="text-stone-900">Trusted by millions.</strong> Based on USPSTF Grade A & B recommendations—national, evidence-based preventive care guidelines.
             </p>
