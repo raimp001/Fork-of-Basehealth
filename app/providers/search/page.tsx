@@ -282,6 +282,15 @@ function SearchPageContent() {
               </div>
 
               {/* Example searches for providers */}
+              {isLoading && (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-32 bg-stone-100 rounded-lg"></div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {!isCaregiverMode && !isLoading && providers.length === 0 && (
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <span className="text-sm font-bold text-stone-900">Try searching for:</span>

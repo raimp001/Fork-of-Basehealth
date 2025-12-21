@@ -13,6 +13,7 @@ import { ArrowRight, Shield, Users, Activity, CheckCircle, Smartphone, Lock } fr
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { components } from "@/lib/design-system"
 import Link from "next/link"
+import { toastSuccess, toastError } from "@/lib/toast-helper"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -57,6 +58,10 @@ export default function LoginPage() {
       })
 
       if (result?.ok) {
+        toastSuccess({
+          title: "Welcome back!",
+          description: "Redirecting to your dashboard...",
+        })
         // Successful patient login - redirect to health dashboard
         router.push('/health/dashboard')
         return
@@ -83,17 +88,27 @@ export default function LoginPage() {
             localStorage.setItem('providerToken', providerData.token)
           }
           
+          toastSuccess({
+            title: "Welcome back!",
+            description: "Redirecting to your provider dashboard...",
+          })
+          
           // Redirect to provider dashboard
           router.push('/provider/dashboard')
           return
         }
       } catch (providerErr) {
         // Provider login failed, continue to show error
-        console.error('Provider login error:', providerErr)
+        // Error will be handled below
       }
 
       // Both login attempts failed
-      handleError("Invalid email or password. Please check your credentials and try again.")
+      const errorMessage = "Invalid email or password. Please check your credentials and try again."
+      handleError(errorMessage)
+      toastError({
+        title: "Login Failed",
+        description: errorMessage,
+      })
     } catch (err) {
       handleError("An unexpected error occurred. Please try again.")
     } finally {

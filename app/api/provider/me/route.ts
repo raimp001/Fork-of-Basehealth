@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import jwt from "jsonwebtoken"
+import { logger } from "@/lib/logger"
 
 export async function GET(req: NextRequest) {
   try {
@@ -23,10 +24,27 @@ export async function GET(req: NextRequest) {
     }
 
     const token = authHeader.substring(7)
-    const secret = process.env.NEXTAUTH_SECRET || "your-secret-key-here-replace-in-production"
+    const secret = process.env.NEXTAUTH_SECRET
+    
+    if (!secret || secret === "your-secret-key-here-replace-in-production") {
+      logger.error('NEXTAUTH_SECRET not properly configured')
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      )
+    }
 
     try {
-      const decoded = jwt.verify(token, secret) as { providerId: string; email: string }
+      const decoded = jwt.verify(token, secret) as { providerId: string; email: string; type?: string }
+      
+      // Verify token type
+      if (decoded.type !== 'provider') {
+        logger.warn('Invalid token type for provider endpoint', { type: decoded.type })
+        return NextResponse.json(
+          { error: "Invalid token type" },
+          { status: 401 }
+        )
+      }
 
       // Find provider
       const provider = await prisma.provider.findUnique({
@@ -40,6 +58,8 @@ export async function GET(req: NextRequest) {
         )
       }
 
+      logger.info('Provider data fetched', { providerId: provider.id })
+
       // Return sanitized provider data
       return NextResponse.json({
         success: true,
@@ -51,6 +71,7 @@ export async function GET(req: NextRequest) {
           email: provider.email,
           phone: provider.phone,
           npiNumber: provider.npiNumber,
+          licenseNumber: provider.licenseNumber,
           licenseState: provider.licenseState,
           specialties: provider.specialties,
           bio: provider.bio,
@@ -64,13 +85,14 @@ export async function GET(req: NextRequest) {
         },
       })
     } catch (jwtError) {
+      logger.warn('Invalid or expired JWT token', { error: jwtError })
       return NextResponse.json(
         { error: "Invalid or expired token" },
         { status: 401 }
       )
     }
   } catch (error) {
-    console.error("Provider me error:", error)
+    logger.error("Provider me error", error)
     return NextResponse.json(
       { error: "Failed to fetch provider data" },
       { status: 500 }

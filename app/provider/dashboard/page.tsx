@@ -25,7 +25,7 @@ export default function ProviderDashboard() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // TODO: Get token from localStorage or cookie
+    // Get token from localStorage or cookie
     const token = localStorage.getItem("providerToken")
 
     if (!token) {
@@ -44,12 +44,15 @@ export default function ProviderDashboard() {
         if (data.success) {
           setProvider(data.provider)
         } else {
-          setError(data.error || "Failed to load provider data")
+          const errorMessage = data.error || "Failed to load provider data"
+          setError(errorMessage)
+          logger.warn('Failed to load provider data', { error: errorMessage })
         }
       })
       .catch((err) => {
-        setError("Failed to load provider data")
-        console.error(err)
+        const errorMessage = "Failed to load provider data"
+        setError(errorMessage)
+        logger.error('Error fetching provider data', err)
       })
       .finally(() => {
         setLoading(false)
@@ -60,9 +63,10 @@ export default function ProviderDashboard() {
     return (
       <div className="min-h-screen bg-gray-50">
         <MinimalNavigation />
-        <div className="container mx-auto px-4 py-16 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        </div>
+        <PageLoading 
+          title="Loading Dashboard"
+          description="Fetching your provider information..."
+        />
       </div>
     )
   }

@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Stethoscope, Building2, Shield } from "lucide-react"
+import { toastSuccess, toastError } from "@/lib/toast-helper"
+import { LoadingSpinner } from "@/components/ui/loading"
 
 export default function ProviderSignupPage() {
   const router = useRouter()
@@ -137,7 +139,15 @@ export default function ProviderSignupPage() {
         router.push("/login?provider=true&message=Registration successful. Please sign in to continue.")
       }, 2000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed. Please try again.")
+      const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
+      setError(errorMessage)
+      // Error toast already shown in try block, but show generic one if needed
+      if (!errorMessage.includes("Registration Failed")) {
+        toastError({
+          title: "Registration Failed",
+          description: errorMessage,
+        })
+      }
     } finally {
       setIsSubmitting(false)
     }
