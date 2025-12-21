@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllApplications, getApplicationById, updateApplicationStatus } from '../../caregivers/signup/route'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,7 +40,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error fetching applications:', error)
+    logger.error('Error fetching applications', error)
     return NextResponse.json(
       { error: 'Failed to fetch applications' },
       { status: 500 }
@@ -74,7 +76,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    console.log('Application updated:', {
+    logger.info('Application updated', {
       id: applicationId,
       status: updateData.status,
       reviewedBy: updateData.reviewedBy
@@ -86,7 +88,7 @@ export async function PUT(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error updating application:', error)
+    logger.error('Error updating application', error)
     return NextResponse.json(
       { error: 'Failed to update application' },
       { status: 500 }

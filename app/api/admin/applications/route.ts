@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
 import { mockApplications, mockApplicationStats } from '@/lib/mock-admin-data'
 import type { ApplicationFilters } from '@/types/admin'
 
@@ -118,7 +120,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Admin applications API error:', error)
+    logger.error('Admin applications API error', error)
     return NextResponse.json(
       { 
         error: 'Failed to fetch applications',
@@ -179,7 +181,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Admin review submission error:', error)
+    logger.error('Admin review submission error', error)
     return NextResponse.json(
       { 
         error: 'Failed to submit review',
@@ -231,7 +233,7 @@ export async function PUT(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Admin bulk action error:', error)
+    logger.error('Admin bulk action error', error)
     return NextResponse.json(
       { 
         error: 'Failed to process bulk action',

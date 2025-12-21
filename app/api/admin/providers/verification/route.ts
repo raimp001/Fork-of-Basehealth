@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const pendingProviders = await getPendingProviderVerifications()
     return NextResponse.json({ providers: pendingProviders })
   } catch (error) {
-    console.error("Error fetching pending verifications:", error)
+    logger.error("Error fetching pending verifications", error)
     return NextResponse.json({ error: "An error occurred while fetching pending verifications" }, { status: 500 })
   }
 }
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ provider })
   } catch (error) {
-    console.error("Error updating provider verification:", error)
+    logger.error("Error updating provider verification", error)
     return NextResponse.json({ error: "An error occurred while updating provider verification" }, { status: 500 })
   }
 }
