@@ -2,6 +2,7 @@ import { groq } from "@ai-sdk/groq"
 import { streamText } from "ai"
 import { NextResponse } from "next/server"
 import { sanitizeInput } from "@/lib/phiScrubber"
+import { logger } from "@/lib/logger"
 
 // System prompt that defines the AI's behavior and knowledge
 const SYSTEM_PROMPT = `You are a helpful health assistant for the BaseHealth platform. 
@@ -63,8 +64,8 @@ export async function POST(req: Request) {
   }
 }
 
-// Function to analyze symptoms and provide recommendations
-export async function analyzeSymptoms(symptoms: string, age: number, gender: string, additionalContext = "") {
+// Function to analyze symptoms and provide recommendations (internal use only)
+async function analyzeSymptoms(symptoms: string, age: number, gender: string, additionalContext = "") {
   // IMPORTANT: Scrub PHI from input before sending to LLM
   const { cleanedText: scrubbedSymptoms } = sanitizeInput(symptoms)
   const { cleanedText: scrubbedContext } = sanitizeInput(additionalContext)
