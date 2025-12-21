@@ -49,14 +49,14 @@ export default function AdminApplicationsPage() {
       await new Promise(resolve => setTimeout(resolve, 1000))
       
       // Send notifications
-      console.log(`📧 Sending ${action.type} notifications for ${application.personalInfo.firstName} ${application.personalInfo.lastName}`)
+      // Notifications sent via email service
       const notificationResults = await notificationService.sendReviewNotifications(
         application,
         action,
         'Current Admin' // In real app, get from auth context
       )
       
-      console.log('Notification results:', notificationResults)
+      // Notification results logged by email service
       
       // Update application status
       setApplications(prev => prev.map(app => {
