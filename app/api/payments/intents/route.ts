@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(paymentIntent)
   } catch (error) {
-    console.error("Error creating payment intent:", error)
+    logger.error("Error creating payment intent", error)
     return NextResponse.json({ error: "Failed to create payment intent" }, { status: 500 })
   }
 }
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(paymentIntents)
     }
   } catch (error) {
-    console.error("Error fetching payment intents:", error)
+    logger.error("Error fetching payment intents", error)
     return NextResponse.json({ error: "Failed to fetch payment intents" }, { status: 500 })
   }
 }

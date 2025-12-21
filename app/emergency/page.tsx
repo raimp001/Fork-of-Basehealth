@@ -54,7 +54,7 @@ export default function EmergencyPage() {
           setMapError("Google Maps API key not found")
         }
       } catch (error) {
-        console.error("Failed to fetch Maps API key:", error)
+        // Error handled by error state
         setMapError("Failed to load Google Maps")
       }
     }

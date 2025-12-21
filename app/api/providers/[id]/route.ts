@@ -55,7 +55,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     return NextResponse.json({ provider: updatedProvider })
   } catch (error) {
-    console.error("Error updating provider:", error)
+    logger.error("Error updating provider", error)
     return NextResponse.json({ error: "An error occurred while updating provider" }, { status: 500 })
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 
 // Types for EMR processing
 interface ProcessingRequest {
@@ -386,7 +387,7 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('EMR processing error:', error)
+    logger.error('EMR processing error', error)
     return NextResponse.json(
       { 
         success: false, 

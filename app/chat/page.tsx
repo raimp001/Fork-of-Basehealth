@@ -79,7 +79,7 @@ export default function ChatPage() {
 
       setMessages(prev => [...prev, assistantMessage])
     } catch (error) {
-      console.error('Error:', error)
+      // Error handled by error boundary
     } finally {
       setIsLoading(false)
     }

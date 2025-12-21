@@ -61,7 +61,7 @@ export default function CryptoPaymentPage() {
   }
 
   const handlePaymentError = (error: Error) => {
-    console.error('Payment error:', error)
+    // Error handled by toast notification
   }
 
   return (

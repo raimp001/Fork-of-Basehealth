@@ -305,7 +305,7 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('EMR connection error:', error)
+    logger.error('EMR connection error', error)
     return NextResponse.json(
       { 
         success: false, 

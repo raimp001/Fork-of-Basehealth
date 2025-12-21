@@ -203,7 +203,7 @@ export default function ScreeningPage() {
       setRecommendations(data.recommendations || [])
       setIsSubmitted(true)
     } catch (err) {
-      console.error('Error submitting screening:', err)
+      // Error handled by error state
       setError('Failed to process screening. Please try again.')
     } finally {
       setIsLoading(false)

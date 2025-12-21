@@ -24,7 +24,7 @@ export function EmergencyClient() {
           setIsGettingLocation(false)
         },
         (error) => {
-          console.error("Error getting location:", error)
+          // Error handled by error state
           setError("Unable to get your location. Please try again or contact emergency services directly.")
           setIsGettingLocation(false)
         },

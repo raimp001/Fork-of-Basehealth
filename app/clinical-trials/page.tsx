@@ -195,7 +195,7 @@ export default function ClinicalTrialsPage() {
       setTrials(data.studies || [])
     } catch (err) {
       setError("Failed to fetch clinical trials. Please try again.")
-      console.error(err)
+      // Error handled by error state
     } finally {
       setIsLoading(false)
     }
