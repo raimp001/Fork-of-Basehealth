@@ -2,6 +2,7 @@ import { groq } from "@ai-sdk/groq"
 import { streamText } from "ai"
 import { NextResponse } from "next/server"
 import { sanitizeInput } from "@/lib/phiScrubber"
+import { logger } from "@/lib/logger"
 
 // System prompt that defines the AI's behavior with MCP server integration
 const SYSTEM_PROMPT = `You are a helpful health assistant for the BaseHealth platform with blockchain awareness powered by the Model Context Protocol server.

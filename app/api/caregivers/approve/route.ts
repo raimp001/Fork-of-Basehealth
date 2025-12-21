@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       approvedAt: new Date().toISOString()
     })
     
-    console.log(`Approved caregiver: ${caregiver.name} (ID: ${caregiver.id})`)
+    logger.info('Approved caregiver', { caregiverId: caregiver.id, name: caregiver.name })
     
     return NextResponse.json({
       success: true,
