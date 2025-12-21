@@ -21,7 +21,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     return NextResponse.json({ provider, reviews })
   } catch (error) {
-    console.error("Error fetching provider:", error)
+    logger.error("Error fetching provider", error)
     return NextResponse.json({ error: "An error occurred while fetching provider details" }, { status: 500 })
   }
 }

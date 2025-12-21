@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Error updating medical profile:', error)
+    logger.error('Error updating medical profile', error)
     return NextResponse.json(
       { error: 'Failed to update profile' },
       { status: 500 }
@@ -58,7 +58,7 @@ function logAccess(data: {
   userAgent: string
 }) {
   // In a real application, you would log this to your audit log system
-  console.log('Access Log:', {
+  logger.info('Access Log', {
     timestamp: new Date().toISOString(),
     ...data
   })

@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ providers })
   } catch (error) {
-    console.error("Error fetching providers:", error)
+    logger.error("Error fetching providers", error)
     return NextResponse.json({ error: "Failed to fetch providers" }, { status: 500 })
   }
 }

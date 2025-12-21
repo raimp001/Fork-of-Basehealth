@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    logger.error('Medical records access error', error)
+    console.error('Medical records access error:', error)
     
     // Log failed access attempt
     const clientIP = request.headers.get('x-forwarded-for') || 'unknown'
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     }, { status: 404 })
     
   } catch (error) {
-    console.error('Specific record access error:', error)
+    logger.error('Specific record access error', error)
     return NextResponse.json(
       { error: 'Access denied' },
       { status: 403 }
