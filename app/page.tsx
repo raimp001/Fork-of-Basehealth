@@ -25,6 +25,10 @@ import {
   CheckCircle,
   ChevronRight,
   Sparkles,
+  Users,
+  Star,
+  TrendingUp,
+  Clock,
 } from "lucide-react"
 
 export default function HomePage() {
