@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
+import { sanitizeText, validateEmail } from '@/lib/sanitize'
 import bcrypt from 'bcryptjs'
 
 // Temporary in-memory store (replace with database in production)
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Registration error:', error)
+    logger.error('Registration error', error)
     return NextResponse.json(
       { error: 'Failed to register user' },
       { status: 500 }

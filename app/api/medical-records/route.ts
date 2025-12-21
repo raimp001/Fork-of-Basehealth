@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
 import { requirePatientAuth, logAccess } from '@/lib/auth'
 // NO MOCK DATA - Use real database or return empty state
 
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Medical records access error:', error)
+    logger.error('Medical records access error', error)
     
     // Log failed access attempt
     const clientIP = request.headers.get('x-forwarded-for') || 'unknown'

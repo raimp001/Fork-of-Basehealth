@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import { requirePatientAuth } from '@/lib/auth'
 
 export async function PUT(request: NextRequest) {

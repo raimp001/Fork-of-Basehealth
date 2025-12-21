@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Login error:', error)
+    logger.error('Login error', error)
     return NextResponse.json(
       { error: 'Login failed' },
       { status: 500 }
@@ -92,7 +92,7 @@ export async function DELETE() {
     })
     
   } catch (error) {
-    console.error('Logout error:', error)
+    logger.error('Logout error', error)
     return NextResponse.json(
       { error: 'Logout failed' },
       { status: 500 }
