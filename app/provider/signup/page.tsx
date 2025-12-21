@@ -29,6 +29,7 @@ export default function ProviderSignupPage() {
     // Physician fields
     fullName: "",
     npi: "",
+    licenseNumber: "",
     licenseState: "",
     specialties: [] as string[],
     // App fields
@@ -54,6 +55,45 @@ export default function ProviderSignupPage() {
     setIsSubmitting(true)
 
     try {
+      // Client-side validation
+      if (providerType === "PHYSICIAN") {
+        if (!formData.fullName || formData.fullName.trim() === "") {
+          setError("Full name is required")
+          setIsSubmitting(false)
+          return
+        }
+        
+        if (!formData.npi || formData.npi.trim() === "") {
+          setError("NPI number is required")
+          setIsSubmitting(false)
+          return
+        }
+        
+        if (!/^\d{10}$/.test(formData.npi)) {
+          setError("NPI number must be exactly 10 digits")
+          setIsSubmitting(false)
+          return
+        }
+        
+        if (!formData.licenseNumber || formData.licenseNumber.trim() === "") {
+          setError("State medical board number is required")
+          setIsSubmitting(false)
+          return
+        }
+        
+        if (!formData.licenseState || formData.licenseState.trim() === "") {
+          setError("License state is required")
+          setIsSubmitting(false)
+          return
+        }
+        
+        if (!/^[A-Z]{2}$/i.test(formData.licenseState)) {
+          setError("License state must be a 2-letter state code (e.g., CA, NY, TX)")
+          setIsSubmitting(false)
+          return
+        }
+      }
+
       const payload = {
         type: providerType,
         email: formData.email,
@@ -63,8 +103,9 @@ export default function ProviderSignupPage() {
         ...(providerType === "PHYSICIAN"
           ? {
               fullName: formData.fullName,
-              npi: formData.npi || undefined,
-              licenseState: formData.licenseState || undefined,
+              npi: formData.npi,
+              licenseNumber: formData.licenseNumber,
+              licenseState: formData.licenseState.toUpperCase(),
               specialties: formData.specialties,
             }
           : {
@@ -86,10 +127,14 @@ export default function ProviderSignupPage() {
         throw new Error(data.error || "Registration failed")
       }
 
+      // Store provider token if provided (for immediate login after signup)
+      // Note: The registration endpoint doesn't return a token, so providers will need to login separately
+      // But we'll redirect them to login with a message
       setSuccess(true)
-      // Redirect to dashboard after 2 seconds
+      
+      // Redirect to provider login page after 2 seconds with success message
       setTimeout(() => {
-        router.push("/provider/dashboard")
+        router.push("/login?provider=true&message=Registration successful. Please sign in to continue.")
       }, 2000)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.")
@@ -251,27 +296,54 @@ export default function ProviderSignupPage() {
               {providerType === "PHYSICIAN" && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="npi" className="text-stone-700 font-medium">NPI Number (optional)</Label>
+                    <Label htmlFor="npi" className="text-stone-900 font-semibold">
+                      NPI Number <span className="text-red-600">*</span>
+                    </Label>
                     <Input
                       id="npi"
                       type="text"
                       placeholder="1234567890"
                       value={formData.npi}
                       onChange={(e) => setFormData({ ...formData, npi: e.target.value })}
+                      required
+                      maxLength={10}
+                      pattern="[0-9]{10}"
                       className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
                     />
+                    <p className="text-xs text-stone-500 mt-1">10-digit National Provider Identifier</p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="licenseState" className="text-stone-700 font-medium">License State (optional)</Label>
+                    <Label htmlFor="licenseNumber" className="text-stone-900 font-semibold">
+                      State Medical Board Number <span className="text-red-600">*</span>
+                    </Label>
+                    <Input
+                      id="licenseNumber"
+                      type="text"
+                      placeholder="Enter your medical license number"
+                      value={formData.licenseNumber}
+                      onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                      required
+                      className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
+                    />
+                    <p className="text-xs text-stone-500 mt-1">Your state medical board license number</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="licenseState" className="text-stone-900 font-semibold">
+                      License State <span className="text-red-600">*</span>
+                    </Label>
                     <Input
                       id="licenseState"
                       type="text"
                       placeholder="CA"
                       value={formData.licenseState}
-                      onChange={(e) => setFormData({ ...formData, licenseState: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, licenseState: e.target.value.toUpperCase() })}
+                      required
+                      maxLength={2}
                       className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
                     />
+                    <p className="text-xs text-stone-500 mt-1">2-letter state code (e.g., CA, NY, TX)</p>
                   </div>
 
                   <div className="space-y-3">
@@ -282,6 +354,8 @@ export default function ProviderSignupPage() {
                           <input
                             type="checkbox"
                             id={specialty}
+                            title={`Select ${specialty} specialty`}
+                            aria-label={`Select ${specialty} specialty`}
                             checked={formData.specialties.includes(specialty)}
                             onChange={(e) => {
                               if (e.target.checked) {

@@ -49,18 +49,51 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
+      // First try NextAuth login (for patients)
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
         redirect: false
       })
 
-      if (result?.error) {
-        handleError("Invalid email or password. Please check your credentials and try again.")
-      } else if (result?.ok) {
-        // Successful login - redirect based on user role
+      if (result?.ok) {
+        // Successful patient login - redirect to health dashboard
         router.push('/health/dashboard')
+        return
       }
+
+      // If NextAuth fails, try provider login
+      try {
+        const providerResponse = await fetch('/api/provider/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        })
+
+        const providerData = await providerResponse.json()
+
+        if (providerResponse.ok && providerData.success) {
+          // Store provider token
+          if (providerData.token) {
+            localStorage.setItem('providerToken', providerData.token)
+          }
+          
+          // Redirect to provider dashboard
+          router.push('/provider/dashboard')
+          return
+        }
+      } catch (providerErr) {
+        // Provider login failed, continue to show error
+        console.error('Provider login error:', providerErr)
+      }
+
+      // Both login attempts failed
+      handleError("Invalid email or password. Please check your credentials and try again.")
     } catch (err) {
       handleError("An unexpected error occurred. Please try again.")
     } finally {
@@ -156,8 +189,8 @@ export default function LoginPage() {
               
               <div className="mt-4 text-center">
                 <p className="text-xs text-gray-500 mb-2">Or continue with</p>
-                <div className="flex gap-3 justify-center">
-                  <Link href="/register?provider=provider" className="text-xs text-blue-600 hover:text-blue-800">
+                <div className="flex gap-3 justify-center flex-wrap">
+                  <Link href="/provider/signup" className="text-xs text-blue-600 hover:text-blue-800 font-medium">
                     Provider Signup
                   </Link>
                   <span className="text-gray-300">•</span>
@@ -165,6 +198,9 @@ export default function LoginPage() {
                     Emergency Access
                   </Link>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Healthcare providers can sign in with their email and password
+                </p>
               </div>
             </div>
           </Card>

@@ -18,8 +18,9 @@ interface ProviderRegistrationData {
   email: string
   password: string
   phone?: string
-  npi?: string // For physicians only
-  licenseState?: string
+  npi?: string // For physicians only - REQUIRED
+  licenseNumber?: string // For physicians only - REQUIRED (State Medical Board Number)
+  licenseState?: string // For physicians only - REQUIRED
   specialties?: string[]
   bio?: string
 }
@@ -37,11 +38,50 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate type-specific fields
-    if (data.type === "PHYSICIAN" && !data.fullName) {
-      return NextResponse.json(
-        { error: "Full name is required for physicians" },
-        { status: 400 }
-      )
+    if (data.type === "PHYSICIAN") {
+      if (!data.fullName) {
+        return NextResponse.json(
+          { error: "Full name is required for physicians" },
+          { status: 400 }
+        )
+      }
+      
+      if (!data.npi || data.npi.trim() === "") {
+        return NextResponse.json(
+          { error: "NPI number is required for physicians" },
+          { status: 400 }
+        )
+      }
+      
+      // Validate NPI format (10 digits)
+      if (!/^\d{10}$/.test(data.npi)) {
+        return NextResponse.json(
+          { error: "NPI number must be exactly 10 digits" },
+          { status: 400 }
+        )
+      }
+      
+      if (!data.licenseNumber || data.licenseNumber.trim() === "") {
+        return NextResponse.json(
+          { error: "State medical board number (license number) is required for physicians" },
+          { status: 400 }
+        )
+      }
+      
+      if (!data.licenseState || data.licenseState.trim() === "") {
+        return NextResponse.json(
+          { error: "License state is required for physicians" },
+          { status: 400 }
+        )
+      }
+      
+      // Validate license state format (2 letters)
+      if (!/^[A-Z]{2}$/i.test(data.licenseState)) {
+        return NextResponse.json(
+          { error: "License state must be a 2-letter state code (e.g., CA, NY, TX)" },
+          { status: 400 }
+        )
+      }
     }
 
     if (data.type === "APP" && !data.organizationName) {
@@ -72,6 +112,20 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // For physicians, check if NPI already exists
+    if (data.type === "PHYSICIAN" && data.npi) {
+      const existingNPI = await prisma.provider.findUnique({
+        where: { npiNumber: data.npi },
+      })
+
+      if (existingNPI) {
+        return NextResponse.json(
+          { error: "NPI number already registered" },
+          { status: 409 }
+        )
+      }
+    }
+
     // Hash password
     const passwordHash = await bcrypt.hash(data.password, 10)
 
@@ -85,7 +139,8 @@ export async function POST(req: NextRequest) {
         passwordHash,
         phone: data.phone || null,
         npiNumber: data.npi || null,
-        licenseState: data.licenseState || null,
+        licenseNumber: data.licenseNumber || null,
+        licenseState: data.licenseState ? data.licenseState.toUpperCase() : null,
         specialties: data.specialties || [],
         bio: data.bio || null,
         isVerified: false, // Requires admin approval
