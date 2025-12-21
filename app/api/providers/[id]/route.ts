@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getProviderById } from "@/lib/provider-search-service"
 import { getProviderReviews } from "@/lib/provider-service"
+import { logger } from "@/lib/logger"
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
