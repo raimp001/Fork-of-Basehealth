@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
 
 // Import applications from signup route
 // In production, this should be a shared database
@@ -159,7 +161,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Caregiver search error:', error)
+    logger.error('Caregiver search error', error)
     return NextResponse.json(
       { 
         success: false, 
@@ -189,8 +191,9 @@ export async function GET(request: NextRequest) {
     
     if (realCaregivers.length === 0) {
       message = 'No caregivers currently available. Please check back later or apply to become a caregiver!'
+      logger.info('No verified caregivers available')
     } else {
-      console.log(`✅ Returning ${realCaregivers.length} verified, active caregiver(s)`)
+      logger.info(`Returning ${realCaregivers.length} verified, active caregiver(s)`)
       message = `Showing ${realCaregivers.length} verified, available caregiver(s)`
     }
     
@@ -208,7 +211,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error fetching caregivers:', error)
+    logger.error('Error fetching caregivers', error)
     return NextResponse.json(
       { success: false, error: 'Failed to fetch caregivers' },
       { status: 500 }
