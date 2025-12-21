@@ -123,3 +123,15 @@ function ProviderCardComponent({ provider, isSelected = false, onClick }: Provid
     </>
   )
 }
+
+// Memoized component for performance optimization
+export const ProviderCard = memo(ProviderCardComponent, (prevProps, nextProps) => {
+  // Only re-render if provider data or selection state changes
+  return (
+    prevProps.provider.id === nextProps.provider.id &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.onClick === nextProps.onClick
+  )
+})
+
+ProviderCard.displayName = "ProviderCard"
