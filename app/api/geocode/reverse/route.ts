@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     }
 
     // Fallback to mock implementation
-    console.log("Using mock reverse geocoding implementation")
+    logger.debug("Using mock reverse geocoding implementation")
 
     // Generate a mock ZIP code based on coordinates
     const latNum = Number.parseFloat(lat)
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
       formattedAddress: `Mock Address, Mock City, MS ${mockZipCode}`,
     })
   } catch (error) {
-    console.error("Error reverse geocoding:", error)
+    logger.error("Error reverse geocoding", error)
     return NextResponse.json({ error: "Failed to reverse geocode coordinates" }, { status: 500 })
   }
 }

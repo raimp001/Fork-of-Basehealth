@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error("EMR summary error:", error)
+    logger.error("EMR summary error", error)
 
     if (error instanceof IntegrationError) {
       return NextResponse.json(

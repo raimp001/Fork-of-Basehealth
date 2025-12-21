@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error("Prescription error:", error)
+    logger.error("Prescription error", error)
 
     if (error instanceof IntegrationError) {
       return NextResponse.json(

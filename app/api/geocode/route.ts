@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
+import { apiCache, generateKey } from '@/lib/api-cache'
 
 // Basic ZIP code to city/state mapping
 const ZIP_TO_LOCATION: Record<string, { city: string; state: string }> = {
@@ -174,7 +177,7 @@ export async function GET(request: NextRequest) {
           }
         }
       } catch (error) {
-        console.error('Google Geocoding error:', error)
+        logger.error('Google Geocoding error', error)
       }
     }
     
@@ -187,7 +190,7 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Geocoding error:', error)
+    logger.error('Geocoding error', error)
     
     return NextResponse.json({
       success: false,

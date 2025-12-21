@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error("Imaging order error:", error)
+    logger.error("Imaging order error", error)
 
     if (error instanceof IntegrationError) {
       return NextResponse.json(
