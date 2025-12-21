@@ -648,7 +648,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       providers: transformedProviders,
       total: transformedProviders.length,
@@ -661,6 +661,17 @@ export async function GET(request: NextRequest) {
       screenings: screenings ? screenings.split(',') : [],
       enhanced: true,
       timestamp: new Date().toISOString()
+    }
+    
+    // Cache successful responses for 5 minutes
+    apiCache.set(cacheKey, responseData, 5 * 60 * 1000)
+    
+    return NextResponse.json(responseData, {
+      headers: {
+        'X-Cache': 'MISS',
+        'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+        'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+      },
     })
     
   } catch (error) {
