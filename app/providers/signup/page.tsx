@@ -200,7 +200,7 @@ export default function ProviderSignupPage() {
       await new Promise(resolve => setTimeout(resolve, 2000))
       setSubmitted(true)
     } catch (error) {
-      console.error('Submission failed:', error)
+      // Error handled by error state
     } finally {
       setIsSubmitting(false)
     }

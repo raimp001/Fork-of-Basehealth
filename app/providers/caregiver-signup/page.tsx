@@ -142,7 +142,7 @@ export default function CaregiverSignupPage() {
         setLoading(false)
       }
     } catch (error) {
-      console.error('Submission error:', error)
+      // Error handled by error state
       alert('Failed to submit application. Please try again.')
       setLoading(false)
     }

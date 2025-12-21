@@ -46,7 +46,7 @@ export default function AppointmentRequestClient() {
         await new Promise((resolve) => setTimeout(resolve, 500))
         setPatient(mockPatient)
       } catch (err) {
-        console.error("Error fetching patient:", err)
+        // Error handled by error state
         setError("Failed to load patient data. Using demo patient instead.")
         setPatient(mockPatient)
       } finally {
