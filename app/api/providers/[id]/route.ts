@@ -2,8 +2,9 @@ import { NextResponse } from "next/server"
 import { getProviderById } from "@/lib/provider-search-service"
 import { getProviderReviews } from "@/lib/provider-service"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const params = await context.params
     const providerId = params.id
 
     if (!providerId) {
@@ -26,8 +27,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const params = await context.params
     const providerId = params.id
 
     if (!providerId) {
