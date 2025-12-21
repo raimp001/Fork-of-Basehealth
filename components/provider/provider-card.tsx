@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, memo } from "react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Star, MapPin, Calendar } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { SchedulingCalendar } from "@/components/appointment/scheduling-calendar"
+import { toastSuccess } from "@/lib/toast-helper"
 import type { Provider } from "@/types/user"
 
 interface ProviderCardProps {
@@ -17,7 +18,7 @@ interface ProviderCardProps {
   onClick?: () => void
 }
 
-export function ProviderCard({ provider, isSelected = false, onClick }: ProviderCardProps) {
+function ProviderCardComponent({ provider, isSelected = false, onClick }: ProviderCardProps) {
   const [isSchedulingOpen, setIsSchedulingOpen] = useState(false)
 
   const handleSchedule = (appointmentData: {
@@ -30,14 +31,19 @@ export function ProviderCard({ provider, isSelected = false, onClick }: Provider
     // 1. Create the appointment in your backend
     // 2. Process the payment
     // 3. Redirect to the virtual visit page if it's a virtual appointment
-    console.log("Scheduling appointment:", appointmentData)
     
     if (appointmentData.type === "virtual") {
+      toastSuccess({
+        title: "Appointment Scheduled",
+        description: "Redirecting to virtual visit...",
+      })
       // Redirect to virtual visit page
       window.location.href = `/appointment/virtual/${provider.id}?date=${appointmentData.date.toISOString()}&time=${appointmentData.time}`
     } else {
-      // Show confirmation for in-person visit
-      alert("In-person appointment scheduled! You will receive a confirmation email shortly.")
+      toastSuccess({
+        title: "Appointment Scheduled",
+        description: "You will receive a confirmation email shortly.",
+      })
     }
   }
 

@@ -124,7 +124,6 @@ export function ScreeningForm({ patientData, updatePatientData, onComplete }: Sc
   }
 
   const handleSaveAndContinue = () => {
-    console.log('Save and Continue clicked', { age, gender, medicalHistory, zipCode, selectedScreenings });
     updatePatientData({
       age: Number.parseInt(age),
       gender,

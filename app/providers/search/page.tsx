@@ -114,7 +114,7 @@ function SearchPageContent() {
       }
     } catch (err) {
       setError('Network error. Please try again.')
-      console.error(err)
+      // Error logged on server side
     } finally {
       setIsLoading(false)
     }
@@ -154,9 +154,9 @@ function SearchPageContent() {
         setProviders([])
       }
     } catch (err) {
-      console.error('Search error:', err)
       setError('Failed to search. Please try again.')
       setProviders([])
+      // Error logged on server side
     } finally {
       setIsLoading(false)
     }
