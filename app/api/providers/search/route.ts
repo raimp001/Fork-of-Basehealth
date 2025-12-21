@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
 import { 
   searchProviders, 
   searchProvidersBySpecialty, 
@@ -292,9 +294,9 @@ export async function GET(request: NextRequest) {
     
     // Process natural language query if provided
     if (query && query.trim()) {
-      console.log('Processing natural language query:', query)
+      logger.debug('Processing natural language query', { query })
       const parsedQuery = parseNaturalLanguageQuery(query)
-      console.log('Parsed query result:', parsedQuery)
+      logger.debug('Parsed query result', { parsedQuery })
       
       // Always prioritize parsed location from natural language query
       if (parsedQuery.location) {
