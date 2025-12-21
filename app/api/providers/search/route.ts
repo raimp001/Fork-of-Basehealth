@@ -147,7 +147,7 @@ async function executeFallbackSearch(params: {
         const googleData = await googleResponse.json()
         
         if (googleData.results && googleData.results.length > 0) {
-          console.log(`Found ${googleData.results.length} providers from Google Places`)
+          logger.info(`Found ${googleData.results.length} providers from Google Places`)
           
           return googleData.results.slice(0, limit).map((place: any, index: number) => {
             const formattedAddress = place.formatted_address || ''
@@ -177,7 +177,7 @@ async function executeFallbackSearch(params: {
         }
       }
     } catch (googleError) {
-      console.warn('Google Places API error:', googleError)
+      logger.warn('Google Places API error', googleError)
       // Continue to AI fallback
     }
   }
@@ -190,7 +190,7 @@ async function executeFallbackSearch(params: {
     )
     
     if (aiProviders && aiProviders.length > 0) {
-      console.log(`Found ${aiProviders.length} providers from AI service`)
+      logger.info(`Found ${aiProviders.length} providers from AI service`)
       
       return aiProviders.slice(0, limit).map((provider, index) => ({
         npi: provider.id || `AI_${index}`,
@@ -216,7 +216,7 @@ async function executeFallbackSearch(params: {
       }))
     }
   } catch (aiError) {
-    console.warn('AI service error:', aiError)
+    logger.warn('AI service error', aiError)
   }
   
   return [] // Return empty array if all fallbacks fail
@@ -301,13 +301,13 @@ export async function GET(request: NextRequest) {
       // Always prioritize parsed location from natural language query
       if (parsedQuery.location) {
         enhancedLocation = parsedQuery.location
-        console.log('Using parsed location:', enhancedLocation)
+        logger.debug('Using parsed location', { location: enhancedLocation })
       }
       
       // Always prioritize parsed specialty from natural language query  
       if (parsedQuery.specialty) {
         enhancedSpecialty = parsedQuery.specialty
-        console.log('Using parsed specialty:', enhancedSpecialty)
+        logger.debug('Using parsed specialty', { specialty: enhancedSpecialty })
       }
       
       // Map condition to specialty if no specialty found
@@ -335,7 +335,7 @@ export async function GET(request: NextRequest) {
           'mental': 'Psychiatry'
         }
         enhancedSpecialty = conditionToSpecialtyMap[parsedQuery.condition] || 'Internal Medicine'
-        console.log('Mapped condition to specialty:', parsedQuery.condition, '->', enhancedSpecialty)
+        logger.debug('Mapped condition to specialty', { condition: parsedQuery.condition, specialty: enhancedSpecialty })
       }
     }
     
@@ -363,7 +363,7 @@ export async function GET(request: NextRequest) {
     const city = locationData.city
     const state = locationData.state
     
-    console.log('Provider search params:', { 
+    logger.info('Provider search initiated', { 
       originalLocation: location,
       enhancedLocation,
       city, 
@@ -414,7 +414,7 @@ export async function GET(request: NextRequest) {
         const searchResponse = await searchProviders(npiSearchParams)
         providers = searchResponse?.results || []
       } catch (error) {
-        console.error('Error in general provider search:', error)
+        logger.error('Error in general provider search', error)
         providers = []
       }
     }
@@ -540,7 +540,7 @@ export async function GET(request: NextRequest) {
     
     // Enhanced fallback system with better error handling and consistent formatting
     if (transformedProviders.length === 0) {
-      console.log('No providers found from NPI API, initiating enhanced fallback sequence...')
+      logger.info('No providers found from NPI API, initiating enhanced fallback sequence')
       
       const fallbackResults = await executeFallbackSearch({
         searchSpecialties,
