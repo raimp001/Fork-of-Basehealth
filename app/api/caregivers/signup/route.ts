@@ -34,6 +34,29 @@ export function updateApplicationStatus(id: string, status: string, reviewNotes?
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientId = getClientIdentifier(request)
+    const rateLimitResult = rateLimit(`caregiver-signup:${clientId}`, {
+      windowMs: 60 * 60 * 1000, // 1 hour
+      maxRequests: 3, // 3 signups per hour
+    })
+
+    if (!rateLimitResult.allowed) {
+      logger.warn('Rate limit exceeded for caregiver signup', { clientId })
+      return NextResponse.json(
+        { 
+          error: "Too many registration attempts. Please try again later.",
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+          },
+        }
+      )
+    }
+
     const formData = await request.formData()
     
     // Extract form fields
@@ -102,7 +125,7 @@ export async function POST(request: NextRequest) {
             uploadedAt: new Date().toISOString()
           }
         } catch (fileError) {
-          console.error(`Error uploading file ${field}:`, fileError)
+          logger.error(`Error uploading file ${field}`, fileError)
           // Continue with other files even if one fails
         }
       }
@@ -140,7 +163,7 @@ export async function POST(request: NextRequest) {
     // Store application (in production, save to database)
     applications.push(applicationData)
     
-    console.log('New caregiver application submitted:', {
+    logger.info('New caregiver application submitted', {
       id: applicationData.id,
       name: `${applicationData.firstName} ${applicationData.lastName}`,
       email: applicationData.email,
@@ -156,7 +179,7 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Caregiver signup error:', error)
+    logger.error('Caregiver signup error', error)
     
     return NextResponse.json({
       success: false,
@@ -210,7 +233,7 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Error retrieving applications:', error)
+    logger.error('Error retrieving applications', error)
     
     return NextResponse.json({
       success: false,
