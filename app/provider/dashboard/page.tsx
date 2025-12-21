@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Loader2, User, Calendar, Pill, FileText, Stethoscope } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import { PageLoading } from "@/components/ui/loading"
 import Link from "next/link"
 
 interface Provider {

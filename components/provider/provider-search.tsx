@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect, memo } from "react"
+import React, { useState, useEffect, memo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ProviderCard } from "@/components/provider/provider-card"
 import { ProviderMap } from "@/components/provider/provider-map"
@@ -535,5 +533,5 @@ function ProviderSearchComponent() {
   )
 }
 
-export const ProviderSearch = memo(ProviderSearchComponent)
+export const ProviderSearch = React.memo(ProviderSearchComponent)
 ProviderSearch.displayName = "ProviderSearch"

@@ -5,7 +5,7 @@
  * Shows verified, available caregivers only (no mock data)
  */
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StandardizedButton } from '@/components/ui/standardized-button'
@@ -198,6 +198,6 @@ function CaregiverListComponent({
   )
 }
 
-export const CaregiverList = memo(CaregiverListComponent)
+export const CaregiverList = React.memo(CaregiverListComponent)
 CaregiverList.displayName = "CaregiverList"
 

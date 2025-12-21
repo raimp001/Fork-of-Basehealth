@@ -362,5 +362,5 @@ function AdminDashboardComponent({ applications, stats, onReview, className }: A
   )
 }
 
-export const AdminDashboard = memo(AdminDashboardComponent)
+export const AdminDashboard = React.memo(AdminDashboardComponent)
 AdminDashboard.displayName = "AdminDashboard"
