@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupportedSchemes, type SupportedSchemesResponse } from '@/lib/x402-protocol'
+import { logger } from '@/lib/logger'
 
 /**
  * GET /api/x402/supported
@@ -20,7 +21,7 @@ export async function GET() {
     const supported = getSupportedSchemes()
     return NextResponse.json(supported as SupportedSchemesResponse)
   } catch (error) {
-    console.error('x402 supported schemes error:', error)
+    logger.error('x402 supported schemes error', error)
     return NextResponse.json(
       {
         kinds: [],

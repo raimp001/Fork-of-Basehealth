@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Error approving caregiver:', error)
+    logger.error('Error approving caregiver', error)
     
     return NextResponse.json({
       success: false,

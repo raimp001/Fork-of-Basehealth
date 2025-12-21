@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import { 
   decodePaymentPayload,
   type PaymentPayload,
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
     )
 
   } catch (error) {
-    console.error('x402 settlement error:', error)
+    logger.error('x402 settlement error', error)
     return NextResponse.json(
       {
         success: false,

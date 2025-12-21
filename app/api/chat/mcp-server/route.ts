@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     // Log that scrubbing occurred (but NOT the original content)
     const userMessages = messages.filter((m: any) => m.role === "user")
     if (userMessages.length > 0) {
-      console.log(`[MCP Chat API] Scrubbed ${userMessages.length} user message(s) for PHI`)
+      logger.debug(`Scrubbed ${userMessages.length} user message(s) for PHI`)
     }
 
     const result = streamText({
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
 
     return result.toDataStreamResponse()
   } catch (error) {
-    console.error("Error in MCP server chat API:", error)
+    logger.error("Error in MCP server chat API", error)
     return NextResponse.json({ error: "There was an error processing your request" }, { status: 500 })
   }
 }

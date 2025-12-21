@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import { 
   decodePaymentPayload, 
   verifyExactPayment,
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(verificationResult)
 
   } catch (error) {
-    console.error('x402 verification error:', error)
+    logger.error('x402 verification error', error)
     return NextResponse.json(
       {
         isValid: false,
