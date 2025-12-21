@@ -11,8 +11,9 @@ import { PAYMENT_TIERS } from '@/lib/http-402-service'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { resource: string } }
+  context: { params: Promise<{ resource: string }> }
 ) {
+  const params = await context.params
   try {
     const { resource } = params
 
