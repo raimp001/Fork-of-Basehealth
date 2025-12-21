@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, memo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ProviderCard } from "@/components/provider/provider-card"
 import { ProviderMap } from "@/components/provider/provider-map"
@@ -15,7 +15,7 @@ import { MapPin, List, MapIcon, AlertCircle } from "lucide-react"
 import type { Provider, ScreeningRecommendation } from "@/types/user"
 import db from "@/lib/mock-db"
 
-export function ProviderSearch() {
+function ProviderSearchComponent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -534,3 +534,6 @@ export function ProviderSearch() {
     </div>
   )
 }
+
+export const ProviderSearch = memo(ProviderSearchComponent)
+ProviderSearch.displayName = "ProviderSearch"

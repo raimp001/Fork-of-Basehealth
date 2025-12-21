@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, ArrowRight, Shield, Users, Activity, CheckCircle } from "lucide-react"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import Link from "next/link"
+import { validatePatientRegistration } from "@/lib/form-validation"
+import { toastSuccess, toastError } from "@/lib/toast-helper"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -25,15 +27,18 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
+    setFieldErrors({})
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match")
+      setFieldErrors({ confirmPassword: "Passwords do not match" })
       setIsLoading(false)
       return
     }
@@ -45,14 +50,47 @@ export default function RegisterPage() {
       return
     }
 
+    // Use centralized validation
+    const name = `${formData.firstName} ${formData.lastName}`.trim()
+    const validation = validatePatientRegistration({
+      name,
+      email: formData.email,
+      password: formData.password,
+    })
+
+    if (!validation.isValid) {
+      setFieldErrors(validation.errors)
+      setError("Please fix the errors below")
+      setIsLoading(false)
+      return
+    }
+
     try {
-      // Simulate registration API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Registration failed")
+      }
+
+      toastSuccess("Account created successfully!")
       
-      // For demo purposes, redirect to screening
-      window.location.href = "/screening"
+      // Redirect to screening
+      setTimeout(() => {
+        window.location.href = "/screening"
+      }, 1000)
     } catch (err) {
-      setError("Registration failed. Please try again.")
+      const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
+      setError(errorMessage)
+      toastError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -96,11 +134,19 @@ export default function RegisterPage() {
                     id="firstName"
                     type="text"
                     value={formData.firstName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, firstName: e.target.value }))
+                      if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: "" }))
+                    }}
                     placeholder="John"
-                    className="border-2 border-gray-300 bg-white text-black placeholder:text-gray-500 placeholder:font-normal hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11 transition-all duration-200"
+                    className={`border-2 bg-white text-black placeholder:text-gray-500 placeholder:font-normal hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11 transition-all duration-200 ${
+                      fieldErrors.name ? "border-red-500" : "border-gray-300"
+                    }`}
                     required
                   />
+                  {fieldErrors.name && (
+                    <p className="text-xs text-red-600 mt-1">{fieldErrors.name}</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="lastName" className="text-sm font-semibold text-black mb-2 block">
@@ -110,9 +156,14 @@ export default function RegisterPage() {
                     id="lastName"
                     type="text"
                     value={formData.lastName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, lastName: e.target.value }))
+                      if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: "" }))
+                    }}
                     placeholder="Doe"
-                    className="border-2 border-gray-300 bg-white text-black placeholder:text-gray-500 placeholder:font-normal hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11 transition-all duration-200"
+                    className={`border-2 bg-white text-black placeholder:text-gray-500 placeholder:font-normal hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11 transition-all duration-200 ${
+                      fieldErrors.name ? "border-red-500" : "border-gray-300"
+                    }`}
                     required
                   />
                 </div>
@@ -126,11 +177,19 @@ export default function RegisterPage() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, email: e.target.value }))
+                    if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: "" }))
+                  }}
                   placeholder="john@example.com"
-                  className="border-gray-200 focus:border-gray-400 focus:ring-gray-100"
+                  className={`border-gray-200 focus:border-gray-400 focus:ring-gray-100 ${
+                    fieldErrors.email ? "border-red-500" : ""
+                  }`}
                   required
                 />
+                {fieldErrors.email && (
+                  <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>
+                )}
               </div>
 
               <div>
@@ -142,9 +201,14 @@ export default function RegisterPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, password: e.target.value }))
+                      if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: "" }))
+                    }}
                     placeholder="Create a strong password"
-                    className="border-gray-200 focus:border-gray-400 focus:ring-gray-100 pr-10"
+                    className={`border-gray-200 focus:border-gray-400 focus:ring-gray-100 pr-10 ${
+                      fieldErrors.password ? "border-red-500" : ""
+                    }`}
                     required
                   />
                   <button
@@ -180,11 +244,19 @@ export default function RegisterPage() {
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     value={formData.confirmPassword}
-                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))
+                      if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: "" }))
+                    }}
                     placeholder="Confirm your password"
-                    className="border-gray-200 focus:border-gray-400 focus:ring-gray-100 pr-10"
+                    className={`border-gray-200 focus:border-gray-400 focus:ring-gray-100 pr-10 ${
+                      fieldErrors.confirmPassword ? "border-red-500" : ""
+                    }`}
                     required
                   />
+                  {fieldErrors.confirmPassword && (
+                    <p className="text-xs text-red-600 mt-1">{fieldErrors.confirmPassword}</p>
+                  )}
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}

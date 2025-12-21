@@ -24,7 +24,7 @@ export default function LoginClient() {
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // Handle login logic here
-    console.log("Login attempt with:", { email, password })
+    // Login handled by form submission
     setIsLoading(false)
   }
 

@@ -34,7 +34,7 @@ interface AdminDashboardProps {
   className?: string
 }
 
-export function AdminDashboard({ applications, stats, onReview, className }: AdminDashboardProps) {
+function AdminDashboardComponent({ applications, stats, onReview, className }: AdminDashboardProps) {
   const [filters, setFilters] = useState<ApplicationFilters>({})
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState<'date' | 'priority' | 'type'>('date')
@@ -361,3 +361,6 @@ export function AdminDashboard({ applications, stats, onReview, className }: Adm
     </div>
   )
 }
+
+export const AdminDashboard = memo(AdminDashboardComponent)
+AdminDashboard.displayName = "AdminDashboard"

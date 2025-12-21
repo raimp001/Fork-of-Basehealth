@@ -93,7 +93,7 @@ export default function EmergencyPage() {
 
       setNearbyProviders(providers)
     } catch (error) {
-      console.error("Error finding nearby providers:", error)
+      // Error handled by error state
       setMapError(error instanceof Error ? error.message : "Failed to find nearby providers")
     } finally {
       setIsLoading(false)

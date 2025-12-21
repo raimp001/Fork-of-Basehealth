@@ -7,7 +7,7 @@ export default function McpToolsClient() {
   // Any client-side logic can go here
   useEffect(() => {
     // Example: Analytics tracking
-    console.log("MCP Tools page viewed")
+    // Page view tracking (can be added to analytics)
   }, [])
 
   return <McpClient />

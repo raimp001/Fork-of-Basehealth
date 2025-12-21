@@ -21,7 +21,7 @@ export default function PaymentPage() {
   const hasValidParams = appointmentId && amount > 0
 
   const handlePaymentSuccess = (result: any) => {
-    console.log("Payment successful:", result)
+    // Payment success handled by callback
     router.push(`/payment/success?appointmentId=${appointmentId}&transactionId=${result.transactionId}`)
   }
 

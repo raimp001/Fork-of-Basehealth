@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import { getPaymentRequirement, PAYMENT_TIERS } from '@/lib/http-402-service'
 
 /**
