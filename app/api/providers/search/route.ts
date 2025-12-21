@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
+import { apiCache, generateKey } from '@/lib/api-cache'
 import { 
   searchProviders, 
   searchProvidersBySpecialty, 
@@ -278,7 +279,54 @@ function calculateFallbackRelevanceScore(params: {
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientId = getClientIdentifier(request)
+    const rateLimitResult = rateLimit(`provider-search:${clientId}`, {
+      windowMs: 60 * 1000, // 1 minute
+      maxRequests: 30, // 30 searches per minute
+    })
+
+    if (!rateLimitResult.allowed) {
+      logger.warn('Rate limit exceeded for provider search', { clientId })
+      return NextResponse.json(
+        { 
+          error: "Too many search requests. Please try again later.",
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+          },
+        }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
+    
+    // Generate cache key
+    const cacheParams = {
+      location: searchParams.get('location') || '',
+      specialty: searchParams.get('specialty') || '',
+      screenings: searchParams.get('screenings') || '',
+      specialties: searchParams.get('specialties') || '',
+      distance: searchParams.get('distance') || '',
+      query: searchParams.get('query') || '',
+      limit: searchParams.get('limit') || '10',
+    }
+    const cacheKey = generateKey('provider-search', cacheParams)
+    
+    // Check cache
+    const cached = apiCache.get(cacheKey)
+    if (cached) {
+      logger.debug('Returning cached provider search results', { cacheKey })
+      return NextResponse.json(cached, {
+        headers: {
+          'X-Cache': 'HIT',
+          'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+        },
+      })
+    }
     const query = searchParams.get('query') || ''
     const specialty = searchParams.get('specialty') || ''
     const specialties = searchParams.get('specialties') || ''
@@ -595,7 +643,7 @@ export async function GET(request: NextRequest) {
           }))
         }
       } catch (healthDBError) {
-        console.warn('HealthDB enhancement failed:', healthDBError)
+        logger.warn('HealthDB enhancement failed', healthDBError)
         // Continue with original results if HealthDB fails
       }
     }
@@ -616,7 +664,7 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Provider search error:', error)
+    logger.error('Provider search error', error)
     
     return NextResponse.json({
       success: false,
