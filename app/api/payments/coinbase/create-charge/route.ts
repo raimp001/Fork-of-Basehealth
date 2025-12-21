@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
 import { getServerSession } from 'next-auth'
 import { coinbaseCommerceConfig } from '@/lib/coinbase-config'
 
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const error = await response.text()
-      console.error('Coinbase Commerce error:', error)
+      logger.error('Coinbase Commerce error', error)
       throw new Error('Failed to create charge')
     }
 
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Create charge error:', error)
+    logger.error('Create charge error', error)
     return NextResponse.json(
       { error: 'Failed to create payment' },
       { status: 500 }
@@ -108,7 +110,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Get charge error:', error)
+    logger.error('Get charge error', error)
     return NextResponse.json(
       { error: 'Failed to fetch charge status' },
       { status: 500 }

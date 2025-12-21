@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import crypto from 'crypto'
 import { coinbaseCommerceConfig } from '@/lib/coinbase-config'
 
@@ -44,51 +45,51 @@ export async function POST(request: NextRequest) {
     }
 
     const event = JSON.parse(body)
-    console.log('Coinbase Commerce webhook:', event.type)
+    logger.info('Coinbase Commerce webhook', { eventType: event.type })
 
     // Handle different event types
     switch (event.type) {
       case 'charge:created':
-        console.log('Charge created:', event.data.id)
+        logger.info('Charge created', { chargeId: event.data.id })
         // Store charge info in database
         break
 
       case 'charge:confirmed':
-        console.log('Payment confirmed:', event.data.id)
+        logger.info('Payment confirmed', { chargeId: event.data.id })
         // Update payment status in database
         // Grant access to services
         await handlePaymentConfirmed(event.data)
         break
 
       case 'charge:failed':
-        console.log('Payment failed:', event.data.id)
+        logger.warn('Payment failed', { chargeId: event.data.id })
         // Update payment status
         // Send failure notification
         break
 
       case 'charge:delayed':
-        console.log('Payment delayed:', event.data.id)
+        logger.warn('Payment delayed', { chargeId: event.data.id })
         // Handle delayed payment
         break
 
       case 'charge:pending':
-        console.log('Payment pending:', event.data.id)
+        logger.info('Payment pending', { chargeId: event.data.id })
         // Update status to pending
         break
 
       case 'charge:resolved':
-        console.log('Payment resolved:', event.data.id)
+        logger.info('Payment resolved', { chargeId: event.data.id })
         // Handle resolved payment (after being delayed)
         break
 
       default:
-        console.log('Unhandled event type:', event.type)
+        logger.warn('Unhandled event type', { eventType: event.type })
     }
 
     return NextResponse.json({ received: true })
 
   } catch (error) {
-    console.error('Webhook error:', error)
+    logger.error('Webhook error', error)
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }
@@ -106,7 +107,7 @@ async function handlePaymentConfirmed(charge: any) {
   // Process based on payment type
   if (metadata.type === 'consultation') {
     // Grant access to consultation
-    console.log('Granting consultation access:', {
+    logger.info('Granting consultation access', {
       appointmentId: metadata.appointment_id,
       patientId: metadata.user_id,
       amount: value.local.amount,
@@ -117,7 +118,7 @@ async function handlePaymentConfirmed(charge: any) {
     // TODO: Update appointment status in database
   } else if (metadata.type === 'caregiver') {
     // Confirm caregiver booking
-    console.log('Confirming caregiver booking:', {
+    logger.info('Confirming caregiver booking', {
       bookingId: metadata.booking_id,
       patientId: metadata.user_id,
       hours: metadata.hours,
@@ -126,7 +127,7 @@ async function handlePaymentConfirmed(charge: any) {
     // TODO: Update booking status and notify caregiver
   } else if (metadata.type === 'subscription') {
     // Activate subscription
-    console.log('Activating subscription:', {
+    logger.info('Activating subscription', {
       tier: metadata.tier,
       userId: metadata.user_id,
       txHash: transaction_id

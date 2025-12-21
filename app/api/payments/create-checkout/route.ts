@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
 import { getServerSession } from 'next-auth'
 
 // Initialize Stripe only if API key is provided
@@ -60,7 +62,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Stripe checkout error:', error)
+    logger.error('Stripe checkout error', error)
     return NextResponse.json(
       { error: 'Failed to create checkout session' },
       { status: 500 }
@@ -108,7 +110,7 @@ export async function PUT(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Payment intent error:', error)
+    logger.error('Payment intent error', error)
     return NextResponse.json(
       { error: 'Failed to create payment intent' },
       { status: 500 }
