@@ -13,7 +13,7 @@ interface ProviderMapProps {
   onProviderSelect?: (provider: Provider) => void
 }
 
-export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMapProps) {
+function ProviderMapComponent({ providers, zipCode, onProviderSelect }: ProviderMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [map, setMap] = useState<google.maps.Map | null>(null)
@@ -267,6 +267,15 @@ export function ProviderMap({ providers, zipCode, onProviderSelect }: ProviderMa
     </Card>
   )
 }
+
+export const ProviderMap = memo(ProviderMapComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.providers.length === nextProps.providers.length &&
+    prevProps.zipCode === nextProps.zipCode &&
+    prevProps.providers.every((p, i) => p.id === nextProps.providers[i]?.id)
+  )
+})
+ProviderMap.displayName = "ProviderMap"
 
 // Add TypeScript definitions for Google Maps
 declare global {

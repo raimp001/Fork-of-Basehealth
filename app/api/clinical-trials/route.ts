@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
+import { apiCache, generateKey } from '@/lib/api-cache'
 import { healthDBService } from '@/lib/healthdb-service'
 
 export async function GET(request: NextRequest) {
@@ -470,7 +473,7 @@ export async function GET(request: NextRequest) {
 
     const apiUrl = `https://clinicaltrials.gov/api/v2/studies?${apiParams.toString()}`
     
-    console.log('Clinical Trials Search Parameters:', {
+    logger.info('Clinical Trials Search Parameters', {
       originalQuery: naturalLanguage || query,
       extractedCondition: searchCondition,
       extractedLocation: searchLocation,
@@ -485,7 +488,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!response.ok) {
-      console.error('ClinicalTrials.gov API error:', response.status, response.statusText)
+      logger.error('ClinicalTrials.gov API error', { status: response.status, statusText: response.statusText })
       return NextResponse.json(
         { error: `API request failed: ${response.status}` },
         { status: response.status }
@@ -494,7 +497,7 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json()
     
-    console.log('ClinicalTrials.gov response:', {
+    logger.debug('ClinicalTrials.gov response', {
       studiesCount: data.studies?.length || 0,
       totalCount: data.totalCount || 0,
       searchQuery: searchCondition,
@@ -505,7 +508,7 @@ export async function GET(request: NextRequest) {
 
     // If no results found with location, try without location
     if (enhancedStudies.length === 0 && searchLocation && searchCondition) {
-      console.log('No results with location, trying without location...')
+      logger.debug('No results with location, trying without location')
       const fallbackParams = new URLSearchParams({
         'format': 'json',
         'pageSize': searchParams.get('pageSize') || '50'
@@ -514,7 +517,7 @@ export async function GET(request: NextRequest) {
       fallbackParams.append('query.cond', searchCondition)
       
       const fallbackUrl = `https://clinicaltrials.gov/api/v2/studies?${fallbackParams.toString()}`
-      console.log('Fallback search:', fallbackUrl)
+      logger.debug('Fallback search', { url: fallbackUrl })
       
       try {
         const fallbackResponse = await fetch(fallbackUrl, {
@@ -527,10 +530,10 @@ export async function GET(request: NextRequest) {
         if (fallbackResponse.ok) {
           const fallbackData = await fallbackResponse.json()
           enhancedStudies = fallbackData.studies || []
-          console.log('Fallback results:', enhancedStudies.length)
+          logger.info('Fallback results', { count: enhancedStudies.length })
         }
       } catch (fallbackError) {
-        console.warn('Fallback search failed:', fallbackError)
+        logger.warn('Fallback search failed', fallbackError)
       }
     }
 
@@ -621,7 +624,7 @@ export async function GET(request: NextRequest) {
           })
         }
       } catch (healthDBError) {
-        console.warn('HealthDB enhancement failed:', healthDBError)
+        logger.warn('HealthDB enhancement failed', healthDBError)
         // Continue with transformed studies if HealthDB fails
       }
     }
@@ -648,7 +651,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString()
     })
   } catch (error) {
-    console.error('Error fetching clinical trials:', error)
+    logger.error('Error fetching clinical trials', error)
     return NextResponse.json(
       { error: 'Failed to fetch clinical trials' },
       { status: 500 }

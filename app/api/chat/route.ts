@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     // Log that scrubbing occurred (but NOT the original content)
     const userMessages = messages.filter((m: any) => m.role === "user")
     if (userMessages.length > 0) {
-      console.log(`[Chat API] Scrubbed ${userMessages.length} user message(s) for PHI`)
+      logger.debug(`Scrubbed ${userMessages.length} user message(s) for PHI`)
     }
 
     const result = streamText({
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
 
     return result.toDataStreamResponse()
   } catch (error) {
-    console.error("Error in chat API:", error)
+    logger.error("Error in chat API", error)
     return NextResponse.json({ error: "There was an error processing your request" }, { status: 500 })
   }
 }
@@ -105,7 +105,7 @@ export async function analyzeSymptoms(symptoms: string, age: number, gender: str
     // Parse the JSON response
     return JSON.parse(text)
   } catch (error) {
-    console.error("Error analyzing symptoms:", error)
+    logger.error("Error analyzing symptoms", error)
     throw new Error("Failed to analyze symptoms. Please try again later.")
   }
 }

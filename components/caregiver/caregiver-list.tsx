@@ -53,7 +53,7 @@ interface CaregiverListProps {
   className?: string
 }
 
-export function CaregiverList({
+function CaregiverListComponent({
   caregivers,
   isLoading = false,
   onSelect,
@@ -197,4 +197,7 @@ export function CaregiverList({
     </div>
   )
 }
+
+export const CaregiverList = memo(CaregiverListComponent)
+CaregiverList.displayName = "CaregiverList"
 

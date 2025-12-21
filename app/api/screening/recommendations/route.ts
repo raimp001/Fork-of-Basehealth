@@ -51,7 +51,7 @@ export async function GET(request: Request) {
       // Continue with original recommendations if HealthDB fails
     }
 
-    console.log('USPSTF API returning:', recommendations);
+    logger.debug('USPSTF API returning', { count: recommendations.length });
 
     return NextResponse.json({ 
       recommendations,
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
       timestamp: new Date().toISOString()
     })
   } catch (error) {
-    console.error("Error fetching screening recommendations:", error)
+    logger.error("Error fetching screening recommendations", error)
     return NextResponse.json({ error: "An error occurred while fetching screening recommendations" }, { status: 500 })
   }
 }
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
     })
 
   } catch (error) {
-    console.error("Error processing screening assessment:", error)
+    logger.error("Error processing screening assessment", error)
     return NextResponse.json({ 
       success: false,
       error: "An error occurred while processing your assessment" 

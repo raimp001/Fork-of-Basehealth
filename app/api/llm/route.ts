@@ -54,12 +54,12 @@ export async function POST(req: NextRequest) {
     const { cleanedText, mapping } = sanitizeInput(input.trim())
 
     // Log that scrubbing occurred (but NOT the original text)
-    console.log(`[LLM API] Input scrubbed: ${Object.keys(mapping).length} PHI elements detected`)
+    logger.debug(`Input scrubbed: ${Object.keys(mapping).length} PHI elements detected`)
 
     // Check if API key is configured
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
-      console.error("[LLM API] OPENAI_API_KEY not configured")
+      logger.error("OPENAI_API_KEY not configured")
       return NextResponse.json(
         { error: "AI service is not configured. Please contact support." },
         { status: 500 }
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
     const duration = Date.now() - startTime
 
     // Log success (without PHI)
-    console.log(`[LLM API] Request completed successfully in ${duration}ms`)
+    logger.info(`Request completed successfully`, { duration: `${duration}ms` })
 
     return NextResponse.json({
       success: true,
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
     success = false
 
     // Log error (without any user input)
-    console.error(`[LLM API] Error after ${duration}ms:`, error instanceof Error ? error.message : "Unknown error")
+    logger.error(`Error after ${duration}ms`, error)
 
     return NextResponse.json(
       {
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
   } finally {
     // Final logging (without PHI)
     if (!success) {
-      console.log(`[LLM API] Request failed after ${Date.now() - startTime}ms`)
+      logger.warn(`Request failed after ${Date.now() - startTime}ms`)
     }
   }
 }
