@@ -2,35 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
-
-// In-memory storage for demo (replace with database in production)
-export const applications: any[] = []
-
-// Export function to get all applications (used by admin)
-export function getAllApplications() {
-  return applications
-}
-
-// Export function to get application by ID
-export function getApplicationById(id: string) {
-  return applications.find(app => app.id === id)
-}
-
-// Export function to update application status
-export function updateApplicationStatus(id: string, status: string, reviewNotes?: string, reviewedBy?: string) {
-  const index = applications.findIndex(app => app.id === id)
-  if (index !== -1) {
-    applications[index] = {
-      ...applications[index],
-      status,
-      reviewNotes,
-      reviewedBy,
-      reviewedAt: new Date().toISOString()
-    }
-    return applications[index]
-  }
-  return null
-}
+import { logger } from '@/lib/logger'
+import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
+import { getAllApplications, getApplicationById, updateApplicationStatus, addApplication } from '@/lib/caregiver-applications'
 
 export async function POST(request: NextRequest) {
   try {
@@ -161,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Store application (in production, save to database)
-    applications.push(applicationData)
+    addApplication(applicationData)
     
     logger.info('New caregiver application submitted', {
       id: applicationData.id,
@@ -197,7 +171,7 @@ export async function GET(request: NextRequest) {
     const email = searchParams.get('email')
     
     if (applicationId) {
-      const application = applications.find(app => app.id === applicationId)
+      const application = getApplicationById(applicationId)
       
       if (!application) {
         return NextResponse.json({
@@ -214,7 +188,8 @@ export async function GET(request: NextRequest) {
     }
     
     if (email) {
-      const userApplications = applications.filter(app => app.email === email)
+      const allApps = getAllApplications()
+      const userApplications = allApps.filter(app => app.email === email)
       
       return NextResponse.json({
         success: true,
@@ -226,10 +201,11 @@ export async function GET(request: NextRequest) {
     }
     
     // Admin endpoint - return all applications (add authentication in production)
+    const allApps = getAllApplications()
     return NextResponse.json({
       success: true,
-      applications: applications,
-      total: applications.length
+      applications: allApps,
+      total: allApps.length
     })
     
   } catch (error) {
