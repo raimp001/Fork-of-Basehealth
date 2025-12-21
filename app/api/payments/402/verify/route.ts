@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import { getServerSession } from 'next-auth'
 import { verifyPaymentProof, recordPayment, type PaymentProof, type PaymentRequirement } from '@/lib/http-402-service'
 
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Payment verification error:', error)
+    logger.error('Payment verification error', error)
     return NextResponse.json(
       { 
         verified: false,

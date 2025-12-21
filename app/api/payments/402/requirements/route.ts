@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Get requirements error:', error)
+    logger.error('Get requirements error', error)
     return NextResponse.json(
       { error: 'Failed to get payment requirements' },
       { status: 500 }
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       network: process.env.NODE_ENV === 'production' ? 'base' : 'base-sepolia',
     })
   } catch (error) {
-    console.error('Get all requirements error:', error)
+    logger.error('Get all requirements error', error)
     return NextResponse.json(
       { error: 'Failed to get payment tiers' },
       { status: 500 }

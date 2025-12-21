@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Check access error:', error)
+    logger.error('Check access error', error)
     return NextResponse.json(
       { error: 'Failed to check access' },
       { status: 500 }

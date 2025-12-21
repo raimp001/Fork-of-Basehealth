@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import { addApprovedCaregiver } from '../search/route'
 import { getApplicationById, updateApplicationStatus } from '../signup/route'
 
