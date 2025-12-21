@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
-import { addApprovedCaregiver } from '../search/route'
+import { addApprovedCaregiver } from '@/lib/caregiver-utils'
 import { getApplicationById, updateApplicationStatus } from '../signup/route'
 
 export async function POST(request: NextRequest) {
