@@ -212,8 +212,47 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     logger.error("Provider registration error", error)
+    
+    // Provide more specific error messages
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    const errorStack = error instanceof Error ? error.stack : undefined
+    
+    // Check for common database errors
+    const isDatabaseError = 
+      errorMessage.includes("prisma") || 
+      errorMessage.includes("database") || 
+      errorMessage.includes("connection") ||
+      errorMessage.includes("P1001") || // Connection error
+      errorMessage.includes("P2002") || // Unique constraint
+      errorMessage.includes("P2003")    // Foreign key constraint
+    
+    // Check for unique constraint violations (email/NPI already exists)
+    if (errorMessage.includes("P2002")) {
+      if (errorMessage.includes("email")) {
+        return NextResponse.json(
+          { error: "Email already registered" },
+          { status: 409 }
+        )
+      }
+      if (errorMessage.includes("npiNumber")) {
+        return NextResponse.json(
+          { error: "NPI number already registered" },
+          { status: 409 }
+        )
+      }
+    }
+    
+    // Return detailed error in development, generic in production
     return NextResponse.json(
-      { error: "Registration failed. Please try again." },
+      { 
+        error: isDatabaseError 
+          ? "Database connection error. Please contact support." 
+          : "Registration failed. Please try again.",
+        ...(process.env.NODE_ENV === 'development' && {
+          details: errorMessage,
+          stack: errorStack
+        })
+      },
       { status: 500 }
     )
   }
