@@ -8,6 +8,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { logger } from "@/lib/logger"
+import { rateLimit, getClientIdentifier } from "@/lib/rate-limiter"
+import { sanitizeText, validateEmail, validateNPI } from "@/lib/sanitize"
 
 interface ProviderRegistrationData {
   type: "PHYSICIAN" | "APP"
@@ -27,17 +30,49 @@ interface ProviderRegistrationData {
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting
+    const clientId = getClientIdentifier(req)
+    const rateLimitResult = rateLimit(`provider-register:${clientId}`, {
+      windowMs: 60 * 60 * 1000, // 1 hour
+      maxRequests: 3, // 3 registrations per hour
+    })
+
+    if (!rateLimitResult.allowed) {
+      logger.warn('Rate limit exceeded for provider registration', { clientId })
+      return NextResponse.json(
+        { 
+          error: "Too many registration attempts. Please try again later.",
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+          },
+        }
+      )
+    }
+
     const data: ProviderRegistrationData = await req.json()
 
+    // Sanitize inputs
+    const email = sanitizeText(data.email?.trim() || '')
+    const password = data.password || ''
+    const type = data.type
+
     // Validate required fields
-    if (!data.email || !data.password || !data.type) {
+    if (!email || !password || !type) {
       return NextResponse.json(
         { error: "Email, password, and type are required" },
         { status: 400 }
       )
     }
 
-    // Validate type-specific fields
+    // Validate type-specific fields and sanitize
+    let npi: string | undefined
+    let licenseNumber: string | undefined
+    let licenseState: string | undefined
+    
     if (data.type === "PHYSICIAN") {
       if (!data.fullName) {
         return NextResponse.json(
@@ -53,8 +88,9 @@ export async function POST(req: NextRequest) {
         )
       }
       
-      // Validate NPI format (10 digits)
-      if (!/^\d{10}$/.test(data.npi)) {
+      // Sanitize and validate NPI
+      npi = sanitizeText(data.npi)
+      if (!validateNPI(npi)) {
         return NextResponse.json(
           { error: "NPI number must be exactly 10 digits" },
           { status: 400 }
@@ -68,6 +104,8 @@ export async function POST(req: NextRequest) {
         )
       }
       
+      licenseNumber = sanitizeText(data.licenseNumber)
+      
       if (!data.licenseState || data.licenseState.trim() === "") {
         return NextResponse.json(
           { error: "License state is required for physicians" },
@@ -76,12 +114,15 @@ export async function POST(req: NextRequest) {
       }
       
       // Validate license state format (2 letters)
-      if (!/^[A-Z]{2}$/i.test(data.licenseState)) {
+      const licenseStateRaw = sanitizeText(data.licenseState.toUpperCase())
+      if (!/^[A-Z]{2}$/.test(licenseStateRaw)) {
         return NextResponse.json(
           { error: "License state must be a 2-letter state code (e.g., CA, NY, TX)" },
           { status: 400 }
         )
       }
+      
+      licenseState = licenseStateRaw
     }
 
     if (data.type === "APP" && !data.organizationName) {
@@ -92,8 +133,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(data.email)) {
+    if (!validateEmail(email)) {
       return NextResponse.json(
         { error: "Invalid email format" },
         { status: 400 }
@@ -102,7 +142,7 @@ export async function POST(req: NextRequest) {
 
     // Check if email already exists
     const existingProvider = await prisma.provider.findUnique({
-      where: { email: data.email },
+      where: { email },
     })
 
     if (existingProvider) {
@@ -113,12 +153,13 @@ export async function POST(req: NextRequest) {
     }
 
     // For physicians, check if NPI already exists
-    if (data.type === "PHYSICIAN" && data.npi) {
+    if (data.type === "PHYSICIAN" && npi) {
       const existingNPI = await prisma.provider.findUnique({
-        where: { npiNumber: data.npi },
+        where: { npiNumber: npi },
       })
 
       if (existingNPI) {
+        logger.warn('Duplicate NPI registration attempt', { npi, email })
         return NextResponse.json(
           { error: "NPI number already registered" },
           { status: 409 }
@@ -133,19 +174,24 @@ export async function POST(req: NextRequest) {
     const provider = await prisma.provider.create({
       data: {
         type: data.type,
-        fullName: data.fullName || null,
-        organizationName: data.organizationName || null,
-        email: data.email,
+        fullName: data.fullName ? sanitizeText(data.fullName) : null,
+        organizationName: data.organizationName ? sanitizeText(data.organizationName) : null,
+        email,
         passwordHash,
-        phone: data.phone || null,
-        npiNumber: data.npi || null,
-        licenseNumber: data.licenseNumber || null,
-        licenseState: data.licenseState ? data.licenseState.toUpperCase() : null,
-        specialties: data.specialties || [],
-        bio: data.bio || null,
+        phone: data.phone ? sanitizeText(data.phone) : null,
+        npiNumber: npi || null,
+        licenseNumber: licenseNumber || null,
+        licenseState: licenseState || null,
+        specialties: (data.specialties || []).map(s => sanitizeText(s)),
+        bio: data.bio ? sanitizeText(data.bio) : null,
         isVerified: false, // Requires admin approval
         acceptingPatients: true,
       },
+    })
+
+    logger.info('Provider registered successfully', { 
+      providerId: provider.id, 
+      type: provider.type,
     })
 
     // Return sanitized provider data (no password)
@@ -165,7 +211,7 @@ export async function POST(req: NextRequest) {
       message: "Registration successful. Your account is pending verification.",
     })
   } catch (error) {
-    console.error("Provider registration error:", error)
+    logger.error("Provider registration error", error)
     return NextResponse.json(
       { error: "Registration failed. Please try again." },
       { status: 500 }
