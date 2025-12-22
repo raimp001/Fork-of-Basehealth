@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     }
 
     // Use Agent Kit to enhance the AI with blockchain context
-    const enhancedMessages = context ? agentKit.enhanceMessages(messages, { context }) : messages
+    const enhancedMessages = context ? agentKit.enhanceMessages(messages) : messages
 
     const result = streamText({
       model: groq("llama3-70b-8192"),
