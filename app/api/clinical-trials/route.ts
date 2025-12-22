@@ -402,7 +402,7 @@ export async function GET(request: NextRequest) {
         for (const city of sortedCities) {
           const regex = new RegExp(`\\b${city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
           if (regex.test(lowerCondition)) {
-            searchLocation = cityStateMap[city]
+            searchLocation = (cityStateMap as Record<string, string>)[city]
             searchCondition = searchCondition.replace(regex, '').trim()
             break
           }
