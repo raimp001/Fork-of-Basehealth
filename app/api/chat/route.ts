@@ -96,12 +96,15 @@ async function analyzeSymptoms(symptoms: string, age: number, gender: string, ad
   `
 
   try {
-    const { text } = await streamText({
+    const result = await streamText({
       model: groq("llama3-70b-8192"),
       prompt: prompt,
       system:
         "You are a medical assistant AI that provides structured information about symptoms. Always respond in valid JSON format.",
     })
+
+    // Get text from stream result
+    const text = await result.text
 
     // Parse the JSON response
     return JSON.parse(text)
