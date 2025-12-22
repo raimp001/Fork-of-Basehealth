@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const sessionToken = createMockSession(user)
     
     // Set secure cookie
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     cookieStore.set('session-token', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE() {
   try {
     // Logout - clear session cookie
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     cookieStore.delete('session-token')
     
     return NextResponse.json({
