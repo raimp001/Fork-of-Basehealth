@@ -1,18 +1,20 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useParams } from "next/navigation"
 import { VirtualVisit } from "@/components/appointment/virtual-visit"
 import { useRouter } from "next/navigation"
 
-export default function VirtualVisitPage({ params }: { params: { providerId: string } }) {
+export default function VirtualVisitPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const params = useParams()
   const date = searchParams.get("date")
   const time = searchParams.get("time")
+  const providerId = params?.providerId as string
 
   // In a real app, you would fetch the provider data and appointment details here
   const mockProvider = {
-    id: params.providerId,
+    id: providerId,
     name: "Dr. John Smith",
     specialty: "Family Medicine",
     rating: 4.8,
@@ -48,7 +50,7 @@ export default function VirtualVisitPage({ params }: { params: { providerId: str
   return (
     <VirtualVisit
       provider={mockProvider}
-      appointmentId={`${params.providerId}-${date}-${time}`}
+      appointmentId={`${providerId}-${date}-${time}`}
       onEndCall={handleEndCall}
     />
   )
