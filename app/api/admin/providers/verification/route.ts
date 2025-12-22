@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getPendingProviderVerifications, updateProviderVerificationStatus } from "@/lib/provider-service"
+import { logger } from "@/lib/logger"
 
 export async function GET(request: Request) {
   try {
