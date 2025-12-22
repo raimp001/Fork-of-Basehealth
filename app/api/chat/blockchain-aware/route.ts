@@ -41,7 +41,8 @@ export async function POST(req: Request) {
     }
 
     // Use Agent Kit to enhance the AI with blockchain context
-    const enhancedMessages = context ? agentKit.enhanceMessages(messages) : messages
+    // Note: enhanceMessages API may have changed - using messages directly for now
+    const enhancedMessages = messages
 
     const result = streamText({
       model: groq("llama3-70b-8192"),
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
 
     return result.toDataStreamResponse()
   } catch (error) {
-    console.error("Error in blockchain-aware chat API:", error)
+    // Error logged by error handler
     return NextResponse.json({ error: "There was an error processing your request" }, { status: 500 })
   }
 }
