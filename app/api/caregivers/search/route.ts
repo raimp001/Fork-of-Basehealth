@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     if (careType) {
       filtered = filtered.filter(caregiver => 
         caregiver.specialty.toLowerCase().includes(careType.toLowerCase()) ||
-        caregiver.services.some(service => 
+        caregiver.services.some((service: string) =>
           service.toLowerCase().includes(careType.toLowerCase())
         )
       )
