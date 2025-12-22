@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
         'bend': 'Bend, OR',
         'beaverton': 'Beaverton, OR',
         'medford': 'Medford, OR',
-        'springfield': 'Springfield, OR',
+        'springfield-or': 'Springfield, OR',
         'oklahoma city': 'Oklahoma City, OK',
         'tulsa': 'Tulsa, OK',
         'norman': 'Norman, OK',
