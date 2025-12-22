@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllApplications, getApplicationById, updateApplicationStatus } from '../../caregivers/signup/route'
+import { getAllApplications, getApplicationById, updateApplicationStatus } from '@/lib/caregiver-applications'
 import { logger } from '@/lib/logger'
 import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
 
