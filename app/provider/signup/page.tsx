@@ -159,10 +159,24 @@ export default function ProviderSignupPage() {
 
       if (!response.ok) {
         const errorMsg = data?.error || `Registration failed (${response.status})`
-        setError(errorMsg)
+        const errorCode = data?.errorCode || "UNKNOWN"
+        
+        // Show more helpful error messages
+        let displayError = errorMsg
+        if (errorCode === "DATABASE_ERROR") {
+          displayError = "Database connection error. Please contact support or try again later."
+        } else if (response.status === 409) {
+          displayError = errorMsg // Already registered error
+        } else if (response.status === 400) {
+          displayError = errorMsg // Validation error
+        } else if (response.status === 429) {
+          displayError = "Too many registration attempts. Please wait and try again later."
+        }
+        
+        setError(displayError)
         toastError({
           title: "Registration Failed",
-          description: errorMsg,
+          description: displayError,
         })
         setIsSubmitting(false)
         return
@@ -181,10 +195,19 @@ export default function ProviderSignupPage() {
       }, 2000)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
-      setError(errorMessage)
+      
+      // Provide more helpful error messages
+      let displayError = errorMessage
+      if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+        displayError = "Network error. Please check your internet connection and try again."
+      } else if (errorMessage.includes("Invalid server response")) {
+        displayError = "Server error. Please try again or contact support."
+      }
+      
+      setError(displayError)
       toastError({
         title: "Registration Failed",
-        description: errorMessage,
+        description: displayError,
       })
     } finally {
       // Only reset submitting if we're not redirecting
