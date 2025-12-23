@@ -81,15 +81,24 @@ export async function POST(req: NextRequest) {
         )
       }
       
-      if (!data.npi || data.npi.trim() === "") {
+      // NPI is MANDATORY for physicians - cannot be empty or null
+      if (!data.npi || typeof data.npi !== 'string' || data.npi.trim() === "") {
         return NextResponse.json(
-          { error: "NPI number is required for physicians" },
+          { error: "NPI number is required for physicians and cannot be empty" },
           { status: 400 }
         )
       }
       
-      // Sanitize and validate NPI
-      npi = sanitizeText(data.npi)
+      // Sanitize and validate NPI - remove any non-digits
+      const npiClean = data.npi.replace(/\D/g, '')
+      if (npiClean.length !== 10) {
+        return NextResponse.json(
+          { error: "NPI number must be exactly 10 digits" },
+          { status: 400 }
+        )
+      }
+      
+      npi = sanitizeText(npiClean)
       if (!validateNPI(npi)) {
         return NextResponse.json(
           { error: "NPI number must be exactly 10 digits" },
@@ -106,23 +115,31 @@ export async function POST(req: NextRequest) {
       
       licenseNumber = sanitizeText(data.licenseNumber)
       
-      if (!data.licenseState || data.licenseState.trim() === "") {
+      // License state is MANDATORY for physicians - cannot be empty or null
+      if (!data.licenseState || typeof data.licenseState !== 'string' || data.licenseState.trim() === "") {
         return NextResponse.json(
-          { error: "License state is required for physicians" },
+          { error: "License state is required for physicians and cannot be empty" },
           { status: 400 }
         )
       }
       
-      // Validate license state format (2 letters)
-      const licenseStateRaw = sanitizeText(data.licenseState.toUpperCase())
-      if (!/^[A-Z]{2}$/.test(licenseStateRaw)) {
+      // Validate license state format (exactly 2 uppercase letters)
+      const licenseStateClean = data.licenseState.toUpperCase().trim().replace(/[^A-Z]/g, '')
+      if (licenseStateClean.length !== 2) {
+        return NextResponse.json(
+          { error: "License state must be exactly 2 letters" },
+          { status: 400 }
+        )
+      }
+      
+      if (!/^[A-Z]{2}$/.test(licenseStateClean)) {
         return NextResponse.json(
           { error: "License state must be a 2-letter state code (e.g., CA, NY, TX)" },
           { status: 400 }
         )
       }
       
-      licenseState = licenseStateRaw
+      licenseState = sanitizeText(licenseStateClean)
     }
 
     if (data.type === "APP" && !data.organizationName) {

@@ -65,14 +65,23 @@ export default function ProviderSignupPage() {
           return
         }
         
+        // NPI is MANDATORY - cannot be empty
         if (!formData.npi || formData.npi.trim() === "") {
-          setError("NPI number is required")
+          setError("NPI number is required and cannot be empty")
           setIsSubmitting(false)
           return
         }
         
-        if (!/^\d{10}$/.test(formData.npi)) {
+        // NPI must be exactly 10 digits
+        const npiClean = formData.npi.replace(/\D/g, '')
+        if (npiClean.length !== 10) {
           setError("NPI number must be exactly 10 digits")
+          setIsSubmitting(false)
+          return
+        }
+        
+        if (!/^\d{10}$/.test(npiClean)) {
+          setError("NPI number must contain only digits")
           setIsSubmitting(false)
           return
         }
@@ -83,13 +92,22 @@ export default function ProviderSignupPage() {
           return
         }
         
+        // License state is MANDATORY - cannot be empty
         if (!formData.licenseState || formData.licenseState.trim() === "") {
-          setError("License state is required")
+          setError("License state is required and cannot be empty")
           setIsSubmitting(false)
           return
         }
         
-        if (!/^[A-Z]{2}$/i.test(formData.licenseState)) {
+        // License state must be exactly 2 uppercase letters
+        const licenseStateClean = formData.licenseState.toUpperCase().trim()
+        if (licenseStateClean.length !== 2) {
+          setError("License state must be exactly 2 letters")
+          setIsSubmitting(false)
+          return
+        }
+        
+        if (!/^[A-Z]{2}$/.test(licenseStateClean)) {
           setError("License state must be a 2-letter state code (e.g., CA, NY, TX)")
           setIsSubmitting(false)
           return
@@ -105,9 +123,9 @@ export default function ProviderSignupPage() {
         ...(providerType === "PHYSICIAN"
           ? {
               fullName: formData.fullName,
-              npi: formData.npi,
+              npi: formData.npi.replace(/\D/g, ''), // Ensure only digits
               licenseNumber: formData.licenseNumber,
-              licenseState: formData.licenseState.toUpperCase(),
+              licenseState: formData.licenseState.toUpperCase().trim(), // Ensure uppercase and trimmed
               specialties: formData.specialties,
             }
           : {
@@ -314,13 +332,18 @@ export default function ProviderSignupPage() {
                       type="text"
                       placeholder="1234567890"
                       value={formData.npi}
-                      onChange={(e) => setFormData({ ...formData, npi: e.target.value })}
+                      onChange={(e) => {
+                        // Only allow digits
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 10)
+                        setFormData({ ...formData, npi: value })
+                      }}
                       required
                       maxLength={10}
+                      minLength={10}
                       pattern="[0-9]{10}"
                       className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
                     />
-                    <p className="text-xs text-stone-500 mt-1">10-digit National Provider Identifier</p>
+                    <p className="text-xs text-stone-500 mt-1">10-digit National Provider Identifier (Required)</p>
                   </div>
 
                   <div className="space-y-2">
@@ -348,12 +371,18 @@ export default function ProviderSignupPage() {
                       type="text"
                       placeholder="CA"
                       value={formData.licenseState}
-                      onChange={(e) => setFormData({ ...formData, licenseState: e.target.value.toUpperCase() })}
+                      onChange={(e) => {
+                        // Only allow letters, convert to uppercase, max 2 characters
+                        const value = e.target.value.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2)
+                        setFormData({ ...formData, licenseState: value })
+                      }}
                       required
                       maxLength={2}
+                      minLength={2}
+                      pattern="[A-Z]{2}"
                       className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
                     />
-                    <p className="text-xs text-stone-500 mt-1">2-letter state code (e.g., CA, NY, TX)</p>
+                    <p className="text-xs text-stone-500 mt-1">2-letter state code (e.g., CA, NY, TX) - Required</p>
                   </div>
 
                   <div className="space-y-3">
