@@ -316,6 +316,7 @@ export default function ProviderSignupPage() {
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     required
+                    autoComplete="name"
                     className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
                   />
                 </div>
@@ -347,6 +348,7 @@ export default function ProviderSignupPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
+                  autoComplete="email"
                   className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
                 />
               </div>
@@ -363,8 +365,10 @@ export default function ProviderSignupPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   minLength={8}
+                  autoComplete="new-password"
                   className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
                 />
+                <p className="text-xs text-stone-500 mt-1">Must be at least 8 characters</p>
               </div>
 
               <div className="space-y-2">
@@ -375,6 +379,7 @@ export default function ProviderSignupPage() {
                   placeholder="(555) 123-4567"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  autoComplete="tel"
                   className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
                 />
               </div>
@@ -389,6 +394,7 @@ export default function ProviderSignupPage() {
                     <Input
                       id="npi"
                       type="text"
+                      inputMode="numeric"
                       placeholder="1234567890"
                       value={formData.npi}
                       onChange={(e) => {
@@ -400,6 +406,7 @@ export default function ProviderSignupPage() {
                       maxLength={10}
                       minLength={10}
                       pattern="[0-9]{10}"
+                      autoComplete="off"
                       className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
                     />
                     <p className="text-xs text-stone-500 mt-1">10-digit National Provider Identifier (Required)</p>
@@ -439,6 +446,7 @@ export default function ProviderSignupPage() {
                       maxLength={2}
                       minLength={2}
                       pattern="[A-Z]{2}"
+                      autoComplete="off"
                       className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
                     />
                     <p className="text-xs text-stone-500 mt-1">2-letter state code (e.g., CA, NY, TX) - Required</p>

@@ -55,6 +55,14 @@ export async function POST(req: NextRequest) {
 
     const data: ProviderRegistrationData = await req.json()
 
+    // Validate request body exists
+    if (!data) {
+      return NextResponse.json(
+        { error: "Request body is required", errorCode: "MISSING_BODY" },
+        { status: 400 }
+      )
+    }
+
     // Sanitize inputs
     const email = sanitizeText(data.email?.trim() || '')
     const password = data.password || ''
@@ -63,7 +71,23 @@ export async function POST(req: NextRequest) {
     // Validate required fields
     if (!email || !password || !type) {
       return NextResponse.json(
-        { error: "Email, password, and type are required" },
+        { 
+          error: "Email, password, and type are required",
+          errorCode: "MISSING_REQUIRED_FIELDS",
+          missingFields: [
+            !email && "email",
+            !password && "password",
+            !type && "type"
+          ].filter(Boolean)
+        },
+        { status: 400 }
+      )
+    }
+
+    // Validate password length
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: "Password must be at least 8 characters long", errorCode: "PASSWORD_TOO_SHORT" },
         { status: 400 }
       )
     }
