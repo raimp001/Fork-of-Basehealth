@@ -121,6 +121,21 @@ export default function ProviderSignupPage() {
         password: formData.password,
       }
 
+      // Validate email format before sending
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(payload.email)) {
+        setError("Please enter a valid email address")
+        setIsSubmitting(false)
+        return
+      }
+
+      // Validate password length
+      if (payload.password.length < 8) {
+        setError("Password must be at least 8 characters long")
+        setIsSubmitting(false)
+        return
+      }
+
       // Add optional fields only if they have values
       if (formData.phone && formData.phone.trim()) {
         payload.phone = formData.phone.trim()
@@ -136,6 +151,18 @@ export default function ProviderSignupPage() {
         payload.licenseNumber = formData.licenseNumber.trim()
         payload.licenseState = formData.licenseState.toUpperCase().trim() // Ensure uppercase and trimmed
         payload.specialties = formData.specialties || []
+        
+        // Final validation before submit
+        if (payload.npi.length !== 10) {
+          setError("NPI must be exactly 10 digits")
+          setIsSubmitting(false)
+          return
+        }
+        if (payload.licenseState.length !== 2) {
+          setError("License state must be exactly 2 letters")
+          setIsSubmitting(false)
+          return
+        }
       } else {
         payload.organizationName = formData.organizationName.trim()
       }

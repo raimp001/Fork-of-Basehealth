@@ -15,8 +15,6 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'vercel.app', 'basehealth.xyz', 'www.basehealth.xyz'],
     },
-    // Disable Turbopack - use webpack instead
-    turbo: false,
   },
   webpack: (config) => {
     // Fix for pino-pretty not found
