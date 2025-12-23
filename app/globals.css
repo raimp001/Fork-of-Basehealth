@@ -297,6 +297,7 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active,
+input:-webkit-autofill-selected,
 textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:focus,
@@ -309,18 +310,23 @@ select:-webkit-autofill:active {
   -webkit-text-fill-color: rgb(23, 23, 23) !important;
   background-color: white !important;
   background-clip: content-box !important;
+  border-color: rgb(229, 229, 229) !important;
+  box-shadow: 0 0 0 1000px white inset !important;
   transition: background-color 5000s ease-in-out 0s !important;
   -webkit-transition: background-color 5000s ease-in-out 0s !important;
 }
 
-/* Ensure autofill doesn't show yellow on mobile */
+/* Ensure autofill doesn't show yellow on mobile - All input types */
 input[type="email"]:-webkit-autofill,
 input[type="password"]:-webkit-autofill,
 input[type="text"]:-webkit-autofill,
-input[type="tel"]:-webkit-autofill {
+input[type="tel"]:-webkit-autofill,
+input[type="number"]:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  box-shadow: 0 0 0 1000px white inset !important;
   -webkit-text-fill-color: rgb(23, 23, 23) !important;
   background-color: white !important;
+  border-color: rgb(229, 229, 229) !important;
 }
 
 /* Fix for iOS Safari autofill */
@@ -330,9 +336,39 @@ input[type="tel"]:-webkit-autofill {
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 1000px white inset !important;
+    box-shadow: 0 0 0 1000px white inset !important;
     -webkit-text-fill-color: rgb(23, 23, 23) !important;
     background-color: white !important;
+    border-color: rgb(229, 229, 229) !important;
   }
+}
+
+/* Remove any yellow borders or outlines from inputs */
+input:focus,
+input:active,
+textarea:focus,
+textarea:active,
+select:focus,
+select:active {
+  outline: none !important;
+  border-color: rgb(37, 99, 235) !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Ensure no yellow background on any form elements */
+input,
+textarea,
+select {
+  background-color: white !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Remove yellow from any browser default styles */
+input::placeholder,
+textarea::placeholder {
+  color: rgb(163, 163, 163) !important;
+  opacity: 1 !important;
 }
 
 /* Premium focus rings */

@@ -248,10 +248,27 @@ export default function ProviderSignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-white to-stone-50/30 py-12 px-4">
-      <div className="container mx-auto max-w-2xl">
-        <Card className="border-2 border-stone-200 bg-white shadow-xl">
-          <CardHeader className="border-b border-stone-200 bg-gradient-to-r from-stone-50 to-white">
+    <>
+      {/* Prevent browser theme color from showing yellow */}
+      <style jsx global>{`
+        input, textarea, select {
+          background-color: white !important;
+        }
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 1000px white inset !important;
+          box-shadow: 0 0 0 1000px white inset !important;
+          -webkit-text-fill-color: rgb(23, 23, 23) !important;
+          background-color: white !important;
+          border-color: rgb(229, 229, 229) !important;
+        }
+      `}</style>
+      <div className="min-h-screen bg-white py-12 px-4">
+        <div className="container mx-auto max-w-2xl">
+          <Card className="border border-stone-200 bg-white shadow-lg">
+            <CardHeader className="border-b border-stone-200 bg-white">
             <CardTitle className="text-3xl font-bold text-center text-stone-900">Join BaseHealth</CardTitle>
             <CardDescription className="text-center text-stone-600 mt-2">
               Sign up as a healthcare provider or health app
@@ -528,9 +545,10 @@ export default function ProviderSignupPage() {
             </Button>
           </form>
         </CardContent>
-      </Card>
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
