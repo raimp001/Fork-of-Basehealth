@@ -160,18 +160,31 @@ export default function ProviderSignupPage() {
       if (!response.ok) {
         const errorMsg = data?.error || `Registration failed (${response.status})`
         const errorCode = data?.errorCode || "UNKNOWN"
+        const errorDetails = data?.details || ""
         
-        // Show more helpful error messages
+        // Show more helpful error messages based on error code
         let displayError = errorMsg
-        if (errorCode === "DATABASE_ERROR") {
-          displayError = "Database connection error. Please contact support or try again later."
+        if (errorCode === "DATABASE_ERROR" || errorCode === "DATABASE_CONNECTION_ERROR") {
+          displayError = "Database connection error. Please ensure DATABASE_URL is configured in Vercel settings."
+        } else if (errorCode === "CREATE_ERROR") {
+          displayError = "Failed to create account. Please check database configuration or contact support."
         } else if (response.status === 409) {
           displayError = errorMsg // Already registered error
         } else if (response.status === 400) {
           displayError = errorMsg // Validation error
         } else if (response.status === 429) {
           displayError = "Too many registration attempts. Please wait and try again later."
+        } else if (response.status === 500) {
+          displayError = errorMsg || "Server error. Please try again or contact support."
         }
+        
+        // Log error details for debugging
+        console.error("Registration error:", {
+          status: response.status,
+          errorCode,
+          errorMsg,
+          details: errorDetails
+        })
         
         setError(displayError)
         toastError({

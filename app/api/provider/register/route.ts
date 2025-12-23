@@ -157,10 +157,37 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Check database connection first
+    try {
+      await prisma.$connect()
+    } catch (dbError) {
+      logger.error('Database connection failed', dbError)
+      return NextResponse.json(
+        { 
+          error: "Database connection failed. Please check DATABASE_URL environment variable.",
+          errorCode: "DATABASE_CONNECTION_ERROR",
+          details: process.env.NODE_ENV === 'development' ? (dbError instanceof Error ? dbError.message : String(dbError)) : undefined
+        },
+        { status: 500 }
+      )
+    }
+
     // Check if email already exists
-    const existingProvider = await prisma.provider.findUnique({
-      where: { email },
-    })
+    let existingProvider
+    try {
+      existingProvider = await prisma.provider.findUnique({
+        where: { email },
+      })
+    } catch (dbError) {
+      logger.error('Error checking existing provider', dbError)
+      return NextResponse.json(
+        { 
+          error: "Database error while checking existing provider. Please try again.",
+          errorCode: "DATABASE_ERROR"
+        },
+        { status: 500 }
+      )
+    }
 
     if (existingProvider) {
       return NextResponse.json(
@@ -171,9 +198,21 @@ export async function POST(req: NextRequest) {
 
     // For physicians, check if NPI already exists
     if (data.type === "PHYSICIAN" && npi) {
-      const existingNPI = await prisma.provider.findUnique({
-        where: { npiNumber: npi },
-      })
+      let existingNPI
+      try {
+        existingNPI = await prisma.provider.findUnique({
+          where: { npiNumber: npi },
+        })
+      } catch (dbError) {
+        logger.error('Error checking existing NPI', dbError)
+        return NextResponse.json(
+          { 
+            error: "Database error while checking NPI. Please try again.",
+            errorCode: "DATABASE_ERROR"
+          },
+          { status: 500 }
+        )
+      }
 
       if (existingNPI) {
         logger.warn('Duplicate NPI registration attempt', { npi, email })
@@ -188,23 +227,54 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(data.password, 10)
 
     // Create provider
-    const provider = await prisma.provider.create({
-      data: {
-        type: data.type,
-        fullName: data.fullName ? sanitizeText(data.fullName) : null,
-        organizationName: data.organizationName ? sanitizeText(data.organizationName) : null,
-        email,
-        passwordHash,
-        phone: data.phone ? sanitizeText(data.phone) : null,
-        npiNumber: npi || null,
-        licenseNumber: licenseNumber || null,
-        licenseState: licenseState || null,
-        specialties: (data.specialties || []).map(s => sanitizeText(s)),
-        bio: data.bio ? sanitizeText(data.bio) : null,
-        isVerified: false, // Requires admin approval
-        acceptingPatients: true,
-      },
-    })
+    let provider
+    try {
+      provider = await prisma.provider.create({
+        data: {
+          type: data.type,
+          fullName: data.fullName ? sanitizeText(data.fullName) : null,
+          organizationName: data.organizationName ? sanitizeText(data.organizationName) : null,
+          email,
+          passwordHash,
+          phone: data.phone ? sanitizeText(data.phone) : null,
+          npiNumber: npi || null,
+          licenseNumber: licenseNumber || null,
+          licenseState: licenseState || null,
+          specialties: (data.specialties || []).map(s => sanitizeText(s)),
+          bio: data.bio ? sanitizeText(data.bio) : null,
+          isVerified: false, // Requires admin approval
+          acceptingPatients: true,
+        },
+      })
+    } catch (createError) {
+      logger.error('Error creating provider', createError)
+      const createErrorMessage = createError instanceof Error ? createError.message : String(createError)
+      
+      // Check for specific Prisma errors
+      if (createErrorMessage.includes("P2002")) {
+        if (createErrorMessage.includes("email")) {
+          return NextResponse.json(
+            { error: "Email already registered", errorCode: "EMAIL_EXISTS" },
+            { status: 409 }
+          )
+        }
+        if (createErrorMessage.includes("npiNumber")) {
+          return NextResponse.json(
+            { error: "NPI number already registered", errorCode: "NPI_EXISTS" },
+            { status: 409 }
+          )
+        }
+      }
+      
+      return NextResponse.json(
+        { 
+          error: "Failed to create provider account. Please check your database configuration.",
+          errorCode: "CREATE_ERROR",
+          details: process.env.NODE_ENV === 'development' ? createErrorMessage : undefined
+        },
+        { status: 500 }
+      )
+    }
 
     logger.info('Provider registered successfully', { 
       providerId: provider.id, 
