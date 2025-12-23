@@ -245,26 +245,27 @@ export async function POST(req: NextRequest) {
     
     // Check for unique constraint violations (email/NPI already exists)
     if (errorMessage.includes("P2002")) {
-      if (errorMessage.includes("email")) {
+      if (errorMessage.includes("email") || errorMessage.includes("email")) {
         return NextResponse.json(
-          { error: "Email already registered" },
+          { error: "Email already registered", errorCode: "EMAIL_EXISTS" },
           { status: 409 }
         )
       }
-      if (errorMessage.includes("npiNumber")) {
+      if (errorMessage.includes("npiNumber") || errorMessage.includes("npi")) {
         return NextResponse.json(
-          { error: "NPI number already registered" },
+          { error: "NPI number already registered", errorCode: "NPI_EXISTS" },
           { status: 409 }
         )
       }
+      return NextResponse.json(
+        { error: "A provider with this information already exists", errorCode: "DUPLICATE" },
+        { status: 409 }
+      )
     }
     
     // Always return detailed error message to help diagnose issues
-    // In production, we'll still show helpful messages without exposing sensitive data
     const userFriendlyError = isDatabaseError
       ? "Database connection error. Please check your database configuration or contact support."
-      : errorMessage.includes("P2002")
-      ? "A provider with this email or NPI already exists."
       : errorMessage.includes("P1001")
       ? "Cannot connect to database. Please check your DATABASE_URL environment variable."
       : errorMessage.includes("P2003")
@@ -276,9 +277,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { 
         error: userFriendlyError,
-        // Include error code for debugging
         errorCode: isDatabaseError ? "DATABASE_ERROR" : "UNKNOWN_ERROR",
-        // In development, include full details
+        // In development, include full details for debugging
         ...(process.env.NODE_ENV === 'development' && {
           details: errorMessage,
           stack: errorStack
