@@ -114,23 +114,30 @@ export default function ProviderSignupPage() {
         }
       }
 
-      const payload = {
+      // Build payload with proper validation
+      const payload: any = {
         type: providerType,
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
-        phone: formData.phone || undefined,
-        bio: formData.bio || undefined,
-        ...(providerType === "PHYSICIAN"
-          ? {
-              fullName: formData.fullName,
-              npi: formData.npi.replace(/\D/g, ''), // Ensure only digits
-              licenseNumber: formData.licenseNumber,
-              licenseState: formData.licenseState.toUpperCase().trim(), // Ensure uppercase and trimmed
-              specialties: formData.specialties,
-            }
-          : {
-              organizationName: formData.organizationName,
-            }),
+      }
+
+      // Add optional fields only if they have values
+      if (formData.phone && formData.phone.trim()) {
+        payload.phone = formData.phone.trim()
+      }
+      if (formData.bio && formData.bio.trim()) {
+        payload.bio = formData.bio.trim()
+      }
+
+      // Add physician-specific fields
+      if (providerType === "PHYSICIAN") {
+        payload.fullName = formData.fullName.trim()
+        payload.npi = formData.npi.replace(/\D/g, '') // Ensure only digits
+        payload.licenseNumber = formData.licenseNumber.trim()
+        payload.licenseState = formData.licenseState.toUpperCase().trim() // Ensure uppercase and trimmed
+        payload.specialties = formData.specialties || []
+      } else {
+        payload.organizationName = formData.organizationName.trim()
       }
 
       const response = await fetch("/api/provider/register", {
@@ -141,16 +148,32 @@ export default function ProviderSignupPage() {
         body: JSON.stringify(payload),
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Registration failed")
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        // If response is not JSON, get text
+        const text = await response.text()
+        throw new Error(text || "Registration failed. Invalid server response.")
       }
 
-      // Store provider token if provided (for immediate login after signup)
-      // Note: The registration endpoint doesn't return a token, so providers will need to login separately
-      // But we'll redirect them to login with a message
+      if (!response.ok) {
+        const errorMsg = data?.error || `Registration failed (${response.status})`
+        setError(errorMsg)
+        toastError({
+          title: "Registration Failed",
+          description: errorMsg,
+        })
+        setIsSubmitting(false)
+        return
+      }
+
+      // Success!
       setSuccess(true)
+      toastSuccess({
+        title: "Registration Successful!",
+        description: "Your account is pending verification. Redirecting to login...",
+      })
       
       // Redirect to provider login page after 2 seconds with success message
       setTimeout(() => {
@@ -159,15 +182,15 @@ export default function ProviderSignupPage() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
       setError(errorMessage)
-      // Error toast already shown in try block, but show generic one if needed
-      if (!errorMessage.includes("Registration Failed")) {
-        toastError({
-          title: "Registration Failed",
-          description: errorMessage,
-        })
-      }
+      toastError({
+        title: "Registration Failed",
+        description: errorMessage,
+      })
     } finally {
-      setIsSubmitting(false)
+      // Only reset submitting if we're not redirecting
+      if (!success) {
+        setIsSubmitting(false)
+      }
     }
   }
 
