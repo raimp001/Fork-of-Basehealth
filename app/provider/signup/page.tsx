@@ -251,18 +251,48 @@ export default function ProviderSignupPage() {
     <>
       {/* Prevent browser theme color from showing yellow */}
       <style jsx global>{`
-        input, textarea, select {
+        /* Force white background everywhere */
+        html, body {
           background-color: white !important;
         }
+        
+        /* Remove all yellow from inputs */
+        input, textarea, select {
+          background-color: white !important;
+          border-color: rgb(229, 229, 229) !important;
+        }
+        
+        /* Aggressive autofill fix */
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
-        input:-webkit-autofill:active {
+        input:-webkit-autofill:active,
+        input:-webkit-autofill-selected {
           -webkit-box-shadow: 0 0 0 1000px white inset !important;
           box-shadow: 0 0 0 1000px white inset !important;
           -webkit-text-fill-color: rgb(23, 23, 23) !important;
           background-color: white !important;
+          background-clip: content-box !important;
           border-color: rgb(229, 229, 229) !important;
+          caret-color: rgb(23, 23, 23) !important;
+        }
+        
+        /* Remove yellow from all form elements */
+        form input,
+        form textarea,
+        form select {
+          background-color: white !important;
+        }
+        
+        /* Remove any yellow borders or glows */
+        input:focus,
+        input:active,
+        textarea:focus,
+        textarea:active {
+          outline: none !important;
+          border-color: rgb(37, 99, 235) !important;
+          box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+          background-color: white !important;
         }
       `}</style>
       <div className="min-h-screen bg-white py-12 px-4">
@@ -334,7 +364,7 @@ export default function ProviderSignupPage() {
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     required
                     autoComplete="name"
-                    className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
+                    className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600 focus:bg-white"
                   />
                 </div>
               ) : (
@@ -349,7 +379,7 @@ export default function ProviderSignupPage() {
                     value={formData.organizationName}
                     onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
                     required
-                    className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
+                    className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600 focus:bg-white"
                   />
                 </div>
               )}
@@ -424,7 +454,7 @@ export default function ProviderSignupPage() {
                       minLength={10}
                       pattern="[0-9]{10}"
                       autoComplete="off"
-                      className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
+                      className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600 focus:bg-white"
                     />
                     <p className="text-xs text-stone-500 mt-1">10-digit National Provider Identifier (Required)</p>
                   </div>
@@ -440,7 +470,7 @@ export default function ProviderSignupPage() {
                       value={formData.licenseNumber}
                       onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
                       required
-                      className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
+                      className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600 focus:bg-white"
                     />
                     <p className="text-xs text-stone-500 mt-1">Your state medical board license number</p>
                   </div>
@@ -464,7 +494,7 @@ export default function ProviderSignupPage() {
                       minLength={2}
                       pattern="[A-Z]{2}"
                       autoComplete="off"
-                      className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600"
+                      className="bg-white border-stone-300 text-stone-900 placeholder:text-stone-400 focus:border-blue-600 focus:ring-blue-600 focus:bg-white"
                     />
                     <p className="text-xs text-stone-500 mt-1">2-letter state code (e.g., CA, NY, TX) - Required</p>
                   </div>
