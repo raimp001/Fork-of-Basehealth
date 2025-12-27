@@ -181,16 +181,31 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Check database connection first
+    // Check if DATABASE_URL is set
+    if (!process.env.DATABASE_URL) {
+      logger.error('DATABASE_URL environment variable is not set')
+      return NextResponse.json(
+        { 
+          error: "Database not configured. Please add DATABASE_URL to Vercel environment variables.",
+          errorCode: "NO_DATABASE_URL",
+          hint: "Go to Vercel Dashboard → Settings → Environment Variables → Add DATABASE_URL",
+        },
+        { status: 500 }
+      )
+    }
+
+    // Check database connection
     try {
       await prisma.$connect()
     } catch (dbError) {
       logger.error('Database connection failed', dbError)
+      const dbErrorMsg = dbError instanceof Error ? dbError.message : String(dbError)
       return NextResponse.json(
         { 
-          error: "Database connection failed. Please check DATABASE_URL environment variable.",
+          error: "Database connection failed. Check DATABASE_URL format and database server status.",
           errorCode: "DATABASE_CONNECTION_ERROR",
-          details: process.env.NODE_ENV === 'development' ? (dbError instanceof Error ? dbError.message : String(dbError)) : undefined
+          hint: "DATABASE_URL format: postgresql://user:password@host:port/database",
+          details: dbErrorMsg
         },
         { status: 500 }
       )

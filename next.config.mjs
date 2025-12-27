@@ -10,6 +10,8 @@ const nextConfig = {
   images: {
     unoptimized: false, // Enable optimization for better performance
   },
+  // Empty turbopack config to suppress warning when using webpack
+  turbopack: {},
   experimental: {
     // Enable server actions with proper object syntax
     serverActions: {

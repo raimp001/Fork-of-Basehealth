@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
+import { logger } from "@/lib/logger"
 
 // Webhook event types
 type WebhookEventType =
@@ -42,33 +43,33 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "payment_intent.created":
         // Handle payment intent created
-        console.log("Payment intent created:", event.data.object.id)
+        logger.info("Payment intent created", { id: event.data.object.id })
         break
 
       case "payment_intent.completed":
         // Handle payment intent completed
-        console.log("Payment completed:", event.data.object.id)
+        logger.info("Payment completed", { id: event.data.object.id })
         // Update appointment payment status in your database
         // await updateAppointmentPaymentStatus(event.data.object.metadata.appointmentId, 'paid');
         break
 
       case "payment_intent.failed":
         // Handle payment intent failed
-        console.log("Payment failed:", event.data.object.id)
+        logger.warn("Payment failed", { id: event.data.object.id })
         break
 
       case "payment_intent.expired":
         // Handle payment intent expired
-        console.log("Payment expired:", event.data.object.id)
+        logger.warn("Payment expired", { id: event.data.object.id })
         break
 
       default:
-        console.log("Unhandled event type:", event.type)
+        logger.info("Unhandled event type", { type: event.type })
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error("Error processing webhook:", error)
+    logger.error("Error processing webhook", error)
     return NextResponse.json({ error: "Failed to process webhook" }, { status: 500 })
   }
 }
@@ -79,7 +80,7 @@ function verifySignature(payload: string, signature: string, secret: string): bo
     const expectedSignature = hmac.update(payload).digest("hex")
     return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))
   } catch (error) {
-    console.error("Error verifying signature:", error)
+    logger.error("Error verifying signature", error)
     return false
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { notifyProviderApplicationReceived, notifyAdminNewApplication } from '@/lib/email-service'
+import { logger } from '@/lib/logger'
 
 interface ProviderSignupData {
   // Personal Information
@@ -188,13 +189,12 @@ export async function POST(request: NextRequest) {
     const applicationId = `app_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     const submittedDate = new Date().toISOString()
 
-    // Log the application for demo purposes
-    console.log('New Provider Application:', {
+    // Log the application
+    logger.info('New Provider Application', {
       applicationId,
       name: `${providerData.firstName} ${providerData.lastName}`,
       email: providerData.email,
       specialty: providerData.specialty,
-      npiNumber: providerData.npiNumber,
       submittedAt: submittedDate
     })
 
@@ -218,9 +218,9 @@ export async function POST(request: NextRequest) {
         submittedDate
       })
 
-      console.log('📧 Email notifications sent successfully')
+      logger.info('Email notifications sent successfully')
     } catch (emailError) {
-      console.error('Failed to send email notifications:', emailError)
+      logger.error('Failed to send email notifications', emailError)
       // Don't fail the application submission if emails fail
     }
 
@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Provider signup error:', error)
+    logger.error('Provider signup error', error)
     return NextResponse.json(
       { error: 'Failed to submit application. Please try again.' },
       { status: 500 }
@@ -299,7 +299,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Provider signup GET error:', error)
+    logger.error('Provider signup GET error', error)
     return NextResponse.json(
       { error: 'Failed to fetch signup requirements' },
       { status: 500 }
