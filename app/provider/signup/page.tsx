@@ -210,13 +210,19 @@ export default function ProviderSignupPage() {
           status: response.status,
           errorCode,
           errorMsg,
-          details: errorDetails
+          details: errorDetails,
+          fullResponse: data
         })
         
-        setError(displayError)
+        // Show detailed error in development, user-friendly in production
+        const detailedError = process.env.NODE_ENV === 'development' 
+          ? `${displayError}${errorDetails ? `\n\nDetails: ${errorDetails}` : ''}`
+          : displayError
+        
+        setError(detailedError)
         toastError({
           title: "Registration Failed",
-          description: displayError,
+          description: detailedError,
         })
         setIsSubmitting(false)
         return

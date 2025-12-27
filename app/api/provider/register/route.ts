@@ -253,48 +253,77 @@ export async function POST(req: NextRequest) {
     // Create provider
     let provider
     try {
+      // Log the data being created (without password)
+      logger.info('Attempting to create provider', {
+        type: data.type,
+        email,
+        hasNPI: !!npi,
+        hasLicenseNumber: !!licenseNumber,
+        hasLicenseState: !!licenseState,
+      })
+
+      const createData = {
+        type: data.type,
+        fullName: data.fullName ? sanitizeText(data.fullName) : null,
+        organizationName: data.organizationName ? sanitizeText(data.organizationName) : null,
+        email,
+        passwordHash,
+        phone: data.phone ? sanitizeText(data.phone) : null,
+        npiNumber: npi || null,
+        licenseNumber: licenseNumber || null,
+        licenseState: licenseState || null,
+        specialties: (data.specialties || []).map(s => sanitizeText(s)),
+        bio: data.bio ? sanitizeText(data.bio) : null,
+        isVerified: false, // Requires admin approval
+        acceptingPatients: true,
+      }
+
       provider = await prisma.provider.create({
-        data: {
-          type: data.type,
-          fullName: data.fullName ? sanitizeText(data.fullName) : null,
-          organizationName: data.organizationName ? sanitizeText(data.organizationName) : null,
-          email,
-          passwordHash,
-          phone: data.phone ? sanitizeText(data.phone) : null,
-          npiNumber: npi || null,
-          licenseNumber: licenseNumber || null,
-          licenseState: licenseState || null,
-          specialties: (data.specialties || []).map(s => sanitizeText(s)),
-          bio: data.bio ? sanitizeText(data.bio) : null,
-          isVerified: false, // Requires admin approval
-          acceptingPatients: true,
-        },
+        data: createData,
       })
     } catch (createError) {
-      logger.error('Error creating provider', createError)
+      logger.error('Error creating provider', {
+        error: createError,
+        errorMessage: createError instanceof Error ? createError.message : String(createError),
+        errorStack: createError instanceof Error ? createError.stack : undefined,
+        type: data.type,
+        email,
+      })
       const createErrorMessage = createError instanceof Error ? createError.message : String(createError)
       
       // Check for specific Prisma errors
       if (createErrorMessage.includes("P2002")) {
-        if (createErrorMessage.includes("email")) {
+        if (createErrorMessage.includes("email") || createErrorMessage.includes("email")) {
           return NextResponse.json(
             { error: "Email already registered", errorCode: "EMAIL_EXISTS" },
             { status: 409 }
           )
         }
-        if (createErrorMessage.includes("npiNumber")) {
+        if (createErrorMessage.includes("npiNumber") || createErrorMessage.includes("npi")) {
           return NextResponse.json(
             { error: "NPI number already registered", errorCode: "NPI_EXISTS" },
             { status: 409 }
           )
         }
+        return NextResponse.json(
+          { error: "A provider with this information already exists", errorCode: "DUPLICATE" },
+          { status: 409 }
+        )
       }
-      
+
+      // Always include error details in production for debugging
       return NextResponse.json(
         { 
           error: "Failed to create provider account. Please check your database configuration.",
           errorCode: "CREATE_ERROR",
-          details: process.env.NODE_ENV === 'development' ? createErrorMessage : undefined
+          details: createErrorMessage, // Include details even in production for now
+          hint: createErrorMessage.includes("P1001") 
+            ? "Database connection failed. Check DATABASE_URL in Vercel."
+            : createErrorMessage.includes("P2002")
+            ? "Duplicate entry. Email or NPI already exists."
+            : createErrorMessage.includes("P2003")
+            ? "Invalid reference. Check foreign key constraints."
+            : "Check Vercel function logs for more details."
         },
         { status: 500 }
       )
