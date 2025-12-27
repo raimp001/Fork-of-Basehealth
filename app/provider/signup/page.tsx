@@ -241,15 +241,25 @@ export default function ProviderSignupPage() {
       }, 2000)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
-      
+      const errorStack = err instanceof Error ? err.stack : undefined
+
+      // Log full error for debugging
+      console.error("Registration exception:", {
+        error: err,
+        message: errorMessage,
+        stack: errorStack
+      })
+
       // Provide more helpful error messages
       let displayError = errorMessage
       if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
         displayError = "Network error. Please check your internet connection and try again."
       } else if (errorMessage.includes("Invalid server response")) {
         displayError = "Server error. Please try again or contact support."
+      } else if (errorMessage.includes("JSON")) {
+        displayError = "Server returned invalid response. Please check Vercel logs or try again."
       }
-      
+
       setError(displayError)
       toastError({
         title: "Registration Failed",
