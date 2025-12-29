@@ -194,21 +194,21 @@ export default function AdminPortalPage() {
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <PrimaryActionButton asChild className="justify-start">
-                    <Link href="/admin/applications" className="flex items-center gap-3">
+                    <Link href="/admin/provider-applications" className="flex items-center gap-3">
                       <Users className="h-5 w-5" />
                       <div className="text-left">
-                        <div className="font-medium">Review Applications</div>
-                        <div className="text-sm opacity-90">{stats.pending + stats.underReview} pending</div>
+                        <div className="font-medium">Provider Applications</div>
+                        <div className="text-sm opacity-90">Review provider signups</div>
                       </div>
                     </Link>
                   </PrimaryActionButton>
 
                   <StandardizedButton asChild variant="secondary" className="justify-start">
-                    <Link href="/admin/providers" className="flex items-center gap-3">
+                    <Link href="/admin/caregiver-applications" className="flex items-center gap-3">
                       <Activity className="h-5 w-5" />
                       <div className="text-left">
-                        <div className="font-medium">Manage Providers</div>
-                        <div className="text-sm opacity-70">View active providers</div>
+                        <div className="font-medium">Caregiver Applications</div>
+                        <div className="text-sm opacity-70">Review caregiver signups</div>
                       </div>
                     </Link>
                   </StandardizedButton>
