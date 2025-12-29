@@ -4,352 +4,241 @@ import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { PrimaryActionButton, StandardizedButton } from "@/components/ui/standardized-button"
+import { Button } from "@/components/ui/button"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
-import { components } from "@/lib/design-system"
-import { mockApplicationStats } from "@/lib/mock-admin-data"
+import { LoadingSpinner } from "@/components/ui/loading"
 import { 
   Users, 
   Clock, 
   CheckCircle, 
-  AlertTriangle,
-  FileText,
-  TrendingUp,
-  Activity,
-  Bell,
-  Settings,
-  BarChart3,
-  Calendar,
-  Eye,
-  ArrowRight
+  Stethoscope,
+  Heart,
+  ArrowRight,
+  RefreshCw,
+  Database
 } from "lucide-react"
 
-export default function AdminPortalPage() {
-  const [stats, setStats] = useState(mockApplicationStats)
-  const [recentActivity] = useState([
-    {
-      id: 1,
-      type: "application_submitted",
-      user: "Maria Rodriguez",
-      role: "Caregiver",
-      time: "2 hours ago",
-      status: "pending"
-    },
-    {
-      id: 2,
-      type: "application_approved",
-      user: "Dr. Sarah Kim",
-      role: "Provider",
-      time: "4 hours ago",
-      status: "approved"
-    },
-    {
-      id: 3,
-      type: "verification_completed",
-      user: "James Wilson",
-      role: "Caregiver",
-      time: "6 hours ago",
-      status: "verified"
-    },
-    {
-      id: 4,
-      type: "application_rejected",
-      user: "John Smith",
-      role: "Provider",
-      time: "1 day ago",
-      status: "rejected"
-    }
-  ])
+interface Stats {
+  providers: {
+    total: number
+    pending: number
+    verified: number
+  }
+  caregivers: {
+    total: number
+    pending: number
+    available: number
+  }
+  database: boolean
+}
 
-  const urgentTasks = [
-    {
-      id: 1,
-      title: "Review pending caregiver applications",
-      count: stats.pending,
-      priority: "high",
-      href: "/admin/applications?status=pending&type=caregiver"
-    },
-    {
-      id: 2,
-      title: "Complete provider verifications",
-      count: 3,
-      priority: "medium",
-      href: "/admin/applications?verification=pending"
-    },
-    {
-      id: 3,
-      title: "Process interview requests",
-      count: 2,
-      priority: "medium",
-      href: "/admin/applications?action=interview"
+export default function AdminPortalPage() {
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+
+  const fetchStats = async () => {
+    setIsLoading(true)
+    try {
+      // Fetch real stats from both APIs in parallel
+      const [providersRes, caregiversRes] = await Promise.all([
+        fetch("/api/admin/providers"),
+        fetch("/api/admin/caregivers")
+      ])
+
+      const providersData = await providersRes.json()
+      const caregiversData = await caregiversRes.json()
+
+      setStats({
+        providers: providersData.stats || { total: 0, pending: 0, verified: 0 },
+        caregivers: caregiversData.stats || { total: 0, pending: 0, available: 0 },
+        database: providersData.success && caregiversData.success
+      })
+      setLastUpdated(new Date())
+    } catch (error) {
+      console.error("Failed to fetch stats:", error)
+      setStats({
+        providers: { total: 0, pending: 0, verified: 0 },
+        caregivers: { total: 0, pending: 0, available: 0 },
+        database: false
+      })
+    } finally {
+      setIsLoading(false)
     }
-  ]
+  }
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  const totalPending = (stats?.providers.pending || 0) + (stats?.caregivers.pending || 0)
 
   return (
     <div className="min-h-screen bg-gray-50">
       <MinimalNavigation />
       
       <main className="pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Admin Portal</h1>
-                <p className="text-gray-600 mt-2">
-                  Manage applications, providers, and platform operations
+                <h1 className="text-2xl font-bold text-gray-900">Admin Portal</h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  Review and manage applications
                 </p>
               </div>
               
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <span className="text-sm font-medium">System Healthy</span>
-                </div>
-                
-                <StandardizedButton
-                  variant="secondary"
-                  leftIcon={<Settings className="h-4 w-4" />}
-                >
-                  Settings
-                </StandardizedButton>
-              </div>
+              <Button variant="outline" size="sm" onClick={fetchStats} disabled={isLoading}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="p-6 border-amber-200 bg-amber-50">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-amber-700">Pending Reviews</p>
-                  <p className="text-2xl font-bold text-amber-900">{stats.pending}</p>
-                </div>
-                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-amber-600" />
-                </div>
-              </div>
-              <div className="mt-2">
-                <Link href="/admin/applications?status=pending" className="text-xs text-amber-600 hover:text-amber-800">
-                  Review now →
-                </Link>
-              </div>
-            </Card>
+          {isLoading && !stats ? (
+            <div className="flex justify-center py-12">
+              <LoadingSpinner />
+            </div>
+          ) : (
+            <>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <Card className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                      <Clock className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">{totalPending}</p>
+                      <p className="text-xs text-gray-500">Pending</p>
+                    </div>
+                  </div>
+                </Card>
 
-            <Card className="p-6 border-blue-200 bg-blue-50">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-700">Under Review</p>
-                  <p className="text-2xl font-bold text-blue-900">{stats.underReview}</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <FileText className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-              <div className="mt-2">
-                <p className="text-xs text-blue-600">In progress</p>
-              </div>
-            </Card>
+                <Card className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Stethoscope className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">{stats?.providers.total || 0}</p>
+                      <p className="text-xs text-gray-500">Providers</p>
+                    </div>
+                  </div>
+                </Card>
 
-            <Card className="p-6 border-green-200 bg-green-50">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-700">Approved This Month</p>
-                  <p className="text-2xl font-bold text-green-900">{stats.approved}</p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-              <div className="mt-2">
-                <div className="flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3 text-green-600" />
-                  <p className="text-xs text-green-600">{stats.approvalRate}% approval rate</p>
-                </div>
-              </div>
-            </Card>
+                <Card className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                      <Heart className="h-5 w-5 text-pink-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">{stats?.caregivers.total || 0}</p>
+                      <p className="text-xs text-gray-500">Caregivers</p>
+                    </div>
+                  </div>
+                </Card>
 
-            <Card className={`p-6 ${components.card.base}`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Avg Review Time</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.averageReviewTime}h</p>
-                </div>
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                  <BarChart3 className="h-6 w-6 text-gray-600" />
-                </div>
+                <Card className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {(stats?.providers.verified || 0) + (stats?.caregivers.available || 0)}
+                      </p>
+                      <p className="text-xs text-gray-500">Verified</p>
+                    </div>
+                  </div>
+                </Card>
               </div>
-              <div className="mt-2">
-                <p className="text-xs text-gray-600">Target: 48h</p>
-              </div>
-            </Card>
-          </div>
 
-          {/* Main Content Grid */}
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left Column - Main Actions */}
-            <div className="lg:col-span-2 space-y-6">
               {/* Quick Actions */}
-              <Card className={`p-6 ${components.card.base}`}>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <PrimaryActionButton asChild className="justify-start">
-                    <Link href="/admin/provider-applications" className="flex items-center gap-3">
-                      <Users className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-medium">Provider Applications</div>
-                        <div className="text-sm opacity-90">Review provider signups</div>
-                      </div>
-                    </Link>
-                  </PrimaryActionButton>
-
-                  <StandardizedButton asChild variant="secondary" className="justify-start">
-                    <Link href="/admin/caregiver-applications" className="flex items-center gap-3">
-                      <Activity className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-medium">Caregiver Applications</div>
-                        <div className="text-sm opacity-70">Review caregiver signups</div>
-                      </div>
-                    </Link>
-                  </StandardizedButton>
-
-                  <StandardizedButton asChild variant="secondary" className="justify-start">
-                    <Link href="/admin/analytics" className="flex items-center gap-3">
-                      <BarChart3 className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-medium">View Analytics</div>
-                        <div className="text-sm opacity-70">Platform insights</div>
-                      </div>
-                    </Link>
-                  </StandardizedButton>
-
-                  <StandardizedButton asChild variant="secondary" className="justify-start">
-                    <Link href="/admin/settings" className="flex items-center gap-3">
-                      <Settings className="h-5 w-5" />
-                      <div className="text-left">
-                        <div className="font-medium">System Settings</div>
-                        <div className="text-sm opacity-70">Configure platform</div>
-                      </div>
-                    </Link>
-                  </StandardizedButton>
-                </div>
-              </Card>
-
-              {/* Urgent Tasks */}
-              <Card className={`p-6 ${components.card.base}`}>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Urgent Tasks</h2>
-                  <Badge className={components.badge.warning}>
-                    {urgentTasks.reduce((sum, task) => sum + task.count, 0)} items
-                  </Badge>
-                </div>
+              <div className="space-y-3">
+                <h2 className="text-sm font-medium text-gray-700 mb-3">Applications</h2>
                 
-                <div className="space-y-3">
-                  {urgentTasks.map((task) => (
-                    <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${
-                          task.priority === 'high' ? 'bg-red-500' : 
-                          task.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                        }`}></div>
+                <Link href="/admin/provider-applications">
+                  <Card className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Stethoscope className="h-5 w-5 text-blue-600" />
+                        </div>
                         <div>
-                          <p className="font-medium text-gray-900">{task.title}</p>
-                          <p className="text-sm text-gray-600">{task.count} items</p>
+                          <p className="font-medium text-gray-900">Provider Applications</p>
+                          <p className="text-sm text-gray-500">
+                            {stats?.providers.pending || 0} pending review
+                          </p>
                         </div>
                       </div>
-                      <StandardizedButton asChild variant="ghost" size="sm">
-                        <Link href={task.href}>
-                          <ArrowRight className="h-4 w-4" />
-                        </Link>
-                      </StandardizedButton>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-
-            {/* Right Column - Activity & Notifications */}
-            <div className="space-y-6">
-              {/* Recent Activity */}
-              <Card className={`p-6 ${components.card.base}`}>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-                  <StandardizedButton variant="ghost" size="sm" leftIcon={<Eye className="h-4 w-4" />}>
-                    View All
-                  </StandardizedButton>
-                </div>
-                
-                <div className="space-y-4">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                        activity.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                        activity.status === 'approved' ? 'bg-green-100 text-green-700' :
-                        activity.status === 'verified' ? 'bg-blue-100 text-blue-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {activity.user.charAt(0)}
+                      <div className="flex items-center gap-2">
+                        {(stats?.providers.pending || 0) > 0 && (
+                          <Badge className="bg-amber-100 text-amber-700">
+                            {stats?.providers.pending} new
+                          </Badge>
+                        )}
+                        <ArrowRight className="h-5 w-5 text-gray-400" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{activity.user}</p>
-                        <p className="text-xs text-gray-600 capitalize">
-                          {activity.type.replace('_', ' ')} • {activity.role}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
-                      </div>
-                      <Badge className={
-                        activity.status === 'pending' ? components.badge.warning :
-                        activity.status === 'approved' ? components.badge.success :
-                        activity.status === 'verified' ? components.badge.primary :
-                        components.badge.error
-                      }>
-                        {activity.status}
-                      </Badge>
                     </div>
-                  ))}
-                </div>
-              </Card>
+                  </Card>
+                </Link>
 
-              {/* System Status */}
-              <Card className={`p-6 ${components.card.base}`}>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">System Status</h2>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">API Status</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm text-green-600">Operational</span>
+                <Link href="/admin/caregiver-applications">
+                  <Card className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                          <Heart className="h-5 w-5 text-pink-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">Caregiver Applications</p>
+                          <p className="text-sm text-gray-500">
+                            {stats?.caregivers.pending || 0} pending review
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {(stats?.caregivers.pending || 0) > 0 && (
+                          <Badge className="bg-amber-100 text-amber-700">
+                            {stats?.caregivers.pending} new
+                          </Badge>
+                        )}
+                        <ArrowRight className="h-5 w-5 text-gray-400" />
+                      </div>
                     </div>
+                  </Card>
+                </Link>
+              </div>
+
+              {/* Database Status */}
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <Database className="h-4 w-4" />
+                    <span>Database</span>
+                    {stats?.database ? (
+                      <span className="flex items-center gap-1 text-green-600">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        Connected
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-red-600">
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        Disconnected
+                      </span>
+                    )}
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Database</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm text-green-600">Healthy</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Email Service</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm text-green-600">Active</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Background Jobs</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                      <span className="text-sm text-yellow-600">2 queued</span>
-                    </div>
-                  </div>
+                  {lastUpdated && (
+                    <span className="text-gray-400">
+                      Updated {lastUpdated.toLocaleTimeString()}
+                    </span>
+                  )}
                 </div>
-              </Card>
-            </div>
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </main>
     </div>
