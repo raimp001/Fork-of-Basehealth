@@ -141,10 +141,54 @@ export default function CaregiverApplicationsPage() {
   useEffect(() => {
     async function fetchApplications() {
       try {
-        const response = await fetch('/api/admin/caregiver-applications')
+        // Use the new caregivers admin API
+        const response = await fetch('/api/admin/caregivers')
         const data = await response.json()
         
-        if (data.success && data.applications) {
+        if (data.success && data.caregivers) {
+          // Transform API data to match our interface
+          const apps = data.caregivers.map((app: any) => ({
+            id: app.id,
+            firstName: app.firstName,
+            lastName: app.lastName,
+            email: app.email,
+            phone: app.phone || '',
+            licenseNumber: app.licenseNumber || 'N/A',
+            primarySpecialty: app.specialties?.[0] || 'General Care',
+            yearsExperience: app.yearsExperience ? `${app.yearsExperience} years` : 'N/A',
+            serviceAreas: Array.isArray(app.serviceAreas) ? app.serviceAreas.join(', ') : (app.location || 'N/A'),
+            languagesSpoken: Array.isArray(app.languagesSpoken) ? app.languagesSpoken : ['English'],
+            acceptInsurance: false,
+            willingToTravel: true,
+            availableForUrgent: false,
+            carePhilosophy: app.bio || '',
+            digitalWalletAddress: '',
+            status: app.status === 'PENDING' ? 'pending' : 
+                   app.status === 'AVAILABLE' ? 'approved' : 
+                   app.status === 'INACTIVE' ? 'rejected' : 'pending',
+            applicationDate: app.submittedAt || app.createdAt || new Date().toISOString().split('T')[0],
+            documents: {
+              governmentId: true,
+              professionalLicense: app.isLicensed || false,
+              additionalCertifications: app.isCPRCertified || false,
+              backgroundCheck: app.isBackgroundChecked || false
+            }
+          }))
+          
+          // If no real applications, use mock data for demo
+          const finalApps = apps.length > 0 ? apps : mockApplications
+          setApplications(finalApps)
+          setFilteredApplications(finalApps)
+          setIsShowingMockData(apps.length === 0)
+          setIsLoading(false)
+          return
+        }
+        
+        // Fallback: try the old endpoint
+        const oldResponse = await fetch('/api/admin/caregiver-applications')
+        const oldData = await oldResponse.json()
+        
+        if (oldData.success && oldData.applications) {
           // Transform API data to match our interface
           const apps = data.applications.map((app: any) => ({
             id: app.id,
@@ -226,45 +270,29 @@ export default function CaregiverApplicationsPage() {
 
   const handleStatusChange = async (applicationId: string, newStatus: 'approved' | 'rejected') => {
     try {
-      // If approving, call the approve API to add caregiver to search
-      if (newStatus === 'approved') {
-        const response = await fetch('/api/caregivers/approve', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ applicationId })
+      // Use the new admin caregivers API
+      const response = await fetch('/api/admin/caregivers', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          caregiverId: applicationId,
+          action: newStatus === 'approved' ? 'approve' : 'reject',
+          notes: newStatus === 'approved' 
+            ? 'Application approved by admin' 
+            : 'Application rejected by admin'
         })
-        
-        const result = await response.json()
-        
-        if (!result.success) {
-          alert(`Failed to approve: ${result.error}`)
-          return
-        }
-        
-        alert(`Successfully approved ${result.caregiver?.name || 'caregiver'}! They will now appear in caregiver search.`)
-      } else {
-        // For rejection, update via admin API
-        const response = await fetch(`/api/admin/caregiver-applications?id=${applicationId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            status: newStatus,
-            reviewNotes: 'Application rejected by admin',
-            reviewedBy: 'Admin'
-          })
-        })
-        
-        const result = await response.json()
-        
-        if (!result.success) {
-          alert(`Failed to reject application`)
-          return
-        }
+      })
+      
+      const result = await response.json()
+      
+      if (!result.success) {
+        alert(`Failed to ${newStatus}: ${result.error}`)
+        return
       }
+      
+      alert(result.message || `Successfully ${newStatus}!`)
       
       // Update local state
       setApplications(prev => 
