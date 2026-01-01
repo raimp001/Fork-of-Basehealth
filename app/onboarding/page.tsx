@@ -75,6 +75,16 @@ export default function OnboardingPage() {
   // NPI lookup state
   const [npiSearching, setNpiSearching] = useState(false)
   const [npiResult, setNpiResult] = useState<any>(null)
+
+  // Handle role from URL query parameter
+  useEffect(() => {
+    const roleParam = searchParams.get("role")
+    if (roleParam === "provider") {
+      setRole("PROVIDER")
+    } else if (roleParam === "caregiver") {
+      setRole("CAREGIVER")
+    }
+  }, [searchParams])
   
   // Form data
   const [formData, setFormData] = useState({
