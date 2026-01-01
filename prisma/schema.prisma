@@ -31,6 +31,7 @@ model User {
   caregiver Caregiver?
   provider  Provider?
   bookings  Booking[]
+  auditLogs AuditLog[]
   
   @@index([email])
   @@map("users")
@@ -74,6 +75,283 @@ model Patient {
 }
 
 // ============================================================================
+// ONBOARDING APPLICATION (Unified for Provider & Caregiver)
+// ============================================================================
+
+model Application {
+  id              String            @id @default(cuid())
+  
+  // Role & Region
+  role            ApplicationRole
+  country         String            @default("US")
+  regions         String[]          // States/provinces where they'll practice
+  
+  // Applicant Info
+  email           String
+  phone           String?
+  firstName       String?
+  lastName        String?
+  fullName        String?
+  organizationName String?
+  
+  // Step Completion Tracking
+  currentStep     Int               @default(0)
+  stepsCompleted  Json              @default("{}") // { "0": true, "1": true, ... }
+  
+  // Application Status
+  status          ApplicationStatus @default(DRAFT)
+  submittedAt     DateTime?
+  
+  // Review Info
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  reviewNotes     String?           @db.Text
+  approvalScope   Json?             // { states: [], services: [] }
+  
+  // Provider-Specific Fields
+  providerType    ProviderType?
+  professionType  String?           // MD, DO, NP, PA, RN, PharmD, etc.
+  specialty       String?
+  taxonomyCode    String?
+  
+  // NPI Info (for US Providers)
+  npiNumber       String?
+  npiVerified     Boolean           @default(false)
+  npiData         Json?             // Cached NPPES data
+  
+  // License Info
+  licenseNumber   String?
+  licenseState    String?
+  licenseExpiry   DateTime?
+  licenseVerified Boolean           @default(false)
+  
+  // DEA (optional, for prescribing)
+  deaNumber       String?
+  deaExpiry       DateTime?
+  
+  // Malpractice Insurance (optional)
+  malpracticeCarrier String?
+  malpracticePolicyNumber String?
+  malpracticeExpiry DateTime?
+  
+  // Caregiver-Specific Fields
+  servicesOffered String[]          // Companionship, ADLs, transport, etc.
+  experienceYears Int?
+  bio             String?           @db.Text
+  availability    Json?             // { days: [], times: [] }
+  hasTransport    Boolean           @default(false)
+  
+  // Identity (for background check)
+  dateOfBirth     DateTime?
+  
+  // Certifications (caregiver)
+  certifications  String[]          // CNA, HHA, BLS, CPR, etc.
+  languages       String[]
+  
+  // Attestations
+  attestedAccuracy Boolean          @default(false)
+  attestedLicenseScope Boolean      @default(false)
+  consentToVerification Boolean     @default(false)
+  consentToBackgroundCheck Boolean  @default(false)
+  attestedAt      DateTime?
+  
+  // Relations
+  documents       Document[]
+  verifications   Verification[]
+  
+  // Timestamps
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@index([email])
+  @@index([status])
+  @@index([role, country])
+  @@map("applications")
+}
+
+enum ApplicationRole {
+  PROVIDER
+  CAREGIVER
+}
+
+enum ApplicationStatus {
+  DRAFT           // Incomplete, can resume
+  SUBMITTED       // Awaiting review
+  UNDER_REVIEW    // Admin is reviewing
+  PENDING_INFO    // Additional info requested
+  APPROVED        // Approved to practice
+  REJECTED        // Rejected
+  SUSPENDED       // Temporarily suspended
+}
+
+// ============================================================================
+// DOCUMENT STORAGE
+// ============================================================================
+
+model Document {
+  id            String        @id @default(cuid())
+  applicationId String
+  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  // Document Info
+  type          DocumentType
+  fileName      String
+  fileUrl       String        // S3/Storage URL
+  fileSize      Int?
+  mimeType      String?
+  
+  // Verification
+  verified      Boolean       @default(false)
+  verifiedAt    DateTime?
+  verifiedBy    String?
+  verificationNotes String?
+  
+  // Expiry tracking
+  expiresAt     DateTime?
+  
+  // Timestamps
+  uploadedAt    DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  @@index([applicationId])
+  @@index([type])
+  @@map("documents")
+}
+
+enum DocumentType {
+  LICENSE
+  NPI_PROOF
+  DEA_CERTIFICATE
+  MALPRACTICE_COI
+  BOARD_CERTIFICATION
+  GOVERNMENT_ID
+  BACKGROUND_CHECK
+  CPR_CERTIFICATION
+  OTHER
+}
+
+// ============================================================================
+// VERIFICATION RESULTS
+// ============================================================================
+
+model Verification {
+  id            String            @id @default(cuid())
+  applicationId String
+  application   Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  // Verification Type
+  type          VerificationType
+  
+  // Status
+  status        VerificationStatus @default(PENDING)
+  
+  // Results
+  passed        Boolean?
+  matchScore    Float?            // For fuzzy name matching
+  rawResponse   Json?             // Redacted API response
+  errorMessage  String?
+  
+  // Timestamps
+  checkedAt     DateTime          @default(now())
+  expiresAt     DateTime?         // When re-check is needed
+  
+  @@index([applicationId])
+  @@index([type, status])
+  @@map("verifications")
+}
+
+enum VerificationType {
+  NPI_LOOKUP
+  LICENSE_CHECK
+  OIG_LEIE
+  SAM_EXCLUSION
+  BACKGROUND_CHECK
+  DEA_VERIFICATION
+  BOARD_CERTIFICATION
+}
+
+enum VerificationStatus {
+  PENDING
+  IN_PROGRESS
+  PASSED
+  FAILED
+  ERROR
+  EXPIRED
+}
+
+// ============================================================================
+// AUDIT LOGS
+// ============================================================================
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  
+  // Actor
+  actorId     String?
+  actor       User?     @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorEmail  String?   // Preserve even if user deleted
+  actorRole   String?
+  
+  // Action
+  action      String    // e.g., "application.submitted", "admin.approved"
+  entityType  String    // e.g., "Application", "Provider"
+  entityId    String?
+  
+  // Details
+  description String?   @db.Text
+  metadata    Json?     // Additional context
+  ipAddress   String?
+  userAgent   String?
+  
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// ONBOARDING REQUIREMENTS (Rules Engine)
+// ============================================================================
+
+model OnboardingRequirement {
+  id          String    @id @default(cuid())
+  
+  // Scope
+  role        ApplicationRole
+  country     String    // ISO country code or "*" for all
+  region      String?   // State/province code or null for country-wide
+  
+  // Field/Check
+  fieldName   String    // e.g., "npiNumber", "licenseNumber", "oig_check"
+  
+  // Requirements
+  required    Boolean   @default(false)
+  recommended Boolean   @default(false)
+  
+  // Conditional Logic
+  condition   Json?     // e.g., { "professionType": ["MD", "DO"] }
+  
+  // Display
+  label       String
+  helpText    String?
+  order       Int       @default(0)
+  
+  // Admin config
+  active      Boolean   @default(true)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@unique([role, country, region, fieldName])
+  @@index([role, country])
+  @@map("onboarding_requirements")
+}
+
+// ============================================================================
 // CAREGIVER MODEL (Following system prompt requirements)
 // ============================================================================
 
@@ -81,6 +359,9 @@ model Caregiver {
   id          String           @id @default(cuid())
   userId      String?          @unique
   user        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Application reference
+  applicationId String?        @unique
   
   // Personal Information
   firstName   String
@@ -160,6 +441,9 @@ model Provider {
   userId      String?  @unique
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   
+  // Application reference
+  applicationId String? @unique
+  
   // Provider Type: PHYSICIAN or APP
   type        ProviderType @default(PHYSICIAN)
   
@@ -176,15 +460,29 @@ model Provider {
   npiNumber   String?  @unique // NPI for physicians (nullable for apps)
   licenseNumber String? // State medical board license number (required for physicians)
   licenseState String?
+  licenseExpiry DateTime?
   specialties String[] // Array of specialties
+  professionType String? // MD, DO, NP, PA, RN, PharmD
+  taxonomyCode String?
   bio         String?  @db.Text
+  
+  // Multi-state licensing
+  statesOfPractice String[] // States where they're licensed to practice
   
   // Location
   location    String?
+  country     String   @default("US")
   
   // Status
+  status      ProviderStatus @default(PENDING)
   acceptingPatients Boolean @default(true)
   isVerified  Boolean  @default(false)
+  
+  // Exclusions Screening
+  lastOigCheck DateTime?
+  oigClear    Boolean?
+  lastSamCheck DateTime?
+  samClear    Boolean?
   
   rating      Decimal? @default(0) @db.Decimal(3, 2)
   reviewCount Int      @default(0)
@@ -195,12 +493,20 @@ model Provider {
   @@index([npiNumber])
   @@index([email])
   @@index([type])
+  @@index([status])
   @@map("providers")
 }
 
 enum ProviderType {
   PHYSICIAN
   APP
+}
+
+enum ProviderStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
 }
 
 // ============================================================================
@@ -359,4 +665,3 @@ model WebhookEvent {
   @@index([bookingId])
   @@map("webhook_events")
 }
-
