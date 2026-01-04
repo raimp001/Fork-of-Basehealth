@@ -5,7 +5,9 @@
  * Determines what fields, documents, and checks are required for each role.
  */
 
-import { ApplicationRole } from "@prisma/client"
+// Define ApplicationRole locally to avoid Prisma client dependency
+// This allows the requirements engine to work even without database
+export type ApplicationRole = 'PROVIDER' | 'CAREGIVER'
 
 export interface Requirement {
   fieldName: string

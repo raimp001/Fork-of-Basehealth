@@ -2,9 +2,9 @@
  * Audit Logging Service
  * 
  * Tracks all significant actions for compliance and accountability.
+ * Falls back to console logging when database is unavailable.
  */
 
-import { prisma } from "@/lib/prisma"
 import { logger } from "@/lib/logger"
 
 export interface AuditLogParams {
@@ -21,24 +21,52 @@ export interface AuditLogParams {
 }
 
 /**
+ * Check if database is available for audit logging
+ */
+async function canUsePrisma(): Promise<boolean> {
+  try {
+    if (!process.env.DATABASE_URL) return false
+    const { prisma } = await import("@/lib/prisma")
+    await prisma.$queryRaw`SELECT 1`
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
  * Create an audit log entry
  */
 export async function createAuditLog(params: AuditLogParams): Promise<void> {
   try {
-    await prisma.auditLog.create({
-      data: {
-        actorId: params.actorId,
-        actorEmail: params.actorEmail,
-        actorRole: params.actorRole,
+    const dbAvailable = await canUsePrisma()
+    
+    if (dbAvailable) {
+      const { prisma } = await import("@/lib/prisma")
+      await prisma.auditLog.create({
+        data: {
+          actorId: params.actorId,
+          actorEmail: params.actorEmail,
+          actorRole: params.actorRole,
+          action: params.action,
+          entityType: params.entityType,
+          entityId: params.entityId,
+          description: params.description,
+          metadata: params.metadata,
+          ipAddress: params.ipAddress,
+          userAgent: params.userAgent,
+        },
+      })
+    } else {
+      // Fallback to console logging
+      logger.info("Audit log (no DB)", {
         action: params.action,
         entityType: params.entityType,
         entityId: params.entityId,
+        actorEmail: params.actorEmail,
         description: params.description,
-        metadata: params.metadata,
-        ipAddress: params.ipAddress,
-        userAgent: params.userAgent,
-      },
-    })
+      })
+    }
   } catch (error) {
     // Log but don't throw - audit logging shouldn't break the main flow
     logger.error("Failed to create audit log", { params, error })
@@ -170,39 +198,75 @@ export async function getAuditLogsForEntity(
   entityId: string,
   limit = 50
 ) {
-  return prisma.auditLog.findMany({
-    where: { entityType, entityId },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    include: {
-      actor: {
-        select: { id: true, email: true, name: true },
+  try {
+    const dbAvailable = await canUsePrisma()
+    if (!dbAvailable) {
+      logger.warn("Cannot retrieve audit logs - database not available")
+      return []
+    }
+    
+    const { prisma } = await import("@/lib/prisma")
+    return prisma.auditLog.findMany({
+      where: { entityType, entityId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      include: {
+        actor: {
+          select: { id: true, email: true, name: true },
+        },
       },
-    },
-  })
+    })
+  } catch (error) {
+    logger.error("Failed to get audit logs", { entityType, entityId, error })
+    return []
+  }
 }
 
 export async function getRecentAuditLogs(limit = 100) {
-  return prisma.auditLog.findMany({
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    include: {
-      actor: {
-        select: { id: true, email: true, name: true },
+  try {
+    const dbAvailable = await canUsePrisma()
+    if (!dbAvailable) {
+      logger.warn("Cannot retrieve audit logs - database not available")
+      return []
+    }
+    
+    const { prisma } = await import("@/lib/prisma")
+    return prisma.auditLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      include: {
+        actor: {
+          select: { id: true, email: true, name: true },
+        },
       },
-    },
-  })
+    })
+  } catch (error) {
+    logger.error("Failed to get recent audit logs", { error })
+    return []
+  }
 }
 
 export async function getAuditLogsByAction(action: string, limit = 100) {
-  return prisma.auditLog.findMany({
-    where: { action },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    include: {
-      actor: {
-        select: { id: true, email: true, name: true },
+  try {
+    const dbAvailable = await canUsePrisma()
+    if (!dbAvailable) {
+      logger.warn("Cannot retrieve audit logs - database not available")
+      return []
+    }
+    
+    const { prisma } = await import("@/lib/prisma")
+    return prisma.auditLog.findMany({
+      where: { action },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      include: {
+        actor: {
+          select: { id: true, email: true, name: true },
+        },
       },
-    },
-  })
+    })
+  } catch (error) {
+    logger.error("Failed to get audit logs by action", { action, error })
+    return []
+  }
 }
