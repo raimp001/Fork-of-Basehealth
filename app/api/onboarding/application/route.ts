@@ -3,6 +3,8 @@
  * 
  * Handles creating, updating, and submitting applications.
  * Uses Prisma when database is available, falls back to in-memory store otherwise.
+ * 
+ * v2: Fixed integer field handling (experienceYears)
  */
 
 import { NextRequest, NextResponse } from "next/server"
