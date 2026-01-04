@@ -24,11 +24,6 @@ import {
   Zap,
   CheckCircle,
   ChevronRight,
-  Sparkles,
-  Users,
-  Star,
-  TrendingUp,
-  Clock,
 } from "lucide-react"
 
 export default function HomePage() {
@@ -377,7 +372,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-sm text-stone-500">
-              © 2024 BaseHealth. All rights reserved.
+              © 2026 BaseHealth. All rights reserved.
             </div>
             <div className="flex items-center gap-8">
               <Link href="/privacy" className="text-sm text-stone-600 hover:text-stone-800 transition-colors">

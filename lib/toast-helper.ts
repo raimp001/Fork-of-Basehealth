@@ -81,14 +81,12 @@ export function toastInfo(options: ToastOptions | string) {
  * Show loading toast (returns dismiss function)
  */
 export function toastLoading(message: string) {
-  const { id } = showToast({
+  const { dismiss } = showToast({
     title: "Loading",
     description: message,
     variant: "default",
     duration: Infinity, // Don't auto-dismiss
   })
 
-  return () => {
-    showToast.dismiss(id)
-  }
+  return dismiss
 }

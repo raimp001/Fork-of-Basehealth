@@ -1,43 +1,6 @@
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import bcrypt from "bcryptjs"
-import jwt from "jsonwebtoken"
-
-// Temporary in-memory user store (replace with database in production)
-const users = [
-  {
-    id: "1",
-    email: "patient@demo.com",
-    password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u", // password123
-    name: "John Doe",
-    role: "patient",
-    image: "/placeholder.svg"
-  },
-  {
-    id: "2",
-    email: "provider@demo.com",
-    password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u", // password123
-    name: "Dr. Sarah Johnson",
-    role: "provider",
-    image: "/placeholder.svg"
-  },
-  {
-    id: "3",
-    email: "caregiver@demo.com",
-    password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u", // password123
-    name: "Maria Rodriguez",
-    role: "caregiver",
-    image: "/placeholder.svg"
-  },
-  {
-    id: "4",
-    email: "admin@demo.com",
-    password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u", // password123
-    name: "Admin User",
-    role: "admin",
-    image: "/placeholder.svg"
-  }
-]
+import { verifyPassword } from "@/lib/user-store"
 
 const handler = NextAuth({
   providers: [
@@ -52,18 +15,10 @@ const handler = NextAuth({
           return null
         }
 
-        const user = users.find(u => u.email === credentials.email)
+        // Use shared user store for verification
+        const user = await verifyPassword(credentials.email, credentials.password)
         
         if (!user) {
-          return null
-        }
-
-        const isPasswordCorrect = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
-        if (!isPasswordCorrect) {
           return null
         }
 
@@ -82,7 +37,7 @@ const handler = NextAuth({
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
         token.role = user.role
@@ -101,7 +56,8 @@ const handler = NextAuth({
     signIn: "/login",
     error: "/login",
   },
-  secret: process.env.NEXTAUTH_SECRET || "your-secret-key-here-replace-in-production"
+  // Use environment variable only - no insecure fallback
+  secret: process.env.NEXTAUTH_SECRET
 })
 
 export { handler as GET, handler as POST }

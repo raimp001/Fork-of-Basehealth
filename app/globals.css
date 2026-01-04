@@ -267,30 +267,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Premium selection */
-::selection {
-  background-color: rgba(15, 23, 42, 0.1);
-  color: inherit;
-}
-
-/* Custom scrollbar (Palantir-style) */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.3);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.5);
-}
 
 /* Remove autofill yellow background - Enhanced for mobile browsers */
 input:-webkit-autofill,
@@ -421,18 +397,6 @@ input, textarea, select {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #78716c;
-}
-
-/* Better selection color */
-::selection {
-  background-color: rgba(41, 37, 36, 0.15);
-  color: inherit;
-}
-
-/* Smooth page transitions */
-* {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Prevent layout shift */

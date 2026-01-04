@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
-import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
-import { sanitizeText, validateEmail } from '@/lib/sanitize'
 import bcrypt from 'bcryptjs'
-
-// Temporary in-memory store (replace with database in production)
-const users: any[] = []
+import { findUserByEmail, addUser } from '@/lib/user-store'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,8 +15,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already exists
-    const existingUser = users.find(u => u.email === email)
+    // Check if user already exists using shared store
+    const existingUser = findUserByEmail(email)
     if (existingUser) {
       return NextResponse.json(
         { error: 'User already exists' },
@@ -31,18 +27,14 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
+    // Create new user using shared store
+    const newUser = addUser({
       email,
       password: hashedPassword,
       name,
-      role,
-      image: '/placeholder.svg',
-      createdAt: new Date().toISOString()
-    }
-
-    users.push(newUser)
+      role: role as 'patient' | 'provider' | 'caregiver' | 'admin',
+      image: '/placeholder.svg'
+    })
 
     // Return user without password
     const { password: _, ...userWithoutPassword } = newUser

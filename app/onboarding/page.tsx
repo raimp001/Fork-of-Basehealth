@@ -190,9 +190,12 @@ export default function OnboardingPage() {
     setError(null)
 
     try {
-      if (!applicationId) {
+      // Get or create application ID
+      let currentAppId = applicationId
+      
+      if (!currentAppId) {
         // Create new application
-        const res = await fetch("/api/onboarding/application", {
+        const createRes = await fetch("/api/onboarding/application", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -201,32 +204,40 @@ export default function OnboardingPage() {
             email: formData.email,
           }),
         })
-        const data = await res.json()
-        if (data.success) {
-          setApplicationId(data.application.id)
-        } else {
-          throw new Error(data.error)
+        const createData = await createRes.json()
+        
+        if (!createData.success) {
+          throw new Error(createData.error || "Failed to create application")
+        }
+        
+        // Use the returned ID directly (don't rely on async state update)
+        currentAppId = createData.application.id
+        setApplicationId(currentAppId)
+        
+        // If resuming an existing draft, we already have the data
+        if (createData.resuming) {
+          // Application already exists, just proceed to update
         }
       }
 
-      // Update application
-      const res = await fetch("/api/onboarding/application", {
+      // Update application with the ID we have
+      const updateRes = await fetch("/api/onboarding/application", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          applicationId: applicationId || (await getAppId()),
+          applicationId: currentAppId,
           step,
           data: formData,
           submit,
         }),
       })
-      const data = await res.json()
+      const updateData = await updateRes.json()
 
-      if (!data.success) {
-        if (data.validationErrors) {
-          setError(data.validationErrors.join(", "))
+      if (!updateData.success) {
+        if (updateData.validationErrors) {
+          setError(updateData.validationErrors.join(", "))
         } else {
-          throw new Error(data.error)
+          throw new Error(updateData.error || "Failed to update application")
         }
         return false
       }
