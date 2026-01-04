@@ -210,10 +210,18 @@ export async function PUT(req: NextRequest) {
         updatedAt: new Date(),
       }
 
+      // Fields that should be integers
+      const integerFields = ['experienceYears']
+      
       for (const [key, value] of Object.entries(data || {})) {
         if (fieldMappings[key] && value !== undefined) {
           if (key.includes("Expiry") || key === "dateOfBirth") {
+            // Date fields: convert to Date or null
             updateData[fieldMappings[key]] = value ? new Date(value as string) : null
+          } else if (integerFields.includes(key)) {
+            // Integer fields: convert to number or null
+            const numValue = parseInt(value as string, 10)
+            updateData[fieldMappings[key]] = isNaN(numValue) ? null : numValue
           } else {
             updateData[fieldMappings[key]] = value
           }
@@ -327,10 +335,18 @@ export async function PUT(req: NextRequest) {
       // Build update data
       const updateData: Partial<StoredApplication> = {}
 
+      // Fields that should be integers
+      const integerFields = ['experienceYears']
+
       for (const [key, value] of Object.entries(data || {})) {
         if (fieldMappings[key] && value !== undefined) {
           if (key.includes("Expiry") || key === "dateOfBirth") {
+            // Date fields: convert to Date or null
             (updateData as any)[fieldMappings[key]] = value ? new Date(value as string) : null
+          } else if (integerFields.includes(key)) {
+            // Integer fields: convert to number or null
+            const numValue = parseInt(value as string, 10)
+            ;(updateData as any)[fieldMappings[key]] = isNaN(numValue) ? null : numValue
           } else {
             (updateData as any)[fieldMappings[key]] = value
           }
