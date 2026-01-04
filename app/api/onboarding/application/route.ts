@@ -156,9 +156,10 @@ export async function POST(req: NextRequest) {
       })
     }
   } catch (error) {
-    logger.error("Failed to create application", error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error("Failed to create application", { error: errorMessage, stack: error instanceof Error ? error.stack : undefined })
     return NextResponse.json(
-      { error: "Failed to create application" },
+      { error: `Failed to create application: ${errorMessage}` },
       { status: 500 }
     )
   }
@@ -377,9 +378,10 @@ export async function PUT(req: NextRequest) {
       })
     }
   } catch (error) {
-    logger.error("Failed to update application", error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    logger.error("Failed to update application", { error: errorMessage, stack: error instanceof Error ? error.stack : undefined })
     return NextResponse.json(
-      { error: "Failed to update application" },
+      { error: `Failed to update application: ${errorMessage}` },
       { status: 500 }
     )
   }
