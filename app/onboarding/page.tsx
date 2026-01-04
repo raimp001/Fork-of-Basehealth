@@ -221,13 +221,18 @@ export default function OnboardingPage() {
       }
 
       // Update application with the ID we have
+      // Include role, country, and email in data for serverless upsert fallback
       const updateRes = await fetch("/api/onboarding/application", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           applicationId: currentAppId,
           step,
-          data: formData,
+          data: {
+            ...formData,
+            role,
+            country,
+          },
           submit,
         }),
       })
