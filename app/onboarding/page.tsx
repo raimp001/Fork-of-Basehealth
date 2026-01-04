@@ -276,12 +276,35 @@ export default function OnboardingPage() {
   }
 
   const handleNext = async () => {
-    if (step === 0 && !role) {
-      setError("Please select a role")
-      return
+    // Step 0 validation: Role and Regions
+    if (step === 0) {
+      if (!role) {
+        setError("Please select a role (Provider or Caregiver)")
+        return
+      }
+      if (formData.regions.length === 0) {
+        setError("Please select at least one state where you will practice")
+        return
+      }
     }
     
-    // Save progress
+    // Step 1 validation: Account details
+    if (step === 1) {
+      if (!formData.email || !formData.email.trim()) {
+        setError("Please enter your email address")
+        return
+      }
+      if (!formData.password || formData.password.length < 8) {
+        setError("Please enter a password (at least 8 characters)")
+        return
+      }
+      if (role === "PROVIDER" && !formData.fullName?.trim()) {
+        setError("Please enter your full name")
+        return
+      }
+    }
+    
+    // Save progress (only on step 1 and beyond)
     if (step >= 1) {
       const saved = await saveApplication()
       if (!saved) return
