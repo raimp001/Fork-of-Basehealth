@@ -22,8 +22,11 @@ import {
   DollarSign,
   CreditCard,
   Bell,
-  Wallet
+  Wallet,
+  Bookmark
 } from "lucide-react"
+import { NotificationCenter } from "@/components/notifications/notification-center"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 const navigationItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -103,7 +106,17 @@ export function MinimalNavigation() {
               </nav>
             </div>
 
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                href="/saved"
+                className="p-2 rounded-lg text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors"
+                aria-label="Saved items"
+              >
+                <Bookmark className="h-5 w-5" />
+              </Link>
+              <NotificationCenter />
+              <ThemeToggle />
+              <div className="w-px h-6 bg-stone-200 mx-1" />
               <Button 
                 asChild 
                 variant="ghost" 
