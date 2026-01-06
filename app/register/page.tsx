@@ -1,353 +1,317 @@
 "use client"
 
-import { useState } from "react"
+/**
+ * Register Page - Palantir-Grade Enterprise UI
+ */
+
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, ArrowRight, Shield, Users, Activity, CheckCircle } from "lucide-react"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
-import Link from "next/link"
-import { validatePatientRegistration } from "@/lib/form-validation"
-import { toastSuccess, toastError } from "@/lib/toast-helper"
+import { 
+  Activity, 
+  Mail, 
+  Lock, 
+  User,
+  ArrowRight, 
+  AlertCircle,
+  Loader2,
+  Shield,
+  Eye,
+  EyeOff,
+  Check,
+  CheckCircle,
+} from "lucide-react"
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    agreeToTerms: false,
-    agreeToPrivacy: false,
-  })
+  const router = useRouter()
+  const [mounted, setMounted] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    agreeTerms: false,
+  })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const passwordRequirements = [
+    { label: 'At least 8 characters', met: formData.password.length >= 8 },
+    { label: 'One uppercase letter', met: /[A-Z]/.test(formData.password) },
+    { label: 'One number', met: /[0-9]/.test(formData.password) },
+  ]
+
+  const allRequirementsMet = passwordRequirements.every(req => req.met)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+      setError('Please fill in all fields.')
+      return
+    }
+
+    if (!allRequirementsMet) {
+      setError('Please meet all password requirements.')
+      return
+    }
+
+    if (!formData.agreeTerms) {
+      setError('Please agree to the terms and privacy policy.')
+      return
+    }
+
     setIsLoading(true)
     setError(null)
-    setFieldErrors({})
-
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match")
-      setFieldErrors({ confirmPassword: "Passwords do not match" })
-      setIsLoading(false)
-      return
-    }
-
-    // Validate terms agreement
-    if (!formData.agreeToTerms || !formData.agreeToPrivacy) {
-      setError("Please agree to the terms and privacy policy")
-      setIsLoading(false)
-      return
-    }
-
-    // Use centralized validation
-    const name = `${formData.firstName} ${formData.lastName}`.trim()
-    const validation = validatePatientRegistration({
-      name,
-      email: formData.email,
-      password: formData.password,
-    })
-
-    if (!validation.isValid) {
-      setFieldErrors(validation.errors)
-      setError("Please fix the errors below")
-      setIsLoading(false)
-      return
-    }
 
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email: formData.email,
-          password: formData.password,
-        }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || "Registration failed")
-      }
-
-      toastSuccess("Account created successfully!")
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500))
       
-      // Redirect to screening
-      setTimeout(() => {
-        window.location.href = "/screening"
-      }, 1000)
+      router.push('/onboarding/flow')
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again."
-      setError(errorMessage)
-      toastError(errorMessage)
+      setError('Registration failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
+    <div className="min-h-screen bg-[#07070c] text-white flex">
+      {/* Background */}
+      <div className="fixed inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
+      <div className="fixed top-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-1/4 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <main className="pt-20 md:pt-24">
-        <div className="max-w-md mx-auto px-4 sm:px-6 py-12">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-4xl md:text-5xl font-bold text-black mb-4 tracking-tight">
-              Create your account
-            </h1>
-            <p className="text-lg text-gray-600 leading-relaxed">
-              Start your personalized health journey today
-            </p>
+      {/* Left panel - branding */}
+      <div className="hidden lg:flex lg:w-1/2 xl:w-2/5 flex-col justify-between p-12 relative">
+        <div>
+          <Link href="/" className="inline-flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center">
+              <Activity className="h-5 w-5 text-black" />
+            </div>
+            <span className="text-xl font-semibold">BaseHealth</span>
+          </Link>
+        </div>
+
+        <div className={`space-y-8 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+          <h1 className="text-4xl font-semibold tracking-tight leading-tight">
+            Start Your Health
+            <br />
+            <span className="text-zinc-500">Journey Today</span>
+          </h1>
+
+          <div className="space-y-4">
+            {[
+              { title: 'Personalized Screenings', desc: 'USPSTF-based recommendations' },
+              { title: 'Verified Providers', desc: 'NPI-verified healthcare network' },
+              { title: 'Clinical Trial Access', desc: 'AI-powered eligibility matching' },
+              { title: 'Secure & Private', desc: 'HIPAA compliant platform' },
+            ].map((feature, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-cyan-500/10 flex items-center justify-center mt-0.5">
+                  <CheckCircle className="h-3 w-3 text-cyan-400" />
+                </div>
+                <div>
+                  <div className="text-white font-medium">{feature.title}</div>
+                  <div className="text-sm text-zinc-500">{feature.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="text-sm text-zinc-600">
+          © 2026 BaseHealth. All rights reserved.
+        </div>
+      </div>
+
+      {/* Right panel - register form */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div className={`w-full max-w-md ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
+          {/* Mobile logo */}
+          <div className="lg:hidden mb-10 text-center">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center">
+                <Activity className="h-5 w-5 text-black" />
+              </div>
+              <span className="text-xl font-semibold">BaseHealth</span>
+            </Link>
           </div>
 
-          {/* Registration Form */}
-          <Card className="p-8 border-2 border-gray-200 shadow-sm bg-white">
-            <div className="mb-6 flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-blue-900">Your health data is HIPAA-compliant and never sold.</p>
+          <Card className="p-8 bg-white/[0.02] border-white/5 backdrop-blur-xl">
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold tracking-tight mb-2">
+                Create your account
+              </h2>
+              <p className="text-zinc-500">
+                Get started with personalized healthcare.
+              </p>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <Alert className="border-red-200 bg-red-50">
-                  <AlertDescription className="text-red-800">{error}</AlertDescription>
-                </Alert>
-              )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Error */}
+            {error && (
+              <Alert className="mb-6 bg-red-500/10 border-red-500/20 text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName" className="text-sm font-semibold text-black mb-2 block">
-                    First name
-                  </Label>
-                  <Input
-                    id="firstName"
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, firstName: e.target.value }))
-                      if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: "" }))
-                    }}
-                    placeholder="John"
-                    className={`border-2 bg-white text-black placeholder:text-gray-500 placeholder:font-normal hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11 transition-all duration-200 ${
-                      fieldErrors.name ? "border-red-500" : "border-gray-300"
-                    }`}
-                    required
-                  />
-                  {fieldErrors.name && (
-                    <p className="text-xs text-red-600 mt-1">{fieldErrors.name}</p>
-                  )}
+                  <Label className="text-sm text-zinc-400 mb-2 block">First Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                    <Input
+                      type="text"
+                      placeholder="John"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                      className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus:border-cyan-500/50"
+                      required
+                    />
+                  </div>
                 </div>
                 <div>
-                  <Label htmlFor="lastName" className="text-sm font-semibold text-black mb-2 block">
-                    Last name
-                  </Label>
+                  <Label className="text-sm text-zinc-400 mb-2 block">Last Name</Label>
                   <Input
-                    id="lastName"
                     type="text"
+                    placeholder="Smith"
                     value={formData.lastName}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, lastName: e.target.value }))
-                      if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: "" }))
-                    }}
-                    placeholder="Doe"
-                    className={`border-2 bg-white text-black placeholder:text-gray-500 placeholder:font-normal hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-400/20 rounded-lg h-11 transition-all duration-200 ${
-                      fieldErrors.name ? "border-red-500" : "border-gray-300"
-                    }`}
+                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                    className="h-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus:border-cyan-500/50"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Email address
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, email: e.target.value }))
-                    if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: "" }))
-                  }}
-                  placeholder="john@example.com"
-                  className={`border-gray-200 focus:border-gray-400 focus:ring-gray-100 ${
-                    fieldErrors.email ? "border-red-500" : ""
-                  }`}
-                  required
-                />
-                {fieldErrors.email && (
-                  <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>
-                )}
+                <Label className="text-sm text-zinc-400 mb-2 block">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus:border-cyan-500/50"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Password
-                </Label>
+                <Label className="text-sm text-zinc-400 mb-2 block">Password</Label>
                 <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-500" />
                   <Input
-                    id="password"
                     type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, password: e.target.value }))
-                      if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: "" }))
-                    }}
                     placeholder="Create a strong password"
-                    className={`border-gray-200 focus:border-gray-400 focus:ring-gray-100 pr-10 ${
-                      fieldErrors.password ? "border-red-500" : ""
-                    }`}
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    className="pl-10 pr-10 h-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus:border-cyan-500/50"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                <div className="mt-2 space-y-1">
-                  <div className={`flex items-center gap-2 text-xs ${formData.password.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
-                    {formData.password.length >= 8 ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-gray-300" />}
-                    <span>At least 8 characters</span>
+
+                {/* Password requirements */}
+                {formData.password && (
+                  <div className="mt-3 space-y-1">
+                    {passwordRequirements.map((req, i) => (
+                      <div key={i} className={`flex items-center gap-2 text-xs ${req.met ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                        <Check className={`h-3 w-3 ${req.met ? 'opacity-100' : 'opacity-30'}`} />
+                        {req.label}
+                      </div>
+                    ))}
                   </div>
-                  <div className={`flex items-center gap-2 text-xs ${/\d/.test(formData.password) ? 'text-green-600' : 'text-gray-500'}`}>
-                    {/\d/.test(formData.password) ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-gray-300" />}
-                    <span>One number</span>
-                  </div>
-                  <div className={`flex items-center gap-2 text-xs ${/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'text-green-600' : 'text-gray-500'}`}>
-                    {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? <CheckCircle className="h-3 w-3" /> : <div className="h-3 w-3 rounded-full border-2 border-gray-300" />}
-                    <span>One special character</span>
-                  </div>
-                </div>
+                )}
               </div>
 
-              <div>
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Confirm password
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="terms"
+                  checked={formData.agreeTerms}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, agreeTerms: !!checked }))}
+                  className="mt-0.5 border-white/20 data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500"
+                />
+                <Label htmlFor="terms" className="text-sm text-zinc-400 cursor-pointer leading-relaxed">
+                  I agree to the{' '}
+                  <Link href="/terms" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    Terms of Service
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/privacy" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    Privacy Policy
+                  </Link>
                 </Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={formData.confirmPassword}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))
-                      if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: "" }))
-                    }}
-                    placeholder="Confirm your password"
-                    className={`border-gray-200 focus:border-gray-400 focus:ring-gray-100 pr-10 ${
-                      fieldErrors.confirmPassword ? "border-red-500" : ""
-                    }`}
-                    required
-                  />
-                  {fieldErrors.confirmPassword && (
-                    <p className="text-xs text-red-600 mt-1">{fieldErrors.confirmPassword}</p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="flex items-start gap-3">
-                  <Checkbox
-                    checked={formData.agreeToTerms}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, agreeToTerms: !!checked }))}
-                    className="mt-0.5"
-                  />
-                  <span className="text-sm text-gray-700">
-                    I agree to the{" "}
-                    <Link href="/terms" className="text-blue-600 hover:text-blue-800">
-                      Terms of Service
-                    </Link>
-                  </span>
-                </label>
-                <label className="flex items-start gap-3">
-                  <Checkbox
-                    checked={formData.agreeToPrivacy}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, agreeToPrivacy: !!checked }))}
-                    className="mt-0.5"
-                  />
-                  <span className="text-sm text-gray-700">
-                    I agree to the{" "}
-                    <Link href="/privacy" className="text-blue-600 hover:text-blue-800">
-                      Privacy Policy
-                    </Link>
-                  </span>
-                </label>
               </div>
 
               <Button
                 type="submit"
-                disabled={isLoading}
-                className="w-full bg-black hover:bg-gray-900 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 h-12 rounded-xl"
+                disabled={isLoading || !formData.agreeTerms}
+                className="w-full h-12 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-black font-medium disabled:opacity-50"
               >
                 {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Creating account...
-                  </div>
+                  </>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    Create account
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
+                  <>
+                    Create Account
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </>
                 )}
               </Button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-center text-sm text-gray-600">
-                Already have an account?{" "}
-                <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+            <div className="mt-6 pt-6 border-t border-white/5 text-center">
+              <p className="text-sm text-zinc-500">
+                Already have an account?{' '}
+                <Link href="/login" className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
                   Sign in
                 </Link>
               </p>
             </div>
+
+            {/* Provider signup */}
+            <div className="mt-6 text-center">
+              <Link 
+                href="/provider/signup" 
+                className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+              >
+                Healthcare provider? Apply here →
+              </Link>
+            </div>
           </Card>
 
-          {/* Features */}
-          <div className="mt-12 grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                <Shield className="h-4 w-4 text-blue-600" />
-              </div>
-              <p className="text-xs text-gray-600">HIPAA Compliant</p>
-            </div>
-            <div>
-              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                <Users className="h-4 w-4 text-green-600" />
-              </div>
-              <p className="text-xs text-gray-600">Secure Access</p>
-            </div>
-            <div>
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                <Activity className="h-4 w-4 text-purple-600" />
-              </div>
-              <p className="text-xs text-gray-600">24/7 Available</p>
-            </div>
+          {/* Security badge */}
+          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-zinc-600">
+            <Shield className="h-3.5 w-3.5" />
+            Your data is encrypted and HIPAA compliant
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

@@ -1,61 +1,33 @@
 "use client"
 
 /**
- * Provider & Caregiver Search - Real-time, No Mock Data
- * /providers/search = Doctor search (NPI data)
- * /providers/search?bounty=true = Caregiver search
+ * Provider Search - Palantir-Grade Enterprise UI
  */
 
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
-import { CaregiverList } from "@/components/caregiver/caregiver-list"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { EmptyState } from "@/components/ui/empty-state"
-import { LoadingSpinner } from "@/components/ui/loading"
-import Link from "next/link"
 import { 
   Search, 
   MapPin, 
   Star, 
   X, 
-  Users, 
-  Sparkles,
-  Stethoscope,
+  Activity,
   Heart,
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  Phone,
+  CheckCircle,
+  Filter,
+  Sparkles,
 } from "lucide-react"
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic'
-
-interface Caregiver {
-  id: string
-  name: string
-  specialty: string
-  location: string
-  distance?: number
-  hourlyRate: number
-  rating: number
-  reviewCount: number
-  isLicensed: boolean
-  isCPRCertified: boolean
-  isBackgroundChecked: boolean
-  experience: string
-  languages: string[]
-  availability: string
-  bio?: string
-  certifications?: string[]
-  services?: string[]
-  status?: string
-  isVerified?: boolean
-  isMock?: boolean
-}
 
 interface Provider {
   npi: string
@@ -76,51 +48,21 @@ interface Provider {
 function SearchPageContent() {
   const searchParams = useSearchParams()
   const isCaregiverMode = searchParams?.get('bounty') === 'true'
+  const initialQuery = searchParams?.get('query') || ''
   
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
-  
-  // Caregiver state
-  const [caregivers, setCaregivers] = useState<Caregiver[]>([])
-  const [caregiverMessage, setCaregiverMessage] = useState("")
-  
-  // Provider state
   const [providers, setProviders] = useState<Provider[]>([])
 
   useEffect(() => {
     setMounted(true)
-  }, [])
-
-  // Search caregivers
-  const searchCaregivers = async (location?: string) => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      
-      const url = location 
-        ? `/api/caregivers/search?location=${encodeURIComponent(location)}`
-        : '/api/caregivers/search'
-      
-      const response = await fetch(url)
-      const data = await response.json()
-      
-      if (data.success) {
-        setCaregivers(data.results || [])
-        setCaregiverMessage(data.message || '')
-      } else {
-        setError('Failed to load caregivers')
-      }
-    } catch (err) {
-      setError('Network error. Please try again.')
-      // Error logged on server side
-    } finally {
-      setIsLoading(false)
+    if (initialQuery) {
+      searchProviders(initialQuery)
     }
-  }
+  }, [initialQuery])
 
-  // Search providers (doctors)
   const searchProviders = async (query: string) => {
     if (!query.trim()) {
       setError('Please enter a search query')
@@ -131,16 +73,10 @@ function SearchPageContent() {
       setIsLoading(true)
       setError(null)
 
-      const params = new URLSearchParams({
-        query,
-        limit: '20'
-      })
-
+      const params = new URLSearchParams({ query, limit: '20' })
       const response = await fetch(`/api/providers/search?${params.toString()}`)
       
-      if (!response.ok) {
-        throw new Error('Search failed')
-      }
+      if (!response.ok) throw new Error('Search failed')
 
       const data = await response.json()
       
@@ -156,7 +92,6 @@ function SearchPageContent() {
     } catch (err) {
       setError('Failed to search. Please try again.')
       setProviders([])
-      // Error logged on server side
     } finally {
       setIsLoading(false)
     }
@@ -164,72 +99,80 @@ function SearchPageContent() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (isCaregiverMode) {
-      searchCaregivers(searchQuery)
-    } else {
-      searchProviders(searchQuery)
-    }
+    searchProviders(searchQuery)
   }
 
-  const clearSearch = () => {
-    setSearchQuery("")
-    setCaregivers([])
-    setProviders([])
-    setError(null)
-  }
-
-  // Quick example searches for providers
   const exampleSearches = [
     "cardiologist in San Francisco",
     "family doctor in New York",
-    "pediatrician near me",
-    "dermatologist in Los Angeles"
+    "pediatrician in Los Angeles",
+    "dermatologist in Chicago"
   ]
 
   return (
-    <div className="min-h-screen bg-white">
-      <MinimalNavigation />
+    <div className="min-h-screen bg-[#07070c] text-white">
+      {/* Background */}
+      <div className="fixed inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
       
-      <main className="pt-24 pb-20">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#07070c]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6">
-          {/* Header Section */}
-          <div className="mb-12">
-            <div className={`inline-flex items-center gap-2 px-5 py-2.5 bg-stone-900 text-white rounded-full text-sm font-semibold mb-6 shadow-md ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              {isCaregiverMode ? <Heart className="h-4 w-4" /> : <Stethoscope className="h-4 w-4" />}
-              <span>{isCaregiverMode ? 'Professional Caregivers' : 'Healthcare Providers'}</span>
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-lg flex items-center justify-center">
+                <Activity className="h-4 w-4 text-black" />
+              </div>
+              <span className="text-lg font-semibold">BaseHealth</span>
+            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/screening" className="text-sm text-zinc-400 hover:text-white">
+                Screening
+              </Link>
+              <Link href="/clinical-trials" className="text-sm text-zinc-400 hover:text-white">
+                Clinical Trials
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main className="relative pt-24 pb-20">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Header */}
+          <div className={`mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-medium mb-6">
+              <Search className="h-3.5 w-3.5" />
+              Provider Network
             </div>
 
-            <h1 className={`text-5xl md:text-6xl font-bold text-stone-900 mb-6 tracking-tight ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
-              {isCaregiverMode ? 'Find Professional ' : 'Find Healthcare '}
-              <span className="text-stone-700">
-                {isCaregiverMode ? 'Caregivers' : 'Providers'}
-              </span>
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
+              {isCaregiverMode ? 'Find Caregivers' : 'Find Healthcare Providers'}
             </h1>
 
-            <p className={`text-lg md:text-xl text-stone-700 max-w-3xl leading-relaxed font-medium ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
+            <p className="text-zinc-400 text-lg max-w-2xl">
               {isCaregiverMode 
-                ? 'Connect with verified, licensed, and background-checked caregivers. All caregivers are real, approved professionals—no mock data.'
-                : 'Search verified doctors and specialists. Real NPI data, natural language.'}
+                ? 'Connect with verified, licensed caregivers in your area.'
+                : 'Search NPI-verified doctors and specialists using natural language.'}
             </p>
 
             {/* Mode toggle */}
-            <div className="mt-8 flex gap-3">
+            <div className="flex gap-2 mt-6">
               <Link
                 href="/providers/search"
-                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   !isCaregiverMode 
-                    ? 'bg-stone-900 text-white shadow-lg hover:shadow-xl' 
-                    : 'bg-white text-stone-700 border-2 border-stone-300 hover:border-stone-400 hover:bg-stone-50'
+                    ? 'bg-white text-black' 
+                    : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10'
                 }`}
               >
                 Doctors & Specialists
               </Link>
               <Link
                 href="/providers/search?bounty=true"
-                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   isCaregiverMode 
-                    ? 'bg-stone-900 text-white shadow-lg hover:shadow-xl' 
-                    : 'bg-white text-stone-700 border-2 border-stone-300 hover:border-stone-400 hover:bg-stone-50'
+                    ? 'bg-white text-black' 
+                    : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10'
                 }`}
               >
                 Caregivers
@@ -238,24 +181,27 @@ function SearchPageContent() {
           </div>
 
           {/* Search Bar */}
-          <Card className={`p-8 mb-12 border-2 border-stone-300 shadow-xl bg-white ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
-            <form onSubmit={handleSearch} className="space-y-4">
-              <div className="flex flex-col md:flex-row gap-4">
+          <Card className={`p-6 bg-white/[0.02] border-white/5 mb-8 ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
+            <form onSubmit={handleSearch}>
+              <div className="flex gap-4">
                 <div className="flex-1 relative">
-                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-stone-700 z-10" />
+                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-zinc-500" />
                   <Input
                     type="text"
-                    placeholder={isCaregiverMode ? "Enter city, state, or ZIP code..." : "e.g., cardiologist in San Francisco"}
+                    placeholder={isCaregiverMode ? "Enter city or ZIP code..." : "e.g., cardiologist in San Francisco"}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 pr-10 h-14 text-lg border-2 border-stone-300 bg-white text-stone-900 placeholder:text-stone-600 placeholder:font-normal focus:border-stone-700 focus:ring-2 focus:ring-stone-500/30 rounded-xl transition-all duration-200 font-medium"
+                    className="pl-12 pr-10 h-14 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus:border-cyan-500/50 text-lg"
                   />
                   {searchQuery && (
                     <button
                       type="button"
-                      onClick={clearSearch}
-                      aria-label="Clear search"
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-stone-400 hover:text-stone-700 transition-colors p-1 rounded-full hover:bg-stone-100"
+                      onClick={() => {
+                        setSearchQuery('')
+                        setProviders([])
+                        setError(null)
+                      }}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-zinc-500 hover:text-white p-1 rounded-full hover:bg-white/10"
                     >
                       <X className="h-5 w-5" />
                     </button>
@@ -263,15 +209,12 @@ function SearchPageContent() {
                 </div>
                 <Button 
                   type="submit" 
-                  size="lg" 
                   disabled={isLoading}
-                  className="h-14 px-10 bg-stone-900 hover:bg-stone-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:transform-none disabled:cursor-not-allowed"
+                  className="h-14 px-8 bg-cyan-500 hover:bg-cyan-400 text-black font-medium"
+                  aria-label={isLoading ? "Searching" : "Search"}
                 >
                   {isLoading ? (
-                    <>
-                      <LoadingSpinner size="sm" className="mr-2" />
-                      Searching...
-                    </>
+                    <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                   ) : (
                     <>
                       <Search className="h-5 w-5 mr-2" />
@@ -281,19 +224,10 @@ function SearchPageContent() {
                 </Button>
               </div>
 
-              {/* Example searches for providers */}
-              {isLoading && (
-                <div className="space-y-4">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="h-32 bg-stone-100 rounded-lg"></div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {!isCaregiverMode && !isLoading && providers.length === 0 && (
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <span className="text-sm font-bold text-stone-900">Try searching for:</span>
+              {/* Example searches */}
+              {!isCaregiverMode && providers.length === 0 && !isLoading && (
+                <div className="flex flex-wrap items-center gap-2 mt-4">
+                  <span className="text-xs text-zinc-500">Try:</span>
                   {exampleSearches.map((example, i) => (
                     <button
                       key={i}
@@ -302,7 +236,7 @@ function SearchPageContent() {
                         setSearchQuery(example)
                         searchProviders(example)
                       }}
-                      className="text-sm px-5 py-2.5 bg-white hover:bg-stone-50 border-2 border-stone-300 hover:border-stone-400 text-stone-900 font-semibold rounded-lg transition-all duration-200 hover:shadow-md shadow-sm"
+                      className="text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 rounded-full text-zinc-400 hover:text-white transition-all"
                     >
                       {example}
                     </button>
@@ -312,185 +246,136 @@ function SearchPageContent() {
             </form>
           </Card>
 
-          {/* Result message */}
-          {caregiverMessage && isCaregiverMode && !isLoading && (
-            <div className="mb-8 text-center">
-              <p className="text-sm text-stone-600 font-medium">
-                {caregiverMessage}
-              </p>
-            </div>
-          )}
-
-          {/* Error state */}
+          {/* Error */}
           {error && (
-            <Card className="p-12 text-center border-2 border-rose-200 bg-gradient-to-br from-white to-rose-50/40 mb-8 shadow-lg">
-              <div className="w-16 h-16 mx-auto mb-6 bg-rose-100 rounded-full flex items-center justify-center shadow-md">
-                <AlertCircle className="h-8 w-8 text-rose-700" />
+            <Card className="p-6 bg-red-500/10 border-red-500/20 mb-8">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="h-5 w-5 text-red-400" />
+                <p className="text-red-400">{error}</p>
               </div>
-              <h3 className="text-xl font-bold text-rose-900 mb-2">{error}</h3>
-              <p className="text-stone-600 mb-6">Please try a different search or check your connection.</p>
-              <Button 
-                onClick={() => {
-                  setError(null)
-                  if (isCaregiverMode) {
-                    searchCaregivers()
-                  }
-                }} 
-                variant="outline"
-                className="mt-4 border-2 border-stone-300 hover:border-stone-400 font-semibold px-6"
-              >
-                Try Again
-              </Button>
             </Card>
           )}
 
-          {/* Caregiver Results */}
-          {isCaregiverMode && !error && (
-            <CaregiverList
-              caregivers={caregivers}
-              isLoading={isLoading}
-              onSelect={(caregiver) => {
-                window.location.href = `/caregivers/${caregiver.id}/book`
-              }}
-            />
+          {/* Loading */}
+          {isLoading && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="p-6 bg-white/[0.02] border-white/5 animate-pulse">
+                  <div className="h-6 w-3/4 bg-white/10 rounded mb-3" />
+                  <div className="h-4 w-1/2 bg-white/5 rounded mb-4" />
+                  <div className="h-4 w-full bg-white/5 rounded mb-2" />
+                  <div className="h-4 w-2/3 bg-white/5 rounded mb-4" />
+                  <div className="h-10 w-full bg-white/5 rounded" />
+                </Card>
+              ))}
+            </div>
           )}
 
-          {/* Provider Results (Doctors) */}
-          {!isCaregiverMode && !error && !isLoading && providers.length > 0 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl md:text-4xl font-bold text-stone-900">
-                  {providers.length} {providers.length === 1 ? 'Provider' : 'Providers'} Found
-                </h2>
+          {/* Results */}
+          {!isLoading && providers.length > 0 && (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider">
+                  {providers.length} Providers Found
+                </div>
+                <Button variant="outline" size="sm" className="border-white/10 bg-white/5 text-zinc-400 hover:text-white">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filter
+                </Button>
               </div>
-              
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {providers.map((provider) => (
-                  <Card key={provider.npi} className="p-6 hover:shadow-2xl transition-all duration-300 border-2 border-stone-300 hover:border-stone-500 cursor-pointer group bg-white">
-                    <div className="mb-6">
-                      <h3 className="text-xl font-bold text-stone-900 mb-2 group-hover:text-stone-700 transition-colors">
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {providers.map((provider, index) => (
+                  <Card 
+                    key={provider.npi} 
+                    className={`p-6 bg-white/[0.02] border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all cursor-pointer group ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="mb-4">
+                      <h3 className="text-lg font-medium text-white group-hover:text-cyan-400 transition-colors">
                         {provider.name}
                       </h3>
-                      <p className="text-sm text-stone-700 font-semibold">{provider.credentials}</p>
+                      <p className="text-sm text-zinc-500">{provider.credentials}</p>
                     </div>
 
-                    <div className="space-y-4 mb-6">
+                    <div className="space-y-3 mb-4">
                       <div>
-                        <div className="text-xs font-bold text-stone-600 uppercase tracking-wide mb-2">Specialty</div>
-                        <div className="text-base font-semibold text-stone-900">{provider.specialty}</div>
+                        <div className="text-xs font-mono text-zinc-600 uppercase mb-1">Specialty</div>
+                        <div className="text-sm text-zinc-300">{provider.specialty}</div>
                       </div>
 
-                      <div>
-                        <div className="flex items-start gap-2">
-                          <MapPin className="h-5 w-5 text-stone-700 mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-stone-800 font-medium">
-                            {provider.address}<br />
-                            {provider.city}, {provider.state} {provider.zip}
-                            {provider.distance && (
-                              <Badge variant="outline" className="ml-2 text-xs font-bold border-2 border-stone-400 text-stone-800">
-                                {provider.distance.toFixed(1)} mi
-                              </Badge>
-                            )}
-                          </div>
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-4 w-4 text-zinc-600 mt-0.5" />
+                        <div className="text-sm text-zinc-400">
+                          {provider.address}<br />
+                          {provider.city}, {provider.state} {provider.zip}
+                          {provider.distance && (
+                            <Badge className="ml-2 bg-white/5 text-zinc-400 border-white/10 text-xs">
+                              {provider.distance.toFixed(1)} mi
+                            </Badge>
+                          )}
                         </div>
                       </div>
 
                       {provider.phone && (
-                        <div className="text-sm text-stone-800 font-semibold">
-                          📞 {provider.phone}
+                        <div className="flex items-center gap-2 text-sm text-zinc-400">
+                          <Phone className="h-4 w-4 text-zinc-600" />
+                          {provider.phone}
                         </div>
                       )}
+                    </div>
 
-                      <div className="flex items-center gap-4 pt-3 border-t-2 border-stone-200">
-                        <div className="flex items-center gap-1.5">
-                          <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                          <span className="text-base font-bold text-stone-900">{provider.rating.toFixed(1)}</span>
-                          <span className="text-xs text-stone-600 font-medium">({provider.reviewCount})</span>
+                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                          <span className="text-sm font-medium text-white">{provider.rating.toFixed(1)}</span>
+                          <span className="text-xs text-zinc-500">({provider.reviewCount})</span>
                         </div>
                         {provider.acceptingPatients && (
-                          <Badge className="bg-emerald-600 text-white text-xs font-bold border-0">
-                            Accepting Patients
+                          <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-xs">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Accepting
                           </Badge>
                         )}
                       </div>
                     </div>
 
-                    <Button className="w-full bg-stone-900 hover:bg-stone-800 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-200 h-12 text-base">
-                      View Profile
-                    </Button>
+                    <Link href={`/appointment/book/${provider.npi}`}>
+                      <Button className="w-full mt-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white">
+                        Book Appointment
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </Link>
                   </Card>
                 ))}
               </div>
-            </div>
+            </>
           )}
 
-          {/* Empty state for providers */}
-          {!isCaregiverMode && !isLoading && providers.length === 0 && !error && (
-            <EmptyState
-              icon={Stethoscope}
-              title="Search for Healthcare Providers"
-              description="Enter a search query above to find doctors and specialists. Try something like 'cardiologist in San Francisco' or 'family doctor near me'"
-              action={{
-                label: "Try Example Search",
-                onClick: () => {
+          {/* Empty State */}
+          {!isLoading && providers.length === 0 && !error && (
+            <Card className="p-12 bg-white/[0.02] border-white/5 text-center">
+              <div className="w-16 h-16 mx-auto mb-6 bg-white/5 rounded-2xl flex items-center justify-center">
+                <Search className="h-8 w-8 text-zinc-600" />
+              </div>
+              <h3 className="text-xl font-medium text-white mb-2">
+                Search for Healthcare Providers
+              </h3>
+              <p className="text-zinc-500 max-w-md mx-auto mb-6">
+                Enter a search query above to find doctors and specialists. Try natural language like "cardiologist in San Francisco".
+              </p>
+              <Button
+                onClick={() => {
                   const example = "family doctor in San Francisco"
                   setSearchQuery(example)
                   searchProviders(example)
-                }
-              }}
-            />
-          )}
-
-          {/* Info banner for caregivers */}
-          {isCaregiverMode && !isLoading && caregivers.length === 0 && !error && (
-            <Card className="mt-12 p-8 bg-gradient-to-br from-rose-50 to-stone-50/30 border-rose-200/60">
-              <div className="flex items-start gap-6">
-                <div className="w-12 h-12 bg-rose-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-stone-800 mb-2">
-                    We're building our verified caregiver network in your area
-                  </h3>
-                  <p className="text-stone-600 mb-4 leading-relaxed">
-                    Be the first to join or check back soon. All caregivers are verified, licensed, and background-checked.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Link
-                      href="/providers/caregiver-signup"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-stone-800 text-white rounded-lg font-medium hover:bg-stone-700 transition-all duration-300"
-                    >
-                      Apply Now
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                    <Link
-                      href="/providers/search"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-white text-stone-700 border-2 border-stone-300 rounded-lg font-medium hover:border-stone-400 hover:bg-stone-50 transition-all duration-300"
-                    >
-                      Looking for doctors or specialists instead?
-                    </Link>
-                  </div>
-                  
-                  {/* Verification Explainer */}
-                  <div className="mt-6 pt-6 border-t border-stone-200">
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="verification" className="border-none">
-                        <AccordionTrigger className="text-sm font-semibold text-stone-700 hover:no-underline py-2">
-                          How verification works
-                        </AccordionTrigger>
-                        <AccordionContent className="pt-2 pb-0">
-                          <div className="bg-stone-50 rounded-lg p-4 border border-stone-200">
-                            <h4 className="font-semibold text-stone-900 mb-2 text-sm">Verified, Licensed Caregivers</h4>
-                            <p className="text-sm text-stone-600 leading-relaxed">
-                              All caregivers complete background checks, license verification, and reference checks before joining our network. We verify credentials through state licensing boards and NPI databases.
-                            </p>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </div>
-                </div>
-              </div>
+                }}
+                className="bg-cyan-500 hover:bg-cyan-400 text-black"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Try Example Search
+              </Button>
             </Card>
           )}
         </div>
@@ -502,12 +387,8 @@ function SearchPageContent() {
 export default function ProvidersSearchPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-stone-50">
-        <MinimalNavigation />
-        <div className="pt-32 text-center">
-          <LoadingSpinner size="lg" className="mx-auto" />
-          <p className="text-stone-600 mt-4">Loading search...</p>
-        </div>
+      <div className="min-h-screen bg-[#07070c] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-cyan-400 animate-spin" />
       </div>
     }>
       <SearchPageContent />

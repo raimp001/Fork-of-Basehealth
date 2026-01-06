@@ -1,398 +1,396 @@
 "use client"
 
+/**
+ * Patient Portal Dashboard - Palantir-Grade Enterprise UI
+ */
+
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { Card } from "@/components/ui/card"
-import { StandardizedButton, PrimaryActionButton } from "@/components/ui/standardized-button"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { StandardizedInput, FormSection } from "@/components/ui/standardized-form"
-import { LoadingSpinner, PageLoading } from "@/components/ui/loading"
-import { FormError, useErrorHandler } from "@/components/ui/error-boundary"
-import { components } from "@/lib/design-system"
+import { Progress } from "@/components/ui/progress"
 import { 
-  Activity, 
-  Calendar, 
-  FileText, 
-  Heart, 
-  Search, 
-  FlaskConical, 
-  ArrowRight,
+  Activity,
+  Calendar,
+  Heart,
+  FlaskConical,
+  FileText,
+  MessageSquare,
+  Bell,
+  Settings,
+  ChevronRight,
+  Search,
   Clock,
   CheckCircle,
   AlertCircle,
-  TrendingUp,
-  Users,
-  Pill,
-  Lock,
   User,
-  Shield
+  Shield,
+  TrendingUp,
+  Target,
+  Pill,
+  ArrowRight,
+  LogOut,
+  Stethoscope,
 } from "lucide-react"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
-import Link from "next/link"
 
 export default function PatientPortalPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [loginForm, setLoginForm] = useState({
-    email: '',
-    password: ''
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const { error, handleError, clearError } = useErrorHandler()
+  const [mounted, setMounted] = useState(false)
 
-  // Check authentication status on mount
   useEffect(() => {
-    const authStatus = localStorage.getItem('patient_authenticated')
-    if (authStatus === 'true') {
-      setIsAuthenticated(true)
-    }
+    setMounted(true)
   }, [])
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    clearError()
-
-    // Simulate authentication
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    if (loginForm.email && loginForm.password) {
-      localStorage.setItem('patient_authenticated', 'true')
-      setIsAuthenticated(true)
-    } else {
-      handleError('Please enter valid credentials')
-    }
-    setIsLoading(false)
+  // Mock user data
+  const user = {
+    name: "Alex Thompson",
+    email: "alex@example.com",
+    healthScore: 82,
+    lastVisit: "Dec 15, 2025",
+    upcomingAppointments: 2,
+    completedScreenings: 5,
+    pendingScreenings: 2,
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('patient_authenticated')
-    setIsAuthenticated(false)
-    setLoginForm({ email: '', password: '' })
-  }
-
-  // Show login form if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
-        <MinimalNavigation />
-        
-        <main className="max-w-md mx-auto px-4 sm:px-6 py-8 pt-24">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-6 shadow-md">
-              <Lock className="h-4 w-4" />
-              Secure Access
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
-              Patient Portal Sign In
-            </h1>
-            <p className="text-lg text-stone-600 leading-relaxed">
-              Access your health dashboard, medical records, and medication management securely.
-            </p>
-          </div>
-
-          <Card className="p-8 border-2 border-stone-200 shadow-lg bg-white">
-            <div className="mb-6 flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-blue-900">Your health information is protected by HIPAA and industry-standard encryption</p>
-            </div>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <StandardizedInput
-                  id="email"
-                  type="email"
-                  label="Email Address"
-                  value={loginForm.email}
-                  onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-              
-              <div>
-                <StandardizedInput
-                  id="password"
-                  type="password"
-                  label="Password"
-                  value={loginForm.password}
-                  onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                  placeholder="Enter your password"
-                  required
-                />
-                <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800 mt-2 inline-block">
-                  Forgot password?
-                </Link>
-              </div>
-
-              {error && (
-                <FormError message={error} onRetry={clearError} />
-              )}
-
-              <PrimaryActionButton 
-                type="submit" 
-                disabled={isLoading}
-                loading={isLoading}
-                loadingText="Signing in..."
-                className="w-full"
-              >
-                <User className="h-4 w-4" />
-                Sign In to Patient Portal
-              </PrimaryActionButton>
-              
-              <div className="mt-4">
-                <StandardizedButton asChild variant="secondary" className="w-full border-2 border-stone-300 hover:border-stone-400 hover:bg-stone-50 text-stone-900">
-                  <Link href="/register">
-                    Create Patient Account
-                  </Link>
-                </StandardizedButton>
-              </div>
-            </form>
-          </Card>
-        </main>
-      </div>
-    )
-  }
-
-  // Show authenticated patient portal
-  return <AuthenticatedPatientPortal onLogout={handleLogout} />
-}
-
-function AuthenticatedPatientPortal({ onLogout }: { onLogout: () => void }) {
-  const [recentActivity] = useState([
+  const upcomingAppointments = [
     {
       id: 1,
-      type: "screening",
-      title: "Health Assessment Completed",
-      description: "Your personalized screening recommendations are ready",
-      date: "2 hours ago",
-      status: "completed"
+      provider: "Dr. Sarah Chen",
+      specialty: "Primary Care",
+      date: "Jan 10, 2026",
+      time: "10:00 AM",
+      type: "in-person",
     },
     {
       id: 2,
-      type: "appointment",
-      title: "Upcoming Appointment",
-      description: "Dr. Sarah Johnson - Cardiology consultation",
-      date: "Tomorrow at 2:00 PM",
-      status: "upcoming"
+      provider: "Dr. Michael Ross",
+      specialty: "Cardiology",
+      date: "Jan 18, 2026",
+      time: "2:30 PM",
+      type: "video",
     },
-    {
-      id: 3,
-      type: "trial",
-      title: "Clinical Trial Match",
-      description: "3 new trials match your health profile",
-      date: "1 day ago",
-      status: "new"
-    }
-  ])
+  ]
 
-  const [healthMetrics] = useState({
-    lastScreening: "2 weeks ago",
-    nextScreening: "Due in 2 weeks",
-    activeTrials: 3,
-    upcomingAppointments: 1
-  })
+  const recentScreenings = [
+    { name: "Blood Pressure Check", status: "completed", date: "Dec 20, 2025", result: "Normal" },
+    { name: "Cholesterol Panel", status: "completed", date: "Dec 15, 2025", result: "Review needed" },
+    { name: "Diabetes Screening", status: "due", date: "Due Jan 2026", result: null },
+    { name: "Colorectal Cancer", status: "due", date: "Due Feb 2026", result: null },
+  ]
+
+  const quickActions = [
+    { icon: Calendar, label: "Book Appointment", href: "/providers/search", color: "cyan" },
+    { icon: Activity, label: "Health Screening", href: "/screening", color: "emerald" },
+    { icon: FlaskConical, label: "Clinical Trials", href: "/clinical-trials", color: "purple" },
+    { icon: MessageSquare, label: "Message Provider", href: "/chat", color: "amber" },
+  ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
+    <div className="min-h-screen bg-[#07070c] text-white">
+      {/* Background */}
+      <div className="fixed inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
 
-      <main className="pt-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
-                <Activity className="h-4 w-4" />
-                Patient Dashboard
+      {/* Top Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#07070c]/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-8">
+              <Link href="/" className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-lg flex items-center justify-center">
+                  <Activity className="h-4 w-4 text-black" />
+                </div>
+                <span className="text-lg font-semibold">BaseHealth</span>
+              </Link>
+
+              <div className="hidden md:flex items-center gap-1">
+                <Link href="/patient-portal" className="px-4 py-2 text-sm text-white bg-white/5 rounded-lg">
+                  Dashboard
+                </Link>
+                <Link href="/screening" className="px-4 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                  Screenings
+                </Link>
+                <Link href="/providers/search" className="px-4 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                  Providers
+                </Link>
+                <Link href="/clinical-trials" className="px-4 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                  Trials
+                </Link>
               </div>
-              <StandardizedButton 
-                onClick={onLogout}
-                variant="secondary"
-                size="sm"
-              >
-                <User className="h-4 w-4 mr-2" />
-                Sign Out
-              </StandardizedButton>
             </div>
-            <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-              Welcome back, John
+
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" className="relative text-zinc-400 hover:text-white hover:bg-white/5">
+                <Bell className="h-5 w-5" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-cyan-400 rounded-full" />
+              </Button>
+              <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-white/5">
+                <Settings className="h-5 w-5" />
+              </Button>
+              <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-full flex items-center justify-center text-sm font-medium text-black">
+                {user.name.charAt(0)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main className="relative pt-24 pb-20">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Welcome Section */}
+          <div className={`mb-8 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-medium mb-4">
+              <CheckCircle className="h-3.5 w-3.5" />
+              All Systems Operational
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2">
+              Welcome back, {user.name.split(' ')[0]}
             </h1>
-            <p className="text-gray-600">
-              Here's your personalized health overview and next steps
+            <p className="text-zinc-400">
+              Last sign in: {user.lastVisit}
             </p>
           </div>
 
           {/* Quick Actions */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Link href="/screening">
-              <Card className="p-6 border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Heart className="h-6 w-6 text-blue-600" />
+          <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 ${mounted ? 'animate-fade-in-up animation-delay-100' : 'opacity-0'}`}>
+            {quickActions.map((action) => (
+              <Link key={action.label} href={action.href}>
+                <Card className="p-4 bg-white/[0.02] border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all cursor-pointer group h-full">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                    action.color === 'cyan' ? 'bg-cyan-500/10 text-cyan-400' :
+                    action.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' :
+                    action.color === 'purple' ? 'bg-purple-500/10 text-purple-400' :
+                    'bg-amber-500/10 text-amber-400'
+                  }`}>
+                    <action.icon className="h-5 w-5" />
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Health Screening</h3>
-                    <p className="text-sm text-gray-600">Update your assessment</p>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-
-            <Link href="/providers/search">
-              <Card className="p-6 border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Search className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Find Providers</h3>
-                    <p className="text-sm text-gray-600">Book appointments</p>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-
-            <Link href="/clinical-trials">
-              <Card className="p-6 border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <FlaskConical className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Clinical Trials</h3>
-                    <p className="text-sm text-gray-600">Explore research studies</p>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-
-            <Link href="/medication">
-              <Card className="p-6 border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Pill className="h-6 w-6 text-orange-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Medication Management</h3>
-                    <p className="text-sm text-gray-600">Track medications & refills</p>
-                  </div>
-                </div>
-              </Card>
-            </Link>
+                  <span className="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors">
+                    {action.label}
+                  </span>
+                </Card>
+              </Link>
+            ))}
           </div>
 
-          {/* Health Overview */}
-          <div className="grid lg:grid-cols-3 gap-8 mb-8">
-            {/* Health Metrics */}
-            <div className="lg:col-span-2">
-              <Card className="p-6 border-gray-100">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Health Overview</h2>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Last Screening</span>
-                      <span className="text-sm font-medium text-gray-900">{healthMetrics.lastScreening}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Next Screening</span>
-                      <span className="text-sm font-medium text-gray-900">{healthMetrics.nextScreening}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Active Trials</span>
-                      <span className="text-sm font-medium text-gray-900">{healthMetrics.activeTrials}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Upcoming Appointments</span>
-                      <span className="text-sm font-medium text-gray-900">{healthMetrics.upcomingAppointments}</span>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-blue-900">Health Score</p>
-                      <p className="text-2xl font-bold text-blue-600">85/100</p>
-                    </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-green-900">Care Team</p>
-                      <p className="text-2xl font-bold text-green-600">3</p>
-                    </div>
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Health Score Card */}
+            <Card className={`p-6 bg-white/[0.02] border-white/5 ${mounted ? 'animate-fade-in-up animation-delay-200' : 'opacity-0'}`}>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider mb-1">Health Score</div>
+                  <div className="text-4xl font-mono font-semibold text-white">{user.healthScore}</div>
+                </div>
+                <div className="w-16 h-16 relative">
+                  <svg className="w-16 h-16 transform -rotate-90">
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      stroke="rgba(255,255,255,0.1)"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="28"
+                      stroke="rgb(34, 211, 238)"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 28}`}
+                      strokeDashoffset={`${2 * Math.PI * 28 * (1 - user.healthScore / 100)}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Heart className="h-6 w-6 text-cyan-400" />
                   </div>
                 </div>
-              </Card>
-            </div>
+              </div>
 
-            {/* Recent Activity */}
-            <div>
-              <Card className="p-6 border-gray-100">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Activity</h2>
-                <div className="space-y-4">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        activity.status === 'completed' ? 'bg-green-100' :
-                        activity.status === 'upcoming' ? 'bg-blue-100' :
-                        'bg-purple-100'
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-zinc-400">Completed Screenings</span>
+                  <span className="text-white font-mono">{user.completedScreenings}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-zinc-400">Pending Screenings</span>
+                  <span className="text-amber-400 font-mono">{user.pendingScreenings}</span>
+                </div>
+              </div>
+
+              <Link href="/screening">
+                <Button className="w-full mt-6 bg-white/5 hover:bg-white/10 border border-white/10 text-white">
+                  View All Screenings
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </Card>
+
+            {/* Upcoming Appointments */}
+            <Card className={`p-6 bg-white/[0.02] border-white/5 ${mounted ? 'animate-fade-in-up animation-delay-300' : 'opacity-0'}`}>
+              <div className="flex items-center justify-between mb-6">
+                <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider">Upcoming Appointments</div>
+                <Badge className="bg-white/5 text-zinc-400 border-white/10 text-xs">
+                  {upcomingAppointments.length}
+                </Badge>
+              </div>
+
+              <div className="space-y-4">
+                {upcomingAppointments.map((apt) => (
+                  <div key={apt.id} className="p-4 bg-white/[0.02] rounded-lg border border-white/5">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h4 className="font-medium text-white">{apt.provider}</h4>
+                        <p className="text-sm text-zinc-500">{apt.specialty}</p>
+                      </div>
+                      <Badge className={`text-xs ${
+                        apt.type === 'video' 
+                          ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' 
+                          : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                       }`}>
-                        {activity.status === 'completed' ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : activity.status === 'upcoming' ? (
-                          <Clock className="h-4 w-4 text-blue-600" />
-                        ) : (
-                          <AlertCircle className="h-4 w-4 text-purple-600" />
-                        )}
+                        {apt.type === 'video' ? 'Video Call' : 'In-Person'}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-zinc-400">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {apt.date}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                        <p className="text-xs text-gray-600">{activity.description}</p>
-                        <p className="text-xs text-gray-500 mt-1">{activity.date}</p>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" />
+                        {apt.time}
                       </div>
                     </div>
-                  ))}
-                </div>
-                <StandardizedButton variant="secondary" className="w-full mt-4">
-                  View all activity
-                </StandardizedButton>
-              </Card>
-            </div>
+                  </div>
+                ))}
+              </div>
+
+              <Link href="/appointment">
+                <Button className="w-full mt-6 bg-cyan-500 hover:bg-cyan-400 text-black">
+                  Book New Appointment
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </Card>
+
+            {/* Recent Screenings */}
+            <Card className={`p-6 bg-white/[0.02] border-white/5 ${mounted ? 'animate-fade-in-up animation-delay-400' : 'opacity-0'}`}>
+              <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider mb-6">
+                Screening Status
+              </div>
+
+              <div className="space-y-3">
+                {recentScreenings.map((screening, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-lg border border-white/5">
+                    <div className="flex items-center gap-3">
+                      {screening.status === 'completed' ? (
+                        <CheckCircle className="h-4 w-4 text-emerald-400" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 text-amber-400" />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium text-white">{screening.name}</p>
+                        <p className="text-xs text-zinc-500">{screening.date}</p>
+                      </div>
+                    </div>
+                    {screening.result && (
+                      <Badge className={`text-xs ${
+                        screening.result === 'Normal' 
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                          : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      }`}>
+                        {screening.result}
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <Link href="/screening">
+                <Button className="w-full mt-6 bg-white/5 hover:bg-white/10 border border-white/10 text-white">
+                  Complete Screenings
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </Card>
           </div>
 
-          {/* Recommended Actions */}
-          <Card className="p-6 border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Recommended Actions</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FileText className="h-8 w-8 text-yellow-600" />
+          {/* Additional Sections */}
+          <div className={`grid md:grid-cols-2 gap-6 mt-6 ${mounted ? 'animate-fade-in-up animation-delay-500' : 'opacity-0'}`}>
+            {/* Health Records */}
+            <Card className="p-6 bg-white/[0.02] border-white/5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-rose-500/10 rounded-lg flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-rose-400" />
                 </div>
-                <h3 className="font-medium text-gray-900 mb-2">Update Health Profile</h3>
-                <p className="text-sm text-gray-600 mb-4">Keep your information current for better recommendations</p>
-                <PrimaryActionButton size="sm">
-                  Update Profile
-                </PrimaryActionButton>
+                <div>
+                  <h3 className="font-medium text-white">Health Records</h3>
+                  <p className="text-sm text-zinc-500">Access your medical history</p>
+                </div>
               </div>
-              
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="h-8 w-8 text-blue-600" />
-                </div>
-                <h3 className="font-medium text-gray-900 mb-2">Schedule Checkup</h3>
-                <p className="text-sm text-gray-600 mb-4">Book your annual physical examination</p>
-                <PrimaryActionButton size="sm">
-                  Book Appointment
-                </PrimaryActionButton>
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                {[
+                  { label: "Lab Results", count: 12 },
+                  { label: "Medications", count: 3 },
+                  { label: "Documents", count: 8 },
+                ].map((item) => (
+                  <div key={item.label} className="text-center p-3 bg-white/[0.02] rounded-lg border border-white/5">
+                    <div className="text-2xl font-mono font-semibold text-white">{item.count}</div>
+                    <div className="text-xs text-zinc-500">{item.label}</div>
+                  </div>
+                ))}
               </div>
-              
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FlaskConical className="h-8 w-8 text-green-600" />
+              <Link href="/medical-records">
+                <Button className="w-full mt-6 bg-white/5 hover:bg-white/10 border border-white/10 text-white">
+                  View Records
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </Card>
+
+            {/* Clinical Trials */}
+            <Card className="p-6 bg-white/[0.02] border-white/5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                  <FlaskConical className="h-5 w-5 text-purple-400" />
                 </div>
-                <h3 className="font-medium text-gray-900 mb-2">Explore Trials</h3>
-                <p className="text-sm text-gray-600 mb-4">Find clinical trials that match your health profile</p>
-                <PrimaryActionButton size="sm">
-                  Browse Trials
-                </PrimaryActionButton>
+                <div>
+                  <h3 className="font-medium text-white">Clinical Trials</h3>
+                  <p className="text-sm text-zinc-500">Research opportunities</p>
+                </div>
+              </div>
+              <div className="p-4 bg-purple-500/5 rounded-lg border border-purple-500/10 mt-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="h-4 w-4 text-purple-400" />
+                  <span className="text-sm font-medium text-white">3 Trials Match Your Profile</span>
+                </div>
+                <p className="text-sm text-zinc-500">
+                  Based on your health data, we found clinical trials you may be eligible for.
+                </p>
+              </div>
+              <Link href="/clinical-trials">
+                <Button className="w-full mt-6 bg-purple-500 hover:bg-purple-400 text-black">
+                  Explore Trials
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </Card>
+          </div>
+
+          {/* Security Notice */}
+          <div className={`mt-8 p-4 bg-white/[0.02] rounded-lg border border-white/5 flex items-center justify-between ${mounted ? 'animate-fade-in animation-delay-500' : 'opacity-0'}`}>
+            <div className="flex items-center gap-3">
+              <Shield className="h-5 w-5 text-cyan-400" />
+              <div>
+                <span className="text-sm text-white">Your data is protected with end-to-end encryption</span>
+                <span className="text-sm text-zinc-500 ml-2">HIPAA compliant</span>
               </div>
             </div>
-          </Card>
+            <Link href="/settings" className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+              Privacy Settings →
+            </Link>
+          </div>
         </div>
       </main>
     </div>
