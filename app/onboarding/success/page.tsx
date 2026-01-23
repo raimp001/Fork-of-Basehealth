@@ -1,84 +1,105 @@
 "use client"
 
+/**
+ * Onboarding Success Page - Palantir-Inspired Design
+ */
+
 import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
-import { CheckCircle, Mail, Clock, ArrowRight } from "lucide-react"
+import { CheckCircle, Mail, Clock, ArrowRight, Shield } from "lucide-react"
 
 export default function OnboardingSuccessPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
+    <div className="min-h-screen bg-[#101010] text-white">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#101010]/90 backdrop-blur-sm border-b border-white/[0.08]">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="text-xl font-medium tracking-tight">
+            BaseHealth
+          </Link>
+        </div>
+      </nav>
 
-      <main className="pt-20 pb-12">
-        <div className="max-w-lg mx-auto px-4">
-          <Card className="text-center">
-            <CardContent className="p-8">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
+      <main className="pt-28 pb-16 px-6">
+        <div className="max-w-lg mx-auto text-center">
+          {/* Success Icon */}
+          <div className="w-16 h-16 border border-white/20 rounded-full flex items-center justify-center mx-auto mb-8">
+            <CheckCircle className="w-8 h-8 text-white/80" />
+          </div>
 
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Application Submitted!
-              </h1>
-              <p className="text-gray-600 mb-8">
-                Thank you for applying to join BaseHealth. We've received your application and will review it shortly.
-              </p>
+          <h1 className="text-4xl font-light tracking-tight mb-4">
+            Application Submitted
+          </h1>
+          <p className="text-white/50 text-lg mb-12">
+            Thank you for applying. We'll review your application and get back to you soon.
+          </p>
 
-              <div className="space-y-4 text-left bg-gray-50 rounded-lg p-6 mb-8">
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Check Your Email</h3>
-                    <p className="text-sm text-gray-600">
-                      We've sent a confirmation email with your application details.
-                    </p>
-                  </div>
+          {/* Timeline */}
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-6 text-left mb-8">
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="w-8 h-8 border border-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Mail className="w-4 h-4 text-white/60" />
                 </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-4 h-4 text-amber-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Review Time: 1-2 Business Days</h3>
-                    <p className="text-sm text-gray-600">
-                      Our team will verify your credentials and review your application.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Approval Notification</h3>
-                    <p className="text-sm text-gray-600">
-                      You'll receive an email once your application is approved.
-                    </p>
-                  </div>
+                <div>
+                  <p className="font-medium">Check Your Email</p>
+                  <p className="text-sm text-white/40 mt-0.5">
+                    Confirmation sent with your application details
+                  </p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button asChild variant="outline" className="flex-1">
-                  <Link href="/">
-                    Return Home
-                  </Link>
-                </Button>
-                <Button asChild className="flex-1">
-                  <Link href="/login">
-                    Sign In
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 border border-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-4 h-4 text-white/60" />
+                </div>
+                <div>
+                  <p className="font-medium">Review Time</p>
+                  <p className="text-sm text-white/40 mt-0.5">
+                    1-2 business days for credential verification
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="flex gap-4">
+                <div className="w-8 h-8 border border-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-4 h-4 text-white/60" />
+                </div>
+                <div>
+                  <p className="font-medium">Approval</p>
+                  <p className="text-sm text-white/40 mt-0.5">
+                    Email notification when your account is ready
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-4 justify-center">
+            <Link
+              href="/"
+              className="px-6 py-3 border border-white/20 rounded text-sm hover:bg-white/5 transition-colors"
+            >
+              Return Home
+            </Link>
+            <Link
+              href="/login"
+              className="px-6 py-3 bg-white text-black rounded text-sm hover:bg-white/90 transition-colors flex items-center gap-2"
+            >
+              Sign In
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* Admin Link */}
+          <div className="mt-12 pt-6 border-t border-white/[0.08]">
+            <Link 
+              href="/admin" 
+              className="text-sm text-white/40 hover:text-white/60 transition-colors"
+            >
+              Admin Portal →
+            </Link>
+          </div>
         </div>
       </main>
     </div>

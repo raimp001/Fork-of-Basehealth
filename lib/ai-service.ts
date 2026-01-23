@@ -255,19 +255,40 @@ export async function searchProviders(zipCode: string, specialtyOrType?: string)
     // If we have NPI providers, use them
     if (npiResponse && npiResponse.results && npiResponse.results.length > 0) {
       console.log(`Found ${npiResponse.results.length} real providers from NPI API`)
-      return npiResponse.results.map((p, index) => ({
+      return npiResponse.results.map((p, index) => {
+        // Build proper name from NPI data
+        const firstName = p.basic?.first_name || ''
+        const lastName = p.basic?.last_name || ''
+        const orgName = p.basic?.organization_name || ''
+        const credential = p.basic?.credential || 'MD'
+        
+        let providerName = ''
+        if (orgName) {
+          providerName = orgName
+        } else if (firstName || lastName) {
+          providerName = `Dr. ${firstName} ${lastName}`.trim()
+          if (providerName === 'Dr.') providerName = `Healthcare Provider ${index + 1}`
+        } else {
+          providerName = `Healthcare Provider ${index + 1}`
+        }
+        
+        const email = firstName && lastName 
+          ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`
+          : `provider${index + 1}@example.com`
+        
+        return {
         id: p.number,
-        name: `${p.basic.first_name} ${p.basic.last_name}`,
-        email: `${p.basic.first_name?.toLowerCase()}.${p.basic.last_name?.toLowerCase()}@example.com`,
+        name: providerName,
+        email: email,
         role: "provider" as const,
         specialty: specialtyOrType || "General Practice",
-        credentials: p.basic.credential ? [p.basic.credential] : ["MD"],
+        credentials: credential ? [credential] : ["MD"],
         licenseNumber: p.number,
         licenseState: p.addresses?.[0]?.state || zipCode.substring(0, 2),
         licenseExpiration: new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString().split("T")[0],
         education: [],
         yearsOfExperience: Math.floor(5 + Math.random() * 20),
-        bio: `${p.basic.first_name} ${p.basic.last_name} is a healthcare provider specializing in ${specialtyOrType || "general medicine"}.`,
+        bio: `${providerName} is a healthcare provider specializing in ${specialtyOrType || "general medicine"}.`,
         address: {
           street: p.addresses?.[0]?.address_1 || "",
           city: p.addresses?.[0]?.city || "",
@@ -293,7 +314,8 @@ export async function searchProviders(zipCode: string, specialtyOrType?: string)
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         source: "NPI" as const,
-      }))
+      }
+      })
     }
 
     // If no NPI providers found, use AI to find real providers in the area

@@ -1,172 +1,253 @@
 "use client"
 
 /**
- * Health Screening - Palantir-Inspired Design
+ * Health Screening Assessment - Claude.ai Design
  */
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Activity, ArrowRight, ArrowLeft, Loader2, CheckCircle, ChevronDown } from "lucide-react"
+import { 
+  ArrowRight, ArrowLeft, Loader2, CheckCircle, 
+  AlertCircle, Shield, Heart, Brain, User
+} from "lucide-react"
 
 interface ScreeningRecommendation {
   id: string
   name: string
   description: string
   frequency: string
-  specialtyNeeded: string
   grade: string
+  importance: string
+  primaryProvider: string
+  alternativeProviders: string[]
+  canBeDoneBy: 'primary' | 'specialist' | 'either'
+  providerNote: string
+}
+
+interface RiskProfile {
+  factors: string[]
+  level: 'low' | 'moderate' | 'elevated'
+}
+
+interface Summary {
+  totalScreenings: number
+  gradeACount: number
+  gradeBCount: number
+  primaryCareScreenings: number
+  specialistReferralsNeeded: number
+  specialistsNeeded: string[]
 }
 
 export default function ScreeningPage() {
   const [mounted, setMounted] = useState(false)
+  const [step, setStep] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [recommendations, setRecommendations] = useState<ScreeningRecommendation[]>([])
+  const [riskProfile, setRiskProfile] = useState<RiskProfile | null>(null)
+  const [summary, setSummary] = useState<Summary | null>(null)
+  
   const [formData, setFormData] = useState({
     age: '',
     gender: '',
     smokingStatus: '',
+    bmiCategory: '',
+    isPregnant: false,
+    sexuallyActive: false,
+    medicalHistory: [] as string[],
+    familyHistory: [] as string[],
   })
-
-  const [recommendations, setRecommendations] = useState<ScreeningRecommendation[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData.age || !formData.gender) {
-      setError('Please enter your age and select gender.')
-      return
-    }
+  const totalSteps = 4
 
+  const toggleArrayItem = (array: string[], item: string) => {
+    return array.includes(item) 
+      ? array.filter(i => i !== item)
+      : [...array, item]
+  }
+
+  const handleSubmit = async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const params = new URLSearchParams({
-        age: formData.age,
-        gender: formData.gender,
-        riskFactors: formData.smokingStatus === 'current' ? 'Current smoking' : ''
+      const response = await fetch('/api/screening/recommendations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       })
-
-      const response = await fetch(`/api/screening/recommendations?${params}`)
-      if (!response.ok) throw new Error('Failed to fetch recommendations')
       
       const data = await response.json()
-      setRecommendations(data.recommendations || [])
-      setIsSubmitted(true)
+      
+      if (data.success) {
+        setRecommendations(data.recommendations || [])
+        setRiskProfile(data.riskProfile || null)
+        setSummary(data.summary || null)
+        setStep(5)
+      } else {
+        setError(data.error || 'Failed to get recommendations')
+      }
     } catch (err) {
-      setError('Failed to process screening. Please try again.')
+      setError('Connection error. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
+  const canProceed = () => {
+    switch (step) {
+      case 1: return formData.age && formData.gender
+      case 2: return true
+      case 3: return true
+      case 4: return true
+      default: return true
+    }
+  }
+
   // Results view
-  if (isSubmitted) {
+  if (step === 5) {
     return (
-      <div className="min-h-screen bg-black text-white">
-        {/* Navigation */}
-        <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <div className="flex items-center justify-between h-20">
-              <Link href="/" className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                  <Activity className="h-5 w-5 text-black" />
-                </div>
-                <span className="text-xl font-medium">BaseHealth</span>
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+        <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
+          <div className="max-w-5xl mx-auto px-6">
+            <div className="flex items-center justify-between h-16">
+              <Link href="/" className="text-lg font-medium tracking-tight hover:opacity-80 transition-opacity">
+                BaseHealth
               </Link>
             </div>
           </div>
         </nav>
 
-        <main className="pt-32 pb-24">
-          <div className="max-w-4xl mx-auto px-6 lg:px-8">
-            <div className={`mb-12 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 text-sm font-medium mb-6">
+        <main className="pt-28 pb-24">
+          <div className="max-w-3xl mx-auto px-6">
+            {/* Header */}
+            <div className={`mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium mb-4" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}>
                 <CheckCircle className="h-4 w-4" />
                 Assessment Complete
               </div>
-              <h1 className="text-4xl md:text-5xl font-medium tracking-tight mb-4">
+              <h1 className="text-3xl md:text-4xl font-normal tracking-tight mb-3">
                 Your Screening Recommendations
               </h1>
-              <p className="text-xl text-neutral-400">
-                Based on your profile and USPSTF guidelines.
+              <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+                Based on USPSTF Grade A & B guidelines for your profile.
               </p>
             </div>
 
+            {/* Risk Profile */}
+            {riskProfile && (
+              <div className="p-5 mb-6 rounded-xl border" style={{ 
+                backgroundColor: riskProfile.level === 'elevated' ? 'rgba(212, 165, 116, 0.1)' : 'rgba(107, 155, 107, 0.1)',
+                borderColor: riskProfile.level === 'elevated' ? 'rgba(212, 165, 116, 0.2)' : 'rgba(107, 155, 107, 0.2)'
+              }}>
+                <div className="flex items-center gap-3 mb-2">
+                  <Shield className="h-5 w-5" style={{ color: riskProfile.level === 'elevated' ? 'var(--accent)' : '#6b9b6b' }} />
+                  <h3 className="font-medium">Risk Profile: <span className="capitalize">{riskProfile.level}</span></h3>
+                </div>
+                {riskProfile.factors.length > 0 && (
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    Identified factors: {riskProfile.factors.slice(0, 5).join(', ')}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Profile Summary */}
-            <div className="p-6 bg-neutral-950 border border-white/5 rounded-2xl mb-8">
-              <p className="text-sm text-neutral-500 uppercase tracking-wider mb-4">Profile Summary</p>
-              <div className="grid grid-cols-3 gap-6">
+            <div className="p-5 rounded-xl border mb-6" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+              <p className="text-xs uppercase tracking-wider mb-4" style={{ color: 'var(--text-muted)' }}>Your Profile</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div>
-                  <p className="text-3xl font-medium">{formData.age}</p>
-                  <p className="text-neutral-500">Age</p>
+                  <p className="text-2xl font-medium">{formData.age}</p>
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Age</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-medium capitalize">{formData.gender}</p>
-                  <p className="text-neutral-500">Gender</p>
+                  <p className="text-2xl font-medium capitalize">{formData.gender}</p>
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Gender</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-medium">{recommendations.length}</p>
-                  <p className="text-neutral-500">Recommendations</p>
+                  <p className="text-2xl font-medium">{recommendations.length}</p>
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Screenings</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-medium">{recommendations.filter(r => r.grade === 'A').length}</p>
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Priority</p>
                 </div>
               </div>
             </div>
 
             {/* Recommendations */}
-            <div className="space-y-4">
-              {recommendations.map((rec, index) => (
-                <div 
-                  key={rec.id} 
-                  className={`p-6 bg-neutral-950 border border-white/5 rounded-2xl hover:border-white/10 transition-all ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="flex items-start justify-between gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-medium">{rec.name}</h3>
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                          rec.grade === 'A' ? 'bg-green-500/10 text-green-400' :
-                          rec.grade === 'B' ? 'bg-blue-500/10 text-blue-400' :
-                          'bg-neutral-500/10 text-neutral-400'
-                        }`}>
-                          Grade {rec.grade}
-                        </span>
-                      </div>
-                      <p className="text-neutral-400 mb-4">{rec.description}</p>
-                      <div className="flex gap-6 text-sm text-neutral-500">
-                        <span>Frequency: {rec.frequency}</span>
-                        <span>Specialist: {rec.specialtyNeeded}</span>
-                      </div>
-                    </div>
-                    <Link
-                      href={`/providers/search?query=${encodeURIComponent(rec.specialtyNeeded)}`}
-                      className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors flex items-center gap-2"
-                    >
-                      Find Provider
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {recommendations.length > 0 ? (
+              <div className="space-y-4">
+                <h2 className="text-xl font-medium mb-4">Recommended Screenings</h2>
+                {recommendations.map((rec, index) => (
+                  <div 
+                    key={rec.id} 
+                    className={`p-5 rounded-xl border transition-all ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
+                    style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center flex-wrap gap-2 mb-2">
+                          <h3 className="text-lg font-medium">{rec.name}</h3>
+                          <span className="px-2 py-0.5 text-xs font-medium rounded" style={{ 
+                            backgroundColor: rec.grade === 'A' ? 'rgba(107, 155, 107, 0.15)' : 'rgba(212, 165, 116, 0.15)',
+                            color: rec.grade === 'A' ? '#6b9b6b' : 'var(--accent)'
+                          }}>
+                            Grade {rec.grade}
+                          </span>
+                        </div>
+                        <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>{rec.description}</p>
+                        
+                        <div className="p-3 rounded-lg mb-3" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            <strong>Provider:</strong> {rec.primaryProvider}
+                          </p>
+                          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{rec.providerNote}</p>
+                        </div>
 
-            <div className="flex gap-4 mt-10">
+                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>📅 {rec.frequency}</p>
+                      </div>
+                      <Link
+                        href={`/providers/search?query=${encodeURIComponent(rec.primaryProvider)}`}
+                        className="px-4 py-2 font-medium rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
+                        style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+                      >
+                        Find Provider
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 rounded-xl border text-center" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                <CheckCircle className="h-12 w-12 mx-auto mb-4" style={{ color: '#6b9b6b' }} />
+                <h3 className="text-xl font-medium mb-2">No Urgent Screenings Required</h3>
+                <p style={{ color: 'var(--text-secondary)' }}>
+                  Continue maintaining your health with regular check-ups.
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-4 mt-8">
               <button
-                onClick={() => setIsSubmitted(false)}
-                className="px-6 py-3 text-white border border-white/20 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-2"
+                onClick={() => setStep(1)}
+                className="px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2 border"
+                style={{ borderColor: 'var(--border-medium)', color: 'var(--text-primary)' }}
               >
                 <ArrowLeft className="h-5 w-5" />
-                Edit Assessment
+                Start Over
               </button>
               <Link
                 href="/providers/search"
-                className="px-6 py-3 bg-white text-black font-medium rounded-lg hover:bg-neutral-200 transition-colors flex items-center gap-2"
+                className="px-5 py-2.5 font-medium rounded-lg transition-colors flex items-center gap-2"
+                style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
               >
-                Find Healthcare Providers
+                Find Providers
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </div>
@@ -178,22 +259,18 @@ export default function ScreeningPage() {
 
   // Form view
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <Activity className="h-5 w-5 text-black" />
-              </div>
-              <span className="text-xl font-medium">BaseHealth</span>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="text-lg font-medium tracking-tight hover:opacity-80 transition-opacity">
+              BaseHealth
             </Link>
             <div className="flex items-center gap-6">
-              <Link href="/providers/search" className="text-sm text-neutral-400 hover:text-white transition-colors">
+              <Link href="/providers/search" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Find Providers
               </Link>
-              <Link href="/clinical-trials" className="text-sm text-neutral-400 hover:text-white transition-colors">
+              <Link href="/clinical-trials" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Clinical Trials
               </Link>
             </div>
@@ -201,99 +278,335 @@ export default function ScreeningPage() {
         </div>
       </nav>
 
-      <main className="pt-32 pb-24">
-        <div className="max-w-2xl mx-auto px-6 lg:px-8">
-          <div className={`text-center mb-16 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6">
+      <main className="pt-28 pb-24">
+        <div className="max-w-xl mx-auto px-6">
+          {/* Header */}
+          <div className={`text-center mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <h1 className="text-3xl md:text-4xl font-normal tracking-tight mb-3">
               Health Screening
               <br />
-              <span className="text-neutral-500">Assessment</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Assessment</span>
             </h1>
-            <p className="text-xl text-neutral-400 max-w-xl mx-auto">
-              Get personalized screening recommendations based on USPSTF guidelines.
+            <p style={{ color: 'var(--text-secondary)' }}>
+              Get personalized USPSTF Grade A & B recommendations
             </p>
           </div>
 
+          {/* Progress */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Step {step} of {totalSteps}</span>
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{Math.round((step / totalSteps) * 100)}%</span>
+            </div>
+            <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+              <div 
+                className="h-full transition-all duration-300"
+                style={{ width: `${(step / totalSteps) * 100}%`, backgroundColor: 'var(--accent)' }}
+              />
+            </div>
+          </div>
+
           {error && (
-            <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+            <div className="mb-6 p-4 rounded-lg flex items-center gap-3" style={{ backgroundColor: 'rgba(220, 100, 100, 0.1)', color: '#dc6464', border: '1px solid rgba(220, 100, 100, 0.2)' }}>
+              <AlertCircle className="h-5 w-5" />
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className={`space-y-8 ${mounted ? 'animate-fade-in-up delay-200' : 'opacity-0'}`}>
-            <div className="p-8 bg-neutral-950 border border-white/5 rounded-2xl space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-neutral-400 mb-2">Age *</label>
-                <input
-                  type="number"
-                  min="18"
-                  max="120"
-                  value={formData.age}
-                  onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
-                  placeholder="Enter your age"
-                  className="w-full px-4 py-3 bg-black border border-white/10 rounded-lg text-white placeholder:text-neutral-600 focus:outline-none focus:border-white/30 transition-colors"
-                  required
-                />
-              </div>
+          <div className={`${mounted ? 'animate-fade-in-up delay-200' : 'opacity-0'}`}>
+            {/* Step 1: Basic Info */}
+            {step === 1 && (
+              <div className="p-6 rounded-xl border space-y-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)' }}>
+                    <User className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-medium">Basic Information</h2>
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Tell us about yourself</p>
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-neutral-400 mb-2">Gender *</label>
-                <div className="relative">
-                  <select
-                    value={formData.gender}
-                    onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-lg text-white appearance-none focus:outline-none focus:border-white/30 transition-colors"
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Age *</label>
+                  <input
+                    type="number"
+                    min="18"
+                    max="120"
+                    value={formData.age}
+                    onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+                    placeholder="Enter your age"
+                    className="w-full px-4 py-3 rounded-lg focus:outline-none transition-colors"
+                    style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                     required
-                  >
-                    <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Biological Sex *</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['male', 'female'].map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, gender: g }))}
+                        className="p-4 border rounded-lg text-center transition-all"
+                        style={formData.gender === g ? { 
+                          backgroundColor: 'rgba(212, 165, 116, 0.1)', 
+                          borderColor: 'var(--accent)',
+                          color: 'var(--text-primary)'
+                        } : { 
+                          borderColor: 'var(--border-medium)',
+                          color: 'var(--text-secondary)'
+                        }}
+                      >
+                        <span className="capitalize font-medium">{g}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {formData.gender === 'female' && (
+                  <div>
+                    <label className="flex items-center gap-3 cursor-pointer p-4 border rounded-lg transition-colors" style={{ borderColor: 'var(--border-medium)' }}>
+                      <input
+                        type="checkbox"
+                        checked={formData.isPregnant}
+                        onChange={(e) => setFormData(prev => ({ ...prev, isPregnant: e.target.checked }))}
+                        className="w-5 h-5 rounded"
+                      />
+                      <span>I am currently pregnant or planning pregnancy</span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 2: Lifestyle */}
+            {step === 2 && (
+              <div className="p-6 rounded-xl border space-y-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(107, 155, 107, 0.1)' }}>
+                    <Heart className="h-5 w-5" style={{ color: '#6b9b6b' }} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-medium">Lifestyle Factors</h2>
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>These affect your screening needs</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Smoking Status</label>
+                  <div className="space-y-2">
+                    {[
+                      { value: 'never', label: 'Never smoked' },
+                      { value: 'former', label: 'Former smoker (quit)' },
+                      { value: 'current', label: 'Current smoker' },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, smokingStatus: option.value }))}
+                        className="w-full p-4 border rounded-lg text-left transition-all"
+                        style={formData.smokingStatus === option.value ? { 
+                          backgroundColor: 'rgba(212, 165, 116, 0.1)', 
+                          borderColor: 'var(--accent)',
+                          color: 'var(--text-primary)'
+                        } : { 
+                          borderColor: 'var(--border-medium)',
+                          color: 'var(--text-secondary)'
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Body Mass Index (BMI)</label>
+                  <div className="space-y-2">
+                    {[
+                      { value: 'normal', label: 'Normal weight (BMI < 25)' },
+                      { value: 'overweight', label: 'Overweight (BMI 25-29.9)' },
+                      { value: 'obese', label: 'Obese (BMI 30+)' },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, bmiCategory: option.value }))}
+                        className="w-full p-4 border rounded-lg text-left transition-all"
+                        style={formData.bmiCategory === option.value ? { 
+                          backgroundColor: 'rgba(212, 165, 116, 0.1)', 
+                          borderColor: 'var(--accent)',
+                          color: 'var(--text-primary)'
+                        } : { 
+                          borderColor: 'var(--border-medium)',
+                          color: 'var(--text-secondary)'
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div>
-                <label className="block text-sm font-medium text-neutral-400 mb-2">Smoking Status</label>
-                <div className="relative">
-                  <select
-                    value={formData.smokingStatus}
-                    onChange={(e) => setFormData(prev => ({ ...prev, smokingStatus: e.target.value }))}
-                    className="w-full px-4 py-3 bg-black border border-white/10 rounded-lg text-white appearance-none focus:outline-none focus:border-white/30 transition-colors"
-                  >
-                    <option value="">Select status</option>
-                    <option value="never">Never smoked</option>
-                    <option value="former">Former smoker</option>
-                    <option value="current">Current smoker</option>
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
+            {/* Step 3: Medical History */}
+            {step === 3 && (
+              <div className="p-6 rounded-xl border space-y-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(150, 120, 180, 0.1)' }}>
+                    <Brain className="h-5 w-5" style={{ color: '#9678b4' }} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-medium">Medical History</h2>
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Select any conditions you have</p>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={isLoading || !formData.age || !formData.gender}
-              className="w-full py-4 bg-white text-black text-lg font-medium rounded-lg hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  Get Recommendations
-                  <ArrowRight className="h-5 w-5" />
-                </>
+                <div className="space-y-2">
+                  {[
+                    { value: 'hypertension', label: 'High Blood Pressure (Hypertension)' },
+                    { value: 'diabetes', label: 'Diabetes or Prediabetes' },
+                    { value: 'high-cholesterol', label: 'High Cholesterol' },
+                    { value: 'heart-disease', label: 'Heart Disease' },
+                    { value: 'cancer-history', label: 'Personal History of Cancer' },
+                    { value: 'depression', label: 'Depression or Anxiety' },
+                  ].map((condition) => (
+                    <button
+                      key={condition.value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
+                        medicalHistory: toggleArrayItem(prev.medicalHistory, condition.value)
+                      }))}
+                      className="w-full p-4 border rounded-lg text-left transition-all flex items-center justify-between"
+                      style={formData.medicalHistory.includes(condition.value) ? { 
+                        backgroundColor: 'rgba(212, 165, 116, 0.1)', 
+                        borderColor: 'var(--accent)',
+                        color: 'var(--text-primary)'
+                      } : { 
+                        borderColor: 'var(--border-medium)',
+                        color: 'var(--text-secondary)'
+                      }}
+                    >
+                      {condition.label}
+                      {formData.medicalHistory.includes(condition.value) && (
+                        <CheckCircle className="h-5 w-5" style={{ color: '#6b9b6b' }} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="text-sm text-center" style={{ color: 'var(--text-muted)' }}>
+                  Select all that apply, or skip if none
+                </p>
+              </div>
+            )}
+
+            {/* Step 4: Family History */}
+            {step === 4 && (
+              <div className="p-6 rounded-xl border space-y-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)' }}>
+                    <Shield className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-medium">Family History</h2>
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Conditions in immediate family members</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {[
+                    { value: 'cancer', label: 'Cancer (any type)' },
+                    { value: 'heart-disease', label: 'Heart Disease' },
+                    { value: 'diabetes', label: 'Diabetes' },
+                    { value: 'stroke', label: 'Stroke' },
+                    { value: 'hypertension', label: 'High Blood Pressure' },
+                  ].map((condition) => (
+                    <button
+                      key={condition.value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
+                        familyHistory: toggleArrayItem(prev.familyHistory, condition.value)
+                      }))}
+                      className="w-full p-4 border rounded-lg text-left transition-all flex items-center justify-between"
+                      style={formData.familyHistory.includes(condition.value) ? { 
+                        backgroundColor: 'rgba(212, 165, 116, 0.1)', 
+                        borderColor: 'var(--accent)',
+                        color: 'var(--text-primary)'
+                      } : { 
+                        borderColor: 'var(--border-medium)',
+                        color: 'var(--text-secondary)'
+                      }}
+                    >
+                      {condition.label}
+                      {formData.familyHistory.includes(condition.value) && (
+                        <CheckCircle className="h-5 w-5" style={{ color: '#6b9b6b' }} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="text-sm text-center" style={{ color: 'var(--text-muted)' }}>
+                  Select all that apply, or skip if none
+                </p>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-4 mt-6">
+              {step > 1 && (
+                <button
+                  onClick={() => setStep(step - 1)}
+                  className="px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2 border"
+                  style={{ borderColor: 'var(--border-medium)', color: 'var(--text-primary)' }}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  Back
+                </button>
               )}
-            </button>
-          </form>
-
-          <p className="mt-8 text-center text-sm text-neutral-600">
-            Your data is encrypted and HIPAA compliant. We never share your health information.
-          </p>
+              
+              {step < totalSteps ? (
+                <button
+                  onClick={() => setStep(step + 1)}
+                  disabled={!canProceed()}
+                  className="flex-1 py-2.5 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+                >
+                  Continue
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className="flex-1 py-2.5 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      Get Recommendations
+                      <ArrowRight className="h-5 w-5" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          
+            <p className="mt-6 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+              Your data is encrypted and HIPAA compliant. We never share your health information.
+            </p>
+          </div>
         </div>
       </main>
     </div>

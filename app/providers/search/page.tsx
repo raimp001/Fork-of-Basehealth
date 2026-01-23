@@ -1,13 +1,13 @@
 "use client"
 
 /**
- * Provider Search - Palantir-Inspired Design
+ * Provider Search - Enhanced Location/ZIP Support
  */
 
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Activity, Search, MapPin, Star, X, ArrowRight, Loader2, CheckCircle } from "lucide-react"
+import { Search, MapPin, Star, X, ArrowRight, Loader2, CheckCircle, Navigation, AlertCircle } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
 
@@ -27,25 +27,91 @@ interface Provider {
   credentials: string
 }
 
+// Common locations for quick access
+const QUICK_LOCATIONS = [
+  { label: 'Portland, OR', value: 'Portland, Oregon' },
+  { label: 'Seattle, WA', value: 'Seattle, Washington' },
+  { label: 'San Francisco, CA', value: 'San Francisco, California' },
+  { label: 'Los Angeles, CA', value: 'Los Angeles, California' },
+  { label: 'New York, NY', value: 'New York, New York' },
+  { label: 'Chicago, IL', value: 'Chicago, Illinois' },
+]
+
+// Common specialties for quick access
+const QUICK_SPECIALTIES = [
+  'Primary Care',
+  'Family Medicine',
+  'Internal Medicine',
+  'Cardiology',
+  'Dermatology',
+  'Pediatrics',
+]
+
 function SearchPageContent() {
   const searchParams = useSearchParams()
   const isCaregiverMode = searchParams?.get('bounty') === 'true'
   const initialQuery = searchParams?.get('query') || ''
+  const initialLocation = searchParams?.get('location') || ''
   
-  const [searchQuery, setSearchQuery] = useState(initialQuery)
+  const [specialty, setSpecialty] = useState(initialQuery)
+  const [location, setLocation] = useState(initialLocation)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [providers, setProviders] = useState<Provider[]>([])
+  const [detectedLocation, setDetectedLocation] = useState<string | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    if (initialQuery) searchProviders(initialQuery)
-  }, [initialQuery])
+    if (initialQuery || initialLocation) {
+      searchProviders(initialQuery, initialLocation)
+    }
+  }, [initialQuery, initialLocation])
 
-  const searchProviders = async (query: string) => {
-    if (!query.trim()) {
-      setError('Please enter a search query')
+  // Detect user location
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser')
+      return
+    }
+
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          // Use reverse geocoding to get city/state
+          const response = await fetch(
+            `/api/geocode/reverse?lat=${position.coords.latitude}&lng=${position.coords.longitude}`
+          )
+          if (response.ok) {
+            const data = await response.json()
+            if (data.city && data.state) {
+              const loc = `${data.city}, ${data.state}`
+              setLocation(loc)
+              setDetectedLocation(loc)
+            }
+          }
+        } catch (err) {
+          console.error('Reverse geocoding failed:', err)
+        } finally {
+          setIsLocating(false)
+        }
+      },
+      (err) => {
+        console.error('Geolocation error:', err)
+        setIsLocating(false)
+      },
+      { timeout: 10000 }
+    )
+  }
+
+  // Check if input is a ZIP code
+  const isZipCode = (input: string) => /^\d{5}(-\d{4})?$/.test(input.trim())
+
+  const searchProviders = async (specialtyQuery: string, locationQuery: string) => {
+    if (!specialtyQuery.trim() && !locationQuery.trim()) {
+      setError('Please enter a specialty or location')
       return
     }
 
@@ -53,7 +119,36 @@ function SearchPageContent() {
       setIsLoading(true)
       setError(null)
 
-      const params = new URLSearchParams({ query, limit: '20' })
+      const params = new URLSearchParams()
+      
+      // Build query - combine specialty with location for natural language processing
+      let query = ''
+      if (specialtyQuery.trim()) {
+        query = specialtyQuery.trim()
+      }
+      
+      // Add location to query if provided
+      if (locationQuery.trim()) {
+        if (isZipCode(locationQuery)) {
+          // If it's a ZIP code, add as separate parameter
+          params.set('zipCode', locationQuery.trim())
+          params.set('location', locationQuery.trim())
+        } else {
+          // Add location to natural language query
+          if (query) {
+            query += ` in ${locationQuery.trim()}`
+          } else {
+            query = `doctor in ${locationQuery.trim()}`
+          }
+          params.set('location', locationQuery.trim())
+        }
+      }
+      
+      if (query) {
+        params.set('query', query)
+      }
+      params.set('limit', '20')
+
       const response = await fetch(`/api/providers/search?${params.toString()}`)
       
       if (!response.ok) throw new Error('Search failed')
@@ -63,7 +158,7 @@ function SearchPageContent() {
       if (data.success) {
         setProviders(data.providers || [])
         if (data.providers.length === 0) {
-          setError('No providers found. Try a different search.')
+          setError(`No providers found${locationQuery ? ` in ${locationQuery}` : ''}. Try a different search or broader location.`)
         }
       } else {
         setError(data.error || 'No providers found')
@@ -79,26 +174,29 @@ function SearchPageContent() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    searchProviders(searchQuery)
+    searchProviders(specialty, location)
+  }
+
+  const handleQuickSearch = (spec: string, loc: string) => {
+    setSpecialty(spec)
+    setLocation(loc)
+    searchProviders(spec, loc)
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <Activity className="h-5 w-5 text-black" />
-              </div>
-              <span className="text-xl font-medium">BaseHealth</span>
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="text-lg font-medium tracking-tight hover:opacity-80 transition-opacity">
+              BaseHealth
             </Link>
             <div className="flex items-center gap-6">
-              <Link href="/screening" className="text-sm text-neutral-400 hover:text-white transition-colors">
+              <Link href="/screening" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Screening
               </Link>
-              <Link href="/clinical-trials" className="text-sm text-neutral-400 hover:text-white transition-colors">
+              <Link href="/clinical-trials" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Clinical Trials
               </Link>
             </div>
@@ -106,89 +204,195 @@ function SearchPageContent() {
         </div>
       </nav>
 
-      <main className="pt-32 pb-24">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <main className="pt-28 pb-24">
+        <div className="max-w-5xl mx-auto px-6">
           {/* Header */}
-          <div className={`max-w-3xl mb-16 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6">
+          <div className={`max-w-3xl mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <h1 className="text-4xl md:text-5xl font-normal tracking-tight mb-4" style={{ lineHeight: '1.1' }}>
               {isCaregiverMode ? 'Find Caregivers' : 'Find Healthcare'}
               <br />
-              <span className="text-neutral-500">{isCaregiverMode ? 'in Your Area' : 'Providers'}</span>
+              <span style={{ color: 'var(--text-secondary)' }}>{isCaregiverMode ? 'in Your Area' : 'Providers'}</span>
             </h1>
-            <p className="text-xl text-neutral-400">
-              {isCaregiverMode 
-                ? 'Connect with verified, licensed caregivers.'
-                : 'Search NPI-verified doctors and specialists using natural language.'}
+            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+              Search by specialty and location. Enter a city, state, or ZIP code.
             </p>
 
             {/* Mode toggle */}
-            <div className="flex gap-3 mt-8">
+            <div className="flex gap-3 mt-6">
               <Link
                 href="/providers/search"
-                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  !isCaregiverMode ? 'bg-white text-black' : 'text-neutral-400 hover:text-white border border-white/10 hover:border-white/20'
-                }`}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                style={!isCaregiverMode ? { 
+                  backgroundColor: 'var(--text-primary)', 
+                  color: 'var(--bg-primary)' 
+                } : { 
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-medium)'
+                }}
               >
                 Doctors & Specialists
               </Link>
               <Link
                 href="/providers/search?bounty=true"
-                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isCaregiverMode ? 'bg-white text-black' : 'text-neutral-400 hover:text-white border border-white/10 hover:border-white/20'
-                }`}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                style={isCaregiverMode ? { 
+                  backgroundColor: 'var(--text-primary)', 
+                  color: 'var(--bg-primary)' 
+                } : { 
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-medium)'
+                }}
               >
                 Caregivers
               </Link>
             </div>
           </div>
 
-          {/* Search */}
-          <form onSubmit={handleSearch} className={`mb-12 ${mounted ? 'animate-fade-in-up delay-200' : 'opacity-0'}`}>
-            <div className="flex gap-4">
-              <div className="flex-1 relative">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500" />
+          {/* Search Form */}
+          <form onSubmit={handleSearch} className={`mb-8 ${mounted ? 'animate-fade-in-up delay-200' : 'opacity-0'}`}>
+            <div className="grid md:grid-cols-2 gap-4 mb-4">
+              {/* Specialty Input */}
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                 <input
                   type="text"
-                  placeholder={isCaregiverMode ? "Enter city or ZIP code..." : "e.g., cardiologist in San Francisco"}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-12 py-4 bg-neutral-950 border border-white/10 rounded-xl text-lg text-white placeholder:text-neutral-600 focus:outline-none focus:border-white/30 transition-colors"
+                  placeholder="Specialty (e.g., cardiologist, family doctor)"
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3.5 rounded-lg text-base focus:outline-none transition-colors"
+                  style={{ 
+                    backgroundColor: 'var(--bg-secondary)', 
+                    border: '1px solid var(--border-medium)',
+                    color: 'var(--text-primary)'
+                  }}
                 />
-                {searchQuery && (
+              </div>
+
+              {/* Location Input */}
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  placeholder="City, State or ZIP code (e.g., Portland, OR or 97201)"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full pl-12 pr-24 py-3.5 rounded-lg text-base focus:outline-none transition-colors"
+                  style={{ 
+                    backgroundColor: 'var(--bg-secondary)', 
+                    border: '1px solid var(--border-medium)',
+                    color: 'var(--text-primary)'
+                  }}
+                />
+                {location && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setSearchQuery('')
-                      setProviders([])
-                      setError(null)
-                    }}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white"
+                    onClick={() => setLocation('')}
+                    className="absolute right-16 top-1/2 -translate-y-1/2 transition-colors"
+                    style={{ color: 'var(--text-muted)' }}
                   >
                     <X className="h-5 w-5" />
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={detectLocation}
+                  disabled={isLocating}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: 'var(--text-muted)' }}
+                  title="Use my location"
+                >
+                  {isLocating ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Navigation className="h-5 w-5" />
+                  )}
+                </button>
               </div>
+            </div>
+
+            {/* Quick Location Buttons */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className="text-sm py-1" style={{ color: 'var(--text-muted)' }}>Quick:</span>
+              {QUICK_LOCATIONS.map((loc) => (
+                <button
+                  key={loc.value}
+                  type="button"
+                  onClick={() => setLocation(loc.value)}
+                  className="px-3 py-1 text-sm rounded-lg transition-colors"
+                  style={location === loc.value ? { 
+                    backgroundColor: 'var(--text-primary)', 
+                    color: 'var(--bg-primary)' 
+                  } : { 
+                    backgroundColor: 'var(--bg-secondary)',
+                    color: 'var(--text-secondary)'
+                  }}
+                >
+                  {loc.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Detected Location Indicator */}
+            {detectedLocation && (
+              <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2 text-green-400 text-sm">
+                <Navigation className="h-4 w-4" />
+                Location detected: {detectedLocation}
+              </div>
+            )}
+
+            {/* Search Button */}
+            <div className="flex justify-end">
               <button 
                 type="submit" 
                 disabled={isLoading}
                 aria-label={isLoading ? "Searching" : "Search"}
-                className="px-8 py-4 bg-white text-black font-medium rounded-xl hover:bg-neutral-200 transition-colors flex items-center gap-2"
+                className="px-6 py-3 font-medium rounded-lg transition-colors flex items-center gap-2"
+                style={{ 
+                  backgroundColor: 'var(--text-primary)', 
+                  color: 'var(--bg-primary)' 
+                }}
               >
                 {isLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                 ) : (
                   <>
                     <Search className="h-5 w-5" />
-                    Search
+                    Search Providers
                   </>
                 )}
               </button>
             </div>
           </form>
 
+          {/* Quick Specialty + Location Searches */}
+          <div className={`mb-10 ${mounted ? 'animate-fade-in-up delay-300' : 'opacity-0'}`}>
+            <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>Popular searches:</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { spec: 'Primary Care', loc: 'Portland, Oregon' },
+                { spec: 'Cardiologist', loc: 'Seattle, Washington' },
+                { spec: 'Dermatologist', loc: 'San Francisco, California' },
+                { spec: 'Family Doctor', loc: '97201' },
+              ].map((search, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleQuickSearch(search.spec, search.loc)}
+                  className="px-3 py-2 rounded-lg transition-colors text-sm"
+                  style={{ 
+                    backgroundColor: 'var(--bg-secondary)',
+                    color: 'var(--text-secondary)'
+                  }}
+                >
+                  {search.spec} in {search.loc}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Error */}
           {error && (
-            <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+            <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 flex-shrink-0" />
               {error}
             </div>
           )}
@@ -210,40 +414,55 @@ function SearchPageContent() {
           {/* Results */}
           {!isLoading && providers.length > 0 && (
             <>
-              <p className="text-sm text-neutral-500 mb-6">{providers.length} providers found</p>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{providers.length} providers found</p>
+                {location && (
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    Searching in: {location}
+                  </p>
+                )}
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {providers.map((provider, index) => (
                   <div 
                     key={provider.npi} 
-                    className={`p-6 bg-neutral-950 border border-white/5 rounded-2xl hover:border-white/10 transition-all group ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className={`p-5 rounded-xl border transition-all group ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
+                    style={{ 
+                      backgroundColor: 'var(--bg-secondary)',
+                      borderColor: 'var(--border-subtle)'
+                    }}
                   >
-                    <div className="mb-4">
-                      <h3 className="text-xl font-medium text-white group-hover:text-neutral-200 transition-colors">
+                    <div className="mb-3">
+                      <h3 className="text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
                         {provider.name}
                       </h3>
-                      <p className="text-sm text-neutral-500">{provider.credentials}</p>
+                      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{provider.credentials}</p>
                     </div>
 
-                    <div className="space-y-3 mb-6">
-                      <p className="text-neutral-400">{provider.specialty}</p>
-                      <div className="flex items-start gap-2 text-sm text-neutral-500">
+                    <div className="space-y-2 mb-5">
+                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{provider.specialty}</p>
+                      <div className="flex items-start gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
                         <MapPin className="h-4 w-4 mt-0.5" />
                         <span>
-                          {provider.city}, {provider.state}
+                          {provider.city}, {provider.state} {provider.zip}
                           {provider.distance && ` • ${provider.distance.toFixed(1)} mi`}
                         </span>
                       </div>
+                      {provider.phone && provider.phone !== 'Contact for availability' && (
+                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{provider.phone}</p>
+                      )}
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                    <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
                       <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                        <Star className="h-4 w-4" style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
                         <span className="text-sm font-medium">{provider.rating.toFixed(1)}</span>
-                        <span className="text-sm text-neutral-500">({provider.reviewCount})</span>
+                        {provider.reviewCount > 0 && (
+                          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>({provider.reviewCount})</span>
+                        )}
                       </div>
                       {provider.acceptingPatients && (
-                        <span className="flex items-center gap-1 text-xs text-green-400">
+                        <span className="flex items-center gap-1 text-xs" style={{ color: '#6b9b6b' }}>
                           <CheckCircle className="h-3 w-3" />
                           Accepting
                         </span>
@@ -252,7 +471,11 @@ function SearchPageContent() {
 
                     <Link 
                       href={`/appointment/book/${provider.npi}`}
-                      className="mt-4 w-full py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-center hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+                      className="mt-4 w-full py-2.5 rounded-lg text-sm text-center transition-colors flex items-center justify-center gap-2 border"
+                      style={{ 
+                        borderColor: 'var(--border-medium)',
+                        color: 'var(--text-primary)'
+                      }}
                     >
                       Book Appointment
                       <ArrowRight className="h-4 w-4" />
@@ -265,23 +488,39 @@ function SearchPageContent() {
 
           {/* Empty State */}
           {!isLoading && providers.length === 0 && !error && (
-            <div className="text-center py-20">
-              <div className="w-20 h-20 mx-auto mb-8 bg-neutral-950 rounded-2xl flex items-center justify-center">
-                <Search className="h-10 w-10 text-neutral-600" />
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <Search className="h-8 w-8" style={{ color: 'var(--text-muted)' }} />
               </div>
-              <h3 className="text-2xl font-medium mb-3">Search for Providers</h3>
-              <p className="text-neutral-500 max-w-md mx-auto mb-8">
-                Enter a search query above to find doctors and specialists.
+              <h3 className="text-xl font-medium mb-2">Search for Providers</h3>
+              <p className="max-w-md mx-auto mb-3" style={{ color: 'var(--text-secondary)' }}>
+                Enter a specialty and location above to find healthcare providers.
               </p>
-              <button
-                onClick={() => {
-                  setSearchQuery('family doctor in San Francisco')
-                  searchProviders('family doctor in San Francisco')
-                }}
-                className="px-6 py-3 bg-white text-black font-medium rounded-lg hover:bg-neutral-200 transition-colors"
-              >
-                Try Example Search
-              </button>
+              <p className="text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
+                You can search by city name (Portland, Oregon), state (OR), or ZIP code (97201)
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <button
+                  onClick={() => handleQuickSearch('Primary Care', 'Portland, Oregon')}
+                  className="px-5 py-2.5 font-medium rounded-lg transition-colors"
+                  style={{ 
+                    backgroundColor: 'var(--text-primary)', 
+                    color: 'var(--bg-primary)' 
+                  }}
+                >
+                  Primary Care in Portland, OR
+                </button>
+                <button
+                  onClick={() => handleQuickSearch('Family Doctor', '97201')}
+                  className="px-5 py-2.5 font-medium rounded-lg transition-colors border"
+                  style={{ 
+                    borderColor: 'var(--border-medium)',
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  Search by ZIP: 97201
+                </button>
+              </div>
             </div>
           )}
         </div>

@@ -299,19 +299,55 @@ export async function searchProvidersBySpecialty(
 
 // Format provider name for display
 export function formatProviderName(provider: NPIProvider): string {
-  if (provider.basic?.organization_name) {
-    return provider.basic.organization_name
+  // Check for organization name first
+  if (provider.basic?.organization_name && provider.basic.organization_name.trim()) {
+    return provider.basic.organization_name.trim()
   }
   
-  const parts = []
-  if (provider.basic?.name_prefix) parts.push(provider.basic.name_prefix)
-  if (provider.basic?.first_name) parts.push(provider.basic.first_name)
-  if (provider.basic?.middle_name) parts.push(provider.basic.middle_name)
-  if (provider.basic?.last_name) parts.push(provider.basic.last_name)
-  if (provider.basic?.name_suffix) parts.push(provider.basic.name_suffix)
-  if (provider.basic?.credential) parts.push(provider.basic.credential)
+  // Build individual provider name
+  const firstName = provider.basic?.first_name?.trim() || ''
+  const middleName = provider.basic?.middle_name?.trim() || ''
+  const lastName = provider.basic?.last_name?.trim() || ''
+  const namePrefix = provider.basic?.name_prefix?.trim() || ''
+  const nameSuffix = provider.basic?.name_suffix?.trim() || ''
+  const credential = provider.basic?.credential?.trim() || ''
   
-  return parts.join(' ') || 'Unknown Provider'
+  // If we have at least a first or last name, construct the name
+  if (firstName || lastName) {
+    const nameParts = []
+    
+    // Add prefix like "Dr." if present
+    if (namePrefix) nameParts.push(namePrefix)
+    
+    // Add first name
+    if (firstName) nameParts.push(firstName)
+    
+    // Add middle name (or initial)
+    if (middleName) nameParts.push(middleName)
+    
+    // Add last name
+    if (lastName) nameParts.push(lastName)
+    
+    // Add suffix like "Jr." if present
+    if (nameSuffix) nameParts.push(nameSuffix)
+    
+    // Add credential like "MD" or "DO"
+    if (credential) nameParts.push(credential)
+    
+    const fullName = nameParts.join(' ')
+    
+    // If we have a valid name, return it
+    if (fullName.length > 2) {
+      return fullName
+    }
+  }
+  
+  // Fallback: try to use the credential alone
+  if (credential) {
+    return `Healthcare Provider (${credential})`
+  }
+  
+  return 'Healthcare Provider'
 }
 
 // Get primary address for provider

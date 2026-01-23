@@ -1,24 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+/**
+ * Provider/Caregiver Onboarding - Palantir-Inspired Design
+ * Clean, minimal, sophisticated
+ */
+
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
-import { LoadingSpinner } from "@/components/ui/loading"
 import {
   Stethoscope,
   Heart,
-  Globe,
-  User,
   Shield,
   CheckCircle,
   ArrowRight,
@@ -28,6 +26,8 @@ import {
   Clock,
   Loader2,
   Save,
+  AlertCircle,
+  Menu,
 } from "lucide-react"
 
 // ============================================================================
@@ -57,17 +57,16 @@ const CAREGIVER_STEPS: StepConfig[] = [
 ]
 
 // ============================================================================
-// MAIN COMPONENT
+// INNER COMPONENT
 // ============================================================================
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
   const [step, setStep] = useState(0)
   const [role, setRole] = useState<"PROVIDER" | "CAREGIVER" | null>(null)
   const [country, setCountry] = useState("US")
-  const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [applicationId, setApplicationId] = useState<string | null>(null)
@@ -88,38 +87,27 @@ export default function OnboardingPage() {
   
   // Form data
   const [formData, setFormData] = useState({
-    // Step 0
     regions: [] as string[],
-    
-    // Step 1
     email: "",
     password: "",
     phone: "",
     firstName: "",
     lastName: "",
     fullName: "",
-    
-    // Step 2 - Provider
     providerType: "PHYSICIAN",
     professionType: "",
     specialty: "",
     organizationName: "",
-    
-    // Step 2 - Caregiver
     servicesOffered: [] as string[],
     experienceYears: "",
     bio: "",
     hasTransport: false,
     certifications: [] as string[],
     languages: [] as string[],
-    
-    // Step 3 - Provider Verification
     npiNumber: "",
     licenseNumber: "",
     licenseState: "",
     licenseExpiry: "",
-    
-    // Attestations
     attestedAccuracy: false,
     attestedLicenseScope: false,
     consentToVerification: false,
@@ -129,7 +117,6 @@ export default function OnboardingPage() {
   // Reference data
   const [referenceData, setReferenceData] = useState<any>({})
 
-  // Load reference data
   useEffect(() => {
     if (role && country) {
       loadReferenceData()
@@ -148,7 +135,6 @@ export default function OnboardingPage() {
     }
   }
 
-  // NPI Lookup
   const handleNPILookup = async () => {
     if (!formData.npiNumber || formData.npiNumber.length !== 10) {
       setError("Please enter a valid 10-digit NPI number")
@@ -164,7 +150,6 @@ export default function OnboardingPage() {
 
       if (data.success && data.found) {
         setNpiResult(data.data)
-        // Autofill fields
         setFormData(prev => ({
           ...prev,
           fullName: data.data.fullName || prev.fullName,
@@ -184,25 +169,18 @@ export default function OnboardingPage() {
     }
   }
 
-  // Save application
   const saveApplication = async (submit = false) => {
     setIsSaving(true)
     setError(null)
 
     try {
-      // Get or create application ID
       let currentAppId = applicationId
       
       if (!currentAppId) {
-        // Create new application
         const createRes = await fetch("/api/onboarding/application", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            role,
-            country,
-            email: formData.email,
-          }),
+          body: JSON.stringify({ role, country, email: formData.email }),
         })
         const createData = await createRes.json()
         
@@ -210,29 +188,17 @@ export default function OnboardingPage() {
           throw new Error(createData.error || "Failed to create application")
         }
         
-        // Use the returned ID directly (don't rely on async state update)
         currentAppId = createData.application.id
         setApplicationId(currentAppId)
-        
-        // If resuming an existing draft, we already have the data
-        if (createData.resuming) {
-          // Application already exists, just proceed to update
-        }
       }
 
-      // Update application with the ID we have
-      // Include role, country, and email in data for serverless upsert fallback
       const updateRes = await fetch("/api/onboarding/application", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           applicationId: currentAppId,
           step,
-          data: {
-            ...formData,
-            role,
-            country,
-          },
+          data: { ...formData, role, country },
           submit,
         }),
       })
@@ -259,36 +225,18 @@ export default function OnboardingPage() {
     }
   }
 
-  const getAppId = async () => {
-    // Helper to get or create app ID
-    if (applicationId) return applicationId
-    const res = await fetch("/api/onboarding/application", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role, country, email: formData.email }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      setApplicationId(data.application.id)
-      return data.application.id
-    }
-    throw new Error(data.error)
-  }
-
   const handleNext = async () => {
-    // Step 0 validation: Role and Regions
     if (step === 0) {
       if (!role) {
-        setError("Please select a role (Provider or Caregiver)")
+        setError("Please select a role")
         return
       }
       if (formData.regions.length === 0) {
-        setError("Please select at least one state where you will practice")
+        setError("Please select at least one state")
         return
       }
     }
     
-    // Step 1 validation: Account details
     if (step === 1) {
       if (!formData.email || !formData.email.trim()) {
         setError("Please enter your email address")
@@ -304,7 +252,6 @@ export default function OnboardingPage() {
       }
     }
     
-    // Save progress (only on step 1 and beyond)
     if (step >= 1) {
       const saved = await saveApplication()
       if (!saved) return
@@ -329,532 +276,560 @@ export default function OnboardingPage() {
   }
 
   const steps = role === "PROVIDER" ? PROVIDER_STEPS : (role === "CAREGIVER" ? CAREGIVER_STEPS : [])
+  const progressPercentage = steps.length > 0 ? ((step + 1) / steps.length) * 100 : 0
 
   // ============================================================================
   // RENDER
   // ============================================================================
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+      {/* Navigation - Claude style */}
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="text-lg font-medium tracking-tight">
+            BaseHealth
+          </Link>
+          
+          <div className="flex items-center gap-6">
+            <Link 
+              href="/"
+              className="text-sm transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Home
+            </Link>
+            <Link
+              href="/login"
+              className="text-sm px-4 py-2 border rounded-lg transition-all"
+              style={{ borderColor: 'var(--border-medium)', color: 'var(--text-primary)' }}
+            >
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </nav>
 
-      <main className="pt-20 pb-12">
-        <div className="max-w-2xl mx-auto px-4">
+      <main className="pt-28 pb-16 px-6">
+        <div className="max-w-xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Join BaseHealth</h1>
-            <p className="text-gray-600 mt-1">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl md:text-4xl font-normal tracking-tight mb-3">
               {role === "PROVIDER" 
-                ? "Apply to join our provider network" 
+                ? "Join as Provider" 
                 : role === "CAREGIVER"
-                ? "Apply to join our caregiver network"
-                : "Choose how you'd like to join"}
+                ? "Join as Caregiver"
+                : "Join BaseHealth"}
+            </h1>
+            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+              {role === "PROVIDER" 
+                ? "Apply to our provider network" 
+                : role === "CAREGIVER"
+                ? "Become part of our care team"
+                : "Select your role to begin"}
             </p>
           </div>
 
           {/* Progress */}
           {role && steps.length > 0 && (
             <div className="mb-8">
-              <div className="flex items-center justify-between mb-2">
-                {steps.map((s, i) => (
-                  <div key={s.id} className="flex items-center">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                        step >= s.id
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      {step > s.id ? <CheckCircle className="w-5 h-5" /> : s.id + 1}
-                    </div>
-                    {i < steps.length - 1 && (
-                      <div
-                        className={`w-12 h-1 mx-1 transition-colors ${
-                          step > s.id ? "bg-blue-600" : "bg-gray-200"
-                        }`}
-                      />
-                    )}
-                  </div>
-                ))}
+              <div className="flex items-center justify-between mb-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                <span>Step {step + 1} of {steps.length}</span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  {steps[step]?.estimatedTime}
+                </span>
               </div>
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-900">{steps[step]?.title}</p>
-                <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  ~{steps[step]?.estimatedTime}
-                </p>
+              <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                <div 
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${progressPercentage}%`, backgroundColor: 'var(--accent)' }}
+                />
               </div>
+              <p className="text-center mt-2" style={{ color: 'var(--text-secondary)' }}>{steps[step]?.title}</p>
             </div>
           )}
 
           {/* Error */}
           {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div className="mb-6 p-4 rounded-lg flex items-start gap-3" style={{ backgroundColor: 'rgba(220, 100, 100, 0.1)', border: '1px solid rgba(220, 100, 100, 0.2)' }}>
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#dc6464' }} />
+              <p className="text-sm" style={{ color: '#dc6464' }}>{error}</p>
+            </div>
           )}
 
-          {/* Step Content */}
-          <Card>
-            <CardContent className="p-6">
-              {/* Step 0: Role & Region Selection */}
-              {step === 0 && (
-                <div className="space-y-6">
-                  <div>
-                    <Label className="text-base font-semibold mb-4 block">I want to join as a:</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        onClick={() => setRole("PROVIDER")}
-                        className={`p-6 rounded-xl border-2 transition-all text-left ${
-                          role === "PROVIDER"
-                            ? "border-blue-600 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        <Stethoscope className={`w-8 h-8 mb-3 ${role === "PROVIDER" ? "text-blue-600" : "text-gray-400"}`} />
-                        <h3 className="font-semibold text-gray-900">Provider</h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          MD, DO, NP, PA, RN, or other licensed clinician
-                        </p>
-                      </button>
-                      <button
-                        onClick={() => setRole("CAREGIVER")}
-                        className={`p-6 rounded-xl border-2 transition-all text-left ${
-                          role === "CAREGIVER"
-                            ? "border-pink-600 bg-pink-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        <Heart className={`w-8 h-8 mb-3 ${role === "CAREGIVER" ? "text-pink-600" : "text-gray-400"}`} />
-                        <h3 className="font-semibold text-gray-900">Caregiver</h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Home care, companion care, or support services
-                        </p>
-                      </button>
-                    </div>
+          {/* Content Card */}
+          <div className="rounded-xl p-6" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+            
+            {/* Step 0: Role & Region */}
+            {step === 0 && (
+              <div className="space-y-6">
+                <div>
+                  <Label className="text-sm mb-3 block" style={{ color: 'var(--text-secondary)' }}>I want to join as</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => setRole("PROVIDER")}
+                      className="p-5 rounded-lg border text-left transition-all"
+                      style={role === "PROVIDER" ? { 
+                        borderColor: 'var(--accent)', 
+                        backgroundColor: 'rgba(212, 165, 116, 0.1)' 
+                      } : { 
+                        borderColor: 'var(--border-medium)' 
+                      }}
+                    >
+                      <Stethoscope className="w-6 h-6 mb-3" style={{ color: role === "PROVIDER" ? 'var(--accent)' : 'var(--text-muted)' }} />
+                      <h3 className="font-medium">Provider</h3>
+                      <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Licensed clinician</p>
+                    </button>
+                    <button
+                      onClick={() => setRole("CAREGIVER")}
+                      className="p-5 rounded-lg border text-left transition-all"
+                      style={role === "CAREGIVER" ? { 
+                        borderColor: 'var(--accent)', 
+                        backgroundColor: 'rgba(212, 165, 116, 0.1)' 
+                      } : { 
+                        borderColor: 'var(--border-medium)' 
+                      }}
+                    >
+                      <Heart className="w-6 h-6 mb-3" style={{ color: role === "CAREGIVER" ? 'var(--accent)' : 'var(--text-muted)' }} />
+                      <h3 className="font-medium">Caregiver</h3>
+                      <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Home care services</p>
+                    </button>
                   </div>
-
-                  {role && (
-                    <>
-                      <div>
-                        <Label className="text-base font-semibold mb-2 block">Country</Label>
-                        <Select value={country} onValueChange={setCountry}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="US">United States</SelectItem>
-                            <SelectItem value="CA">Canada</SelectItem>
-                            <SelectItem value="GB">United Kingdom</SelectItem>
-                            <SelectItem value="OTHER">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {country === "US" && (
-                        <div>
-                          <Label className="text-base font-semibold mb-2 block">
-                            {role === "PROVIDER" ? "State(s) where you'll practice" : "Service area"}
-                          </Label>
-                          <p className="text-sm text-gray-500 mb-2">
-                            <Info className="w-3 h-3 inline mr-1" />
-                            {role === "PROVIDER" 
-                              ? "Select all states where you hold a valid license"
-                              : "Select states where you'll provide services"}
-                          </p>
-                          <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 border rounded-lg">
-                            {(referenceData.states || []).map((state: any) => (
-                              <label key={state.code} className="flex items-center gap-2 text-sm">
-                                <Checkbox
-                                  checked={formData.regions.includes(state.code)}
-                                  onCheckedChange={(checked) => {
-                                    setFormData(prev => ({
-                                      ...prev,
-                                      regions: checked
-                                        ? [...prev.regions, state.code]
-                                        : prev.regions.filter(r => r !== state.code)
-                                    }))
-                                  }}
-                                />
-                                {state.code}
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
                 </div>
-              )}
 
-              {/* Step 1: Account Basics */}
-              {step === 1 && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Create Your Account</h3>
-                  
-                  {role === "CAREGIVER" && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>First Name *</Label>
-                        <Input
-                          value={formData.firstName}
-                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          placeholder="First name"
-                        />
-                      </div>
-                      <div>
-                        <Label>Last Name *</Label>
-                        <Input
-                          value={formData.lastName}
-                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          placeholder="Last name"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {role === "PROVIDER" && (
+                {role && (
+                  <>
                     <div>
-                      <Label>Full Name *</Label>
+                      <Label className="text-white/60 text-sm mb-2 block">Country</Label>
+                      <Select value={country} onValueChange={setCountry}>
+                        <SelectTrigger className="bg-transparent border-white/10 text-white h-12">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1a1a] border-white/10">
+                          <SelectItem value="US">United States</SelectItem>
+                          <SelectItem value="CA">Canada</SelectItem>
+                          <SelectItem value="GB">United Kingdom</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {country === "US" && (
+                      <div>
+                        <Label className="text-white/60 text-sm mb-2 block">
+                          {role === "PROVIDER" ? "Licensed states" : "Service area"}
+                        </Label>
+                        <div className="grid grid-cols-5 gap-2 max-h-40 overflow-y-auto p-3 border border-white/10 rounded-lg">
+                          {['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'].map((state) => (
+                            <button
+                              key={state}
+                              onClick={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  regions: prev.regions.includes(state)
+                                    ? prev.regions.filter(r => r !== state)
+                                    : [...prev.regions, state]
+                                }))
+                              }}
+                              className={`py-2 px-3 text-sm rounded transition-all ${
+                                formData.regions.includes(state)
+                                  ? 'bg-white text-black font-medium'
+                                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+                              }`}
+                            >
+                              {state}
+                            </button>
+                          ))}
+                        </div>
+                        {formData.regions.length > 0 && (
+                          <p className="text-sm text-white/40 mt-2">
+                            {formData.regions.length} selected
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Step 1: Account */}
+            {step === 1 && (
+              <div className="space-y-5">
+                {role === "CAREGIVER" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-white/60 text-sm mb-2 block">First Name</Label>
                       <Input
-                        value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        placeholder="Dr. John Smith"
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                        className="bg-transparent border-white/10 h-12 text-white"
                       />
                     </div>
-                  )}
+                    <div>
+                      <Label className="text-white/60 text-sm mb-2 block">Last Name</Label>
+                      <Input
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                        className="bg-transparent border-white/10 h-12 text-white"
+                      />
+                    </div>
+                  </div>
+                )}
 
+                {role === "PROVIDER" && (
                   <div>
-                    <Label>Email *</Label>
+                    <Label className="text-white/60 text-sm mb-2 block">Full Name</Label>
                     <Input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="you@example.com"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      placeholder="Dr. Jane Smith"
+                      className="bg-transparent border-white/10 h-12 text-white placeholder:text-white/30"
                     />
                   </div>
+                )}
 
-                  <div>
-                    <Label>Password *</Label>
-                    <Input
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      placeholder="At least 8 characters"
-                    />
-                  </div>
+                <div>
+                  <Label className="text-white/60 text-sm mb-2 block">Email</Label>
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="bg-transparent border-white/10 h-12 text-white"
+                  />
+                </div>
 
-                  <div>
-                    <Label>Phone</Label>
-                    <Input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="(555) 123-4567"
-                    />
+                <div>
+                  <Label className="text-white/60 text-sm mb-2 block">Password</Label>
+                  <Input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="8+ characters"
+                    className="bg-transparent border-white/10 h-12 text-white placeholder:text-white/30"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-white/60 text-sm mb-2 block">Phone (optional)</Label>
+                  <Input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="bg-transparent border-white/10 h-12 text-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Profile - Provider */}
+            {step === 2 && role === "PROVIDER" && (
+              <div className="space-y-5">
+                <div>
+                  <Label className="text-white/60 text-sm mb-2 block">Profession</Label>
+                  <Select 
+                    value={formData.professionType} 
+                    onValueChange={(v) => setFormData({ ...formData, professionType: v })}
+                  >
+                    <SelectTrigger className="bg-transparent border-white/10 h-12 text-white">
+                      <SelectValue placeholder="Select profession" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a1a1a] border-white/10">
+                      <SelectItem value="MD">Physician (MD)</SelectItem>
+                      <SelectItem value="DO">Physician (DO)</SelectItem>
+                      <SelectItem value="NP">Nurse Practitioner</SelectItem>
+                      <SelectItem value="PA">Physician Assistant</SelectItem>
+                      <SelectItem value="RN">Registered Nurse</SelectItem>
+                      <SelectItem value="OTHER">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-white/60 text-sm mb-2 block">Specialty</Label>
+                  <Input
+                    value={formData.specialty}
+                    onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
+                    placeholder="e.g., Internal Medicine"
+                    className="bg-transparent border-white/10 h-12 text-white placeholder:text-white/30"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-white/60 text-sm mb-2 block">Organization (optional)</Label>
+                  <Input
+                    value={formData.organizationName}
+                    onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
+                    className="bg-transparent border-white/10 h-12 text-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Profile - Caregiver */}
+            {step === 2 && role === "CAREGIVER" && (
+              <div className="space-y-5">
+                <div>
+                  <Label className="text-white/60 text-sm mb-3 block">Services</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { code: 'COMPANION', name: 'Companion Care' },
+                      { code: 'PERSONAL', name: 'Personal Care' },
+                      { code: 'HOMEMAKER', name: 'Homemaker' },
+                      { code: 'SKILLED', name: 'Skilled Nursing' },
+                      { code: 'RESPITE', name: 'Respite Care' },
+                      { code: 'TRANSPORT', name: 'Transportation' },
+                    ].map((s) => (
+                      <button
+                        key={s.code}
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            servicesOffered: prev.servicesOffered.includes(s.code)
+                              ? prev.servicesOffered.filter(x => x !== s.code)
+                              : [...prev.servicesOffered, s.code]
+                          }))
+                        }}
+                        className={`p-3 text-sm text-left rounded-lg border transition-all ${
+                          formData.servicesOffered.includes(s.code)
+                            ? 'border-white bg-white/[0.05]'
+                            : 'border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              )}
 
-              {/* Step 2: Profile - Provider */}
-              {step === 2 && role === "PROVIDER" && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Professional Information</h3>
+                <div>
+                  <Label className="text-white/60 text-sm mb-2 block">Years of Experience</Label>
+                  <Input
+                    type="number"
+                    value={formData.experienceYears}
+                    onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value })}
+                    className="bg-transparent border-white/10 h-12 text-white"
+                  />
+                </div>
 
+                <div>
+                  <Label className="text-white/60 text-sm mb-2 block">About You</Label>
+                  <Textarea
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    placeholder="Brief introduction..."
+                    rows={3}
+                    className="bg-transparent border-white/10 text-white placeholder:text-white/30"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Verification - Provider */}
+            {step === 3 && role === "PROVIDER" && (
+              <div className="space-y-5">
+                {country === "US" && (
+                  <div className="p-4 bg-white/[0.02] border border-white/10 rounded-lg">
+                    <Label className="text-white/60 text-sm mb-2 block">NPI Number</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={formData.npiNumber}
+                        onChange={(e) => setFormData({ ...formData, npiNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                        placeholder="10 digits"
+                        maxLength={10}
+                        className="bg-transparent border-white/10 h-12 text-white placeholder:text-white/30"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleNPILookup}
+                        disabled={npiSearching || formData.npiNumber.length !== 10}
+                        className="bg-white text-black hover:bg-white/90 h-12 px-6"
+                      >
+                        {npiSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lookup"}
+                      </Button>
+                    </div>
+                    {npiResult && (
+                      <p className="mt-2 text-sm text-green-400">
+                        ✓ Found: {npiResult.fullName}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div>
+                  <Label className="text-white/60 text-sm mb-2 block">License Number</Label>
+                  <Input
+                    value={formData.licenseNumber}
+                    onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                    className="bg-transparent border-white/10 h-12 text-white"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Profession Type *</Label>
-                    <Select 
-                      value={formData.professionType} 
-                      onValueChange={(v) => setFormData({ ...formData, professionType: v })}
+                    <Label className="text-white/60 text-sm mb-2 block">State</Label>
+                    <Select
+                      value={formData.licenseState}
+                      onValueChange={(v) => setFormData({ ...formData, licenseState: v })}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your profession" />
+                      <SelectTrigger className="bg-transparent border-white/10 h-12 text-white">
+                        <SelectValue placeholder="Select" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {(referenceData.professionTypes || []).map((p: any) => (
-                          <SelectItem key={p.code} value={p.code}>{p.name}</SelectItem>
+                      <SelectContent className="bg-[#1a1a1a] border-white/10 max-h-60">
+                        {['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'].map(s => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div>
-                    <Label>Primary Specialty</Label>
+                    <Label className="text-white/60 text-sm mb-2 block">Expires</Label>
                     <Input
-                      value={formData.specialty}
-                      onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-                      placeholder="e.g., Internal Medicine, Family Medicine"
+                      type="date"
+                      value={formData.licenseExpiry}
+                      onChange={(e) => setFormData({ ...formData, licenseExpiry: e.target.value })}
+                      className="bg-transparent border-white/10 h-12 text-white"
                     />
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Step 2: Profile - Caregiver */}
-              {step === 2 && role === "CAREGIVER" && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Your Experience</h3>
-
-                  <div>
-                    <Label className="mb-2 block">Services You Offer *</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(referenceData.services || []).map((s: any) => (
-                        <label key={s.code} className="flex items-center gap-2 text-sm p-2 border rounded hover:bg-gray-50">
-                          <Checkbox
-                            checked={formData.servicesOffered.includes(s.code)}
-                            onCheckedChange={(checked) => {
-                              setFormData(prev => ({
-                                ...prev,
-                                servicesOffered: checked
-                                  ? [...prev.servicesOffered, s.code]
-                                  : prev.servicesOffered.filter(x => x !== s.code)
-                              }))
-                            }}
-                          />
-                          {s.name}
-                        </label>
-                      ))}
-                    </div>
+            {/* Final Step: Review */}
+            {((role === "PROVIDER" && step === 4) || (role === "CAREGIVER" && step === 3)) && (
+              <div className="space-y-6">
+                <div className="p-4 bg-white/[0.02] border border-white/10 rounded-lg space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-white/50">Role</span>
+                    <span>{role}</span>
                   </div>
-
-                  <div>
-                    <Label>Years of Experience *</Label>
-                    <Input
-                      type="number"
-                      value={formData.experienceYears}
-                      onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value })}
-                      placeholder="e.g., 5"
-                    />
+                  <div className="flex justify-between">
+                    <span className="text-white/50">Name</span>
+                    <span>{formData.fullName || `${formData.firstName} ${formData.lastName}`}</span>
                   </div>
-
-                  <div>
-                    <Label>Short Bio *</Label>
-                    <Textarea
-                      value={formData.bio}
-                      onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                      placeholder="Tell families about yourself and your caregiving approach..."
-                      rows={3}
-                    />
+                  <div className="flex justify-between">
+                    <span className="text-white/50">Email</span>
+                    <span>{formData.email}</span>
                   </div>
-
-                  <label className="flex items-center gap-2">
-                    <Checkbox
-                      checked={formData.hasTransport}
-                      onCheckedChange={(checked) => setFormData({ ...formData, hasTransport: !!checked })}
-                    />
-                    I have reliable transportation
-                  </label>
-                </div>
-              )}
-
-              {/* Step 3: Verification - Provider */}
-              {step === 3 && role === "PROVIDER" && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">License & Credentials</h3>
-
-                  {/* NPI Lookup */}
-                  {country === "US" && (
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <Label className="font-semibold">NPI Number (recommended)</Label>
-                      <p className="text-sm text-gray-600 mb-2">
-                        <Info className="w-3 h-3 inline mr-1" />
-                        Enter your NPI to autofill your information
-                      </p>
-                      <div className="flex gap-2">
-                        <Input
-                          value={formData.npiNumber}
-                          onChange={(e) => setFormData({ ...formData, npiNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })}
-                          placeholder="10-digit NPI"
-                          maxLength={10}
-                        />
-                        <Button
-                          type="button"
-                          onClick={handleNPILookup}
-                          disabled={npiSearching || formData.npiNumber.length !== 10}
-                        >
-                          {npiSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                          Lookup
-                        </Button>
-                      </div>
-                      {npiResult && (
-                        <div className="mt-2 p-2 bg-green-100 rounded text-sm text-green-800">
-                          ✓ Found: {npiResult.fullName} - {npiResult.specialty}
-                        </div>
-                      )}
+                  {role === "PROVIDER" && formData.licenseNumber && (
+                    <div className="flex justify-between">
+                      <span className="text-white/50">License</span>
+                      <span>{formData.licenseNumber} ({formData.licenseState})</span>
                     </div>
                   )}
+                </div>
 
-                  <div>
-                    <Label>License Number *</Label>
-                    <Input
-                      value={formData.licenseNumber}
-                      onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
-                      placeholder="Your state medical license number"
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3 p-4 rounded-lg border border-white/10 cursor-pointer hover:bg-white/[0.02] transition-all">
+                    <Checkbox
+                      checked={formData.attestedAccuracy}
+                      onCheckedChange={(c) => setFormData({ ...formData, attestedAccuracy: !!c })}
+                      className="mt-0.5"
                     />
-                  </div>
+                    <span className="text-sm text-white/70">
+                      I confirm all information is accurate
+                    </span>
+                  </label>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>License State *</Label>
-                      <Select
-                        value={formData.licenseState}
-                        onValueChange={(v) => setFormData({ ...formData, licenseState: v })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="State" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(referenceData.states || []).map((s: any) => (
-                            <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Expiration Date *</Label>
-                      <Input
-                        type="date"
-                        value={formData.licenseExpiry}
-                        onChange={(e) => setFormData({ ...formData, licenseExpiry: e.target.value })}
-                      />
+                  <label className="flex items-start gap-3 p-4 rounded-lg border border-white/10 cursor-pointer hover:bg-white/[0.02] transition-all">
+                    <Checkbox
+                      checked={formData.consentToVerification}
+                      onCheckedChange={(c) => setFormData({ ...formData, consentToVerification: !!c })}
+                      className="mt-0.5"
+                    />
+                    <span className="text-sm text-white/70">
+                      I consent to credential verification
+                    </span>
+                  </label>
+                </div>
+
+                <div className="p-4 bg-white/[0.02] border border-white/10 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Shield className="w-5 h-5 text-white/40 mt-0.5" />
+                    <div className="text-sm text-white/50">
+                      <p className="font-medium text-white/70 mb-1">Next Steps</p>
+                      <p>Review takes 1-2 business days. You'll receive an email when approved.</p>
                     </div>
                   </div>
                 </div>
-              )}
-
-              {/* Final Step: Review & Attestations */}
-              {((role === "PROVIDER" && step === 4) || (role === "CAREGIVER" && step === 3)) && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Review & Submit</h3>
-
-                  <div className="p-4 bg-gray-50 rounded-lg space-y-2">
-                    <p><strong>Role:</strong> {role}</p>
-                    <p><strong>Name:</strong> {formData.fullName || `${formData.firstName} ${formData.lastName}`}</p>
-                    <p><strong>Email:</strong> {formData.email}</p>
-                    {role === "PROVIDER" && (
-                      <>
-                        <p><strong>Profession:</strong> {formData.professionType}</p>
-                        <p><strong>License:</strong> {formData.licenseNumber} ({formData.licenseState})</p>
-                        {formData.npiNumber && <p><strong>NPI:</strong> {formData.npiNumber}</p>}
-                      </>
-                    )}
-                    {role === "CAREGIVER" && (
-                      <>
-                        <p><strong>Experience:</strong> {formData.experienceYears} years</p>
-                        <p><strong>Services:</strong> {formData.servicesOffered.length} selected</p>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="space-y-3 pt-4">
-                    <label className="flex items-start gap-3 p-3 border rounded-lg">
-                      <Checkbox
-                        checked={formData.attestedAccuracy}
-                        onCheckedChange={(c) => setFormData({ ...formData, attestedAccuracy: !!c })}
-                      />
-                      <div>
-                        <p className="font-medium">I attest that all information provided is accurate</p>
-                        <p className="text-sm text-gray-500">Providing false information may result in rejection</p>
-                      </div>
-                    </label>
-
-                    {role === "PROVIDER" && (
-                      <label className="flex items-start gap-3 p-3 border rounded-lg">
-                        <Checkbox
-                          checked={formData.attestedLicenseScope}
-                          onCheckedChange={(c) => setFormData({ ...formData, attestedLicenseScope: !!c })}
-                        />
-                        <div>
-                          <p className="font-medium">I will only practice in states where I'm licensed</p>
-                          <p className="text-sm text-gray-500">You must hold a valid license in each state</p>
-                        </div>
-                      </label>
-                    )}
-
-                    <label className="flex items-start gap-3 p-3 border rounded-lg">
-                      <Checkbox
-                        checked={formData.consentToVerification}
-                        onCheckedChange={(c) => setFormData({ ...formData, consentToVerification: !!c })}
-                      />
-                      <div>
-                        <p className="font-medium">I consent to credential verification</p>
-                        <p className="text-sm text-gray-500">We'll verify your credentials with relevant authorities</p>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="p-4 bg-blue-50 rounded-lg flex items-start gap-3">
-                    <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-blue-900">What happens next?</p>
-                      <ul className="text-sm text-blue-800 mt-1 space-y-1">
-                        <li>• We'll verify your credentials (1-2 business days)</li>
-                        <li>• You'll receive an email when your application is reviewed</li>
-                        <li>• Once approved, you can start accepting patients</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Navigation */}
-              <div className="flex justify-between mt-8 pt-6 border-t">
-                <Button
-                  variant="outline"
-                  onClick={handleBack}
-                  disabled={step === 0 || isSaving}
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-
-                {((role === "PROVIDER" && step < 4) || (role === "CAREGIVER" && step < 3)) ? (
-                  <Button onClick={handleNext} disabled={isSaving}>
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        Next
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </>
-                    )}
-                  </Button>
-                ) : role && (
-                  <Button 
-                    onClick={handleSubmit} 
-                    disabled={isSaving || !formData.attestedAccuracy || !formData.consentToVerification}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Submit Application
-                      </>
-                    )}
-                  </Button>
-                )}
               </div>
-            </CardContent>
-          </Card>
+            )}
+
+            {/* Navigation */}
+            <div className="flex justify-between mt-8 pt-6 border-t border-white/[0.08]">
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                disabled={step === 0 || isSaving}
+                className="text-white/60 hover:text-white hover:bg-white/5"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+
+              {((role === "PROVIDER" && step < 4) || (role === "CAREGIVER" && step < 3)) ? (
+                <Button 
+                  onClick={handleNext} 
+                  disabled={isSaving}
+                  className="bg-white text-black hover:bg-white/90 px-8"
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      Continue
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              ) : role && (
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={isSaving || !formData.attestedAccuracy || !formData.consentToVerification}
+                  className="bg-white text-black hover:bg-white/90 px-8"
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      Submit Application
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
 
           {/* Save Later */}
           {step > 0 && (
-            <div className="mt-4 text-center">
-              <Button variant="ghost" size="sm" onClick={() => saveApplication()}>
-                <Save className="w-4 h-4 mr-2" />
-                Save & Continue Later
-              </Button>
+            <div className="mt-6 text-center">
+              <button 
+                onClick={() => saveApplication()}
+                className="text-sm text-white/40 hover:text-white/60 transition-colors"
+              >
+                Save and continue later
+              </button>
             </div>
           )}
         </div>
       </main>
     </div>
+  )
+}
+
+// ============================================================================
+// MAIN PAGE
+// ============================================================================
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--text-muted)' }} />
+      </div>
+    }>
+      <OnboardingContent />
+    </Suspense>
   )
 }

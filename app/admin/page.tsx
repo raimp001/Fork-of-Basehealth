@@ -1,21 +1,21 @@
 "use client"
 
+/**
+ * Admin Portal - Claude.ai Design
+ */
+
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
-import { LoadingSpinner } from "@/components/ui/loading"
 import { 
-  Users, 
   Clock, 
   CheckCircle, 
   Stethoscope,
   Heart,
   ArrowRight,
   RefreshCw,
-  Database
+  Database,
+  Loader2
 } from "lucide-react"
 
 interface Stats {
@@ -40,7 +40,6 @@ export default function AdminPortalPage() {
   const fetchStats = async () => {
     setIsLoading(true)
     try {
-      // Fetch real stats from both APIs in parallel
       const [providersRes, caregiversRes] = await Promise.all([
         fetch("/api/admin/providers"),
         fetch("/api/admin/caregivers")
@@ -74,167 +73,176 @@ export default function AdminPortalPage() {
   const totalPending = (stats?.providers.pending || 0) + (stats?.caregivers.pending || 0)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="text-lg font-medium tracking-tight">
+            BaseHealth
+          </Link>
+          
+          <div className="flex items-center gap-6">
+            <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Admin</span>
+            <Link 
+              href="/"
+              className="text-sm transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Home
+            </Link>
+          </div>
+        </div>
+      </nav>
       
-      <main className="pt-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <main className="pt-28 pb-16 px-6">
+        <div className="max-w-3xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Admin Portal</h1>
-                <p className="text-sm text-gray-500 mt-1">
-                  Review and manage applications
-                </p>
-              </div>
-              
-              <Button variant="outline" size="sm" onClick={fetchStats} disabled={isLoading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h1 className="text-3xl font-normal tracking-tight mb-2">Admin Portal</h1>
+              <p style={{ color: 'var(--text-secondary)' }}>Review and manage applications</p>
             </div>
+            
+            <Button 
+              variant="ghost" 
+              onClick={fetchStats} 
+              disabled={isLoading}
+              className="transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
           </div>
 
           {isLoading && !stats ? (
-            <div className="flex justify-center py-12">
-              <LoadingSpinner />
+            <div className="flex flex-col items-center justify-center py-24">
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--text-muted)' }} />
             </div>
           ) : (
             <>
-              {/* Stats Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <Card className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                      <Clock className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">{totalPending}</p>
-                      <p className="text-xs text-gray-500">Pending</p>
-                    </div>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-4 gap-4 mb-10">
+                <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <Clock className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Pending</span>
                   </div>
-                </Card>
+                  <p className="text-2xl font-normal">{totalPending}</p>
+                </div>
 
-                <Card className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Stethoscope className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">{stats?.providers.total || 0}</p>
-                      <p className="text-xs text-gray-500">Providers</p>
-                    </div>
+                <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <Stethoscope className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Providers</span>
                   </div>
-                </Card>
+                  <p className="text-2xl font-normal">{stats?.providers.total || 0}</p>
+                </div>
 
-                <Card className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                      <Heart className="h-5 w-5 text-pink-600" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">{stats?.caregivers.total || 0}</p>
-                      <p className="text-xs text-gray-500">Caregivers</p>
-                    </div>
+                <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <Heart className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Caregivers</span>
                   </div>
-                </Card>
+                  <p className="text-2xl font-normal">{stats?.caregivers.total || 0}</p>
+                </div>
 
-                <Card className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {(stats?.providers.verified || 0) + (stats?.caregivers.available || 0)}
-                      </p>
-                      <p className="text-xs text-gray-500">Verified</p>
-                    </div>
+                <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <CheckCircle className="w-5 h-5" style={{ color: '#6b9b6b' }} />
+                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Verified</span>
                   </div>
-                </Card>
+                  <p className="text-2xl font-normal">
+                    {(stats?.providers.verified || 0) + (stats?.caregivers.available || 0)}
+                  </p>
+                </div>
               </div>
 
-              {/* Quick Actions */}
+              {/* Pending Alert */}
+              {totalPending > 0 && (
+                <div className="mb-6 p-4 rounded-xl" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)', border: '1px solid rgba(212, 165, 116, 0.2)' }}>
+                  <p className="text-sm" style={{ color: 'var(--accent)' }}>
+                    <span className="font-medium">{totalPending} application{totalPending > 1 ? 's' : ''}</span>
+                    {' '}awaiting review
+                  </p>
+                </div>
+              )}
+
+              {/* Application Links */}
               <div className="space-y-3">
-                <h2 className="text-sm font-medium text-gray-700 mb-3">Applications</h2>
+                <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Applications</p>
                 
                 <Link href="/admin/provider-applications">
-                  <Card className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+                  <div className="rounded-xl p-5 transition-all cursor-pointer group" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Stethoscope className="h-5 w-5 text-blue-600" />
-                        </div>
+                        <Stethoscope className="w-5 h-5" style={{ color: 'var(--accent)' }} />
                         <div>
-                          <p className="font-medium text-gray-900">Provider Applications</p>
-                          <p className="text-sm text-gray-500">
-                            {stats?.providers.pending || 0} pending review
+                          <p className="font-medium">Provider Applications</p>
+                          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                            {stats?.providers.pending || 0} pending
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {(stats?.providers.pending || 0) > 0 && (
-                          <Badge className="bg-amber-100 text-amber-700">
-                            {stats?.providers.pending} new
-                          </Badge>
-                        )}
-                        <ArrowRight className="h-5 w-5 text-gray-400" />
-                      </div>
+                      <ArrowRight className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                     </div>
-                  </Card>
+                  </div>
                 </Link>
 
                 <Link href="/admin/caregiver-applications">
-                  <Card className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+                  <div className="rounded-xl p-5 transition-all cursor-pointer group" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                          <Heart className="h-5 w-5 text-pink-600" />
-                        </div>
+                        <Heart className="w-5 h-5" style={{ color: 'var(--accent)' }} />
                         <div>
-                          <p className="font-medium text-gray-900">Caregiver Applications</p>
-                          <p className="text-sm text-gray-500">
-                            {stats?.caregivers.pending || 0} pending review
+                          <p className="font-medium">Caregiver Applications</p>
+                          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                            {stats?.caregivers.pending || 0} pending
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {(stats?.caregivers.pending || 0) > 0 && (
-                          <Badge className="bg-amber-100 text-amber-700">
-                            {stats?.caregivers.pending} new
-                          </Badge>
-                        )}
-                        <ArrowRight className="h-5 w-5 text-gray-400" />
-                      </div>
+                      <ArrowRight className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                     </div>
-                  </Card>
+                  </div>
                 </Link>
               </div>
 
-              {/* Database Status */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
+              {/* Footer */}
+              <div className="mt-10 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                 <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <Database className="h-4 w-4" />
-                    <span>Database</span>
-                    {stats?.database ? (
-                      <span className="flex items-center gap-1 text-green-600">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        Connected
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 text-red-600">
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                        Disconnected
-                      </span>
-                    )}
+                  <div className="flex items-center gap-4" style={{ color: 'var(--text-muted)' }}>
+                    <div className="flex items-center gap-2">
+                      <Database className="h-4 w-4" />
+                      <span>Database</span>
+                      {stats?.database ? (
+                        <span style={{ color: '#6b9b6b' }}>●</span>
+                      ) : (
+                        <span style={{ color: 'var(--accent)' }}>●</span>
+                      )}
+                    </div>
                   </div>
                   {lastUpdated && (
-                    <span className="text-gray-400">
+                    <span style={{ color: 'var(--text-muted)' }}>
                       Updated {lastUpdated.toLocaleTimeString()}
                     </span>
                   )}
+                </div>
+                
+                <div className="mt-4 flex gap-4">
+                  <Link 
+                    href="/onboarding?role=provider"
+                    className="text-sm transition-colors"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    Test Provider Signup →
+                  </Link>
+                  <Link 
+                    href="/onboarding?role=caregiver"
+                    className="text-sm transition-colors"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    Test Caregiver Signup →
+                  </Link>
                 </div>
               </div>
             </>

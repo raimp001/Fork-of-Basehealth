@@ -1,24 +1,24 @@
 "use client"
 
 /**
- * Clinical Trials - Palantir-Inspired Design
+ * Clinical Trials - Claude.ai Design
  */
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Activity, Search, MapPin, FlaskConical, ExternalLink, Loader2, Users, Building2, ChevronDown, CheckCircle } from "lucide-react"
+import { Search, MapPin, FlaskConical, ExternalLink, Loader2, Users, CheckCircle, AlertCircle } from "lucide-react"
 
 interface ClinicalTrial {
   nctId: string
-  title: string
-  status: string
+  briefTitle: string
+  briefSummary: string
   condition: string
   phase: string
-  enrollmentCount: number
-  startDate: string
-  locations: Array<{ facility: string; city: string; state: string; country: string }>
-  description: string
-  sponsor: string
+  enrollment: number
+  locationString: string
+  studyType: string
+  eligibilityScore?: number
+  recommendationLevel?: string
 }
 
 export default function ClinicalTrialsPage() {
@@ -28,6 +28,7 @@ export default function ClinicalTrialsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
 
   useEffect(() => {
     setMounted(true)
@@ -35,34 +36,45 @@ export default function ClinicalTrialsPage() {
 
   const searchTrials = async () => {
     if (!searchQuery.trim() && !location.trim()) {
-      setError('Enter a condition or location')
+      setError('Please enter a condition or location to search')
       return
     }
 
     setIsLoading(true)
     setError(null)
+    setTrials([])
 
     try {
       const params = new URLSearchParams()
-      if (searchQuery) params.append('condition', searchQuery)
-      if (location) params.append('location', location)
-      params.append('limit', '20')
+      const queryParts = []
+      if (searchQuery.trim()) queryParts.push(searchQuery.trim())
+      if (location.trim()) queryParts.push(location.trim())
+      
+      params.append('query', queryParts.join(' '))
+      if (location.trim()) params.append('location', location.trim())
+      params.append('pageSize', '25')
 
-      const response = await fetch(`/api/clinical-trials/search?${params}`)
-      if (!response.ok) throw new Error('Search failed')
+      const response = await fetch(`/api/clinical-trials?${params}`)
+      
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`)
+      }
 
       const data = await response.json()
-      if (data.success) {
-        setTrials(data.trials || [])
-        if (data.trials.length === 0) {
-          setError('No trials found. Try different search terms.')
-        }
+      
+      if (data.error) {
+        setError(data.error)
+        setTrials([])
+      } else if (data.studies && data.studies.length > 0) {
+        setTrials(data.studies)
+        setTotalCount(data.totalCount || data.studies.length)
       } else {
-        setError(data.error || 'No trials found')
+        setError('No clinical trials found. Try different search terms.')
         setTrials([])
       }
     } catch (err) {
-      setError('Search failed. Please try again.')
+      console.error('Clinical trials search error:', err)
+      setError('Failed to search clinical trials. Please try again.')
       setTrials([])
     } finally {
       setIsLoading(false)
@@ -74,23 +86,57 @@ export default function ClinicalTrialsPage() {
     searchTrials()
   }
 
+  const exampleSearches = [
+    { condition: 'diabetes', location: 'California' },
+    { condition: 'breast cancer', location: 'New York' },
+    { condition: 'alzheimers', location: 'Texas' },
+    { condition: 'heart disease', location: '' },
+  ]
+
+  const runExampleSearch = (condition: string, loc: string) => {
+    setSearchQuery(condition)
+    setLocation(loc)
+    setTimeout(() => {
+      const params = new URLSearchParams()
+      const queryParts = []
+      if (condition) queryParts.push(condition)
+      if (loc) queryParts.push(loc)
+      params.append('query', queryParts.join(' '))
+      if (loc) params.append('location', loc)
+      params.append('pageSize', '25')
+      
+      setIsLoading(true)
+      setError(null)
+      
+      fetch(`/api/clinical-trials?${params}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.studies && data.studies.length > 0) {
+            setTrials(data.studies)
+            setTotalCount(data.totalCount || data.studies.length)
+          } else {
+            setError('No clinical trials found for this search.')
+          }
+        })
+        .catch(() => setError('Search failed'))
+        .finally(() => setIsLoading(false))
+    }, 100)
+  }
+
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <Activity className="h-5 w-5 text-black" />
-              </div>
-              <span className="text-xl font-medium">BaseHealth</span>
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="text-lg font-medium tracking-tight hover:opacity-80 transition-opacity">
+              BaseHealth
             </Link>
             <div className="flex items-center gap-6">
-              <Link href="/screening" className="text-sm text-neutral-400 hover:text-white transition-colors">
+              <Link href="/screening" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Screening
               </Link>
-              <Link href="/providers/search" className="text-sm text-neutral-400 hover:text-white transition-colors">
+              <Link href="/providers/search" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Providers
               </Link>
             </div>
@@ -98,52 +144,72 @@ export default function ClinicalTrialsPage() {
         </div>
       </nav>
 
-      <main className="pt-32 pb-24">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <main className="pt-28 pb-24">
+        <div className="max-w-5xl mx-auto px-6">
           {/* Header */}
-          <div className={`max-w-3xl mb-16 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6">
+          <div className={`max-w-3xl mb-12 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <h1 className="text-4xl md:text-5xl font-normal tracking-tight mb-4" style={{ lineHeight: '1.1' }}>
               Clinical Trials
               <br />
-              <span className="text-neutral-500">Research Network</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Research Network</span>
             </h1>
-            <p className="text-xl text-neutral-400">
-              Access 400,000+ clinical trials from ClinicalTrials.gov with AI-powered eligibility matching.
+            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+              Search 400,000+ clinical trials from ClinicalTrials.gov.
             </p>
           </div>
 
           {/* Search */}
-          <form onSubmit={handleSubmit} className={`mb-12 ${mounted ? 'animate-fade-in-up delay-200' : 'opacity-0'}`}>
+          <form onSubmit={handleSubmit} className={`mb-10 ${mounted ? 'animate-fade-in-up delay-200' : 'opacity-0'}`}>
             <div className="grid md:grid-cols-3 gap-4">
               <div className="md:col-span-2 relative">
-                <FlaskConical className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500" />
+                <FlaskConical className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                 <input
                   type="text"
                   placeholder="Search by condition (e.g., diabetes, cancer)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-neutral-950 border border-white/10 rounded-xl text-lg text-white placeholder:text-neutral-600 focus:outline-none focus:border-white/30 transition-colors"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-lg text-base focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                 />
               </div>
               <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500" />
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                 <input
                   type="text"
-                  placeholder="Location"
+                  placeholder="Location (city, state)"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-neutral-950 border border-white/10 rounded-xl text-white placeholder:text-neutral-600 focus:outline-none focus:border-white/30 transition-colors"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-lg focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                 />
               </div>
             </div>
-            <div className="flex justify-end mt-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-4">
+              <div className="flex flex-wrap gap-2">
+                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Try:</span>
+                {exampleSearches.map((ex, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => runExampleSearch(ex.condition, ex.location)}
+                    className="px-3 py-1 text-sm rounded-lg transition-colors"
+                    style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                  >
+                    {ex.condition}{ex.location ? ` in ${ex.location}` : ''}
+                  </button>
+                ))}
+              </div>
               <button 
                 type="submit" 
                 disabled={isLoading}
-                className="px-8 py-3 bg-white text-black font-medium rounded-xl hover:bg-neutral-200 transition-colors flex items-center gap-2"
+                className="px-6 py-3 font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+                style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
               >
                 {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Searching...
+                  </>
                 ) : (
                   <>
                     <Search className="h-5 w-5" />
@@ -156,7 +222,8 @@ export default function ClinicalTrialsPage() {
 
           {/* Error */}
           {error && (
-            <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+            <div className="mb-8 p-4 rounded-lg flex items-center gap-3" style={{ backgroundColor: 'rgba(220, 100, 100, 0.1)', color: '#dc6464', border: '1px solid rgba(220, 100, 100, 0.2)' }}>
+              <AlertCircle className="h-5 w-5 flex-shrink-0" />
               {error}
             </div>
           )}
@@ -165,10 +232,10 @@ export default function ClinicalTrialsPage() {
           {isLoading && (
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="p-6 bg-neutral-950 border border-white/5 rounded-2xl animate-pulse">
-                  <div className="h-6 w-3/4 bg-neutral-800 rounded mb-3" />
-                  <div className="h-4 w-1/2 bg-neutral-900 rounded mb-4" />
-                  <div className="h-4 w-full bg-neutral-900 rounded" />
+                <div key={i} className="p-5 rounded-xl border animate-pulse" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                  <div className="h-5 w-3/4 rounded mb-3" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
+                  <div className="h-4 w-1/2 rounded mb-4" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
+                  <div className="h-4 w-full rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
                 </div>
               ))}
             </div>
@@ -177,55 +244,63 @@ export default function ClinicalTrialsPage() {
           {/* Results */}
           {!isLoading && trials.length > 0 && (
             <>
-              <p className="text-sm text-neutral-500 mb-6">{trials.length} trials found</p>
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  Showing {trials.length} of {totalCount.toLocaleString()} trials
+                </p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  Data from ClinicalTrials.gov
+                </p>
+              </div>
               <div className="space-y-4">
                 {trials.map((trial, index) => (
                   <div 
                     key={trial.nctId} 
-                    className={`p-6 bg-neutral-950 border border-white/5 rounded-2xl hover:border-white/10 transition-all ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className={`p-5 rounded-xl border transition-all ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
+                    style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}
                   >
                     <div className="flex items-start justify-between gap-6">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className={`px-2.5 py-1 text-xs font-medium rounded ${
-                            trial.status.toLowerCase().includes('recruiting') 
-                              ? 'bg-green-500/10 text-green-400' 
-                              : 'bg-neutral-500/10 text-neutral-400'
-                          }`}>
-                            {trial.status.includes('Recruiting') && <CheckCircle className="h-3 w-3 inline mr-1" />}
-                            {trial.status}
+                        <div className="flex items-center flex-wrap gap-2 mb-3">
+                          <span className="px-2 py-0.5 text-xs font-medium rounded flex items-center gap-1" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}>
+                            <CheckCircle className="h-3 w-3" />
+                            Active
                           </span>
                           {trial.phase && (
-                            <span className="px-2.5 py-1 text-xs font-medium bg-neutral-800 text-neutral-400 rounded">
-                              {trial.phase}
+                            <span className="px-2 py-0.5 text-xs font-medium rounded" style={{ backgroundColor: 'rgba(150, 120, 180, 0.15)', color: '#9678b4' }}>
+                              Phase {trial.phase.replace('PHASE', '').trim()}
                             </span>
                           )}
-                          <span className="text-xs text-neutral-600">{trial.nctId}</span>
+                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{trial.nctId}</span>
                         </div>
 
-                        <h3 className="text-xl font-medium text-white mb-3 leading-snug">
-                          {trial.title}
+                        <h3 className="text-lg font-medium mb-3 leading-snug">
+                          {trial.briefTitle}
                         </h3>
 
-                        <p className="text-neutral-400 mb-4 line-clamp-2">
-                          {trial.description}
-                        </p>
+                        {trial.briefSummary && (
+                          <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
+                            {trial.briefSummary.slice(0, 300)}...
+                          </p>
+                        )}
 
-                        <div className="flex flex-wrap gap-6 text-sm text-neutral-500">
-                          <span className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4" />
-                            {trial.sponsor}
-                          </span>
-                          <span className="flex items-center gap-2">
-                            <Users className="h-4 w-4" />
-                            {trial.enrollmentCount.toLocaleString()} participants
-                          </span>
-                          {trial.locations?.[0] && (
+                        <div className="flex flex-wrap gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+                          {trial.condition && (
+                            <span className="flex items-center gap-2">
+                              <FlaskConical className="h-4 w-4" />
+                              {trial.condition.split(',').slice(0, 2).join(', ')}
+                            </span>
+                          )}
+                          {trial.enrollment > 0 && (
+                            <span className="flex items-center gap-2">
+                              <Users className="h-4 w-4" />
+                              {trial.enrollment.toLocaleString()} participants
+                            </span>
+                          )}
+                          {trial.locationString && (
                             <span className="flex items-center gap-2">
                               <MapPin className="h-4 w-4" />
-                              {trial.locations[0].city}, {trial.locations[0].state}
-                              {trial.locations.length > 1 && ` +${trial.locations.length - 1}`}
+                              {trial.locationString}
                             </span>
                           )}
                         </div>
@@ -235,7 +310,8 @@ export default function ClinicalTrialsPage() {
                         href={`https://clinicaltrials.gov/study/${trial.nctId}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-colors flex items-center gap-2 whitespace-nowrap"
+                        className="px-4 py-2 font-medium rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
+                        style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
                       >
                         View Details
                         <ExternalLink className="h-4 w-4" />
@@ -249,23 +325,26 @@ export default function ClinicalTrialsPage() {
 
           {/* Empty State */}
           {!isLoading && trials.length === 0 && !error && (
-            <div className="text-center py-20">
-              <div className="w-20 h-20 mx-auto mb-8 bg-neutral-950 rounded-2xl flex items-center justify-center">
-                <FlaskConical className="h-10 w-10 text-neutral-600" />
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <FlaskConical className="h-8 w-8" style={{ color: 'var(--text-muted)' }} />
               </div>
-              <h3 className="text-2xl font-medium mb-3">Search Clinical Trials</h3>
-              <p className="text-neutral-500 max-w-md mx-auto mb-8">
-                Search by condition and location to find active clinical trials.
+              <h3 className="text-xl font-medium mb-2">Search Clinical Trials</h3>
+              <p className="max-w-md mx-auto mb-8" style={{ color: 'var(--text-secondary)' }}>
+                Enter a health condition and optionally a location to find active clinical trials.
               </p>
-              <button
-                onClick={() => {
-                  setSearchQuery('diabetes')
-                  setLocation('California')
-                }}
-                className="px-6 py-3 bg-white text-black font-medium rounded-lg hover:bg-neutral-200 transition-colors"
-              >
-                Try Example Search
-              </button>
+              <div className="flex flex-wrap justify-center gap-3">
+                {exampleSearches.map((ex, i) => (
+                  <button
+                    key={i}
+                    onClick={() => runExampleSearch(ex.condition, ex.location)}
+                    className="px-4 py-2 rounded-lg transition-colors"
+                    style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                  >
+                    {ex.condition}{ex.location ? ` in ${ex.location}` : ''}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
