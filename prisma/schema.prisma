@@ -324,24 +324,30 @@ enum VerificationStatus {
 // ============================================================================
 // AUDIT LOGS
 // ============================================================================
+// HIPAA COMPLIANCE: This table is critical for HIPAA compliance.
+// - Records MUST be retained for 6 years minimum (45 CFR 164.530(j))
+// - DO NOT delete audit logs
+// - Use for PHI access tracking via lib/hipaa/phi-access-log.ts
+// - Actions prefixed with "phi." indicate PHI access events
 
 model AuditLog {
   id          String    @id @default(cuid())
   
-  // Actor
+  // Actor - who performed the action
   actorId     String?
   actor       User?     @relation(fields: [actorId], references: [id], onDelete: SetNull)
-  actorEmail  String?   // Preserve even if user deleted
+  actorEmail  String?   // Preserve even if user deleted - required for audit trail
   actorRole   String?
   
-  // Action
-  action      String    // e.g., "application.submitted", "admin.approved"
-  entityType  String    // e.g., "Application", "Provider"
+  // Action - what was done
+  action      String    // e.g., "phi.view", "phi.update", "application.submitted"
+  entityType  String    // e.g., "Patient", "Application", "Provider"
   entityId    String?
   
-  // Details
+  // Details - context of the action
   description String?   @db.Text
-  metadata    Json?     // Additional context
+  metadata    Json?     // Additional context (fieldsAccessed, reason, etc.)
+  /// @phi - IP_ADDRESS (network identifier)
   ipAddress   String?
   userAgent   String?
   
@@ -483,6 +489,7 @@ enum CaregiverStatus {
 // ============================================================================
 // PROVIDER (Healthcare Providers - Physicians and Health Apps)
 // ============================================================================
+// HIPAA NOTE: Contains provider PHI and credentialing information
 
 model Provider {
   id          String   @id @default(cuid())
@@ -495,23 +502,29 @@ model Provider {
   // Provider Type: PHYSICIAN or APP
   type        ProviderType @default(PHYSICIAN)
   
-  // For Physicians
+  // For Physicians - PHI Fields
+  /// @phi - NAME (individual identifiers)
   fullName    String?  // For physicians: "Dr. John Smith"
   // For Apps/Clinics
   organizationName String? // For apps: "HealthApp Inc."
   
+  /// @phi - EMAIL (electronic identifiers)
   email       String   @unique
-  passwordHash String? // Hashed password (nullable for OAuth)
+  passwordHash String? // Hashed password (nullable for OAuth) - NEVER log
+  /// @phi - PHONE (telephone numbers)
   phone       String?
   
-  // Professional Information (for physicians)
+  // Professional Information (for physicians) - PHI Fields
+  /// @phi - LICENSE_NUMBER (NPI - National Provider Identifier)
   npiNumber   String?  @unique // NPI for physicians (nullable for apps)
+  /// @phi - LICENSE_NUMBER (state medical license)
   licenseNumber String? // State medical board license number (required for physicians)
   licenseState String?
   licenseExpiry DateTime?
   specialties String[] // Array of specialties
   professionType String? // MD, DO, NP, PA, RN, PharmD
   taxonomyCode String?
+  /// @phi - HEALTH_INFO (may contain personal info)
   bio         String?  @db.Text
   
   // Multi-state licensing
@@ -560,6 +573,7 @@ enum ProviderStatus {
 // ============================================================================
 // BOOKING MODEL (For Caregiver Bookings with Payment Integration)
 // ============================================================================
+// HIPAA NOTE: Contains PHI related to care requirements and patient needs
 
 model Booking {
   id          String        @id @default(cuid())
@@ -579,12 +593,16 @@ model Booking {
   endDate     DateTime?
   duration    String?       // "1-2 weeks", "1 month", etc.
   frequency   String?       // "Daily", "Weekly", etc.
+  /// @phi - HEALTH_INFO (type of care needed)
   careType    String?       // "Elder Care", "Post-Surgery", etc.
   urgency     String?       // "Immediate", "Standard", etc.
   
-  // Requirements
+  // Requirements - PHI Fields
+  /// @phi - HEALTH_INFO (care requirements - may contain sensitive health data)
   requirements Json?        // Store requirements as JSON
+  /// @phi - HEALTH_INFO (special health needs - highly sensitive)
   specialNeeds String?
+  /// @phi - HEALTH_INFO (care notes - may contain sensitive details)
   notes       String?       @db.Text
   
   // Payment Information
