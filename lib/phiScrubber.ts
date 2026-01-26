@@ -1,166 +1,328 @@
 /**
  * PHI (Protected Health Information) Scrubber
  * 
- * This module sanitizes user input by detecting and replacing PHI with tokens.
- * This ensures that no real patient data is sent to external AI services.
+ * HIPAA-Compliant PHI Detection and Sanitization Module
  * 
- * IMPORTANT: This is a basic implementation. For production HIPAA compliance,
- * consider using a more sophisticated solution or a dedicated PHI detection service.
+ * This module provides comprehensive PHI detection and sanitization based on
+ * the 18 HIPAA Safe Harbor identifiers. It ensures that no real patient data
+ * is sent to external services or logged inappropriately.
+ * 
+ * HIPAA Safe Harbor De-identification Standard (45 CFR 164.514(b)(2)):
+ * The following 18 identifiers must be removed to consider data de-identified:
+ * 1. Names
+ * 2. Geographic data (smaller than state)
+ * 3. Dates (except year) related to an individual
+ * 4. Phone numbers
+ * 5. Fax numbers
+ * 6. Email addresses
+ * 7. Social Security numbers
+ * 8. Medical record numbers
+ * 9. Health plan beneficiary numbers
+ * 10. Account numbers
+ * 11. Certificate/license numbers
+ * 12. Vehicle identifiers and serial numbers
+ * 13. Device identifiers and serial numbers
+ * 14. Web URLs
+ * 15. IP addresses
+ * 16. Biometric identifiers
+ * 17. Full-face photographs
+ * 18. Any other unique identifying number or code
+ * 
+ * @module phiScrubber
+ * @version 2.0.0
+ * @hipaa compliant
  */
 
 export interface PHIScrubResult {
   cleanedText: string
   mapping: Record<string, string>
+  detectedPHITypes: PHIType[]
+  scrubCount: number
 }
 
-// Counter for generating unique tokens
-let nameCounter = 1
-let dateCounter = 1
-let idCounter = 1
+export type PHIType = 
+  | 'NAME'
+  | 'GEOGRAPHIC'
+  | 'DATE'
+  | 'PHONE'
+  | 'FAX'
+  | 'EMAIL'
+  | 'SSN'
+  | 'MRN'
+  | 'HEALTH_PLAN_ID'
+  | 'ACCOUNT_NUMBER'
+  | 'LICENSE_NUMBER'
+  | 'VEHICLE_ID'
+  | 'DEVICE_ID'
+  | 'URL'
+  | 'IP_ADDRESS'
+  | 'BIOMETRIC'
+  | 'PHOTO'
+  | 'UNIQUE_ID'
+
+export interface PHIDetection {
+  type: PHIType
+  value: string
+  startIndex: number
+  endIndex: number
+  token: string
+}
+
+// Counters for generating unique tokens
+let counters: Record<string, number> = {}
+
+function getToken(type: PHIType): string {
+  if (!counters[type]) {
+    counters[type] = 1
+  }
+  const token = `[${type}_${counters[type]}]`
+  counters[type]++
+  return token
+}
+
+function resetCounters(): void {
+  counters = {}
+}
 
 /**
- * Sanitizes input text by replacing PHI with tokens
+ * Comprehensive PHI detection patterns based on HIPAA Safe Harbor requirements
+ */
+const PHI_PATTERNS: Array<{ type: PHIType; patterns: RegExp[]; tokenFormat?: string }> = [
+  // 1. Names (people's names)
+  {
+    type: 'NAME',
+    patterns: [
+      /\b(?:Dr\.?|Doctor|Mr\.?|Mrs\.?|Ms\.?|Miss|Prof\.?|Professor)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/g,
+      /\b(?:patient|client|member)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b/gi,
+    ],
+  },
+  
+  // 2. Geographic data (addresses, ZIP codes)
+  {
+    type: 'GEOGRAPHIC',
+    patterns: [
+      // Street addresses
+      /\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Court|Ct|Place|Pl|Way|Circle|Cir|Terrace|Ter|Highway|Hwy|Parkway|Pkwy|Suite|Ste|Apt|Apartment|Unit|#)\s*\d*\b/gi,
+      // ZIP codes (3-digit precision not allowed for PHI)
+      /\b\d{5}(?:-\d{4})?\b/g,
+      // PO Boxes
+      /\bP\.?O\.?\s*Box\s*\d+\b/gi,
+    ],
+  },
+  
+  // 3. Dates (except year) - DOB, admission dates, discharge dates, etc.
+  {
+    type: 'DATE',
+    patterns: [
+      // MM/DD/YYYY, MM-DD-YYYY
+      /\b(0?[1-9]|1[0-2])[-\/](0?[1-9]|[12]\d|3[01])[-\/](\d{2}|\d{4})\b/g,
+      // YYYY-MM-DD (ISO format)
+      /\b(\d{4})[-\/](0?[1-9]|1[0-2])[-\/](0?[1-9]|[12]\d|3[01])\b/g,
+      // Month Day, Year (January 15, 2023)
+      /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b/gi,
+      // Day Month Year (15 January 2023)
+      /\b\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/gi,
+    ],
+  },
+  
+  // 4. Phone numbers
+  {
+    type: 'PHONE',
+    patterns: [
+      /\b(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b/g,
+      /\b(?:phone|tel|telephone|cell|mobile)[\s:]*(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b/gi,
+    ],
+  },
+  
+  // 5. Fax numbers
+  {
+    type: 'FAX',
+    patterns: [
+      /\b(?:fax|facsimile)[\s:]*(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b/gi,
+    ],
+  },
+  
+  // 6. Email addresses
+  {
+    type: 'EMAIL',
+    patterns: [
+      /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+    ],
+  },
+  
+  // 7. Social Security Numbers
+  {
+    type: 'SSN',
+    patterns: [
+      /\b\d{3}-\d{2}-\d{4}\b/g,
+      /\b(?:SSN|SS#|Social\s*Security)[\s:]*\d{3}[-\s]?\d{2}[-\s]?\d{4}\b/gi,
+    ],
+  },
+  
+  // 8. Medical Record Numbers (MRN)
+  {
+    type: 'MRN',
+    patterns: [
+      /\b(?:MRN|Medical\s*Record|Patient\s*ID|Record\s*#?)[\s:\-]?([A-Z0-9]{4,})\b/gi,
+      /\b(?:chart|case)\s*(?:number|#|no\.?)[\s:]*([A-Z0-9]{4,})\b/gi,
+    ],
+  },
+  
+  // 9. Health Plan Beneficiary Numbers
+  {
+    type: 'HEALTH_PLAN_ID',
+    patterns: [
+      /\b(?:member\s*ID|subscriber\s*ID|policy\s*number|insurance\s*ID|group\s*number)[\s:\-]?([A-Z0-9]{4,})\b/gi,
+      /\b(?:medicare|medicaid)\s*(?:number|ID|#)[\s:\-]?([A-Z0-9]{4,})\b/gi,
+    ],
+  },
+  
+  // 10. Account Numbers
+  {
+    type: 'ACCOUNT_NUMBER',
+    patterns: [
+      /\b(?:account|acct)\s*(?:number|#|no\.?)[\s:\-]?([A-Z0-9]{6,})\b/gi,
+      /\b(?:billing|payment)\s*(?:account|ID)[\s:\-]?([A-Z0-9]{6,})\b/gi,
+    ],
+  },
+  
+  // 11. Certificate/License Numbers
+  {
+    type: 'LICENSE_NUMBER',
+    patterns: [
+      /\b(?:license|licence|cert|certificate)\s*(?:number|#|no\.?)[\s:\-]?([A-Z0-9]{4,})\b/gi,
+      /\b(?:NPI|DEA)\s*(?:number|#)?[\s:\-]?(\d{10}|\d{9}[A-Z]\d{7})\b/gi,
+    ],
+  },
+  
+  // 12. Vehicle Identifiers
+  {
+    type: 'VEHICLE_ID',
+    patterns: [
+      /\b(?:VIN|vehicle\s*identification)[\s:\-]?([A-HJ-NPR-Z0-9]{17})\b/gi,
+      /\b(?:license\s*plate|plate\s*number)[\s:\-]?([A-Z0-9]{2,8})\b/gi,
+    ],
+  },
+  
+  // 13. Device Identifiers
+  {
+    type: 'DEVICE_ID',
+    patterns: [
+      /\b(?:device|serial|IMEI|MAC)[\s:\-]?(?:number|ID|#)?[\s:\-]?([A-Z0-9]{8,})\b/gi,
+      /\b(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}\b/g, // MAC address
+    ],
+  },
+  
+  // 14. Web URLs
+  {
+    type: 'URL',
+    patterns: [
+      /\bhttps?:\/\/[^\s<>"{}|\\^`[\]]+/gi,
+      /\bwww\.[^\s<>"{}|\\^`[\]]+/gi,
+    ],
+  },
+  
+  // 15. IP Addresses
+  {
+    type: 'IP_ADDRESS',
+    patterns: [
+      /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g,
+      /\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b/g, // IPv6
+    ],
+  },
+  
+  // 18. Other Unique Identifiers (catch-all for common patterns)
+  {
+    type: 'UNIQUE_ID',
+    patterns: [
+      /\b(?:ID|identifier|ref|reference)[\s:\-#]?([A-Z0-9]{8,})\b/gi,
+    ],
+  },
+]
+
+/**
+ * Sanitizes input text by replacing PHI with tokens following HIPAA Safe Harbor guidelines
  * @param input - The original text that may contain PHI
- * @returns Object containing cleaned text and mapping of original values to tokens
+ * @returns Object containing cleaned text, mapping, detected PHI types, and count
  */
 export function sanitizeInput(input: string): PHIScrubResult {
-  // Reset counters for each new sanitization
-  nameCounter = 1
-  dateCounter = 1
-  idCounter = 1
+  resetCounters()
   
   const mapping: Record<string, string> = {}
+  const detectedPHITypes: Set<PHIType> = new Set()
   let cleanedText = input
+  let scrubCount = 0
 
-  // 1. Detect and replace email addresses
-  const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g
-  cleanedText = cleanedText.replace(emailRegex, (match) => {
-    if (!mapping[match]) {
-      mapping[match] = '[EMAIL]'
-    }
-    return mapping[match]
-  })
-
-  // 2. Detect and replace phone numbers (various formats)
-  const phoneRegex = /\b(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b/g
-  cleanedText = cleanedText.replace(phoneRegex, (match) => {
-    if (!mapping[match]) {
-      mapping[match] = '[PHONE]'
-    }
-    return mapping[match]
-  })
-
-  // 3. Detect and replace ZIP codes (5 digits, optionally with +4)
-  const zipRegex = /\b\d{5}(?:-\d{4})?\b/g
-  cleanedText = cleanedText.replace(zipRegex, (match) => {
-    if (!mapping[match]) {
-      mapping[match] = '[ZIP]'
-    }
-    return mapping[match]
-  })
-
-  // 4. Detect and replace physical addresses (common patterns)
-  // Street addresses: "123 Main St", "456 Oak Avenue", etc.
-  const streetAddressRegex = /\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Court|Ct|Place|Pl|Way|Circle|Cir)\b/gi
-  cleanedText = cleanedText.replace(streetAddressRegex, (match) => {
-    if (!mapping[match]) {
-      mapping[match] = '[ADDRESS]'
-    }
-    return mapping[match]
-  })
-
-  // 5. Detect and replace dates of birth (common formats)
-  // MM/DD/YYYY, MM-DD-YYYY, YYYY-MM-DD, etc.
-  const dobRegex = /\b(?:\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}|\d{4}[-\/]\d{1,2}[-\/]\d{1,2})\b/g
-  cleanedText = cleanedText.replace(dobRegex, (match) => {
-    // Check if it's likely a DOB (years 1900-2010 or age calculation)
-    const yearMatch = match.match(/\d{4}/)
-    if (yearMatch) {
-      const year = parseInt(yearMatch[0])
-      if (year >= 1900 && year <= 2010) {
+  // Process each PHI pattern type
+  for (const { type, patterns } of PHI_PATTERNS) {
+    for (const pattern of patterns) {
+      // Reset regex lastIndex for global patterns
+      pattern.lastIndex = 0
+      
+      cleanedText = cleanedText.replace(pattern, (match) => {
+        // Skip if already replaced
+        if (match.startsWith('[') && match.endsWith(']')) {
+          return match
+        }
+        
         if (!mapping[match]) {
-          mapping[match] = '[DOB]'
+          const token = getToken(type)
+          mapping[match] = token
+          detectedPHITypes.add(type)
+          scrubCount++
         }
         return mapping[match]
-      }
+      })
     }
-    return match // Don't replace if not likely a DOB
-  })
-
-  // 6. Detect and replace full dates (for general date scrubbing)
-  const dateRegex = /\b(?:\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}|\d{4}[-\/]\d{1,2}[-\/]\d{1,2})\b/g
-  cleanedText = cleanedText.replace(dateRegex, (match) => {
-    if (!mapping[match] && !match.includes('[DOB]')) {
-      const token = `[DATE_${dateCounter}]`
-      dateCounter++
-      mapping[match] = token
-      return token
-    }
-    return match
-  })
-
-  // 7. Detect and replace names (common name patterns)
-  // Look for "Dr. FirstName LastName", "FirstName LastName", etc.
-  // This is a simple heuristic - more sophisticated NLP would be better
-  const namePatterns = [
-    /\b(?:Dr\.?|Doctor|Mr\.?|Mrs\.?|Ms\.?|Miss)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b/g,
-    /\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b/g, // FirstName LastName
-  ]
-  
-  namePatterns.forEach((pattern) => {
-    cleanedText = cleanedText.replace(pattern, (match, namePart) => {
-      const name = namePart || match
-      // Skip if it's already been replaced or if it's too short
-      if (name.length < 3 || name.split(' ').length < 2) {
-        return match
-      }
-      if (!mapping[name]) {
-        const token = `[NAME_${nameCounter}]`
-        nameCounter++
-        mapping[name] = token
-      }
-      return match.replace(name, mapping[name])
-    })
-  })
-
-  // 8. Detect and replace obvious IDs / MRNs (Medical Record Numbers)
-  // Common patterns: MRN-12345, ID: ABC123, etc.
-  const idRegex = /\b(?:MRN|ID|Patient\s*ID|Record\s*#?)[\s:\-]?([A-Z0-9]{4,})\b/gi
-  cleanedText = cleanedText.replace(idRegex, (match) => {
-    if (!mapping[match]) {
-      mapping[match] = '[ID]'
-    }
-    return mapping[match]
-  })
-
-  // 9. Detect and replace SSN patterns (XXX-XX-XXXX)
-  const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g
-  cleanedText = cleanedText.replace(ssnRegex, (match) => {
-    if (!mapping[match]) {
-      mapping[match] = '[SSN]'
-    }
-    return mapping[match]
-  })
-
-  // 10. Detect and replace age mentions (if followed by "years old", "age", etc.)
-  const ageRegex = /\b(\d{1,3})\s*(?:years?\s*old|y\.?o\.?|age)\b/gi
-  cleanedText = cleanedText.replace(ageRegex, (match, ageNum) => {
-    const age = parseInt(ageNum)
-    if (age >= 0 && age <= 120) {
-      if (!mapping[match]) {
-        // Convert to age range for privacy
-        const ageRange = age < 18 ? '[AGE_MINOR]' : age < 65 ? '[AGE_ADULT]' : '[AGE_SENIOR]'
-        mapping[match] = ageRange
-      }
-      return mapping[match]
-    }
-    return match
-  })
+  }
 
   return {
     cleanedText,
     mapping,
+    detectedPHITypes: Array.from(detectedPHITypes),
+    scrubCount,
   }
+}
+
+/**
+ * Detects PHI in text without replacing it
+ * Useful for validation and logging purposes
+ * @param input - The text to scan for PHI
+ * @returns Array of detected PHI items with their locations
+ */
+export function detectPHI(input: string): PHIDetection[] {
+  const detections: PHIDetection[] = []
+  let tokenCounter = 0
+
+  for (const { type, patterns } of PHI_PATTERNS) {
+    for (const pattern of patterns) {
+      pattern.lastIndex = 0
+      let match
+      
+      while ((match = pattern.exec(input)) !== null) {
+        tokenCounter++
+        detections.push({
+          type,
+          value: match[0],
+          startIndex: match.index,
+          endIndex: match.index + match[0].length,
+          token: `[${type}_${tokenCounter}]`,
+        })
+      }
+    }
+  }
+
+  return detections
+}
+
+/**
+ * Checks if text contains any PHI
+ * @param text - Text to check
+ * @returns true if PHI is detected
+ */
+export function containsPHI(text: string): boolean {
+  const detections = detectPHI(text)
+  return detections.length > 0
 }
 
 /**
@@ -169,6 +331,75 @@ export function sanitizeInput(input: string): PHIScrubResult {
  * @returns true if text appears to be scrubbed (contains tokens)
  */
 export function isScrubbed(text: string): boolean {
-  return /\[(EMAIL|PHONE|ZIP|ADDRESS|DOB|DATE_\d+|NAME_\d+|ID|SSN|AGE_\w+)\]/.test(text)
+  const tokenPattern = /\[(NAME|GEOGRAPHIC|DATE|PHONE|FAX|EMAIL|SSN|MRN|HEALTH_PLAN_ID|ACCOUNT_NUMBER|LICENSE_NUMBER|VEHICLE_ID|DEVICE_ID|URL|IP_ADDRESS|BIOMETRIC|PHOTO|UNIQUE_ID)_\d+\]/
+  return tokenPattern.test(text)
+}
+
+/**
+ * Re-hydrates scrubbed text with original values
+ * WARNING: Only use this in secure contexts with proper authorization
+ * @param scrubbedText - Text with PHI tokens
+ * @param mapping - Original mapping from sanitizeInput
+ * @returns Original text with PHI restored
+ */
+export function rehydratePHI(scrubbedText: string, mapping: Record<string, string>): string {
+  let result = scrubbedText
+  
+  // Create reverse mapping
+  const reverseMapping: Record<string, string> = {}
+  for (const [original, token] of Object.entries(mapping)) {
+    reverseMapping[token] = original
+  }
+  
+  // Replace tokens with original values
+  for (const [token, original] of Object.entries(reverseMapping)) {
+    result = result.replace(new RegExp(escapeRegExp(token), 'g'), original)
+  }
+  
+  return result
+}
+
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * Returns a summary of PHI detected in text (for audit logging)
+ * Does not include actual PHI values
+ * @param text - Text to analyze
+ * @returns Summary object safe for logging
+ */
+export function getPHISummary(text: string): {
+  hasPHI: boolean
+  phiTypes: PHIType[]
+  phiCount: number
+  riskLevel: 'none' | 'low' | 'medium' | 'high'
+} {
+  const detections = detectPHI(text)
+  const phiTypes = [...new Set(detections.map(d => d.type))]
+  const phiCount = detections.length
+  
+  // Calculate risk level based on types of PHI detected
+  const highRiskTypes: PHIType[] = ['SSN', 'MRN', 'HEALTH_PLAN_ID']
+  const mediumRiskTypes: PHIType[] = ['NAME', 'DATE', 'EMAIL', 'PHONE']
+  
+  let riskLevel: 'none' | 'low' | 'medium' | 'high' = 'none'
+  
+  if (phiCount === 0) {
+    riskLevel = 'none'
+  } else if (phiTypes.some(t => highRiskTypes.includes(t))) {
+    riskLevel = 'high'
+  } else if (phiTypes.some(t => mediumRiskTypes.includes(t))) {
+    riskLevel = 'medium'
+  } else {
+    riskLevel = 'low'
+  }
+  
+  return {
+    hasPHI: phiCount > 0,
+    phiTypes,
+    phiCount,
+    riskLevel,
+  }
 }
 

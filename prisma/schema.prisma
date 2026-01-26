@@ -1,5 +1,23 @@
+// ============================================================================
 // Prisma Schema for BaseHealth.xyz
-// Compatible with PostgreSQL
+// Compatible with PostgreSQL (Neon)
+// ============================================================================
+//
+// HIPAA COMPLIANCE NOTES:
+// -----------------------
+// This schema stores Protected Health Information (PHI) as defined by HIPAA.
+// 
+// REQUIREMENTS FOR HIPAA COMPLIANCE:
+// 1. Database provider (Neon) MUST have a signed Business Associate Agreement (BAA)
+// 2. All connections MUST use SSL/TLS encryption (sslmode=require in connection string)
+// 3. Field-level encryption is available via lib/hipaa/encryption.ts
+// 4. All PHI access MUST be logged via lib/hipaa/phi-access-log.ts
+// 5. Audit logs MUST be retained for 6 years minimum
+//
+// PHI FIELDS ARE MARKED WITH: /// @phi - [CATEGORY]
+// Categories follow HIPAA Safe Harbor 18 identifiers
+//
+// ============================================================================
 
 generator client {
   provider = "prisma-client-js"
@@ -8,16 +26,20 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // IMPORTANT: Ensure DATABASE_URL includes sslmode=require for HIPAA compliance
 }
 
 // ============================================================================
 // USER MANAGEMENT
 // ============================================================================
+// HIPAA NOTE: User records may contain PHI when associated with healthcare data
 
 model User {
   id        String   @id @default(cuid())
+  /// @phi - EMAIL (electronic identifiers)
   email     String   @unique
-  password  String? // Nullable for OAuth users
+  password  String? // Nullable for OAuth users - NEVER log this field
+  /// @phi - NAME (individual identifiers)
   name      String?
   role      UserRole @default(PATIENT)
   
@@ -47,22 +69,32 @@ enum UserRole {
 // ============================================================================
 // PATIENT
 // ============================================================================
+// HIPAA NOTE: This model contains extensive PHI. All access must be logged.
+// Use lib/hipaa utilities for encryption and access logging.
 
 model Patient {
   id            String   @id @default(cuid())
   userId        String   @unique
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  // Personal Info
+  // Personal Info - PHI Fields
+  /// @phi - DATE (dates related to individual)
   dateOfBirth   DateTime?
+  /// @phi - PHONE (telephone numbers)
   phone         String?
+  /// @phi - GEOGRAPHIC (address smaller than state)
   address       String?
+  /// @phi - NAME, PHONE (contact information)
   emergencyContact String?
   
-  // Medical Info
+  // Medical Info - PHI Fields (health information)
+  /// @phi - HEALTH_INFO (medical data)
   bloodType     String?
+  /// @phi - HEALTH_INFO (medical conditions - highly sensitive)
   allergies     String[]
+  /// @phi - HEALTH_INFO (medical conditions - highly sensitive)
   conditions    String[]
+  /// @phi - HEALTH_INFO (medication list - highly sensitive)
   medications   String[]
   
   // Relations
@@ -77,6 +109,7 @@ model Patient {
 // ============================================================================
 // ONBOARDING APPLICATION (Unified for Provider & Caregiver)
 // ============================================================================
+// HIPAA NOTE: Contains PHI for healthcare provider credentialing
 
 model Application {
   id              String            @id @default(cuid())
@@ -86,11 +119,16 @@ model Application {
   country         String            @default("US")
   regions         String[]          // States/provinces where they'll practice
   
-  // Applicant Info
+  // Applicant Info - PHI Fields
+  /// @phi - EMAIL (electronic identifiers)
   email           String
+  /// @phi - PHONE (telephone numbers)
   phone           String?
+  /// @phi - NAME (individual identifiers)
   firstName       String?
+  /// @phi - NAME (individual identifiers)
   lastName        String?
+  /// @phi - NAME (individual identifiers)
   fullName        String?
   organizationName String?
   
@@ -115,17 +153,20 @@ model Application {
   taxonomyCode    String?
   
   // NPI Info (for US Providers)
+  /// @phi - LICENSE_NUMBER (professional identifiers)
   npiNumber       String?
   npiVerified     Boolean           @default(false)
   npiData         Json?             // Cached NPPES data
   
   // License Info
+  /// @phi - LICENSE_NUMBER (certificate/license numbers)
   licenseNumber   String?
   licenseState    String?
   licenseExpiry   DateTime?
   licenseVerified Boolean           @default(false)
   
   // DEA (optional, for prescribing)
+  /// @phi - LICENSE_NUMBER (DEA registration - highly sensitive)
   deaNumber       String?
   deaExpiry       DateTime?
   
@@ -142,6 +183,7 @@ model Application {
   hasTransport    Boolean           @default(false)
   
   // Identity (for background check)
+  /// @phi - DATE (dates related to individual)
   dateOfBirth     DateTime?
   
   // Certifications (caregiver)
