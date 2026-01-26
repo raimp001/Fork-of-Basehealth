@@ -2,27 +2,14 @@
  * Stripe Payment Intent Creation API
  * 
  * Creates a Stripe payment intent for credit card payments.
+ * Supports demo mode when Stripe is not configured.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
-
-// Initialize Stripe
-const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16',
-    })
-  : null
+import { createPaymentIntent, isStripeDemoMode, getStripeStatus } from '@/lib/stripe'
 
 export async function POST(request: NextRequest) {
   try {
-    if (!stripe) {
-      return NextResponse.json(
-        { error: 'Stripe is not configured' },
-        { status: 500 }
-      )
-    }
-    
     const body = await request.json()
     const { 
       amount, 
@@ -40,23 +27,8 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Convert to cents
-    const amountInCents = Math.round(amount * 100)
-    
-    // Create payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amountInCents,
-      currency: currency.toLowerCase(),
-      automatic_payment_methods: {
-        enabled: true,
-      },
-      metadata: {
-        ...metadata,
-        source: 'basehealth',
-      },
-      ...(customerId && { customer: customerId }),
-      ...(description && { description }),
-    })
+    // Create payment intent (real or demo)
+    const paymentIntent = await createPaymentIntent(amount, currency.toLowerCase())
     
     return NextResponse.json({
       success: true,
@@ -64,21 +36,23 @@ export async function POST(request: NextRequest) {
       clientSecret: paymentIntent.client_secret,
       amount: amount,
       currency: currency.toUpperCase(),
+      demoMode: isStripeDemoMode,
+      ...(isStripeDemoMode && {
+        notice: 'This is a demo payment. No real charges will be made.',
+      }),
     })
     
   } catch (error) {
     console.error('Error creating Stripe payment intent:', error)
     
-    if (error instanceof Stripe.errors.StripeError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      )
-    }
-    
     return NextResponse.json(
-      { error: 'Failed to create payment' },
+      { error: error instanceof Error ? error.message : 'Failed to create payment' },
       { status: 500 }
     )
   }
+}
+
+// GET endpoint to check Stripe status
+export async function GET() {
+  return NextResponse.json(getStripeStatus())
 }
