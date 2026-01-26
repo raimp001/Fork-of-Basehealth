@@ -12,12 +12,21 @@ import Link from "next/link"
 /**
  * Skip to Content Link
  * Allows keyboard users to skip navigation and go directly to main content
+ * Hidden by default, only visible when focused (for keyboard navigation)
  */
 export function SkipToContent({ contentId = "main-content" }: { contentId?: string }) {
   return (
     <a
       href={`#${contentId}`}
-      className="skip-to-content"
+      className={cn(
+        // Hidden by default (visually, but accessible to screen readers)
+        "sr-only",
+        // Show when focused
+        "focus:not-sr-only focus:absolute focus:z-[9999] focus:top-4 focus:left-4",
+        "focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground",
+        "focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2",
+        "focus:ring-primary"
+      )}
     >
       Skip to main content
     </a>
