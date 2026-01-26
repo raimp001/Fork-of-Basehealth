@@ -1,35 +1,25 @@
 "use client"
 
 /**
- * Appointment Booking Flow
- * Multi-step booking process for scheduling appointments with providers
+ * Appointment Booking Flow - Claude.ai Design
  */
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import Link from "next/link"
 import { Calendar } from "@/components/ui/calendar"
 import {
   Calendar as CalendarIcon,
-  Clock,
   MapPin,
   User,
-  Phone,
   Video,
-  CreditCard,
   CheckCircle,
   ArrowLeft,
   ArrowRight,
   Shield,
   Star,
   AlertCircle,
+  Loader2,
 } from "lucide-react"
 import { format, addDays, setHours, setMinutes } from "date-fns"
 
@@ -46,18 +36,15 @@ interface ProviderInfo {
   phone: string
   rating: number
   reviewCount: number
-  acceptsNewPatients: boolean
-  insuranceAccepted: string[]
 }
 
-// Mock time slots
 const generateTimeSlots = (date: Date): TimeSlot[] => {
   const slots: TimeSlot[] = []
   const baseHours = [9, 10, 11, 13, 14, 15, 16]
   
   baseHours.forEach(hour => {
     [0, 30].forEach(minute => {
-      const isAvailable = Math.random() > 0.3 // 70% availability
+      const isAvailable = Math.random() > 0.3
       slots.push({
         time: format(setMinutes(setHours(date, hour), minute), 'h:mm a'),
         available: isAvailable
@@ -69,10 +56,10 @@ const generateTimeSlots = (date: Date): TimeSlot[] => {
 }
 
 const STEPS = [
-  { id: 1, title: "Select Date & Time", icon: CalendarIcon },
-  { id: 2, title: "Visit Type", icon: Video },
-  { id: 3, title: "Your Information", icon: User },
-  { id: 4, title: "Confirm & Book", icon: CheckCircle },
+  { id: 1, title: "Select Date & Time" },
+  { id: 2, title: "Visit Type" },
+  { id: 3, title: "Your Information" },
+  { id: 4, title: "Confirm & Book" },
 ]
 
 export default function BookAppointmentPage() {
@@ -87,6 +74,7 @@ export default function BookAppointmentPage() {
   const [visitType, setVisitType] = useState<'in-person' | 'video'>('in-person')
   const [isLoading, setIsLoading] = useState(false)
   const [isBooked, setIsBooked] = useState(false)
+  const [mounted, setMounted] = useState(false)
   
   const [patientInfo, setPatientInfo] = useState({
     firstName: '',
@@ -98,7 +86,6 @@ export default function BookAppointmentPage() {
     reason: '',
   })
 
-  // Mock provider info
   const [provider] = useState<ProviderInfo>({
     npi: providerId,
     name: 'Dr. Sarah Johnson',
@@ -107,11 +94,12 @@ export default function BookAppointmentPage() {
     phone: '(415) 555-0123',
     rating: 4.8,
     reviewCount: 127,
-    acceptsNewPatients: true,
-    insuranceAccepted: ['Aetna', 'Blue Cross', 'Cigna', 'United Healthcare'],
   })
 
-  // Generate time slots when date changes
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   useEffect(() => {
     if (selectedDate) {
       setTimeSlots(generateTimeSlots(selectedDate))
@@ -135,25 +123,17 @@ export default function BookAppointmentPage() {
 
   const canProceed = () => {
     switch (currentStep) {
-      case 1:
-        return selectedDate && selectedTime
-      case 2:
-        return true
-      case 3:
-        return patientInfo.firstName && patientInfo.lastName && patientInfo.email && patientInfo.phone
-      case 4:
-        return true
-      default:
-        return false
+      case 1: return selectedDate && selectedTime
+      case 2: return true
+      case 3: return patientInfo.firstName && patientInfo.lastName && patientInfo.email && patientInfo.phone
+      case 4: return true
+      default: return false
     }
   }
 
   const handleBookAppointment = async () => {
     setIsLoading(true)
-    
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000))
-    
     setIsLoading(false)
     setIsBooked(true)
   }
@@ -161,77 +141,75 @@ export default function BookAppointmentPage() {
   // Booking confirmation screen
   if (isBooked) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-        <MinimalNavigation />
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+        <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
+          <div className="max-w-5xl mx-auto px-6 h-16 flex items-center">
+            <Link href="/" className="text-lg font-medium tracking-tight">BaseHealth</Link>
+          </div>
+        </nav>
         
-        <main className="max-w-lg mx-auto px-4 py-24 text-center">
-          <div className="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
-            <CheckCircle className="h-10 w-10 text-green-600" />
+        <main className="max-w-lg mx-auto px-6 pt-32 pb-24 text-center">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)' }}>
+            <CheckCircle className="h-8 w-8" style={{ color: '#6b9b6b' }} />
           </div>
           
-          <h1 className="text-3xl font-bold text-stone-900 mb-4">
-            Appointment Confirmed!
-          </h1>
-          
-          <p className="text-stone-600 mb-8">
+          <h1 className="text-3xl font-normal mb-3">Appointment Confirmed!</h1>
+          <p className="mb-8" style={{ color: 'var(--text-secondary)' }}>
             Your appointment with {provider.name} has been scheduled.
           </p>
           
-          <Card className="p-6 mb-8 text-left border-2 border-green-200 bg-green-50/50">
+          <div className="p-5 rounded-xl text-left mb-8" style={{ backgroundColor: 'rgba(107, 155, 107, 0.1)', border: '1px solid rgba(107, 155, 107, 0.2)' }}>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <CalendarIcon className="h-5 w-5 text-green-600" />
+                <CalendarIcon className="h-5 w-5" style={{ color: '#6b9b6b' }} />
                 <div>
-                  <p className="font-medium text-stone-900">
-                    {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}
-                  </p>
-                  <p className="text-sm text-stone-600">{selectedTime}</p>
+                  <p className="font-medium">{selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}</p>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{selectedTime}</p>
                 </div>
               </div>
               
               <div className="flex items-center gap-3">
                 {visitType === 'video' ? (
-                  <Video className="h-5 w-5 text-green-600" />
+                  <Video className="h-5 w-5" style={{ color: '#6b9b6b' }} />
                 ) : (
-                  <MapPin className="h-5 w-5 text-green-600" />
+                  <MapPin className="h-5 w-5" style={{ color: '#6b9b6b' }} />
                 )}
                 <div>
-                  <p className="font-medium text-stone-900">
-                    {visitType === 'video' ? 'Video Visit' : 'In-Person Visit'}
-                  </p>
+                  <p className="font-medium">{visitType === 'video' ? 'Video Visit' : 'In-Person Visit'}</p>
                   {visitType !== 'video' && (
-                    <p className="text-sm text-stone-600">{provider.address}</p>
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{provider.address}</p>
                   )}
                 </div>
               </div>
               
               <div className="flex items-center gap-3">
-                <User className="h-5 w-5 text-green-600" />
+                <User className="h-5 w-5" style={{ color: '#6b9b6b' }} />
                 <div>
-                  <p className="font-medium text-stone-900">{provider.name}</p>
-                  <p className="text-sm text-stone-600">{provider.specialty}</p>
+                  <p className="font-medium">{provider.name}</p>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{provider.specialty}</p>
                 </div>
               </div>
             </div>
-          </Card>
-          
-          <div className="space-y-3">
-            <Button
-              onClick={() => router.push('/patient-portal')}
-              className="w-full bg-stone-900 hover:bg-stone-800"
-            >
-              Go to Patient Portal
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => router.push('/providers/search')}
-              className="w-full border-2"
-            >
-              Book Another Appointment
-            </Button>
           </div>
           
-          <p className="text-sm text-stone-500 mt-6">
+          <div className="space-y-3">
+            <button
+              onClick={() => router.push('/patient-portal')}
+              className="w-full py-3 font-medium rounded-lg transition-colors"
+              style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+            >
+              Go to Patient Portal
+            </button>
+            <button
+              onClick={() => router.push('/providers/search')}
+              className="w-full py-3 font-medium rounded-lg border transition-colors"
+              style={{ borderColor: 'var(--border-medium)', color: 'var(--text-primary)' }}
+            >
+              Book Another Appointment
+            </button>
+          </div>
+          
+          <p className="text-sm mt-6" style={{ color: 'var(--text-muted)' }}>
             A confirmation email has been sent to {patientInfo.email}
           </p>
         </main>
@@ -240,94 +218,106 @@ export default function BookAppointmentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <MinimalNavigation />
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center">
+          <Link href="/" className="text-lg font-medium tracking-tight">BaseHealth</Link>
+        </div>
+      </nav>
       
-      <main className="max-w-4xl mx-auto px-4 py-24">
+      <main className="max-w-3xl mx-auto px-6 pt-28 pb-24">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-stone-600 hover:text-stone-900 mb-4"
+            className="flex items-center gap-2 mb-4 transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </button>
           
-          <h1 className="text-3xl font-bold text-stone-900 mb-2">
-            Book Appointment
-          </h1>
+          <h1 className="text-3xl font-normal mb-4">Book Appointment</h1>
           
           {/* Provider info card */}
-          <Card className="p-4 flex items-center gap-4 border-stone-200">
-            <div className="w-14 h-14 bg-stone-100 rounded-full flex items-center justify-center">
-              <User className="h-7 w-7 text-stone-600" />
+          <div className="p-4 rounded-xl flex items-center gap-4" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+              <User className="h-6 w-6" style={{ color: 'var(--text-muted)' }} />
             </div>
             <div className="flex-1">
-              <h2 className="font-semibold text-stone-900">{provider.name}</h2>
-              <p className="text-sm text-stone-600">{provider.specialty}</p>
+              <h2 className="font-medium">{provider.name}</h2>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{provider.specialty}</p>
             </div>
             <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+              <Star className="h-4 w-4" style={{ color: 'var(--accent)' }} />
               <span className="font-medium">{provider.rating}</span>
-              <span className="text-sm text-stone-500">({provider.reviewCount})</span>
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>({provider.reviewCount})</span>
             </div>
-          </Card>
+          </div>
         </div>
 
         {/* Progress */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            {STEPS.map((step, index) => (
+          <div className="flex items-center justify-between mb-3">
+            {STEPS.map((step) => (
               <div
                 key={step.id}
-                className={`flex items-center gap-2 ${
-                  currentStep >= step.id ? 'text-stone-900' : 'text-stone-400'
-                }`}
+                className="flex items-center gap-2"
+                style={{ color: currentStep >= step.id ? 'var(--text-primary)' : 'var(--text-muted)' }}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  currentStep > step.id 
-                    ? 'bg-green-500 text-white' 
-                    : currentStep === step.id 
-                      ? 'bg-stone-900 text-white' 
-                      : 'bg-stone-200 text-stone-500'
-                }`}>
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                  style={currentStep > step.id ? { 
+                    backgroundColor: '#6b9b6b', 
+                    color: 'white' 
+                  } : currentStep === step.id ? { 
+                    backgroundColor: 'var(--text-primary)', 
+                    color: 'var(--bg-primary)' 
+                  } : { 
+                    backgroundColor: 'var(--bg-tertiary)', 
+                    color: 'var(--text-muted)' 
+                  }}
+                >
                   {currentStep > step.id ? <CheckCircle className="h-5 w-5" /> : step.id}
                 </div>
                 <span className="hidden md:inline text-sm font-medium">{step.title}</span>
               </div>
             ))}
           </div>
-          <Progress value={progress} className="h-2" />
+          <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+            <div 
+              className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${progress}%`, backgroundColor: 'var(--accent)' }}
+            />
+          </div>
         </div>
 
         {/* Step Content */}
-        <Card className="p-6 md:p-8 border-2 border-stone-200">
+        <div className="p-6 rounded-xl" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
           {/* Step 1: Date & Time */}
           {currentStep === 1 && (
             <div>
-              <h2 className="text-xl font-semibold text-stone-900 mb-6">
-                Select Date & Time
-              </h2>
+              <h2 className="text-xl font-medium mb-6">Select Date & Time</h2>
               
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <Label className="text-sm font-medium text-stone-700 mb-3 block">
+                  <label className="text-sm font-medium mb-3 block" style={{ color: 'var(--text-secondary)' }}>
                     Select a date
-                  </Label>
+                  </label>
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     disabled={(date) => date < new Date() || date > addDays(new Date(), 60)}
                     className="rounded-lg border"
+                    style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border-subtle)' }}
                   />
                 </div>
                 
                 <div>
-                  <Label className="text-sm font-medium text-stone-700 mb-3 block">
+                  <label className="text-sm font-medium mb-3 block" style={{ color: 'var(--text-secondary)' }}>
                     Available times {selectedDate && `for ${format(selectedDate, 'MMM d')}`}
-                  </Label>
+                  </label>
                   
                   {selectedDate ? (
                     <div className="grid grid-cols-3 gap-2">
@@ -336,21 +326,27 @@ export default function BookAppointmentPage() {
                           key={slot.time}
                           onClick={() => slot.available && setSelectedTime(slot.time)}
                           disabled={!slot.available}
-                          className={`p-3 rounded-lg text-sm font-medium transition-all ${
-                            selectedTime === slot.time
-                              ? 'bg-stone-900 text-white'
-                              : slot.available
-                                ? 'bg-stone-100 text-stone-900 hover:bg-stone-200'
-                                : 'bg-stone-50 text-stone-300 cursor-not-allowed'
-                          }`}
+                          className="p-3 rounded-lg text-sm font-medium transition-all"
+                          style={selectedTime === slot.time ? {
+                            backgroundColor: 'var(--text-primary)',
+                            color: 'var(--bg-primary)'
+                          } : slot.available ? {
+                            backgroundColor: 'var(--bg-tertiary)',
+                            color: 'var(--text-primary)'
+                          } : {
+                            backgroundColor: 'var(--bg-tertiary)',
+                            color: 'var(--text-muted)',
+                            opacity: 0.5,
+                            cursor: 'not-allowed'
+                          }}
                         >
                           {slot.time}
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center h-48 bg-stone-50 rounded-lg border border-dashed border-stone-300">
-                      <p className="text-stone-500">Select a date to see available times</p>
+                    <div className="flex items-center justify-center h-48 rounded-lg border border-dashed" style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border-medium)' }}>
+                      <p style={{ color: 'var(--text-muted)' }}>Select a date to see available times</p>
                     </div>
                   )}
                 </div>
@@ -361,49 +357,45 @@ export default function BookAppointmentPage() {
           {/* Step 2: Visit Type */}
           {currentStep === 2 && (
             <div>
-              <h2 className="text-xl font-semibold text-stone-900 mb-6">
-                Choose Visit Type
-              </h2>
+              <h2 className="text-xl font-medium mb-6">Choose Visit Type</h2>
               
               <div className="grid md:grid-cols-2 gap-4">
                 <button
                   onClick={() => setVisitType('in-person')}
-                  className={`p-6 rounded-xl border-2 text-left transition-all ${
-                    visitType === 'in-person'
-                      ? 'border-stone-900 bg-stone-50'
-                      : 'border-stone-200 hover:border-stone-300'
-                  }`}
+                  className="p-5 rounded-xl border text-left transition-all"
+                  style={visitType === 'in-person' ? {
+                    borderColor: 'var(--accent)',
+                    backgroundColor: 'rgba(212, 165, 116, 0.1)'
+                  } : {
+                    borderColor: 'var(--border-medium)'
+                  }}
                 >
-                  <MapPin className={`h-8 w-8 mb-4 ${
-                    visitType === 'in-person' ? 'text-stone-900' : 'text-stone-400'
-                  }`} />
-                  <h3 className="font-semibold text-stone-900 mb-1">In-Person Visit</h3>
-                  <p className="text-sm text-stone-600">
-                    Visit the provider's office for your appointment
+                  <MapPin className="h-8 w-8 mb-3" style={{ color: visitType === 'in-person' ? 'var(--accent)' : 'var(--text-muted)' }} />
+                  <h3 className="font-medium mb-1">In-Person Visit</h3>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    Visit the provider's office
                   </p>
-                  <p className="text-xs text-stone-500 mt-3">
-                    {provider.address}
-                  </p>
+                  <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>{provider.address}</p>
                 </button>
                 
                 <button
                   onClick={() => setVisitType('video')}
-                  className={`p-6 rounded-xl border-2 text-left transition-all ${
-                    visitType === 'video'
-                      ? 'border-stone-900 bg-stone-50'
-                      : 'border-stone-200 hover:border-stone-300'
-                  }`}
+                  className="p-5 rounded-xl border text-left transition-all"
+                  style={visitType === 'video' ? {
+                    borderColor: 'var(--accent)',
+                    backgroundColor: 'rgba(212, 165, 116, 0.1)'
+                  } : {
+                    borderColor: 'var(--border-medium)'
+                  }}
                 >
-                  <Video className={`h-8 w-8 mb-4 ${
-                    visitType === 'video' ? 'text-stone-900' : 'text-stone-400'
-                  }`} />
-                  <h3 className="font-semibold text-stone-900 mb-1">Video Visit</h3>
-                  <p className="text-sm text-stone-600">
-                    Meet with your provider from the comfort of home
+                  <Video className="h-8 w-8 mb-3" style={{ color: visitType === 'video' ? 'var(--accent)' : 'var(--text-muted)' }} />
+                  <h3 className="font-medium mb-1">Video Visit</h3>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    Meet from the comfort of home
                   </p>
-                  <Badge className="mt-3 bg-green-100 text-green-700">
-                    Available for this provider
-                  </Badge>
+                  <span className="inline-block mt-3 px-2 py-0.5 text-xs rounded" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}>
+                    Available
+                  </span>
                 </button>
               </div>
             </div>
@@ -412,89 +404,84 @@ export default function BookAppointmentPage() {
           {/* Step 3: Patient Information */}
           {currentStep === 3 && (
             <div>
-              <h2 className="text-xl font-semibold text-stone-900 mb-6">
-                Your Information
-              </h2>
+              <h2 className="text-xl font-medium mb-6">Your Information</h2>
               
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-stone-700">First Name *</Label>
-                    <Input
+                    <label className="text-sm font-medium block mb-2" style={{ color: 'var(--text-secondary)' }}>First Name *</label>
+                    <input
                       value={patientInfo.firstName}
                       onChange={(e) => setPatientInfo(prev => ({ ...prev, firstName: e.target.value }))}
                       placeholder="Enter first name"
-                      className="mt-1.5 h-11 border-2"
+                      className="w-full px-4 py-3 rounded-lg focus:outline-none"
+                      style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                     />
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-stone-700">Last Name *</Label>
-                    <Input
+                    <label className="text-sm font-medium block mb-2" style={{ color: 'var(--text-secondary)' }}>Last Name *</label>
+                    <input
                       value={patientInfo.lastName}
                       onChange={(e) => setPatientInfo(prev => ({ ...prev, lastName: e.target.value }))}
                       placeholder="Enter last name"
-                      className="mt-1.5 h-11 border-2"
+                      className="w-full px-4 py-3 rounded-lg focus:outline-none"
+                      style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                     />
                   </div>
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-stone-700">Email *</Label>
-                    <Input
+                    <label className="text-sm font-medium block mb-2" style={{ color: 'var(--text-secondary)' }}>Email *</label>
+                    <input
                       type="email"
                       value={patientInfo.email}
                       onChange={(e) => setPatientInfo(prev => ({ ...prev, email: e.target.value }))}
                       placeholder="your@email.com"
-                      className="mt-1.5 h-11 border-2"
+                      className="w-full px-4 py-3 rounded-lg focus:outline-none"
+                      style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                     />
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-stone-700">Phone *</Label>
-                    <Input
+                    <label className="text-sm font-medium block mb-2" style={{ color: 'var(--text-secondary)' }}>Phone *</label>
+                    <input
                       type="tel"
                       value={patientInfo.phone}
                       onChange={(e) => setPatientInfo(prev => ({ ...prev, phone: e.target.value }))}
                       placeholder="(555) 555-5555"
-                      className="mt-1.5 h-11 border-2"
+                      className="w-full px-4 py-3 rounded-lg focus:outline-none"
+                      style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <Label className="text-sm font-medium text-stone-700">Date of Birth</Label>
-                  <Input
-                    type="date"
-                    value={patientInfo.dateOfBirth}
-                    onChange={(e) => setPatientInfo(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-                    className="mt-1.5 h-11 border-2"
-                  />
-                </div>
-                
-                <div>
-                  <Label className="text-sm font-medium text-stone-700">Insurance Provider</Label>
-                  <Input
+                  <label className="text-sm font-medium block mb-2" style={{ color: 'var(--text-secondary)' }}>Insurance Provider</label>
+                  <input
                     value={patientInfo.insurance}
                     onChange={(e) => setPatientInfo(prev => ({ ...prev, insurance: e.target.value }))}
                     placeholder="e.g., Blue Cross Blue Shield"
-                    className="mt-1.5 h-11 border-2"
+                    className="w-full px-4 py-3 rounded-lg focus:outline-none"
+                    style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                   />
                 </div>
                 
                 <div>
-                  <Label className="text-sm font-medium text-stone-700">Reason for Visit</Label>
-                  <Textarea
+                  <label className="text-sm font-medium block mb-2" style={{ color: 'var(--text-secondary)' }}>Reason for Visit</label>
+                  <textarea
                     value={patientInfo.reason}
                     onChange={(e) => setPatientInfo(prev => ({ ...prev, reason: e.target.value }))}
                     placeholder="Briefly describe your symptoms or reason for the appointment"
-                    className="mt-1.5 border-2 min-h-24"
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-lg focus:outline-none resize-none"
+                    style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                   />
                 </div>
               </div>
               
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg flex items-start gap-3">
-                <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
-                <p className="text-sm text-blue-900">
+              <div className="mt-6 p-4 rounded-lg flex items-start gap-3" style={{ backgroundColor: 'rgba(107, 155, 107, 0.1)', border: '1px solid rgba(107, 155, 107, 0.2)' }}>
+                <Shield className="h-5 w-5 mt-0.5" style={{ color: '#6b9b6b' }} />
+                <p className="text-sm" style={{ color: '#6b9b6b' }}>
                   Your information is protected by HIPAA and only shared with your healthcare provider.
                 </p>
               </div>
@@ -504,131 +491,103 @@ export default function BookAppointmentPage() {
           {/* Step 4: Confirmation */}
           {currentStep === 4 && (
             <div>
-              <h2 className="text-xl font-semibold text-stone-900 mb-6">
-                Review & Confirm
-              </h2>
+              <h2 className="text-xl font-medium mb-6">Review & Confirm</h2>
               
-              <div className="space-y-6">
-                {/* Appointment Details */}
-                <div className="p-5 bg-stone-50 rounded-xl border border-stone-200">
-                  <h3 className="font-semibold text-stone-900 mb-4">Appointment Details</h3>
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)' }}>
+                  <h3 className="font-medium mb-3">Appointment Details</h3>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-3">
-                      <CalendarIcon className="h-5 w-5 text-stone-600" />
+                      <CalendarIcon className="h-5 w-5" style={{ color: 'var(--accent)' }} />
                       <div>
-                        <p className="font-medium text-stone-900">
-                          {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}
-                        </p>
-                        <p className="text-sm text-stone-600">{selectedTime}</p>
+                        <p className="font-medium">{selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}</p>
+                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{selectedTime}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       {visitType === 'video' ? (
-                        <Video className="h-5 w-5 text-stone-600" />
+                        <Video className="h-5 w-5" style={{ color: 'var(--accent)' }} />
                       ) : (
-                        <MapPin className="h-5 w-5 text-stone-600" />
+                        <MapPin className="h-5 w-5" style={{ color: 'var(--accent)' }} />
                       )}
                       <div>
-                        <p className="font-medium text-stone-900">
-                          {visitType === 'video' ? 'Video Visit' : 'In-Person Visit'}
-                        </p>
+                        <p className="font-medium">{visitType === 'video' ? 'Video Visit' : 'In-Person Visit'}</p>
                         {visitType !== 'video' && (
-                          <p className="text-sm text-stone-600">{provider.address}</p>
+                          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{provider.address}</p>
                         )}
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Provider Info */}
-                <div className="p-5 bg-stone-50 rounded-xl border border-stone-200">
-                  <h3 className="font-semibold text-stone-900 mb-4">Provider</h3>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-stone-200 rounded-full flex items-center justify-center">
-                      <User className="h-6 w-6 text-stone-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-stone-900">{provider.name}</p>
-                      <p className="text-sm text-stone-600">{provider.specialty}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Patient Info */}
-                <div className="p-5 bg-stone-50 rounded-xl border border-stone-200">
-                  <h3 className="font-semibold text-stone-900 mb-4">Your Information</h3>
-                  <div className="grid md:grid-cols-2 gap-3 text-sm">
-                    <p><span className="text-stone-500">Name:</span> {patientInfo.firstName} {patientInfo.lastName}</p>
-                    <p><span className="text-stone-500">Email:</span> {patientInfo.email}</p>
-                    <p><span className="text-stone-500">Phone:</span> {patientInfo.phone}</p>
+                <div className="p-4 rounded-xl" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)' }}>
+                  <h3 className="font-medium mb-3">Your Information</h3>
+                  <div className="grid md:grid-cols-2 gap-2 text-sm">
+                    <p><span style={{ color: 'var(--text-muted)' }}>Name:</span> {patientInfo.firstName} {patientInfo.lastName}</p>
+                    <p><span style={{ color: 'var(--text-muted)' }}>Email:</span> {patientInfo.email}</p>
+                    <p><span style={{ color: 'var(--text-muted)' }}>Phone:</span> {patientInfo.phone}</p>
                     {patientInfo.insurance && (
-                      <p><span className="text-stone-500">Insurance:</span> {patientInfo.insurance}</p>
+                      <p><span style={{ color: 'var(--text-muted)' }}>Insurance:</span> {patientInfo.insurance}</p>
                     )}
                   </div>
-                  {patientInfo.reason && (
-                    <div className="mt-3 pt-3 border-t border-stone-200">
-                      <p className="text-sm text-stone-500">Reason for Visit:</p>
-                      <p className="text-sm text-stone-900">{patientInfo.reason}</p>
-                    </div>
-                  )}
                 </div>
                 
-                {/* Cancellation policy */}
-                <div className="p-4 bg-amber-50 rounded-lg flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-                  <div className="text-sm text-amber-900">
+                <div className="p-4 rounded-lg flex items-start gap-3" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)', border: '1px solid rgba(212, 165, 116, 0.2)' }}>
+                  <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: 'var(--accent)' }} />
+                  <div className="text-sm" style={{ color: 'var(--accent)' }}>
                     <p className="font-medium mb-1">Cancellation Policy</p>
-                    <p>Free cancellation up to 24 hours before your appointment. Late cancellations may incur a fee.</p>
+                    <p>Free cancellation up to 24 hours before your appointment.</p>
                   </div>
                 </div>
               </div>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Navigation */}
         <div className="flex items-center justify-between mt-6">
-          <Button
-            variant="outline"
+          <button
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="border-2"
+            className="px-5 py-2.5 rounded-lg border transition-colors flex items-center gap-2 disabled:opacity-50"
+            style={{ borderColor: 'var(--border-medium)', color: 'var(--text-primary)' }}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4" />
             Back
-          </Button>
+          </button>
           
           {currentStep < STEPS.length ? (
-            <Button
+            <button
               onClick={nextStep}
               disabled={!canProceed()}
-              className="bg-stone-900 hover:bg-stone-800"
+              className="px-5 py-2.5 font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+              style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
             >
               Continue
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
+              <ArrowRight className="h-4 w-4" />
+            </button>
           ) : (
-            <Button
+            <button
               onClick={handleBookAppointment}
               disabled={isLoading}
-              className="bg-green-600 hover:bg-green-700"
+              className="px-5 py-2.5 font-medium rounded-lg transition-colors flex items-center gap-2"
+              style={{ backgroundColor: '#6b9b6b', color: 'white' }}
             >
               {isLoading ? (
                 <>
-                  <span className="animate-spin mr-2">⏳</span>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Booking...
                 </>
               ) : (
                 <>
-                  <CheckCircle className="h-4 w-4 mr-2" />
+                  <CheckCircle className="h-4 w-4" />
                   Confirm Booking
                 </>
               )}
-            </Button>
+            </button>
           )}
         </div>
       </main>
     </div>
   )
 }
-
