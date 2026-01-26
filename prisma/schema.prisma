@@ -396,6 +396,7 @@ model OnboardingRequirement {
 // ============================================================================
 // CAREGIVER MODEL (Following system prompt requirements)
 // ============================================================================
+// HIPAA NOTE: Contains caregiver PHI - requires access logging
 
 model Caregiver {
   id          String           @id @default(cuid())
@@ -405,13 +406,18 @@ model Caregiver {
   // Application reference
   applicationId String?        @unique
   
-  // Personal Information
+  // Personal Information - PHI Fields
+  /// @phi - NAME (individual identifiers)
   firstName   String
+  /// @phi - NAME (individual identifiers)
   lastName    String
+  /// @phi - EMAIL (electronic identifiers)
   email       String           @unique
+  /// @phi - PHONE (telephone numbers)
   phone       String?
   
   // Professional Information
+  /// @phi - LICENSE_NUMBER (professional license)
   licenseNumber       String?
   licenseType         String?
   specialties         String[]         // Array of specialties
