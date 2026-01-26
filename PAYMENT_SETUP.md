@@ -46,9 +46,14 @@ If you already have a Base/Ethereum wallet (Coinbase Wallet, MetaMask, etc.):
 
 ### Get Test Funds (Testnet)
 
-For development, get free test ETH:
-- [Base Sepolia Faucet](https://www.coinbase.com/faucets/base-ethereum-goerli-faucet)
-- [Alchemy Faucet](https://www.alchemy.com/faucets/base-sepolia)
+For development, get free test ETH from these working faucets:
+
+| Faucet | Amount | Requirements |
+|--------|--------|--------------|
+| [LearnWeb3](https://learnweb3.io/faucets/base_sepolia/) | 0.01 ETH/day | GitHub login |
+| [Alchemy](https://www.alchemy.com/faucets/base-sepolia) | 0.1 ETH | Free account |
+| [Chainlink](https://faucets.chain.link/base-sepolia) | 0.1 ETH | Connect wallet |
+| [QuickNode](https://faucet.quicknode.com/base/sepolia) | 0.1 ETH | Free account |
 
 ---
 
