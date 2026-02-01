@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { logger } from "@/lib/logger"
+import { attestProviderCredential, type ProviderCredentialData } from "@/lib/base-attestations"
 
 export async function GET(req: NextRequest) {
   try {
@@ -95,16 +96,17 @@ export async function PATCH(req: NextRequest) {
     switch (action) {
       case "approve":
         updateData.isVerified = true
+        updateData.status = "APPROVED"
         break
       case "reject":
         updateData.isVerified = false
-        // Could add a "rejected" status field if needed
+        updateData.status = "REJECTED"
         break
       case "toggle_accepting":
-        const provider = await prisma.provider.findUnique({
+        const providerForToggle = await prisma.provider.findUnique({
           where: { id: providerId }
         })
-        updateData.acceptingPatients = !provider?.acceptingPatients
+        updateData.acceptingPatients = !providerForToggle?.acceptingPatients
         break
       default:
         return NextResponse.json(
@@ -118,17 +120,49 @@ export async function PATCH(req: NextRequest) {
       data: updateData
     })
 
+    // If approved and has wallet, create on-chain attestation
+    let attestationResult = null
+    if (action === "approve" && updatedProvider.walletAddress) {
+      const credentialData: ProviderCredentialData = {
+        npiNumber: updatedProvider.npiNumber || '',
+        licenseNumber: updatedProvider.licenseNumber || '',
+        licenseState: updatedProvider.licenseState || '',
+        providerType: updatedProvider.type,
+        specialty: updatedProvider.specialties?.[0] || '',
+        npiVerified: true,
+        licenseVerified: true,
+      }
+      
+      attestationResult = await attestProviderCredential(
+        updatedProvider.walletAddress,
+        credentialData
+      )
+      
+      if (attestationResult.success) {
+        logger.info("Provider credential attestation created on approval", {
+          providerId,
+          attestationUid: attestationResult.uid,
+        })
+      }
+    }
+
     logger.info("Provider updated by admin", {
       providerId,
       action,
-      isVerified: updatedProvider.isVerified
+      isVerified: updatedProvider.isVerified,
+      hasAttestation: !!attestationResult?.success,
     })
 
     return NextResponse.json({
       success: true,
       provider: updatedProvider,
+      attestation: attestationResult?.success ? {
+        uid: attestationResult.uid,
+        txHash: attestationResult.txHash,
+        explorerUrl: attestationResult.explorerUrl,
+      } : null,
       message: action === "approve" 
-        ? "Provider approved successfully" 
+        ? "Provider approved successfully" + (attestationResult?.success ? " with on-chain attestation" : "")
         : action === "reject"
         ? "Provider rejected"
         : "Provider updated"

@@ -17,7 +17,9 @@ import {
   ArrowLeft,
   Mail,
   Shield,
-  Loader2
+  Loader2,
+  ExternalLink,
+  BadgeCheck
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -41,6 +43,9 @@ interface ProviderData {
   acceptingPatients: boolean
   yearsOfExperience: number
   npi: string
+  isVerified?: boolean
+  attestationUid?: string
+  source?: 'basehealth' | 'npi_registry' | 'google_places' | 'ai_generated'
 }
 
 export default function ProviderProfilePage() {
@@ -166,9 +171,40 @@ export default function ProviderProfilePage() {
                       <div>
                         <h2 className="text-3xl font-bold text-slate-900 mb-2">{provider.name}</h2>
                         <p className="text-xl text-sky-600 font-medium mb-2">{provider.specialty}</p>
-                        <Badge variant="secondary" className="bg-slate-100 text-slate-700 border border-slate-300">
-                          {provider.credentials}
-                        </Badge>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="secondary" className="bg-slate-100 text-slate-700 border border-slate-300">
+                            {provider.credentials}
+                          </Badge>
+                          
+                          {/* On-chain verification badge */}
+                          {provider.isVerified && provider.source === 'basehealth' && (
+                            <Badge 
+                              variant="secondary" 
+                              className="bg-blue-50 text-blue-700 border border-blue-200 cursor-pointer hover:bg-blue-100"
+                              onClick={() => {
+                                if (provider.attestationUid) {
+                                  window.open(
+                                    `https://base.easscan.org/attestation/view/${provider.attestationUid}`,
+                                    '_blank'
+                                  )
+                                }
+                              }}
+                            >
+                              <BadgeCheck className="w-3 h-3 mr-1" />
+                              Verified on Base
+                              {provider.attestationUid && (
+                                <ExternalLink className="w-3 h-3 ml-1" />
+                              )}
+                            </Badge>
+                          )}
+                          
+                          {provider.source === 'basehealth' && !provider.isVerified && (
+                            <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border border-yellow-200">
+                              <Clock className="w-3 h-3 mr-1" />
+                              Verification Pending
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       
                       {/* Rating */}
