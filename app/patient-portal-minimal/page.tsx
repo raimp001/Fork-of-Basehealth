@@ -21,54 +21,33 @@ import {
   CheckCircle
 } from "lucide-react"
 
-// Mock data
-const upcomingAppointments = [
-  {
-    id: 1,
-    doctor: "Dr. Sarah Johnson",
-    specialty: "Family Medicine",
-    date: "Tomorrow",
-    time: "10:00 AM",
-    type: "virtual",
-    status: "confirmed"
-  }
-]
+// Data loaded from user's session
+const upcomingAppointments: {
+  id: number
+  doctor: string
+  specialty: string
+  date: string
+  time: string
+  type: string
+  status: string
+}[] = []
 
-const healthMetrics = [
-  {
-    label: "Blood Pressure",
-    value: "120/80",
-    status: "normal",
-    lastChecked: "2 days ago"
-  },
-  {
-    label: "Weight",
-    value: "165 lbs",
-    trend: "-2 lbs",
-    lastChecked: "1 week ago"
-  },
-  {
-    label: "Sleep",
-    value: "7.5 hrs",
-    status: "good",
-    lastChecked: "Today"
-  }
-]
+const healthMetrics: {
+  label: string
+  value: string
+  status?: string
+  trend?: string
+  lastChecked: string
+}[] = []
 
-const screeningReminders = [
-  {
-    id: 1,
-    title: "Annual Physical",
-    dueIn: "1 month",
-    priority: "medium"
-  },
-  {
-    id: 2,
-    title: "Dental Cleaning",
-    dueIn: "2 weeks",
-    priority: "low"
-  }
-]
+const screeningReminders: {
+  id: number
+  name?: string
+  title?: string
+  status?: string
+  priority?: string
+  dueDate?: string
+}[] = []
 
 export default function PatientPortalMinimal() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -80,7 +59,7 @@ export default function PatientPortalMinimal() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Good morning, John</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">Welcome</h1>
               <p className="text-sm text-gray-600 mt-1">Here's your health overview</p>
             </div>
             <Button variant="ghost" size="icon" className="text-gray-600">

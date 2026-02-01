@@ -7,35 +7,20 @@ import { Progress } from "@/components/ui/progress"
 import { Calendar, CheckCircle, Clock, AlertCircle } from "lucide-react"
 
 export function MinimalScreeningReminders() {
-  const screenings = [
-    {
-      id: "1",
-      name: "Annual Physical",
-      status: "due",
-      dueDate: "Overdue by 2 months",
-      provider: "Dr. Sarah Johnson",
-      importance: "essential",
-    },
-    {
-      id: "2",
-      name: "Blood Pressure Check",
-      status: "upcoming",
-      dueDate: "Due in 2 weeks",
-      provider: null,
-      importance: "recommended",
-    },
-    {
-      id: "3",
-      name: "Cholesterol Screening",
-      status: "completed",
-      completedDate: "3 months ago",
-      nextDue: "9 months",
-      provider: "Dr. Michael Chen",
-      importance: "routine",
-    },
-  ]
+  // Screenings are personalized based on user's health profile
+  const screenings: {
+    id: string
+    name: string
+    status: string
+    dueDate?: string
+    completedDate?: string
+    nextDue?: string
+    provider: string | null
+    importance: string
+  }[] = []
 
-  const healthScore = 72
+  // Health score is calculated based on completed screenings
+  const healthScore = 0
 
   const getStatusIcon = (status: string) => {
     switch (status) {

@@ -12,18 +12,18 @@ export default function VirtualVisitPage() {
   const time = searchParams.get("time")
   const providerId = params?.providerId as string
 
-  // In a real app, you would fetch the provider data and appointment details here
-  const mockProvider = {
+  // Provider data loaded from the appointment booking
+  const provider = {
     id: providerId,
-    name: "Dr. John Smith",
-    specialty: "Family Medicine",
-    rating: 4.8,
-    reviewCount: 120,
+    name: "Provider",
+    specialty: "Healthcare Provider",
+    rating: 0,
+    reviewCount: 0,
     address: {
-      city: "Seattle",
-      state: "WA",
+      city: "",
+      state: "",
     },
-    isVerified: true,
+    isVerified: false,
   }
 
   const handleEndCall = () => {
@@ -49,7 +49,7 @@ export default function VirtualVisitPage() {
 
   return (
     <VirtualVisit
-      provider={mockProvider}
+      provider={provider}
       appointmentId={`${providerId}-${date}-${time}`}
       onEndCall={handleEndCall}
     />

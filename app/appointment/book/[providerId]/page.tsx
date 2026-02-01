@@ -88,10 +88,10 @@ export default function BookAppointmentPage() {
 
   const [provider] = useState<ProviderInfo>({
     npi: providerId,
-    name: 'Dr. Sarah Johnson',
-    specialty: 'Cardiologist',
-    address: '123 Medical Center Dr, San Francisco, CA 94102',
-    phone: '(415) 555-0123',
+    name: 'Provider',
+    specialty: 'Healthcare Provider',
+    address: '',
+    phone: '',
     rating: 4.8,
     reviewCount: 127,
   })

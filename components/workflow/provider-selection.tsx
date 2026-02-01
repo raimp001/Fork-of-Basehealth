@@ -62,116 +62,49 @@ export function ProviderSelection({ patientData, updatePatientData, onComplete }
     setError(null)
 
     try {
-      // In a real app, this would be an API call
-      // For now, we'll simulate it with mock data
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Generate mock providers
-      const mockProviders: Provider[] = [
-        {
-          id: "p1",
-          name: "Dr. Sarah Johnson",
-          specialty: "Primary Care",
-          address: {
-            street: "123 Medical Center Dr",
-            city: "Anytown",
-            state: "CA",
-            zipCode: zipCode || "90210",
-          },
-          rating: 4.8,
-          reviewCount: 124,
-          distance: 2.3,
-          isVerified: true,
-          acceptsInsurance: true,
-          nextAvailable: "Tomorrow",
-          education: ["Harvard Medical School", "Johns Hopkins Residency"],
-          languages: ["English", "Spanish"],
-          image: "/placeholder.svg?key=60knf",
+      // Fetch real providers from the API
+      const params = new URLSearchParams()
+      if (zipCode) params.append('zipCode', zipCode)
+      if (specialty) params.append('specialty', specialty)
+      
+      const response = await fetch(`/api/providers/search?${params}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch providers')
+      }
+      
+      const data = await response.json()
+      const fetchedProviders: Provider[] = (data.providers || []).map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        specialty: p.specialty || specialty,
+        address: p.address || {
+          street: '',
+          city: '',
+          state: '',
+          zipCode: zipCode || '',
         },
-        {
-          id: "p2",
-          name: "Dr. Michael Chen",
-          specialty: "Primary Care",
-          address: {
-            street: "456 Health Blvd",
-            city: "Anytown",
-            state: "CA",
-            zipCode: zipCode || "90210",
-          },
-          rating: 4.6,
-          reviewCount: 98,
-          distance: 3.5,
-          isVerified: true,
-          acceptsInsurance: true,
-          nextAvailable: "Today",
-          education: ["UCLA Medical School", "Stanford Residency"],
-          languages: ["English", "Mandarin"],
-          image: "/placeholder.svg?key=oya61",
-        },
-        {
-          id: "p3",
-          name: "Dr. Emily Rodriguez",
-          specialty: "Primary Care",
-          address: {
-            street: "789 Wellness Way",
-            city: "Anytown",
-            state: "CA",
-            zipCode: zipCode || "90210",
-          },
-          rating: 4.9,
-          reviewCount: 156,
-          distance: 4.1,
-          isVerified: true,
-          acceptsInsurance: true,
-          nextAvailable: "In 2 days",
-          education: ["UCSF Medical School", "Mayo Clinic Residency"],
-          languages: ["English", "Spanish", "Portuguese"],
-          image: "/placeholder.svg?key=2rvof",
-        },
-        {
-          id: "p4",
-          name: "Dr. James Wilson",
-          specialty: "Primary Care",
-          address: {
-            street: "321 Care Street",
-            city: "Anytown",
-            state: "CA",
-            zipCode: zipCode || "90210",
-          },
-          rating: 4.5,
-          reviewCount: 87,
-          distance: 1.8,
-          isVerified: true,
-          acceptsInsurance: true,
-          nextAvailable: "In 3 days",
-          education: ["Columbia Medical School", "NYU Residency"],
-          languages: ["English"],
-          image: "/placeholder.svg?key=nujbk",
-        },
-        {
-          id: "p5",
-          name: "Dr. Lisa Martinez",
-          specialty: "Primary Care",
-          address: {
-            street: "555 Physician Plaza",
-            city: "Anytown",
-            state: "CA",
-            zipCode: zipCode || "90210",
-          },
-          rating: 4.7,
-          reviewCount: 112,
-          distance: 5.2,
-          isVerified: true,
-          acceptsInsurance: true,
-          nextAvailable: "Today",
-          education: ["Duke Medical School", "Vanderbilt Residency"],
-          languages: ["English", "Spanish"],
-          image: "/placeholder.svg?key=0dkqz",
-        },
-      ]
-
-      setProviders(mockProviders)
-      setFilteredProviders(mockProviders)
+        rating: p.rating || 0,
+        reviewCount: p.reviewCount || 0,
+        distance: p.distance,
+        isVerified: p.isVerified || false,
+        acceptsInsurance: true,
+        nextAvailable: p.nextAvailable,
+        education: p.education || [],
+        languages: p.languages || ['English'],
+        image: p.image || '/placeholder.svg',
+      }))
+      
+      // If no providers found, set empty array
+      if (fetchedProviders.length === 0) {
+        setProviders([])
+        setFilteredProviders([])
+        setError('No providers found in your area. Try a different ZIP code or specialty.')
+        return
+      }
+      
+      setProviders(fetchedProviders)
+      setFilteredProviders(fetchedProviders)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {

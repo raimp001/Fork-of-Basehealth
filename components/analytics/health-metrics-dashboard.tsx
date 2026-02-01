@@ -137,28 +137,10 @@ export function HealthMetricsDashboard() {
                 <CardTitle>Upcoming Appointments</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <Calendar className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Annual Physical</h4>
-                      <p className="text-sm text-muted-foreground">Dr. Sarah Johnson</p>
-                      <p className="text-sm">May 15, 2023 at 10:00 AM</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <Calendar className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Dental Checkup</h4>
-                      <p className="text-sm text-muted-foreground">Dr. Michael Chen</p>
-                      <p className="text-sm">June 3, 2023 at 2:30 PM</p>
-                    </div>
-                  </div>
+                <div className="text-center py-6">
+                  <Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">No upcoming appointments</p>
+                  <p className="text-xs text-muted-foreground mt-1">Book an appointment to get started</p>
                 </div>
               </CardContent>
               <CardFooter>

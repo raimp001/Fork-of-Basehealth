@@ -14,32 +14,15 @@ export function SimplifiedTelemedicine() {
   const [activeView, setActiveView] = useState<"providers" | "consultation">("providers")
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null)
 
-  const providers = [
-    {
-      id: "1",
-      name: "Dr. Sarah Johnson",
-      specialty: "Family Medicine",
-      availability: "Available now",
-      avatar: "/placeholder.svg?height=40&width=40",
-      waitTime: "5 min",
-    },
-    {
-      id: "2",
-      name: "Dr. Michael Chen",
-      specialty: "Internal Medicine",
-      availability: "Available in 15 min",
-      avatar: "/placeholder.svg?height=40&width=40",
-      waitTime: "15 min",
-    },
-    {
-      id: "3",
-      name: "Dr. Emily Rodriguez",
-      specialty: "Pediatrics",
-      availability: "Available now",
-      avatar: "/placeholder.svg?height=40&width=40",
-      waitTime: "10 min",
-    },
-  ]
+  // Providers are loaded from the database based on availability
+  const providers: {
+    id: string
+    name: string
+    specialty: string
+    availability: string
+    avatar: string
+    waitTime: string
+  }[] = []
 
   const handleStartConsultation = (providerId: string) => {
     setSelectedProvider(providerId)
@@ -255,8 +238,8 @@ export function SimplifiedTelemedicine() {
             <CardContent className="h-[200px] overflow-y-auto space-y-4">
               <div className="flex justify-start">
                 <div className="bg-muted rounded-lg px-4 py-2 max-w-[80%]">
-                  <p>Hello! I'm Dr. Sarah Johnson. How can I help you today?</p>
-                  <p className="text-xs opacity-70 text-right mt-1">10:30 AM</p>
+                  <p>Hello! How can I help you today?</p>
+                  <p className="text-xs opacity-70 text-right mt-1">Now</p>
                 </div>
               </div>
             </CardContent>

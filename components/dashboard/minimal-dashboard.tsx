@@ -3,10 +3,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Calendar, Clock, MessageSquare, Search, Stethoscope } from "lucide-react"
+import { Calendar, Clock, MessageSquare, Search, Stethoscope, User } from "lucide-react"
 import Link from "next/link"
 
 export function MinimalDashboard() {
+  // In production, these would come from the authenticated user's session
+  const upcomingAppointments: {
+    id: string
+    providerName: string
+    specialty: string
+    dateTime: string
+  }[] = []
+
   return (
     <div className="container px-4 py-6 pb-20">
       <div className="flex items-center justify-between mb-6">
@@ -16,7 +24,7 @@ export function MinimalDashboard() {
         </div>
         <Avatar>
           <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User" />
-          <AvatarFallback>JD</AvatarFallback>
+          <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
         </Avatar>
       </div>
 
@@ -37,28 +45,34 @@ export function MinimalDashboard() {
 
       <Card className="mb-6">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Upcoming Appointment</CardTitle>
+          <CardTitle className="text-lg">Upcoming Appointments</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-start space-x-4">
-            <div className="bg-primary/10 p-2 rounded-full">
-              <Calendar className="h-5 w-5 text-primary" />
+          {upcomingAppointments.length === 0 ? (
+            <div className="text-center py-6">
+              <Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground mb-4">No upcoming appointments</p>
+              <Button asChild size="sm">
+                <Link href="/minimal-providers">Book Appointment</Link>
+              </Button>
             </div>
-            <div>
-              <h3 className="font-medium">Dr. Sarah Johnson</h3>
-              <p className="text-sm text-muted-foreground">Family Medicine</p>
-              <div className="flex items-center mt-2 text-sm">
-                <Clock className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                <span>Tomorrow, 10:00 AM</span>
+          ) : (
+            upcomingAppointments.map((apt) => (
+              <div key={apt.id} className="flex items-start space-x-4">
+                <div className="bg-primary/10 p-2 rounded-full">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium">{apt.providerName}</h3>
+                  <p className="text-sm text-muted-foreground">{apt.specialty}</p>
+                  <div className="flex items-center mt-2 text-sm">
+                    <Clock className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
+                    <span>{apt.dateTime}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div className="flex justify-between mt-4">
-            <Button variant="outline" size="sm">
-              Reschedule
-            </Button>
-            <Button size="sm">Join Call</Button>
-          </div>
+            ))
+          )}
         </CardContent>
       </Card>
 
@@ -67,26 +81,11 @@ export function MinimalDashboard() {
           <CardTitle className="text-lg">Health Reminders</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <div className="bg-yellow-100 p-1.5 rounded-full">
-                <Stethoscope className="h-4 w-4 text-yellow-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-sm">Annual Physical Due</h3>
-                <p className="text-xs text-muted-foreground">Last check-up was 11 months ago</p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-3">
-              <div className="bg-blue-100 p-1.5 rounded-full">
-                <MessageSquare className="h-4 w-4 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-sm">New message from Dr. Johnson</h3>
-                <p className="text-xs text-muted-foreground">Regarding your recent lab results</p>
-              </div>
-            </div>
+          <div className="text-center py-4">
+            <Stethoscope className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              Complete your health profile to get personalized reminders
+            </p>
           </div>
         </CardContent>
       </Card>

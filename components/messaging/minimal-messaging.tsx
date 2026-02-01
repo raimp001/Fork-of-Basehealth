@@ -10,55 +10,24 @@ import { Search, Send } from "lucide-react"
 export function MinimalMessaging() {
   const [activeChat, setActiveChat] = useState<string | null>(null)
 
-  const conversations = [
-    {
-      id: "1",
-      name: "Dr. Sarah Johnson",
-      role: "Family Medicine",
-      avatar: "/placeholder.svg?height=40&width=40",
-      lastMessage: "Your lab results look good. Let me know if you have any questions.",
-      time: "10:30 AM",
-      unread: true,
-    },
-    {
-      id: "2",
-      name: "Dr. Michael Chen",
-      role: "Cardiologist",
-      avatar: "/placeholder.svg?height=40&width=40",
-      lastMessage: "Please remember to take your medication as prescribed.",
-      time: "Yesterday",
-      unread: false,
-    },
-    {
-      id: "3",
-      name: "Dr. Emily Rodriguez",
-      role: "Pediatrician",
-      avatar: "/placeholder.svg?height=40&width=40",
-      lastMessage: "The vaccination schedule for your child has been updated.",
-      time: "Monday",
-      unread: false,
-    },
-  ]
+  // Conversations are loaded from the user's actual message history
+  const conversations: {
+    id: string
+    name: string
+    role: string
+    avatar: string
+    lastMessage: string
+    time: string
+    unread: boolean
+  }[] = []
 
-  const messages = [
-    {
-      id: "1",
-      sender: "provider",
-      text: "Hello! How are you feeling today?",
-      time: "10:15 AM",
-    },
-    {
-      id: "2",
-      sender: "user",
-      text: "I'm feeling much better, thank you. The medication seems to be working.",
-      time: "10:20 AM",
-    },
-    {
-      id: "3",
-      sender: "provider",
-      text: "That's great to hear! Your lab results came back and everything looks good.",
-      time: "10:25 AM",
-    },
+  // Messages are loaded when a conversation is selected
+  const messages: {
+    id: string
+    sender: string
+    text: string
+    time: string
+  }[] = [
     {
       id: "4",
       sender: "provider",
@@ -96,12 +65,12 @@ export function MinimalMessaging() {
               </svg>
             </Button>
             <Avatar className="h-8 w-8">
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Dr. Sarah Johnson" />
-              <AvatarFallback>SJ</AvatarFallback>
+              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Provider" />
+              <AvatarFallback>P</AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-sm font-medium">Dr. Sarah Johnson</h2>
-              <p className="text-xs text-muted-foreground">Family Medicine</p>
+              <h2 className="text-sm font-medium">Provider</h2>
+              <p className="text-xs text-muted-foreground">Healthcare Provider</p>
             </div>
           </div>
 

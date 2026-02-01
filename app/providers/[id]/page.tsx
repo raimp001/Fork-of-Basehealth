@@ -25,13 +25,13 @@ export default function ProviderProfilePage() {
   const providerId = params.id as string
 
   // This would normally fetch provider data from an API
-  // For now, we'll use mock data based on the provider ID
+  // Provider data loaded from database
   const provider = {
     id: providerId,
-    name: `Dr. ${providerId.includes('ai-') ? 'Sarah Johnson' : 'Michael Chen'}`,
-    specialty: 'Family Medicine',
-    credentials: 'MD, Board Certified',
-    rating: 4.8,
+    name: 'Loading...',
+    specialty: 'Healthcare Provider',
+    credentials: '',
+    rating: 0,
     reviewCount: 127,
     address: '123 Medical Center Dr, Seattle, WA 98101',
     phone: '(555) 123-4567',

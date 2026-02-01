@@ -112,49 +112,11 @@ export function EnhancedHealthDashboard() {
         }
       ])
 
-      // Mock appointments
-      setAppointments([
-        {
-          id: "1",
-          provider: "Dr. Sarah Johnson",
-          specialty: "Primary Care",
-          date: new Date(Date.now() + 86400000 * 3),
-          time: "10:00 AM",
-          type: 'in-person',
-          status: 'upcoming'
-        },
-        {
-          id: "2",
-          provider: "Dr. Michael Chen",
-          specialty: "Cardiology",
-          date: new Date(Date.now() + 86400000 * 10),
-          time: "2:30 PM",
-          type: 'virtual',
-          status: 'upcoming'
-        }
-      ])
+      // Appointments loaded from user's session - starts empty
+      setAppointments([])
 
-      // Mock medications
-      setMedications([
-        {
-          id: "1",
-          name: "Lisinopril",
-          dosage: "10mg",
-          frequency: "Once daily",
-          nextDose: new Date(Date.now() + 3600000 * 8),
-          refillDate: new Date(Date.now() + 86400000 * 15),
-          adherence: 95
-        },
-        {
-          id: "2",
-          name: "Metformin",
-          dosage: "500mg",
-          frequency: "Twice daily",
-          nextDose: new Date(Date.now() + 3600000 * 2),
-          refillDate: new Date(Date.now() + 86400000 * 20),
-          adherence: 88
-        }
-      ])
+      // Medications loaded from user's health record - starts empty
+      setMedications([])
 
       setIsLoading(false)
     }

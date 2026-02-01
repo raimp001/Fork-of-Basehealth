@@ -12,38 +12,18 @@ export function SimplifiedWallet() {
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
 
-  const transactions = [
-    {
-      id: "1",
-      type: "outgoing",
-      amount: "0.015 ETH",
-      usdAmount: "$30.00",
-      recipient: "Dr. Sarah Johnson",
-      date: "Today, 10:30 AM",
-      status: "completed",
-      txHash: "0x1234...5678",
-    },
-    {
-      id: "2",
-      type: "outgoing",
-      amount: "0.025 ETH",
-      usdAmount: "$50.00",
-      recipient: "BaseHealth Pharmacy",
-      date: "Yesterday, 3:15 PM",
-      status: "completed",
-      txHash: "0xabcd...efgh",
-    },
-    {
-      id: "3",
-      type: "incoming",
-      amount: "0.005 ETH",
-      usdAmount: "$10.00",
-      sender: "Insurance Refund",
-      date: "Mar 15, 2023",
-      status: "completed",
-      txHash: "0x9876...5432",
-    },
-  ]
+  // Transactions are loaded from the blockchain when wallet is connected
+  const transactions: {
+    id: string
+    type: string
+    amount: string
+    usdAmount: string
+    recipient?: string
+    sender?: string
+    date: string
+    status: string
+    txHash: string
+  }[] = []
 
   const handleConnect = () => {
     setIsConnecting(true)

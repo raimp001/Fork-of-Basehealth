@@ -1,8 +1,10 @@
 /**
  * Shared User Store
  * 
- * Centralized in-memory user storage for authentication
- * Note: In production, this should be replaced with a proper database
+ * Centralized in-memory user storage for authentication.
+ * In production, this is backed by Prisma/PostgreSQL.
+ * 
+ * Note: This store starts empty. Users are created through registration.
  */
 
 import bcrypt from 'bcryptjs'
@@ -17,48 +19,9 @@ export interface StoredUser {
   createdAt: string
 }
 
-// Demo users with pre-hashed passwords (password: password123)
-const DEMO_PASSWORD_HASH = "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u"
-
-// Shared user store - single source of truth
-const users: StoredUser[] = [
-  {
-    id: "1",
-    email: "patient@demo.com",
-    password: DEMO_PASSWORD_HASH,
-    name: "John Doe",
-    role: "patient",
-    image: "/placeholder.svg",
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: "2",
-    email: "provider@demo.com",
-    password: DEMO_PASSWORD_HASH,
-    name: "Dr. Sarah Johnson",
-    role: "provider",
-    image: "/placeholder.svg",
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: "3",
-    email: "caregiver@demo.com",
-    password: DEMO_PASSWORD_HASH,
-    name: "Maria Rodriguez",
-    role: "caregiver",
-    image: "/placeholder.svg",
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: "4",
-    email: "admin@demo.com",
-    password: DEMO_PASSWORD_HASH,
-    name: "Admin User",
-    role: "admin",
-    image: "/placeholder.svg",
-    createdAt: new Date().toISOString()
-  }
-]
+// User store - starts empty, populated by registrations
+// Real users are stored in PostgreSQL via Prisma
+const users: StoredUser[] = []
 
 /**
  * Find user by email
@@ -111,4 +74,3 @@ export function emailExists(email: string): boolean {
 export function getAllUsers(): Omit<StoredUser, 'password'>[] {
   return users.map(({ password, ...user }) => user)
 }
-
