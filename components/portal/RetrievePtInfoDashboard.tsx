@@ -1,12 +1,25 @@
 'use client'
 
 import { useState } from 'react'
-import { ClipboardList, Users, Settings, Hospital, Search, ShieldCheck, Database, FileText, FlaskConical, Syringe, FileHeart, FileScan, FileX } from 'lucide-react'
+import { ClipboardList, Users, Settings, Hospital, Search, ShieldCheck, Database, FileText, FlaskConical, Syringe, FileHeart, FileScan, FileX, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import mockPatientData from '@/components/portal/mock-patient-fhir-data'
+
+// Empty patient data - real data comes from authenticated sessions and EMR connections
+interface PatientRecord {
+  id: string
+  name: string
+  dob: string
+  conditions: string[]
+  medications: string[]
+  labs: string[]
+  allergies: string[]
+  imaging: string[]
+  progressNotes: string[]
+  aiSummary: string
+}
 
 const navItems = [
   { label: 'Dashboard', icon: Database },
@@ -15,9 +28,24 @@ const navItems = [
   { label: 'Settings', icon: Settings },
 ]
 
+// Default empty patient record
+const emptyPatient: PatientRecord = {
+  id: '',
+  name: '',
+  dob: '',
+  conditions: [],
+  medications: [],
+  labs: [],
+  allergies: [],
+  imaging: [],
+  progressNotes: [],
+  aiSummary: '',
+}
+
 export default function RetrievePtInfoDashboard() {
   const [search, setSearch] = useState('')
-  const [selectedPatient, setSelectedPatient] = useState(mockPatientData[0])
+  const [patients, setPatients] = useState<PatientRecord[]>([])
+  const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(null)
 
   return (
     <div className="min-h-screen flex bg-[#f8fafc] text-gray-900">
@@ -74,16 +102,24 @@ export default function RetrievePtInfoDashboard() {
                 <CardTitle className="text-lg font-semibold">Patients</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {mockPatientData.map((patient) => (
-                  <div
-                    key={patient.id}
-                    className={`p-3 rounded-lg cursor-pointer flex flex-col border ${selectedPatient.id === patient.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
-                    onClick={() => setSelectedPatient(patient)}
-                  >
-                    <span className="font-medium text-base">{patient.name}</span>
-                    <span className="text-xs text-gray-500">DOB: {patient.dob}</span>
+                {patients.length === 0 ? (
+                  <div className="text-center py-8">
+                    <User className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                    <p className="text-gray-500 text-sm">No patients found</p>
+                    <p className="text-gray-400 text-xs mt-1">Connect to a hospital or EMR to retrieve patient records</p>
                   </div>
-                ))}
+                ) : (
+                  patients.map((patient) => (
+                    <div
+                      key={patient.id}
+                      className={`p-3 rounded-lg cursor-pointer flex flex-col border ${selectedPatient?.id === patient.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                      onClick={() => setSelectedPatient(patient)}
+                    >
+                      <span className="font-medium text-base">{patient.name}</span>
+                      <span className="text-xs text-gray-500">DOB: {patient.dob}</span>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </section>
@@ -95,29 +131,41 @@ export default function RetrievePtInfoDashboard() {
                 <CardTitle className="text-lg font-semibold">Medical Record</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* FHIR Data Cards */}
-                  <FHIRCard title="Conditions" icon={FileHeart} items={selectedPatient.conditions} />
-                  <FHIRCard title="Medications" icon={Syringe} items={selectedPatient.medications} />
-                  <FHIRCard title="Labs" icon={FlaskConical} items={selectedPatient.labs} />
-                  <FHIRCard title="Allergies" icon={FileX} items={selectedPatient.allergies} />
-                  <FHIRCard title="Imaging" icon={FileScan} items={selectedPatient.imaging} />
-                  <FHIRCard title="Progress Notes" icon={FileText} items={selectedPatient.progressNotes} />
-                </div>
-                {/* AI Summary */}
-                <div className="mt-6">
-                  <Card className="bg-blue-50 border-blue-200 rounded-lg">
-                    <CardHeader>
-                      <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <ClipboardList className="w-5 h-5 text-blue-500" />
-                        AI Medical Record Summary
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-700 text-sm">{selectedPatient.aiSummary}</p>
-                    </CardContent>
-                  </Card>
-                </div>
+                {!selectedPatient ? (
+                  <div className="text-center py-12">
+                    <Hospital className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500">Select a patient to view their medical record</p>
+                    <p className="text-gray-400 text-sm mt-2">Or connect to a hospital/EMR to retrieve records</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* FHIR Data Cards */}
+                      <FHIRCard title="Conditions" icon={FileHeart} items={selectedPatient.conditions} />
+                      <FHIRCard title="Medications" icon={Syringe} items={selectedPatient.medications} />
+                      <FHIRCard title="Labs" icon={FlaskConical} items={selectedPatient.labs} />
+                      <FHIRCard title="Allergies" icon={FileX} items={selectedPatient.allergies} />
+                      <FHIRCard title="Imaging" icon={FileScan} items={selectedPatient.imaging} />
+                      <FHIRCard title="Progress Notes" icon={FileText} items={selectedPatient.progressNotes} />
+                    </div>
+                    {/* AI Summary */}
+                    {selectedPatient.aiSummary && (
+                      <div className="mt-6">
+                        <Card className="bg-blue-50 border-blue-200 rounded-lg">
+                          <CardHeader>
+                            <CardTitle className="text-base font-semibold flex items-center gap-2">
+                              <ClipboardList className="w-5 h-5 text-blue-500" />
+                              AI Medical Record Summary
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-gray-700 text-sm">{selectedPatient.aiSummary}</p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
           </section>
