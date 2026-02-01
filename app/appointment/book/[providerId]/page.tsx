@@ -86,19 +86,54 @@ export default function BookAppointmentPage() {
     reason: '',
   })
 
-  const [provider] = useState<ProviderInfo>({
+  const [provider, setProvider] = useState<ProviderInfo>({
     npi: providerId,
-    name: 'Provider',
-    specialty: 'Healthcare Provider',
+    name: 'Loading...',
+    specialty: '',
     address: '',
     phone: '',
-    rating: 4.8,
-    reviewCount: 127,
+    rating: 0,
+    reviewCount: 0,
   })
+  
+  const [providerLoading, setProviderLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+  
+  // Fetch real provider data
+  useEffect(() => {
+    async function fetchProvider() {
+      try {
+        const response = await fetch(`/api/providers/${providerId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.provider) {
+            setProvider({
+              npi: data.provider.npi || providerId,
+              name: data.provider.name || 'Provider',
+              specialty: data.provider.specialty || 'Healthcare Provider',
+              address: data.provider.address?.street 
+                ? `${data.provider.address.street}, ${data.provider.address.city}, ${data.provider.address.state} ${data.provider.address.zipCode}`
+                : data.provider.address || '',
+              phone: data.provider.phone || '',
+              rating: data.provider.rating || 0,
+              reviewCount: data.provider.reviewCount || 0,
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch provider:', error)
+      } finally {
+        setProviderLoading(false)
+      }
+    }
+    
+    if (providerId) {
+      fetchProvider()
+    }
+  }, [providerId])
 
   useEffect(() => {
     if (selectedDate) {
