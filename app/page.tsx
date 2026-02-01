@@ -35,7 +35,7 @@ const benefits = [
   "HIPAA Compliant",
   "Evidence-based recommendations",
   "Real provider data from NPI",
-  "No cost to patients",
+  "Secure USDC payments on Base",
 ]
 
 export default function HomePage() {
