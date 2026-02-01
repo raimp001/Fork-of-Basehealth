@@ -233,11 +233,18 @@ export default function RegisterPage() {
             </Link>
           </p>
 
-          <p className="mt-4 text-center">
-            <Link href="/provider/signup" className="text-sm transition-colors" style={{ color: 'var(--text-muted)' }}>
-              Healthcare provider? Register here →
-            </Link>
-          </p>
+          <div className="mt-4 text-center space-y-2">
+            <p>
+              <Link href="/onboarding?role=provider" className="text-sm transition-colors" style={{ color: 'var(--text-muted)' }}>
+                Healthcare provider? Register here →
+              </Link>
+            </p>
+            <p>
+              <Link href="/onboarding?role=caregiver" className="text-sm transition-colors" style={{ color: 'var(--text-muted)' }}>
+                Caregiver? Join our network →
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

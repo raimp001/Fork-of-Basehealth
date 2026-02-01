@@ -1,10 +1,17 @@
 "use client"
 
+/**
+ * Admin Caregiver Applications Review Page
+ * 
+ * Review, approve, reject, or request more info from caregiver applicants.
+ */
+
 import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
   Search,
@@ -19,646 +26,437 @@ import {
   MapPin,
   Shield,
   FileText,
-  Calendar
+  Calendar,
+  Loader2,
+  AlertTriangle,
+  MessageSquare,
+  ArrowLeft,
+  Heart,
+  RefreshCw,
 } from "lucide-react"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import Link from "next/link"
 
 interface CaregiverApplication {
   id: string
   firstName: string
   lastName: string
+  fullName: string
   email: string
   phone: string
-  licenseNumber: string
-  primarySpecialty: string
-  yearsExperience: string
-  serviceAreas: string
-  languagesSpoken: string[]
-  acceptInsurance: boolean
-  willingToTravel: boolean
-  availableForUrgent: boolean
-  carePhilosophy: string
-  digitalWalletAddress: string
-  status: 'pending' | 'approved' | 'rejected'
-  applicationDate: string
-  documents: {
-    governmentId: boolean
-    professionalLicense: boolean
-    additionalCertifications: boolean
-    backgroundCheck: boolean
-  }
+  status: string
+  submittedAt: string
+  reviewedAt: string | null
+  reviewedBy: string | null
+  reviewNotes: string
+  specialty: string
+  servicesOffered: string[]
+  experienceYears: string
+  certifications: string[]
+  languages: string[]
+  regions: string[]
+  attestedAccuracy: boolean
+  consentToBackgroundCheck: boolean
 }
 
-// Mock data - replace with actual API call
-const mockApplications: CaregiverApplication[] = [
-  {
-    id: "1",
-    firstName: "Maria",
-    lastName: "Rodriguez",
-    email: "maria.rodriguez@email.com",
-    phone: "(555) 123-4567",
-    licenseNumber: "RN123456",
-    primarySpecialty: "Elder Care",
-    yearsExperience: "8 years",
-    serviceAreas: "San Francisco, CA; Oakland, CA",
-    languagesSpoken: ["English", "Spanish"],
-    acceptInsurance: true,
-    willingToTravel: true,
-    availableForUrgent: true,
-    carePhilosophy: "Compassionate care with focus on dignity and independence",
-    digitalWalletAddress: "0x1234...5678",
-    status: "pending",
-    applicationDate: "2024-01-15",
-    documents: {
-      governmentId: true,
-      professionalLicense: true,
-      additionalCertifications: true,
-      backgroundCheck: false
-    }
-  },
-  {
-    id: "2",
-    firstName: "James",
-    lastName: "Wilson",
-    email: "james.wilson@email.com",
-    phone: "(555) 234-5678",
-    licenseNumber: "LPN789012",
-    primarySpecialty: "Post-Surgery Care",
-    yearsExperience: "12 years",
-    serviceAreas: "San Francisco, CA; San Jose, CA",
-    languagesSpoken: ["English"],
-    acceptInsurance: true,
-    willingToTravel: false,
-    availableForUrgent: true,
-    carePhilosophy: "Professional medical care with emphasis on recovery",
-    digitalWalletAddress: "",
-    status: "approved",
-    applicationDate: "2024-01-10",
-    documents: {
-      governmentId: true,
-      professionalLicense: true,
-      additionalCertifications: true,
-      backgroundCheck: true
-    }
-  },
-  {
-    id: "3",
-    firstName: "Sarah",
-    lastName: "Chen",
-    email: "sarah.chen@email.com",
-    phone: "(555) 345-6789",
-    licenseNumber: "CNA345678",
-    primarySpecialty: "Pediatric Care",
-    yearsExperience: "6 years",
-    serviceAreas: "San Francisco, CA",
-    languagesSpoken: ["English", "Mandarin"],
-    acceptInsurance: false,
-    willingToTravel: true,
-    availableForUrgent: false,
-    carePhilosophy: "Gentle, patient-centered care for children",
-    digitalWalletAddress: "0xabcd...efgh",
-    status: "rejected",
-    applicationDate: "2024-01-08",
-    documents: {
-      governmentId: true,
-      professionalLicense: false,
-      additionalCertifications: false,
-      backgroundCheck: false
-    }
-  }
-]
-
-export default function CaregiverApplicationsPage() {
+export default function AdminCaregiverApplicationsPage() {
   const [applications, setApplications] = useState<CaregiverApplication[]>([])
-  const [filteredApplications, setFilteredApplications] = useState<CaregiverApplication[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [selectedApplication, setSelectedApplication] = useState<CaregiverApplication | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isShowingMockData, setIsShowingMockData] = useState(false)
-  
-  // Fetch applications from API
+  const [reviewNotes, setReviewNotes] = useState("")
+  const [statusFilter, setStatusFilter] = useState("submitted")
+  const [searchQuery, setSearchQuery] = useState("")
+
   useEffect(() => {
-    async function fetchApplications() {
-      try {
-        // Use the new caregivers admin API
-        const response = await fetch('/api/admin/caregivers')
-        const data = await response.json()
-        
-        if (data.success && data.caregivers) {
-          // Transform API data to match our interface
-          const apps = data.caregivers.map((app: any) => ({
-            id: app.id,
-            firstName: app.firstName,
-            lastName: app.lastName,
-            email: app.email,
-            phone: app.phone || '',
-            licenseNumber: app.licenseNumber || 'N/A',
-            primarySpecialty: app.specialties?.[0] || 'General Care',
-            yearsExperience: app.yearsExperience ? `${app.yearsExperience} years` : 'N/A',
-            serviceAreas: Array.isArray(app.serviceAreas) ? app.serviceAreas.join(', ') : (app.location || 'N/A'),
-            languagesSpoken: Array.isArray(app.languagesSpoken) ? app.languagesSpoken : ['English'],
-            acceptInsurance: false,
-            willingToTravel: true,
-            availableForUrgent: false,
-            carePhilosophy: app.bio || '',
-            digitalWalletAddress: '',
-            status: app.status === 'PENDING' ? 'pending' : 
-                   app.status === 'AVAILABLE' ? 'approved' : 
-                   app.status === 'INACTIVE' ? 'rejected' : 'pending',
-            applicationDate: app.submittedAt || app.createdAt || new Date().toISOString().split('T')[0],
-            documents: {
-              governmentId: true,
-              professionalLicense: app.isLicensed || false,
-              additionalCertifications: app.isCPRCertified || false,
-              backgroundCheck: app.isBackgroundChecked || false
-            }
-          }))
-          
-          // If no real applications, use mock data for demo
-          const finalApps = apps.length > 0 ? apps : mockApplications
-          setApplications(finalApps)
-          setFilteredApplications(finalApps)
-          setIsShowingMockData(apps.length === 0)
-          setIsLoading(false)
-          return
-        }
-        
-        // Fallback: try the old endpoint
-        const oldResponse = await fetch('/api/admin/caregiver-applications')
-        const oldData = await oldResponse.json()
-        
-        if (oldData.success && oldData.applications) {
-          // Transform API data to match our interface
-          const apps = data.applications.map((app: any) => ({
-            id: app.id,
-            firstName: app.firstName,
-            lastName: app.lastName,
-            email: app.email,
-            phone: app.phone,
-            licenseNumber: app.licenseNumber || 'N/A',
-            primarySpecialty: app.primarySpecialty,
-            yearsExperience: app.yearsExperience || 'N/A',
-            serviceAreas: app.serviceAreas || 'N/A',
-            languagesSpoken: Array.isArray(app.languagesSpoken) ? app.languagesSpoken : [],
-            acceptInsurance: app.acceptInsurance || false,
-            willingToTravel: app.willingToTravel || false,
-            availableForUrgent: app.availableForUrgent || false,
-            carePhilosophy: app.carePhilosophy || '',
-            digitalWalletAddress: app.digitalWalletAddress || '',
-            status: app.status || 'pending',
-            applicationDate: app.submittedAt || new Date().toISOString().split('T')[0],
-            documents: {
-              governmentId: !!app.documents?.governmentId,
-              professionalLicense: !!app.documents?.professionalLicense,
-              additionalCertifications: !!app.documents?.additionalCertifications,
-              backgroundCheck: !!app.documents?.backgroundCheck
-            }
-          }))
-          
-          // If no real applications, use mock data for demo
-          const finalApps = apps.length > 0 ? apps : mockApplications
-          setApplications(finalApps)
-          setFilteredApplications(finalApps)
-          setIsShowingMockData(apps.length === 0)
-          
-          if (apps.length === 0) {
-            console.log('No caregiver applications yet. Showing mock data.')
-          } else {
-            console.log(`Loaded ${apps.length} caregiver application(s)`)
-          }
-        } else {
-          // Fall back to mock data
-          setApplications(mockApplications)
-          setFilteredApplications(mockApplications)
-          setIsShowingMockData(true)
-        }
-      } catch (error) {
-        console.error('Error fetching applications:', error)
-        // Fall back to mock data
-        setApplications(mockApplications)
-        setFilteredApplications(mockApplications)
-        setIsShowingMockData(true)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    
     fetchApplications()
-  }, [])
+  }, [statusFilter])
 
-  useEffect(() => {
-    let filtered = applications
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(app => 
-        app.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.licenseNumber.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-
-    // Filter by status
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(app => app.status === statusFilter)
-    }
-
-    setFilteredApplications(filtered)
-  }, [applications, searchQuery, statusFilter])
-
-  const handleStatusChange = async (applicationId: string, newStatus: 'approved' | 'rejected') => {
+  const fetchApplications = async () => {
+    setLoading(true)
     try {
-      // Use the new admin caregivers API
-      const response = await fetch('/api/admin/caregivers', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          caregiverId: applicationId,
-          action: newStatus === 'approved' ? 'approve' : 'reject',
-          notes: newStatus === 'approved' 
-            ? 'Application approved by admin' 
-            : 'Application rejected by admin'
-        })
-      })
-      
-      const result = await response.json()
-      
-      if (!result.success) {
-        alert(`Failed to ${newStatus}: ${result.error}`)
-        return
+      const response = await fetch(`/api/admin/caregiver-applications?status=${statusFilter}`)
+      const data = await response.json()
+      if (data.success) {
+        setApplications(data.applications)
       }
-      
-      alert(result.message || `Successfully ${newStatus}!`)
-      
-      // Update local state
-      setApplications(prev => 
-        prev.map(app => 
-          app.id === applicationId 
-            ? { ...app, status: newStatus }
-            : app
-        )
-      )
     } catch (error) {
-      console.error('Error updating status:', error)
-      alert('Failed to update application status')
+      console.error("Failed to fetch applications:", error)
+    } finally {
+      setLoading(false)
     }
   }
+
+  const handleAction = async (applicationId: string, action: string) => {
+    setActionLoading(applicationId)
+    try {
+      const response = await fetch("/api/admin/caregiver-applications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          applicationId,
+          action,
+          reviewNotes,
+          adminEmail: "admin@basehealth.xyz", // Would come from auth session
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        // Refresh the list
+        await fetchApplications()
+        setSelectedApplication(null)
+        setReviewNotes("")
+        alert(`Application ${action}ed successfully! ${data.emailSent ? "Email notification sent." : ""}`)
+      } else {
+        alert(`Failed: ${data.error}`)
+      }
+    } catch (error) {
+      console.error("Action failed:", error)
+      alert("Action failed. Please try again.")
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const filteredApplications = applications.filter((app) => {
+    if (!searchQuery) return true
+    const query = searchQuery.toLowerCase()
+    return (
+      app.fullName.toLowerCase().includes(query) ||
+      app.email.toLowerCase().includes(query) ||
+      app.specialty.toLowerCase().includes(query)
+    )
+  })
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="bg-stone-100 text-stone-700">Pending</Badge>
-      case 'approved':
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">Approved</Badge>
-      case 'rejected':
-        return <Badge variant="secondary" className="bg-red-100 text-red-800">Rejected</Badge>
+      case "submitted":
+        return <Badge className="bg-blue-100 text-blue-800">Pending Review</Badge>
+      case "approved":
+        return <Badge className="bg-green-100 text-green-800">Approved</Badge>
+      case "rejected":
+        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>
+      case "pending_info":
+        return <Badge className="bg-yellow-100 text-yellow-800">Needs Info</Badge>
+      case "draft":
+        return <Badge className="bg-gray-100 text-gray-800">Draft</Badge>
       default:
-        return <Badge variant="secondary">Unknown</Badge>
+        return <Badge>{status}</Badge>
     }
-  }
-
-  const getDocumentStatus = (hasDocument: boolean) => {
-    return hasDocument ? (
-      <CheckCircle className="h-4 w-4 text-green-600" />
-    ) : (
-      <XCircle className="h-4 w-4 text-red-600" />
-    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 pt-24">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-2">
-            Caregiver Applications
-          </h1>
-          <p className="text-gray-600">
-            Review and manage caregiver applications for the professional network.
-          </p>
-        </div>
-
-        {/* Mock Data Banner */}
-        {isShowingMockData && (
-          <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <User className="h-4 w-4 text-blue-600" />
-              </div>
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/admin" className="flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                </Link>
+              </Button>
               <div>
-                <p className="text-sm font-medium text-blue-900">
-                  Showing Demo Data
-                </p>
-                <p className="text-xs text-blue-700">
-                  No real applications yet. These are sample applications for demonstration. Real applications will appear here once caregivers submit via the signup form.
-                </p>
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <Heart className="h-6 w-6 text-pink-500" />
+                  Caregiver Applications
+                </h1>
+                <p className="text-gray-600">Review and manage caregiver applications</p>
               </div>
             </div>
-          </Card>
-        )}
-
-        {/* Filters */}
-        <Card className="p-6 border-gray-100 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Search by name, email, or license number..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px] border-gray-200">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Applications</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+            <Button onClick={fetchApplications} variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
           </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Filters */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex-1 min-w-[200px]">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search by name, email, or specialty..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="submitted">Pending Review</SelectItem>
+                  <SelectItem value="pending_info">Needs Info</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="all">All Applications</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
         </Card>
 
-        {/* Applications List */}
-        <div className="grid gap-6">
-          {filteredApplications.map((application) => (
-            <Card key={application.id} className="p-6 border-gray-100">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <User className="h-6 w-6 text-gray-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {application.firstName} {application.lastName}
-                    </h3>
-                    <p className="text-sm text-gray-600">{application.primarySpecialty}</p>
-                    <div className="flex items-center gap-4 mt-1">
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Mail className="h-3 w-3" />
-                        {application.email}
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Phone className="h-3 w-3" />
-                        {application.phone}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  {getStatusBadge(application.status)}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedApplication(application)}
-                    className="border-gray-200"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">License:</span>
-                  <p className="text-sm text-gray-600">{application.licenseNumber}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">Experience:</span>
-                  <p className="text-sm text-gray-600">{application.yearsExperience}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-700">Service Areas:</span>
-                  <p className="text-sm text-gray-600">{application.serviceAreas}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    Applied: {new Date(application.applicationDate).toLocaleDateString()}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Shield className="h-3 w-3" />
-                    Documents: {Object.values(application.documents).filter(Boolean).length}/4
-                  </div>
-                </div>
-
-                {application.status === 'pending' && (
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => handleStatusChange(application.id, 'approved')}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Approve
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleStatusChange(application.id, 'rejected')}
-                      className="border-red-200 text-red-700 hover:bg-red-50"
-                    >
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Reject
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </Card>
-          ))}
+        {/* Stats */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-blue-600">{applications.filter(a => a.status === "submitted").length}</p>
+              <p className="text-sm text-gray-600">Pending Review</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-yellow-600">{applications.filter(a => a.status === "pending_info").length}</p>
+              <p className="text-sm text-gray-600">Needs Info</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-green-600">{applications.filter(a => a.status === "approved").length}</p>
+              <p className="text-sm text-gray-600">Approved</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-gray-600">{applications.length}</p>
+              <p className="text-sm text-gray-600">Total</p>
+            </CardContent>
+          </Card>
         </div>
 
-        {filteredApplications.length === 0 && (
+        {/* Applications List */}
+        {loading ? (
           <div className="text-center py-12">
-            <User className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600">No applications found matching your criteria</p>
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-gray-600">Loading applications...</p>
+          </div>
+        ) : filteredApplications.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-xl font-semibold mb-2">No Applications Found</h3>
+              <p className="text-gray-600">
+                {statusFilter === "submitted" 
+                  ? "No caregiver applications pending review."
+                  : "No applications match your filters."}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {filteredApplications.map((application) => (
+              <Card key={application.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                    {/* Avatar */}
+                    <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
+                      <User className="h-6 w-6 text-pink-500" />
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="text-lg font-semibold">{application.fullName || "No Name"}</h3>
+                          <p className="text-gray-600">{application.specialty}</p>
+                        </div>
+                        {getStatusBadge(application.status)}
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          {application.email}
+                        </div>
+                        {application.phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" />
+                            {application.phone}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          {application.experienceYears} experience
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Applied: {new Date(application.submittedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+
+                      {/* Certifications & Languages */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {application.certifications?.slice(0, 3).map((cert) => (
+                          <Badge key={cert} variant="outline" className="text-xs">
+                            <Shield className="h-3 w-3 mr-1" />
+                            {cert}
+                          </Badge>
+                        ))}
+                        {application.languages?.map((lang) => (
+                          <Badge key={lang} variant="secondary" className="text-xs">
+                            {lang}
+                          </Badge>
+                        ))}
+                        {application.consentToBackgroundCheck && (
+                          <Badge className="bg-green-100 text-green-700 text-xs">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Background Check Consented
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Review Notes */}
+                      {application.reviewNotes && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                          <p className="text-sm text-yellow-800">
+                            <strong>Review Notes:</strong> {application.reviewNotes}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      {application.status === "submitted" || application.status === "pending_info" ? (
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => setSelectedApplication(application)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Review
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => handleAction(application.id, "approve")}
+                            disabled={actionLoading === application.id}
+                          >
+                            {actionLoading === application.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Approve
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedApplication(application)
+                              setReviewNotes("")
+                            }}
+                          >
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Request Info
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleAction(application.id, "reject")}
+                            disabled={actionLoading === application.id}
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Reject
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          {application.reviewedAt && (
+                            <>Reviewed on {new Date(application.reviewedAt).toLocaleDateString()}</>
+                          )}
+                          {application.reviewedBy && <> by {application.reviewedBy}</>}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
 
-        {/* Application Details Modal */}
+        {/* Review Modal */}
         {selectedApplication && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Application Details
-                  </h2>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Review Application
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="font-semibold">{selectedApplication.fullName}</p>
+                  <p className="text-sm text-gray-600">{selectedApplication.email}</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Notes / Request for Information
+                  </label>
+                  <Textarea
+                    value={reviewNotes}
+                    onChange={(e) => setReviewNotes(e.target.value)}
+                    placeholder="Enter any notes or specify what additional information you need..."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleAction(selectedApplication.id, "approve")}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={actionLoading === selectedApplication.id}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Approve
+                  </Button>
                   <Button
                     variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedApplication(null)}
-                    className="border-gray-200"
+                    onClick={() => handleAction(selectedApplication.id, "request_info")}
+                    disabled={actionLoading === selectedApplication.id || !reviewNotes.trim()}
                   >
-                    <XCircle className="h-4 w-4" />
+                    <Mail className="h-4 w-4 mr-2" />
+                    Request Info
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleAction(selectedApplication.id, "reject")}
+                    disabled={actionLoading === selectedApplication.id}
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Reject
                   </Button>
                 </div>
 
-                <div className="space-y-6">
-                  {/* Personal Information */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">Personal Information</h3>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">Name:</span>
-                        <p className="text-sm text-gray-600">{selectedApplication.firstName} {selectedApplication.lastName}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">Email:</span>
-                        <p className="text-sm text-gray-600">{selectedApplication.email}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">Phone:</span>
-                        <p className="text-sm text-gray-600">{selectedApplication.phone}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">License Number:</span>
-                        <p className="text-sm text-gray-600">{selectedApplication.licenseNumber}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Professional Information */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">Professional Information</h3>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">Specialty:</span>
-                        <p className="text-sm text-gray-600">{selectedApplication.primarySpecialty}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">Experience:</span>
-                        <p className="text-sm text-gray-600">{selectedApplication.yearsExperience}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">Service Areas:</span>
-                        <p className="text-sm text-gray-600">{selectedApplication.serviceAreas}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">Languages:</span>
-                        <p className="text-sm text-gray-600">{selectedApplication.languagesSpoken.join(', ')}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Preferences */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">Preferences</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Accepts Insurance:</span>
-                        {selectedApplication.acceptInsurance ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-600" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Willing to Travel:</span>
-                        {selectedApplication.willingToTravel ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-600" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Available for Urgent Care:</span>
-                        {selectedApplication.availableForUrgent ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-600" />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Documents */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">Documents</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-700">Government ID</span>
-                        {getDocumentStatus(selectedApplication.documents.governmentId)}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-700">Professional License</span>
-                        {getDocumentStatus(selectedApplication.documents.professionalLicense)}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-700">Additional Certifications</span>
-                        {getDocumentStatus(selectedApplication.documents.additionalCertifications)}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-700">Background Check</span>
-                        {getDocumentStatus(selectedApplication.documents.backgroundCheck)}
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-3">
-                      Note: Documents are stored in uploads/caregiver-applications/. In production, add a download/view API endpoint.
-                    </p>
-                  </div>
-
-                  {/* Care Philosophy */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">Care Philosophy</h3>
-                    <p className="text-sm text-gray-600">{selectedApplication.carePhilosophy}</p>
-                  </div>
-
-                  {/* Digital Wallet */}
-                  {selectedApplication.digitalWalletAddress && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-3">Digital Wallet</h3>
-                      <p className="text-sm text-gray-600 font-mono">{selectedApplication.digitalWalletAddress}</p>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  {selectedApplication.status === 'pending' && (
-                    <div className="flex gap-3 pt-6 border-t border-gray-200">
-                      <Button
-                        onClick={() => {
-                          handleStatusChange(selectedApplication.id, 'approved')
-                          setSelectedApplication(null)
-                        }}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Approve Application
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          handleStatusChange(selectedApplication.id, 'rejected')
-                          setSelectedApplication(null)
-                        }}
-                        className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Reject Application
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
+                <Button
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => {
+                    setSelectedApplication(null)
+                    setReviewNotes("")
+                  }}
+                >
+                  Cancel
+                </Button>
+              </CardContent>
             </Card>
           </div>
         )}
-      </main>
+      </div>
     </div>
   )
 }

@@ -1,173 +1,134 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { logger } from '@/lib/logger'
-import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
-import { getApprovedCaregivers } from '@/lib/caregiver-utils'
+/**
+ * Caregiver Search API
+ * 
+ * Search for verified caregivers by location, specialty, and availability.
+ */
 
-// NO MOCK DATA - All seed caregivers removed
-// Only real, approved caregivers will be shown
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import { logger } from "@/lib/logger"
 
-export async function POST(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const body = await request.json()
-    const { 
-      location, 
-      careType, 
-      requirements, 
-      urgency,
-      startDate,
-      duration,
-      frequency,
-      maxDistance = 50,
-      includeMockData = false // Optional flag to include mock data (default: false)
-    } = body
+    const { searchParams } = new URL(req.url)
+    const zipCode = searchParams.get("zipCode")
+    const specialty = searchParams.get("specialty")
+    const location = searchParams.get("location")
+    const urgent = searchParams.get("urgent") === "true"
+    const limit = parseInt(searchParams.get("limit") || "20")
 
-    // ONLY USE APPROVED CAREGIVERS - No mock/seed data in production
-    // Filter to only show verified, active caregivers
-    let allCaregivers = getApprovedCaregivers()
+    // Try database first
+    try {
+      const whereClause: any = {
+        status: "APPROVED",
+        verified: true,
+        isMock: false,
+      }
 
-    // NO MOCK DATA - Never include seed/mock caregivers
-    // Users will see empty state if no real caregivers are available
-    
-    // Filter caregivers based on search criteria
-    let filtered = [...allCaregivers]
+      // Filter by specialty if provided
+      if (specialty && specialty !== "all") {
+        whereClause.specialties = {
+          has: specialty,
+        }
+      }
 
-    // Filter by location/distance
-    if (location) {
-      filtered = filtered.filter(caregiver => 
-        caregiver.location.toLowerCase().includes(location.toLowerCase()) ||
-        caregiver.distance <= maxDistance
-      )
+      // Filter by location/service area
+      if (zipCode) {
+        whereClause.OR = [
+          { location: { contains: zipCode, mode: "insensitive" } },
+          { serviceAreas: { has: zipCode } },
+        ]
+      } else if (location) {
+        whereClause.OR = [
+          { location: { contains: location, mode: "insensitive" } },
+          { serviceAreas: { hasSome: [location] } },
+        ]
+      }
+
+      // Filter by urgent availability
+      if (urgent) {
+        whereClause.availableForUrgent = true
+      }
+
+      const caregivers = await prisma.caregiver.findMany({
+        where: whereClause,
+        take: limit,
+        orderBy: [
+          { rating: "desc" },
+          { reviewCount: "desc" },
+        ],
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          specialties: true,
+          yearsExperience: true,
+          location: true,
+          serviceAreas: true,
+          languagesSpoken: true,
+          hourlyRate: true,
+          rating: true,
+          reviewCount: true,
+          bio: true,
+          verified: true,
+          isLicensed: true,
+          isCPRCertified: true,
+          isBackgroundChecked: true,
+          acceptInsurance: true,
+          willingToTravel: true,
+          availableForUrgent: true,
+        },
+      })
+
+      // Format response
+      const formattedCaregivers = caregivers.map((cg) => ({
+        id: cg.id,
+        name: `${cg.firstName} ${cg.lastName}`,
+        email: cg.email,
+        phone: cg.phone,
+        specialty: cg.specialties?.[0] || "General Care",
+        specialties: cg.specialties || [],
+        yearsExperience: cg.yearsExperience || "N/A",
+        location: cg.location || "",
+        serviceAreas: cg.serviceAreas || [],
+        languages: cg.languagesSpoken || ["English"],
+        hourlyRate: cg.hourlyRate ? Number(cg.hourlyRate) : null,
+        rating: cg.rating ? Number(cg.rating) : 0,
+        reviewCount: cg.reviewCount || 0,
+        bio: cg.bio || "",
+        verified: cg.verified,
+        badges: [
+          ...(cg.isLicensed ? ["Licensed"] : []),
+          ...(cg.isCPRCertified ? ["CPR Certified"] : []),
+          ...(cg.isBackgroundChecked ? ["Background Checked"] : []),
+        ],
+        acceptsInsurance: cg.acceptInsurance,
+        willingToTravel: cg.willingToTravel,
+        availableForUrgent: cg.availableForUrgent,
+      }))
+
+      return NextResponse.json({
+        success: true,
+        caregivers: formattedCaregivers,
+        total: formattedCaregivers.length,
+      })
+    } catch (dbError) {
+      logger.warn("Database query failed, returning empty results", { error: dbError })
+      
+      // Return empty array if database fails
+      return NextResponse.json({
+        success: true,
+        caregivers: [],
+        total: 0,
+        message: "No caregivers found. Database may not be connected.",
+      })
     }
-
-    // Filter by care type/specialty
-    if (careType) {
-      filtered = filtered.filter(caregiver => 
-        caregiver.specialty.toLowerCase().includes(careType.toLowerCase()) ||
-        caregiver.services.some((service: string) =>
-          service.toLowerCase().includes(careType.toLowerCase())
-        )
-      )
-    }
-
-    // Filter by requirements
-    if (requirements) {
-      if (requirements.licensedNurse) {
-        filtered = filtered.filter(c => c.isLicensed)
-      }
-      if (requirements.cprCertified) {
-        filtered = filtered.filter(c => c.isCPRCertified)
-      }
-      if (requirements.backgroundCheck) {
-        filtered = filtered.filter(c => c.isBackgroundChecked)
-      }
-    }
-
-    // Filter by availability based on urgency
-    if (urgency === "Immediate (within 24 hours)") {
-      filtered = filtered.filter(c => 
-        c.availability === "Available now" || 
-        c.availability === "Available immediately"
-      )
-    }
-
-    // Sort by rating and distance
-    filtered.sort((a, b) => {
-      // First sort by rating (descending)
-      if (b.rating !== a.rating) {
-        return b.rating - a.rating
-      }
-      // Then by distance (ascending)
-      return a.distance - b.distance
-    })
-
-    // Calculate match score for each caregiver
-    const resultsWithScore = filtered.map(caregiver => {
-      let matchScore = 0
-      
-      // Base score from rating
-      matchScore += caregiver.rating * 20
-      
-      // Distance score (closer is better)
-      matchScore += Math.max(0, 50 - caregiver.distance)
-      
-      // Experience score
-      const experience = parseInt(caregiver.experience)
-      matchScore += Math.min(experience * 2, 30)
-      
-      // Availability score
-      if (caregiver.availability.includes("now") || caregiver.availability.includes("immediately")) {
-        matchScore += 20
-      }
-      
-      return {
-        ...caregiver,
-        matchScore: Math.round(matchScore)
-      }
-    })
-
-    return NextResponse.json({
-      success: true,
-      results: resultsWithScore,
-      totalCount: resultsWithScore.length,
-      searchCriteria: {
-        location,
-        careType,
-        urgency,
-        startDate,
-        duration
-      }
-    })
-
   } catch (error) {
-    logger.error('Caregiver search error', error)
+    logger.error("Caregiver search failed", { error })
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to search caregivers',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
-  }
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const includeMockData = searchParams.get('includeMockData') === 'true'
-    
-    // ONLY RETURN VERIFIED, ACTIVE CAREGIVERS - No mock data
-    const realCaregivers = getApprovedCaregivers()
-    
-    // Only include mock data if explicitly requested AND no real caregivers exist
-    let allCaregivers = realCaregivers
-    let message = ''
-    
-    if (realCaregivers.length === 0) {
-      message = 'No caregivers currently available. Please check back later or apply to become a caregiver!'
-      logger.info('No verified caregivers available')
-    } else {
-      logger.info(`Returning ${realCaregivers.length} verified, active caregiver(s)`)
-      message = `Showing ${realCaregivers.length} verified, available caregiver(s)`
-    }
-    
-    return NextResponse.json({
-      success: true,
-      results: allCaregivers,
-      totalCount: allCaregivers.length,
-      verifiedCount: realCaregivers.length,
-      mockCount: allCaregivers.length - realCaregivers.length,
-      message,
-      filters: {
-        onlyVerified: true,
-        onlyActive: true,
-        excludeMockData: !includeMockData
-      }
-    })
-  } catch (error) {
-    logger.error('Error fetching caregivers', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch caregivers' },
+      { error: "Failed to search caregivers" },
       { status: 500 }
     )
   }
