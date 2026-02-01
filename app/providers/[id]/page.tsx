@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,39 +16,113 @@ import {
   Users,
   ArrowLeft,
   Mail,
-  Shield
+  Shield,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
+
+interface ProviderData {
+  id: string
+  name: string
+  specialty: string
+  credentials: string
+  rating: number
+  reviewCount: number
+  address: string
+  phone: string
+  email: string
+  website: string
+  bio: string
+  education: string[]
+  specialties: string[]
+  languages: string[]
+  insurance: string[]
+  availability: string
+  acceptingPatients: boolean
+  yearsOfExperience: number
+  npi: string
+}
 
 export default function ProviderProfilePage() {
   const params = useParams()
   const providerId = params.id as string
-
-  // This would normally fetch provider data from an API
-  // Provider data loaded from database
-  const provider = {
+  
+  const [provider, setProvider] = useState<ProviderData>({
     id: providerId,
     name: 'Loading...',
-    specialty: 'Healthcare Provider',
+    specialty: '',
     credentials: '',
     rating: 0,
-    reviewCount: 127,
-    address: '123 Medical Center Dr, Seattle, WA 98101',
-    phone: '(555) 123-4567',
-    email: 'contact@medicalpractice.com',
-    website: `https://${providerId}.medicalpractice.com`,
-    bio: 'Dr. Chen is a board-certified family medicine physician with over 15 years of experience providing comprehensive primary care to patients of all ages. He is passionate about preventive medicine and building long-term relationships with his patients.',
-    education: [
-      'University of Washington School of Medicine - MD',
-      'Seattle Children\'s Hospital - Residency in Family Medicine'
-    ],
-    specialties: ['Family Medicine', 'Preventive Care', 'Chronic Disease Management'],
-    languages: ['English', 'Spanish', 'Mandarin'],
-    insurance: ['Blue Cross Blue Shield', 'Aetna', 'Medicare', 'Medicaid', 'UnitedHealthcare'],
-    availability: 'Next available: January 15, 2025',
+    reviewCount: 0,
+    address: '',
+    phone: '',
+    email: '',
+    website: '',
+    bio: '',
+    education: [],
+    specialties: [],
+    languages: ['English'],
+    insurance: [],
+    availability: '',
     acceptingPatients: true,
-    yearsOfExperience: 15,
+    yearsOfExperience: 0,
     npi: providerId
+  })
+  
+  const [loading, setLoading] = useState(true)
+  
+  useEffect(() => {
+    async function fetchProvider() {
+      try {
+        const response = await fetch(`/api/providers/${providerId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.provider) {
+            const p = data.provider
+            setProvider({
+              id: p.id || providerId,
+              name: p.name || 'Provider',
+              specialty: p.specialty || 'Healthcare Provider',
+              credentials: Array.isArray(p.credentials) ? p.credentials.join(', ') : (p.credentials || ''),
+              rating: p.rating || 0,
+              reviewCount: p.reviewCount || 0,
+              address: typeof p.address === 'object' 
+                ? `${p.address.street || ''}, ${p.address.city || ''}, ${p.address.state || ''} ${p.address.zipCode || ''}`.replace(/^, |, $/g, '')
+                : (p.address || ''),
+              phone: p.phone || '',
+              email: p.email || '',
+              website: p.website || '',
+              bio: p.bio || '',
+              education: p.education || [],
+              specialties: p.services || p.specialties || [p.specialty].filter(Boolean),
+              languages: p.languages || ['English'],
+              insurance: p.acceptedInsurance || [],
+              availability: p.availability?.days?.join(', ') || '',
+              acceptingPatients: p.acceptingPatients !== false,
+              yearsOfExperience: p.yearsOfExperience || 0,
+              npi: p.npiNumber || providerId
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch provider:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchProvider()
+  }, [providerId])
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading provider information...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
