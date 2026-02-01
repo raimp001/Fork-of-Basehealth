@@ -14,6 +14,10 @@ import {
 import { calculateTrialDistance, convertZipToLocation } from '@/lib/geocoding'
 import { searchProviders as searchProvidersAI, parseNaturalLanguageQuery } from '@/lib/ai-service'
 import { healthDBService } from '@/lib/healthdb-service'
+import { prisma } from '@/lib/prisma'
+
+// Provider source types for distinguishing where data comes from
+type ProviderSource = 'basehealth' | 'npi_registry' | 'google_places' | 'ai_generated'
 
 // Map screening types to provider specialties
 const SCREENING_TO_SPECIALTY_MAP: Record<string, string[]> = {
@@ -332,6 +336,68 @@ function calculateFallbackRelevanceScore(params: {
   return Math.max(0, score)
 }
 
+// Search for BaseHealth verified providers (signed up on the platform)
+async function searchBaseHealthProviders(params: {
+  specialty?: string
+  city?: string
+  state?: string
+  limit: number
+}): Promise<any[]> {
+  try {
+    const whereClause: any = {
+      isVerified: true,
+      status: 'APPROVED',
+    }
+    
+    if (params.specialty) {
+      whereClause.specialties = {
+        hasSome: [params.specialty],
+      }
+    }
+    
+    if (params.state) {
+      whereClause.licenseState = {
+        equals: params.state,
+        mode: 'insensitive',
+      }
+    }
+    
+    const providers = await prisma.provider.findMany({
+      where: whereClause,
+      include: { user: true },
+      take: params.limit,
+      orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
+    })
+    
+    return providers.map(p => ({
+      npi: p.npiNumber || p.id,
+      name: p.fullName || p.user?.name || 'Provider',
+      specialty: p.specialties?.[0] || 'General Practice',
+      address: p.location || '',
+      city: '', // Would need to parse from location
+      state: p.licenseState || '',
+      zip: '',
+      distance: null,
+      rating: p.rating ? Number(p.rating) : 4.5,
+      reviewCount: p.reviewCount || 0,
+      acceptingPatients: true,
+      phone: 'Schedule through platform',
+      credentials: p.professionType || 'MD',
+      gender: 'Not specified',
+      availability: 'Available for booking',
+      insurance: ['Contact provider'],
+      languages: ['English'],
+      source: 'basehealth' as ProviderSource,
+      isVerified: true,
+      hasCalendar: true, // BaseHealth providers have booking availability
+      bio: p.bio || '',
+    }))
+  } catch (error) {
+    logger.warn('BaseHealth provider search failed', error)
+    return []
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Rate limiting
@@ -579,13 +645,45 @@ export async function GET(request: NextRequest) {
         availability: acceptingPatients ? 'Contact for availability' : 'Not accepting new patients',
         insurance: ['Contact provider for insurance information'],
         languages: ['English'], // Default since NPI API doesn't provide language info
-        relevanceScore // Add relevance score for sorting
+        relevanceScore, // Add relevance score for sorting
+        // Source tracking for UI differentiation
+        source: 'npi_registry' as ProviderSource,
+        isVerified: false, // NPI providers are not verified on BaseHealth
+        hasCalendar: false, // No calendar access for NPI providers
       }
+    })
+    
+    // Search BaseHealth verified providers first
+    const baseHealthProviders = await searchBaseHealthProviders({
+      specialty: enhancedSpecialty,
+      city,
+      state,
+      limit: Math.min(limit, 10), // Prioritize up to 10 BaseHealth providers
+    })
+    
+    // Boost BaseHealth provider relevance scores
+    const boostedBaseHealthProviders = baseHealthProviders.map(p => ({
+      ...p,
+      relevanceScore: (p.relevanceScore || 100) + 200, // High boost for signed-up providers
+    }))
+    
+    // Combine BaseHealth providers with NPI providers (BaseHealth first)
+    transformedProviders = [...boostedBaseHealthProviders, ...transformedProviders]
+    
+    // Remove duplicates (prefer BaseHealth version if same NPI)
+    const seenNpis = new Set<string>()
+    transformedProviders = transformedProviders.filter(p => {
+      if (seenNpis.has(p.npi)) return false
+      seenNpis.add(p.npi)
+      return true
     })
     
     // Filter by exact location match if city and state are specified
     if (city && state) {
       transformedProviders = transformedProviders.filter(p => {
+        // Always include BaseHealth providers (they signed up, we trust their location)
+        if (p.source === 'basehealth') return true
+        
         const providerState = p.state?.toUpperCase()
         const requestedState = state.toUpperCase()
         

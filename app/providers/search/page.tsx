@@ -7,7 +7,7 @@
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Search, MapPin, Star, X, ArrowRight, Loader2, CheckCircle, Navigation, AlertCircle } from "lucide-react"
+import { Search, MapPin, Star, X, ArrowRight, Loader2, CheckCircle, Navigation, AlertCircle, BadgeCheck, Phone, ExternalLink } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +25,9 @@ interface Provider {
   acceptingPatients: boolean
   phone: string
   credentials: string
+  source?: 'basehealth' | 'npi_registry' | 'google_places' | 'ai_generated'
+  isVerified?: boolean
+  hasCalendar?: boolean
 }
 
 // Common locations for quick access
@@ -416,20 +419,37 @@ function SearchPageContent() {
                 )}
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {providers.map((provider, index) => (
+                {providers.map((provider, index) => {
+                  const isBaseHealth = provider.source === 'basehealth'
+                  const isNpiRegistry = provider.source === 'npi_registry' || !provider.source
+                  
+                  return (
                   <div 
                     key={provider.npi} 
                     className={`p-5 rounded-xl border transition-all group ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
                     style={{ 
                       backgroundColor: 'var(--bg-secondary)',
-                      borderColor: 'var(--border-subtle)'
+                      borderColor: isBaseHealth ? 'rgba(107, 155, 107, 0.3)' : 'var(--border-subtle)'
                     }}
                   >
-                    <div className="mb-3">
-                      <h3 className="text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
-                        {provider.name}
-                      </h3>
-                      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{provider.credentials}</p>
+                    {/* Source Badge */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
+                          {provider.name}
+                        </h3>
+                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{provider.credentials}</p>
+                      </div>
+                      {isBaseHealth ? (
+                        <span className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}>
+                          <BadgeCheck className="h-3 w-3" />
+                          BaseHealth
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)' }}>
+                          NPI Registry
+                        </span>
+                      )}
                     </div>
 
                     <div className="space-y-2 mb-5">
@@ -462,19 +482,58 @@ function SearchPageContent() {
                       )}
                     </div>
 
-                    <Link 
-                      href={`/appointment/book/${provider.npi}`}
-                      className="mt-4 w-full py-2.5 rounded-lg text-sm text-center transition-colors flex items-center justify-center gap-2 border"
-                      style={{ 
-                        borderColor: 'var(--border-medium)',
-                        color: 'var(--text-primary)'
-                      }}
-                    >
-                      Book Appointment
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
+                    {/* Different actions based on provider source */}
+                    {isBaseHealth ? (
+                      // BaseHealth verified provider - can book directly
+                      <Link 
+                        href={`/appointment/book/${provider.npi}`}
+                        className="mt-4 w-full py-2.5 rounded-lg text-sm text-center transition-colors flex items-center justify-center gap-2"
+                        style={{ 
+                          backgroundColor: 'var(--text-primary)',
+                          color: 'var(--bg-primary)'
+                        }}
+                      >
+                        Book Appointment
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    ) : (
+                      // NPI Registry provider - show contact options
+                      <div className="mt-4 space-y-2">
+                        <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
+                          Not yet on BaseHealth — contact directly
+                        </p>
+                        <div className="flex gap-2">
+                          {provider.phone && provider.phone !== 'Contact for availability' ? (
+                            <a 
+                              href={`tel:${provider.phone.replace(/\D/g, '')}`}
+                              className="flex-1 py-2.5 rounded-lg text-sm text-center transition-colors flex items-center justify-center gap-2 border"
+                              style={{ 
+                                borderColor: 'var(--border-medium)',
+                                color: 'var(--text-primary)'
+                              }}
+                            >
+                              <Phone className="h-4 w-4" />
+                              Call
+                            </a>
+                          ) : null}
+                          <a
+                            href={`https://npiregistry.cms.hhs.gov/provider-view/${provider.npi}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 py-2.5 rounded-lg text-sm text-center transition-colors flex items-center justify-center gap-2 border"
+                            style={{ 
+                              borderColor: 'var(--border-medium)',
+                              color: 'var(--text-primary)'
+                            }}
+                          >
+                            View Details
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))}
+                )})}
               </div>
             </>
           )}
