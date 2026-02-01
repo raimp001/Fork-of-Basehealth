@@ -3,16 +3,11 @@
 /**
  * Caregiver Search Page
  * 
- * Search for verified caregivers by location, specialty, and availability.
+ * Dedicated search for caregivers - separate from provider search.
  */
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
   Search, 
   MapPin, 
@@ -21,13 +16,13 @@ import {
   Clock, 
   Shield, 
   Heart,
-  Filter,
   Loader2,
   User,
   CheckCircle,
   AlertTriangle,
-  ArrowLeft,
-  DollarSign,
+  Navigation,
+  ArrowRight,
+  X,
 } from "lucide-react"
 
 interface Caregiver {
@@ -50,38 +45,86 @@ interface Caregiver {
   availableForUrgent: boolean
 }
 
-const SPECIALTIES = [
-  "All Specialties",
-  "Elder Care",
-  "Post-Surgery Care",
-  "Dementia Care",
-  "Pediatric Care",
-  "Disability Support",
-  "Chronic Illness Care",
-  "Hospice Care",
-  "Physical Therapy Support",
-  "Mental Health Support",
+// Caregiver-specific specialties
+const CAREGIVER_SPECIALTIES = [
+  { label: 'All Types', value: '' },
+  { label: 'Elder Care', value: 'Elder Care' },
+  { label: 'Post-Surgery Care', value: 'Post-Surgery Care' },
+  { label: 'Dementia Care', value: 'Dementia Care' },
+  { label: 'Pediatric Care', value: 'Pediatric Care' },
+  { label: 'Disability Support', value: 'Disability Support' },
+  { label: 'Chronic Illness Care', value: 'Chronic Illness Care' },
+  { label: 'Hospice Care', value: 'Hospice Care' },
+  { label: 'Physical Therapy Support', value: 'Physical Therapy Support' },
+  { label: 'Mental Health Support', value: 'Mental Health Support' },
+  { label: 'Companionship', value: 'Companionship' },
 ]
 
 export default function CaregiverSearchPage() {
   const [caregivers, setCaregivers] = useState<Caregiver[]>([])
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   
   const [zipCode, setZipCode] = useState("")
-  const [specialty, setSpecialty] = useState("All Specialties")
+  const [specialty, setSpecialty] = useState("")
   const [urgentOnly, setUrgentOnly] = useState(false)
+  const [isLocating, setIsLocating] = useState(false)
 
-  const handleSearch = async () => {
-    if (!zipCode.trim()) return
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser')
+      return
+    }
+
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const response = await fetch(
+            `/api/geocode/reverse?lat=${position.coords.latitude}&lng=${position.coords.longitude}`
+          )
+          if (response.ok) {
+            const data = await response.json()
+            if (data.zip) {
+              setZipCode(data.zip)
+            } else if (data.city) {
+              setZipCode(data.city)
+            }
+          }
+        } catch (err) {
+          console.error('Reverse geocoding failed:', err)
+        } finally {
+          setIsLocating(false)
+        }
+      },
+      () => {
+        setIsLocating(false)
+      },
+      { timeout: 10000 }
+    )
+  }
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+    if (!zipCode.trim()) {
+      setError('Please enter a ZIP code or location')
+      return
+    }
     
     setLoading(true)
     setHasSearched(true)
+    setError(null)
 
     try {
       const params = new URLSearchParams()
-      if (zipCode) params.append("zipCode", zipCode)
-      if (specialty && specialty !== "All Specialties") params.append("specialty", specialty)
+      params.append("zipCode", zipCode)
+      if (specialty) params.append("specialty", specialty)
       if (urgentOnly) params.append("urgent", "true")
 
       const response = await fetch(`/api/caregivers/search?${params}`)
@@ -89,158 +132,240 @@ export default function CaregiverSearchPage() {
       
       if (data.success) {
         setCaregivers(data.caregivers)
+        if (data.caregivers.length === 0) {
+          setError('No caregivers found in this area. Try a different location.')
+        }
       } else {
         setCaregivers([])
+        setError(data.error || 'Search failed')
       }
-    } catch (error) {
-      console.error("Search failed:", error)
+    } catch (err) {
+      console.error("Search failed:", err)
       setCaregivers([])
+      setError('Search failed. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Home
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="text-lg font-medium tracking-tight hover:opacity-80 transition-opacity">
+              BaseHealth
+            </Link>
+            <div className="flex items-center gap-6">
+              <Link href="/providers/search" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
+                Find Doctors
               </Link>
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Find Caregivers</h1>
-              <p className="text-gray-600">Search verified caregivers in your area</p>
+              <Link 
+                href="/onboarding?role=caregiver" 
+                className="text-sm px-4 py-2 rounded-lg transition-all"
+                style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+              >
+                Become a Caregiver
+              </Link>
             </div>
           </div>
         </div>
-      </div>
+      </nav>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Search Section */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="grid md:grid-cols-4 gap-4">
-              <div className="md:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  ZIP Code
-                </label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Enter ZIP code"
-                    value={zipCode}
-                    onChange={(e) => setZipCode(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <div className="md:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Specialty
-                </label>
-                <Select value={specialty} onValueChange={setSpecialty}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select specialty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPECIALTIES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="md:col-span-1 flex items-end">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={urgentOnly}
-                    onChange={(e) => setUrgentOnly(e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  <span className="text-sm">
-                    <AlertTriangle className="h-4 w-4 inline mr-1 text-orange-500" />
-                    Urgent availability
-                  </span>
-                </label>
-              </div>
-
-              <div className="md:col-span-1 flex items-end">
-                <Button 
-                  onClick={handleSearch} 
-                  disabled={loading || !zipCode.trim()}
-                  className="w-full"
-                >
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Search className="h-4 w-4 mr-2" />
-                  )}
-                  Search
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Results */}
-        {!hasSearched ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Heart className="h-12 w-12 mx-auto mb-4 text-pink-300" />
-              <h3 className="text-xl font-semibold mb-2">Search for Caregivers</h3>
-              <p className="text-gray-600 mb-6">
-                Enter your ZIP code to find verified caregivers in your area.
-              </p>
-              <div className="flex justify-center gap-4">
-                <Badge variant="outline">Background Checked</Badge>
-                <Badge variant="outline">Licensed</Badge>
-                <Badge variant="outline">CPR Certified</Badge>
-              </div>
-            </CardContent>
-          </Card>
-        ) : loading ? (
-          <div className="text-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-gray-600">Searching for caregivers...</p>
-          </div>
-        ) : caregivers.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-xl font-semibold mb-2">No Caregivers Found</h3>
-              <p className="text-gray-600 mb-4">
-                No verified caregivers found in your area. Try a different ZIP code or specialty.
-              </p>
-              <Button variant="outline" asChild>
-                <Link href="/onboarding?role=caregiver">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Become a Caregiver
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Found {caregivers.length} caregiver{caregivers.length !== 1 ? "s" : ""} in your area
+      <main className="pt-28 pb-24">
+        <div className="max-w-5xl mx-auto px-6">
+          {/* Header */}
+          <div className={`max-w-3xl mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <h1 className="text-4xl md:text-5xl font-normal tracking-tight mb-4" style={{ lineHeight: '1.1' }}>
+              Find Caregivers
+              <br />
+              <span style={{ color: 'var(--text-secondary)' }}>in Your Area</span>
+            </h1>
+            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+              Search verified caregivers by location and care type.
             </p>
 
-            {caregivers.map((caregiver) => (
-              <Card key={caregiver.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
+            {/* Mode toggle */}
+            <div className="flex gap-3 mt-6">
+              <Link
+                href="/providers/search"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                style={{ 
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--border-medium)'
+                }}
+              >
+                Doctors & Specialists
+              </Link>
+              <Link
+                href="/caregivers/search"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                style={{ 
+                  backgroundColor: 'var(--text-primary)', 
+                  color: 'var(--bg-primary)' 
+                }}
+              >
+                Find Caregivers
+              </Link>
+            </div>
+          </div>
+
+          {/* Search Form */}
+          <form onSubmit={handleSearch} className="mb-8">
+            <div className="p-6 rounded-xl" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+              <div className="grid md:grid-cols-4 gap-4">
+                {/* Location */}
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                    Location
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--text-muted)' }} />
+                    <input
+                      type="text"
+                      placeholder="ZIP code or city"
+                      value={zipCode}
+                      onChange={(e) => setZipCode(e.target.value)}
+                      className="w-full pl-10 pr-10 py-3 rounded-lg focus:outline-none"
+                      style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={detectLocation}
+                      disabled={isLocating}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                      style={{ color: 'var(--text-muted)' }}
+                      title="Use my location"
+                    >
+                      {isLocating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Navigation className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Care Type */}
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
+                    Care Type
+                  </label>
+                  <select
+                    value={specialty}
+                    onChange={(e) => setSpecialty(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg focus:outline-none appearance-none"
+                    style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
+                  >
+                    {CAREGIVER_SPECIALTIES.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Urgent Filter */}
+                <div className="md:col-span-1 flex items-end">
+                  <label className="flex items-center gap-2 cursor-pointer py-3">
+                    <input
+                      type="checkbox"
+                      checked={urgentOnly}
+                      onChange={(e) => setUrgentOnly(e.target.checked)}
+                      className="rounded"
+                      style={{ accentColor: 'var(--accent)' }}
+                    />
+                    <AlertTriangle className="h-4 w-4" style={{ color: '#f59e0b' }} />
+                    <span className="text-sm">Urgent only</span>
+                  </label>
+                </div>
+
+                {/* Search Button */}
+                <div className="md:col-span-1 flex items-end">
+                  <button
+                    type="submit"
+                    disabled={loading || !zipCode.trim()}
+                    className="w-full py-3 font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+                  >
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
+                    Search
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 rounded-lg flex items-center gap-3" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <X className="h-5 w-5" style={{ color: '#ef4444' }} />
+              <p style={{ color: '#ef4444' }}>{error}</p>
+            </div>
+          )}
+
+          {/* Results */}
+          {!hasSearched ? (
+            <div className="text-center py-16">
+              <Heart className="h-16 w-16 mx-auto mb-6" style={{ color: 'var(--border-medium)' }} />
+              <h3 className="text-xl font-medium mb-3">Search for Caregivers</h3>
+              <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
+                Enter your location to find verified caregivers in your area.
+              </p>
+              <div className="flex justify-center gap-3 flex-wrap">
+                <span className="px-3 py-1 rounded-full text-xs" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <Shield className="h-3 w-3 inline mr-1" /> Background Checked
+                </span>
+                <span className="px-3 py-1 rounded-full text-xs" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <CheckCircle className="h-3 w-3 inline mr-1" /> Licensed
+                </span>
+                <span className="px-3 py-1 rounded-full text-xs" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <Heart className="h-3 w-3 inline mr-1" /> CPR Certified
+                </span>
+              </div>
+            </div>
+          ) : loading ? (
+            <div className="text-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" style={{ color: 'var(--text-muted)' }} />
+              <p style={{ color: 'var(--text-secondary)' }}>Searching for caregivers...</p>
+            </div>
+          ) : caregivers.length === 0 && !error ? (
+            <div className="text-center py-16">
+              <User className="h-16 w-16 mx-auto mb-6" style={{ color: 'var(--border-medium)' }} />
+              <h3 className="text-xl font-medium mb-3">No Caregivers Found</h3>
+              <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
+                No verified caregivers found in your area yet.
+              </p>
+              <Link
+                href="/onboarding?role=caregiver"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all"
+                style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+              >
+                <Heart className="h-4 w-4" />
+                Become a Caregiver
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Found {caregivers.length} caregiver{caregivers.length !== 1 ? 's' : ''} in your area
+              </p>
+
+              {caregivers.map((caregiver) => (
+                <div 
+                  key={caregiver.id} 
+                  className="p-6 rounded-xl transition-all hover:border-opacity-80"
+                  style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
+                >
                   <div className="flex flex-col md:flex-row md:items-start gap-4">
                     {/* Avatar */}
-                    <div className="w-16 h-16 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
-                      <Heart className="h-8 w-8 text-pink-500" />
+                    <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(236, 72, 153, 0.15)' }}>
+                      <Heart className="h-7 w-7" style={{ color: '#ec4899' }} />
                     </div>
 
                     {/* Info */}
@@ -248,17 +373,17 @@ export default function CaregiverSearchPage() {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-semibold">{caregiver.name}</h3>
+                            <h3 className="text-lg font-medium">{caregiver.name}</h3>
                             {caregiver.verified && (
-                              <CheckCircle className="h-5 w-5 text-green-500" />
+                              <CheckCircle className="h-5 w-5" style={{ color: '#22c55e' }} />
                             )}
                           </div>
-                          <p className="text-gray-600">{caregiver.specialty}</p>
+                          <p style={{ color: 'var(--text-secondary)' }}>{caregiver.specialty}</p>
                         </div>
                         
                         {caregiver.hourlyRate && (
                           <div className="text-right">
-                            <p className="text-lg font-semibold text-green-600">
+                            <p className="text-lg font-medium" style={{ color: '#22c55e' }}>
                               ${caregiver.hourlyRate}/hr
                             </p>
                           </div>
@@ -268,25 +393,32 @@ export default function CaregiverSearchPage() {
                       {/* Badges */}
                       <div className="flex flex-wrap gap-2 mb-3">
                         {caregiver.badges.map((badge) => (
-                          <Badge key={badge} variant="secondary" className="text-xs">
-                            <Shield className="h-3 w-3 mr-1" />
+                          <span 
+                            key={badge} 
+                            className="px-2 py-1 rounded text-xs flex items-center gap-1"
+                            style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                          >
+                            <Shield className="h-3 w-3" />
                             {badge}
-                          </Badge>
+                          </span>
                         ))}
                         {caregiver.availableForUrgent && (
-                          <Badge className="bg-orange-100 text-orange-700 text-xs">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
+                          <span 
+                            className="px-2 py-1 rounded text-xs flex items-center gap-1"
+                            style={{ backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}
+                          >
+                            <AlertTriangle className="h-3 w-3" />
                             Urgent Available
-                          </Badge>
+                          </span>
                         )}
                       </div>
 
                       {/* Stats */}
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                      <div className="flex flex-wrap items-center gap-4 text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
                         <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 text-yellow-500" />
+                          <Star className="h-4 w-4" style={{ color: '#fbbf24' }} />
                           <span>{caregiver.rating.toFixed(1)}</span>
-                          <span className="text-gray-400">({caregiver.reviewCount})</span>
+                          <span style={{ color: 'var(--text-muted)' }}>({caregiver.reviewCount})</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
@@ -302,47 +434,61 @@ export default function CaregiverSearchPage() {
 
                       {/* Bio */}
                       {caregiver.bio && (
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                        <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
                           {caregiver.bio}
                         </p>
                       )}
 
                       {/* Actions */}
                       <div className="flex gap-3">
-                        <Button asChild>
-                          <Link href={`/caregivers/${caregiver.id}`}>
-                            View Profile
-                          </Link>
-                        </Button>
-                        <Button variant="outline">
-                          <Phone className="h-4 w-4 mr-2" />
+                        <Link
+                          href={`/caregivers/${caregiver.id}`}
+                          className="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                          style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+                        >
+                          View Profile
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                        <button
+                          className="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                          style={{ border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
+                        >
+                          <Phone className="h-4 w-4" />
                           Contact
-                        </Button>
+                        </button>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                </div>
+              ))}
+            </div>
+          )}
 
-        {/* CTA for caregivers */}
-        <Card className="mt-8 bg-gradient-to-r from-pink-50 to-rose-50 border-pink-200">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-semibold mb-2">Are you a caregiver?</h3>
-            <p className="text-gray-600 mb-4">
+          {/* CTA for caregivers */}
+          <div 
+            className="mt-12 p-8 rounded-xl text-center"
+            style={{ 
+              background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(244, 63, 94, 0.1))',
+              border: '1px solid rgba(236, 72, 153, 0.2)'
+            }}
+          >
+            <Heart className="h-10 w-10 mx-auto mb-4" style={{ color: '#ec4899' }} />
+            <h3 className="text-xl font-medium mb-2">Are you a caregiver?</h3>
+            <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
               Join our network of verified caregivers and connect with families who need your help.
             </p>
-            <Button asChild>
-              <Link href="/onboarding?role=caregiver">
-                <Heart className="h-4 w-4 mr-2" />
-                Apply as Caregiver
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+            <Link
+              href="/onboarding?role=caregiver"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all"
+              style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+            >
+              <Heart className="h-4 w-4" />
+              Apply as Caregiver
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }

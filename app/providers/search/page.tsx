@@ -49,7 +49,6 @@ const QUICK_SPECIALTIES = [
 
 function SearchPageContent() {
   const searchParams = useSearchParams()
-  const isCaregiverMode = searchParams?.get('bounty') === 'true'
   const initialQuery = searchParams?.get('query') || ''
   const initialLocation = searchParams?.get('location') || ''
   
@@ -209,12 +208,12 @@ function SearchPageContent() {
           {/* Header */}
           <div className={`max-w-3xl mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h1 className="text-4xl md:text-5xl font-normal tracking-tight mb-4" style={{ lineHeight: '1.1' }}>
-              {isCaregiverMode ? 'Find Caregivers' : 'Find Healthcare'}
+              Find Healthcare
               <br />
-              <span style={{ color: 'var(--text-secondary)' }}>{isCaregiverMode ? 'in Your Area' : 'Providers'}</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Providers</span>
             </h1>
             <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-              Search by specialty and location. Enter a city, state, or ZIP code.
+              Search doctors and specialists by specialty and location.
             </p>
 
             {/* Mode toggle */}
@@ -222,28 +221,22 @@ function SearchPageContent() {
               <Link
                 href="/providers/search"
                 className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
-                style={!isCaregiverMode ? { 
+                style={{ 
                   backgroundColor: 'var(--text-primary)', 
                   color: 'var(--bg-primary)' 
-                } : { 
-                  color: 'var(--text-secondary)',
-                  border: '1px solid var(--border-medium)'
                 }}
               >
                 Doctors & Specialists
               </Link>
               <Link
-                href="/providers/search?bounty=true"
+                href="/caregivers/search"
                 className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
-                style={isCaregiverMode ? { 
-                  backgroundColor: 'var(--text-primary)', 
-                  color: 'var(--bg-primary)' 
-                } : { 
+                style={{ 
                   color: 'var(--text-secondary)',
                   border: '1px solid var(--border-medium)'
                 }}
               >
-                Caregivers
+                Find Caregivers
               </Link>
             </div>
           </div>
