@@ -16,7 +16,10 @@ import {
   Globe,
   CreditCard,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  ExternalLink,
+  CheckCircle,
+  Clock
 } from "lucide-react"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 
@@ -61,6 +64,10 @@ export default function SettingsPage() {
             <TabsTrigger value="preferences" className="data-[state=active]:bg-gray-100">
               <Globe className="h-4 w-4 mr-2" />
               Preferences
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="data-[state=active]:bg-gray-100">
+              <CreditCard className="h-4 w-4 mr-2" />
+              Payments
             </TabsTrigger>
           </TabsList>
 
@@ -272,6 +279,45 @@ export default function SettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* Payments Tab */}
+          <TabsContent value="payments">
+            <Card className="p-6 border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Payment History</h2>
+              <div className="space-y-4">
+                {/* Empty state */}
+                <div className="text-center py-8">
+                  <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <h3 className="font-medium text-gray-900 mb-1">No payments yet</h3>
+                  <p className="text-sm text-gray-600">
+                    Your payment history will appear here after you book and pay for services.
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Payment Methods */}
+            <Card className="p-6 border-gray-100 mt-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Payment Methods</h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                      <span className="text-blue-600 font-bold text-sm">$</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">USDC on Base</p>
+                      <p className="text-sm text-gray-600">Pay with your crypto wallet</p>
+                    </div>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700">Active</span>
+                </div>
+                <p className="text-xs text-gray-500 text-center">
+                  All payments settle securely on Base blockchain
+                </p>
               </div>
             </Card>
           </TabsContent>
