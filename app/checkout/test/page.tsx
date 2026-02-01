@@ -8,7 +8,7 @@
  */
 
 import { useState } from 'react'
-import { BasePayCheckout } from '@/components/checkout/base-pay-checkout'
+import { DirectUsdcCheckout } from '@/components/checkout/direct-usdc-checkout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -22,39 +22,39 @@ import {
   Info,
 } from 'lucide-react'
 
-// Sample healthcare services
+// Sample healthcare services (budget-friendly for testing!)
 const services = [
   {
-    id: 'virtual-consult',
-    name: 'Virtual Consultation',
-    description: '30-minute video call with a physician',
-    price: 75,
+    id: 'quick-consult',
+    name: 'Quick Consultation',
+    description: '10-minute video chat',
+    price: 5,
     icon: Stethoscope,
     category: 'Consultation',
   },
   {
-    id: 'in-person',
-    name: 'In-Person Visit',
-    description: 'Full examination at clinic',
-    price: 150,
+    id: 'virtual-consult',
+    name: 'Virtual Consultation',
+    description: '30-minute video call with a physician',
+    price: 15,
     icon: Calendar,
     category: 'Consultation',
   },
   {
-    id: 'caregiver-daily',
-    name: 'Daily Caregiver',
-    description: '8-hour professional care',
-    price: 280,
-    icon: Heart,
-    category: 'Caregiver',
-  },
-  {
-    id: 'records-export',
-    name: 'Medical Records Export',
-    description: 'Complete health records package',
-    price: 25,
+    id: 'records-access',
+    name: 'Records Access',
+    description: 'View your health records',
+    price: 2,
     icon: FileText,
     category: 'Records',
+  },
+  {
+    id: 'caregiver-hourly',
+    name: 'Caregiver (1 hour)',
+    description: 'Professional care assistance',
+    price: 10,
+    icon: Heart,
+    category: 'Caregiver',
   },
 ]
 
@@ -87,9 +87,9 @@ export default function TestCheckoutPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p>1. Get test USDC from the <a href="https://faucet.circle.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">Circle Faucet <ExternalLink className="h-3 w-3" /></a> (select Base Sepolia)</p>
-              <p>2. Make sure you have a Base-compatible wallet (Coinbase Wallet, MetaMask, etc.)</p>
-              <p>3. Select a service below to test the checkout</p>
+              <p>1. Get test USDC from <a href="https://faucet.circle.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">Circle Faucet <ExternalLink className="h-3 w-3" /></a> (select Base Sepolia)</p>
+              <p>2. Have MetaMask or any Web3 wallet installed</p>
+              <p>3. Select a service → Connect wallet → Confirm payment</p>
             </CardContent>
           </Card>
 
@@ -174,21 +174,18 @@ export default function TestCheckoutPage() {
           </Card>
         )}
 
-        {/* Base Pay Checkout */}
-        <BasePayCheckout
+        {/* Direct USDC Checkout */}
+        <DirectUsdcCheckout
           amount={selectedService.price}
           serviceName={selectedService.name}
           serviceDescription={selectedService.description}
-          orderId={`test-${selectedService.id}-${Date.now()}`}
-          providerId="test-provider"
-          onSuccess={(result) => {
-            console.log('Payment successful:', result)
+          onSuccess={(txHash) => {
+            console.log('Payment successful:', txHash)
             setPaymentComplete(true)
           }}
           onError={(error) => {
             console.error('Payment error:', error)
           }}
-          collectEmail={true}
         />
 
         {/* Test mode reminder */}
