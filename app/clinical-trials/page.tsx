@@ -86,11 +86,33 @@ export default function ClinicalTrialsPage() {
     searchTrials()
   }
 
+  // Focus on common conditions with high trial volume
   const exampleSearches = [
-    { condition: 'diabetes', location: 'California' },
+    { condition: 'lung cancer', location: 'California' },
     { condition: 'breast cancer', location: 'New York' },
-    { condition: 'alzheimers', location: 'Texas' },
-    { condition: 'heart disease', location: '' },
+    { condition: 'type 2 diabetes', location: 'Texas' },
+    { condition: 'hypertension', location: 'Florida' },
+    { condition: 'prostate cancer', location: '' },
+    { condition: 'leukemia', location: '' },
+  ]
+
+  // Common condition categories for quick access
+  const conditionCategories = [
+    { 
+      name: 'Oncology', 
+      icon: '🎗️',
+      conditions: ['Lung Cancer', 'Breast Cancer', 'Prostate Cancer', 'Leukemia', 'Lymphoma', 'Colon Cancer', 'Melanoma']
+    },
+    { 
+      name: 'Cardiovascular', 
+      icon: '❤️',
+      conditions: ['Hypertension', 'Heart Failure', 'Coronary Artery Disease', 'Atrial Fibrillation']
+    },
+    { 
+      name: 'Metabolic', 
+      icon: '🩺',
+      conditions: ['Type 2 Diabetes', 'Type 1 Diabetes', 'Obesity', 'Metabolic Syndrome']
+    },
   ]
 
   const runExampleSearch = (condition: string, loc: string) => {
@@ -147,15 +169,63 @@ export default function ClinicalTrialsPage() {
       <main className="pt-28 pb-24">
         <div className="max-w-5xl mx-auto px-6">
           {/* Header */}
-          <div className={`max-w-3xl mb-12 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+          <div className={`max-w-3xl mb-8 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h1 className="text-4xl md:text-5xl font-normal tracking-tight mb-4" style={{ lineHeight: '1.1' }}>
               Clinical Trials
               <br />
               <span style={{ color: 'var(--text-secondary)' }}>Research Network</span>
             </h1>
-            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+            <p className="text-lg mb-4" style={{ color: 'var(--text-secondary)' }}>
               Search 400,000+ clinical trials from ClinicalTrials.gov.
             </p>
+          </div>
+
+          {/* Important Disclaimer */}
+          <div 
+            className={`mb-8 p-4 rounded-xl ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
+            style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
+          >
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: '#f59e0b' }} />
+              <div>
+                <p className="font-medium mb-1" style={{ color: '#f59e0b' }}>Important Notice</p>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  Trial availability shown here may not reflect real-time status. Some institutions may not have updated whether a trial is still enrolling. 
+                  <strong> Always contact the clinical trial team directly</strong> to confirm current enrollment status and eligibility before making any decisions.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Condition Categories */}
+          <div className={`mb-8 ${mounted ? 'animate-fade-in-up delay-100' : 'opacity-0'}`}>
+            <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>Popular Categories</p>
+            <div className="grid md:grid-cols-3 gap-4">
+              {conditionCategories.map((category) => (
+                <div 
+                  key={category.name}
+                  className="p-4 rounded-xl"
+                  style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">{category.icon}</span>
+                    <h3 className="font-medium">{category.name}</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {category.conditions.map((condition) => (
+                      <button
+                        key={condition}
+                        onClick={() => runExampleSearch(condition, '')}
+                        className="px-2 py-1 text-xs rounded transition-colors"
+                        style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                      >
+                        {condition}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Search */}
@@ -244,13 +314,24 @@ export default function ClinicalTrialsPage() {
           {/* Results */}
           {!isLoading && trials.length > 0 && (
             <>
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                   Showing {trials.length} of {totalCount.toLocaleString()} trials
                 </p>
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   Data from ClinicalTrials.gov
                 </p>
+              </div>
+              
+              {/* Reminder banner */}
+              <div 
+                className="mb-6 p-3 rounded-lg flex items-center gap-2 text-sm"
+                style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
+              >
+                <AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  Remember: Contact the trial team directly to verify current enrollment status.
+                </span>
               </div>
               <div className="space-y-4">
                 {trials.map((trial, index) => (
@@ -262,9 +343,13 @@ export default function ClinicalTrialsPage() {
                     <div className="flex items-start justify-between gap-6">
                       <div className="flex-1">
                         <div className="flex items-center flex-wrap gap-2 mb-3">
-                          <span className="px-2 py-0.5 text-xs font-medium rounded flex items-center gap-1" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}>
+                          <span 
+                            className="px-2 py-0.5 text-xs font-medium rounded flex items-center gap-1" 
+                            style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}
+                            title="Status may be outdated - verify with trial team"
+                          >
                             <CheckCircle className="h-3 w-3" />
-                            Active
+                            Listed as Active
                           </span>
                           {trial.phase && (
                             <span className="px-2 py-0.5 text-xs font-medium rounded" style={{ backgroundColor: 'rgba(150, 120, 180, 0.15)', color: '#9678b4' }}>
