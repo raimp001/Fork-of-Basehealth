@@ -190,10 +190,103 @@ export function mapNPITaxonomyToSpecialty(taxonomyDescription: string): string {
   return taxonomyDescription
 }
 
+/**
+ * Get a single provider by NPI number
+ */
+export async function getProviderByNPI(npiNumber: string): Promise<NPIProvider | null> {
+  const baseUrl = "https://npiregistry.cms.hhs.gov/api/"
+
+  const queryParams = new URLSearchParams()
+  queryParams.append("version", "2.1")
+  queryParams.append("number", npiNumber)
+
+  try {
+    const response = await fetch(`${baseUrl}?${queryParams.toString()}`)
+
+    if (!response.ok) {
+      console.error(`NPI API request failed: ${response.status} ${response.statusText}`)
+      return null
+    }
+
+    const data = await response.json()
+
+    if (data.result_count === 0 || !data.results || data.results.length === 0) {
+      return null
+    }
+
+    return data.results[0]
+  } catch (error) {
+    console.error("Error fetching NPI provider:", error)
+    return null
+  }
+}
+
+/**
+ * Convert NPI provider data to app Provider format
+ */
+export function convertToAppProvider(npiProvider: NPIProvider): import("@/types/user").Provider {
+  const primaryTaxonomy = npiProvider.taxonomies?.find(t => t.primary) || npiProvider.taxonomies?.[0]
+  const practiceAddress = npiProvider.addresses?.find(a => a.address_purpose === "LOCATION") || 
+                          npiProvider.practice_locations?.[0] ||
+                          npiProvider.addresses?.[0]
+
+  const firstName = npiProvider.basic.first_name || ''
+  const lastName = npiProvider.basic.last_name || ''
+  const credential = npiProvider.basic.credential || ''
+  
+  const fullName = `${firstName} ${lastName}${credential ? `, ${credential}` : ''}`.trim()
+
+  return {
+    id: `npi-${npiProvider.number}`,
+    name: fullName,
+    email: '',
+    role: 'provider',
+    specialty: primaryTaxonomy ? mapNPITaxonomyToSpecialty(primaryTaxonomy.desc) : 'Healthcare Provider',
+    credentials: credential ? [credential] : [],
+    licenseNumber: primaryTaxonomy?.license || '',
+    licenseState: primaryTaxonomy?.state || '',
+    licenseExpiration: '',
+    education: [],
+    yearsOfExperience: 0,
+    bio: '',
+    address: practiceAddress ? {
+      street: `${practiceAddress.address_1}${practiceAddress.address_2 ? `, ${practiceAddress.address_2}` : ''}`,
+      city: practiceAddress.city || '',
+      state: practiceAddress.state || '',
+      zipCode: practiceAddress.postal_code || '',
+      country: practiceAddress.country_name || 'USA',
+    } : {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: 'USA',
+    },
+    availability: {
+      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      hours: { start: '09:00', end: '17:00' },
+    },
+    consultationFee: 0,
+    rating: 0,
+    reviewCount: 0,
+    isVerified: true,
+    verificationStatus: 'approved',
+    acceptedInsurance: [],
+    acceptedCryptocurrencies: ['USDC', 'ETH'],
+    services: primaryTaxonomy ? [primaryTaxonomy.desc] : [],
+    npiNumber: npiProvider.number,
+    phone: practiceAddress?.telephone_number || '',
+    createdAt: npiProvider.basic.enumeration_date || new Date().toISOString(),
+    updatedAt: npiProvider.basic.last_updated || new Date().toISOString(),
+  }
+}
+
 // Add a default export that includes all named exports
 const npiService = {
   searchNPIProviders,
   mapNPITaxonomyToSpecialty,
+  getProviderByNPI,
+  convertToAppProvider,
 }
 
 export default npiService
