@@ -14,6 +14,7 @@ import {
   markPaymentProcessed,
   basePayConfig,
 } from '@/lib/base-pay-service'
+import { recordProviderEarning } from '@/lib/usdc-settlement-service'
 
 interface VerifyRequest {
   paymentId: string
@@ -86,6 +87,13 @@ export async function POST(request: NextRequest) {
       verification.sender || '',
       verification.amount || expectedAmount
     )
+    
+    // Record provider earning (credit to their pending balance)
+    const providerId = body.providerId
+    if (providerId) {
+      const amountUsd = parseFloat(expectedAmount)
+      await recordProviderEarning(providerId, amountUsd, paymentId)
+    }
     
     return NextResponse.json({
       success: true,

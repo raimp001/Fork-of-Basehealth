@@ -112,6 +112,9 @@ function OnboardingContent() {
     attestedLicenseScope: false,
     consentToVerification: false,
     consentToBackgroundCheck: false,
+    // Payment settings for USDC settlements
+    walletAddress: "",
+    payoutPreference: "USDC_DIRECT",
   })
 
   // Reference data
@@ -741,6 +744,50 @@ function OnboardingContent() {
                       I consent to credential verification
                     </span>
                   </label>
+                </div>
+
+                {/* Payment Settings - USDC Payout */}
+                <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <span className="text-blue-400 font-bold text-sm">$</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-white/90 mb-1">Payment Settings</p>
+                      <p className="text-sm text-white/50">Receive payments in USDC on Base blockchain</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-white/70 text-sm">Base Wallet Address (optional)</Label>
+                      <Input
+                        type="text"
+                        placeholder="0x..."
+                        value={formData.walletAddress}
+                        onChange={(e) => setFormData({ ...formData, walletAddress: e.target.value })}
+                        className="mt-1 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                      />
+                      <p className="text-xs text-white/40 mt-1">Enter your Base wallet address to receive USDC payouts. You can add this later.</p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-white/70 text-sm">Payout Preference</Label>
+                      <Select
+                        value={formData.payoutPreference}
+                        onValueChange={(v) => setFormData({ ...formData, payoutPreference: v })}
+                      >
+                        <SelectTrigger className="mt-1 bg-white/5 border-white/10 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="USDC_DIRECT">USDC Direct (to wallet)</SelectItem>
+                          <SelectItem value="COINBASE">Coinbase Account</SelectItem>
+                          <SelectItem value="HOLD">Hold until threshold</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="p-4 bg-white/[0.02] border border-white/10 rounded-lg">

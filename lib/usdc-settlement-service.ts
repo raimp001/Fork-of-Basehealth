@@ -31,6 +31,7 @@
 
 import { paymentConfig, baseChain } from './coinbase-config'
 import { base, baseSepolia } from 'wagmi/chains'
+import { prisma } from './prisma'
 
 // =============================================================================
 // TYPES
@@ -437,6 +438,87 @@ export async function checkUsdcBalance(
     return {
       sufficient: false,
       balance: '0',
+    }
+  }
+}
+
+/**
+ * Record a payment to provider's pending balance
+ * Called when a patient payment is confirmed
+ */
+export async function recordProviderEarning(
+  providerId: string,
+  amountUsd: number,
+  paymentId: string
+): Promise<{ success: boolean; newBalance?: string; error?: string }> {
+  try {
+    const settlement = calculateSettlement(amountUsd)
+    const providerPayoutRaw = parseInt(settlement.providerPayoutUsdc)
+    
+    // Get current provider
+    const provider = await prisma.provider.findUnique({
+      where: { id: providerId },
+      select: { pendingPayoutUsdc: true },
+    })
+    
+    if (!provider) {
+      // Try by NPI number
+      const providerByNpi = await prisma.provider.findFirst({
+        where: { npiNumber: providerId },
+        select: { id: true, pendingPayoutUsdc: true },
+      })
+      
+      if (!providerByNpi) {
+        // Provider not in our system - they haven't signed up yet
+        console.log(`[Settlement] Provider ${providerId} not found - payment pending until signup`)
+        return {
+          success: true,
+          newBalance: '0',
+        }
+      }
+      
+      // Update by found ID
+      const currentBalance = parseInt(providerByNpi.pendingPayoutUsdc || '0')
+      const newBalance = currentBalance + providerPayoutRaw
+      
+      await prisma.provider.update({
+        where: { id: providerByNpi.id },
+        data: {
+          pendingPayoutUsdc: newBalance.toString(),
+        },
+      })
+      
+      console.log(`[Settlement] Added ${settlement.providerPayoutUsdc} to provider ${providerByNpi.id}. New balance: ${newBalance}`)
+      
+      return {
+        success: true,
+        newBalance: newBalance.toString(),
+      }
+    }
+    
+    // Update provider's pending balance
+    const currentBalance = parseInt(provider.pendingPayoutUsdc || '0')
+    const newBalance = currentBalance + providerPayoutRaw
+    
+    await prisma.provider.update({
+      where: { id: providerId },
+      data: {
+        pendingPayoutUsdc: newBalance.toString(),
+      },
+    })
+    
+    console.log(`[Settlement] Added ${settlement.providerPayoutUsdc} to provider ${providerId}. New balance: ${newBalance}`)
+    
+    return {
+      success: true,
+      newBalance: newBalance.toString(),
+    }
+    
+  } catch (error) {
+    console.error('Error recording provider earning:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to record earning',
     }
   }
 }

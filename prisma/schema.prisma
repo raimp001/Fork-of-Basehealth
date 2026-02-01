@@ -197,6 +197,10 @@ model Application {
   consentToBackgroundCheck Boolean  @default(false)
   attestedAt      DateTime?
   
+  // Payment Settings (for approved providers/caregivers)
+  walletAddress   String?           // Base wallet for USDC payouts (0x...)
+  payoutPreference String?          // USDC_DIRECT, COINBASE, HOLD
+  
   // Relations
   documents       Document[]
   verifications   Verification[]
@@ -548,6 +552,16 @@ model Provider {
   rating      Decimal? @default(0) @db.Decimal(3, 2)
   reviewCount Int      @default(0)
   
+  // Payment Settings (for USDC settlements)
+  walletAddress String?  // Base wallet address for USDC payouts (0x...)
+  payoutPreference PayoutPreference @default(USDC_DIRECT)
+  pendingPayoutUsdc String?  // Pending payout amount in USDC (6 decimals)
+  totalEarnedUsdc String?  // Total lifetime earnings in USDC
+  lastPayoutAt DateTime?
+  
+  // Payment history relation
+  payouts     ProviderPayout[]
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
@@ -555,7 +569,51 @@ model Provider {
   @@index([email])
   @@index([type])
   @@index([status])
+  @@index([walletAddress])
   @@map("providers")
+}
+
+enum PayoutPreference {
+  USDC_DIRECT    // Direct to Base wallet
+  COINBASE       // To Coinbase account (can off-ramp)
+  HOLD           // Accumulate until threshold
+}
+
+// ============================================================================
+// PROVIDER PAYOUT TRACKING
+// ============================================================================
+
+model ProviderPayout {
+  id          String   @id @default(cuid())
+  
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  // Payout details
+  amountUsdc  String   // Amount in USDC (6 decimals)
+  txHash      String?  // Base transaction hash
+  walletAddress String // Wallet address at time of payout
+  
+  // Status
+  status      PayoutStatus @default(PENDING)
+  
+  // Related payments
+  paymentIds  String[] // Array of payment IDs included in this payout
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  processedAt DateTime?
+  
+  @@index([providerId])
+  @@index([status])
+  @@map("provider_payouts")
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
 enum ProviderType {

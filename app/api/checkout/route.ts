@@ -12,6 +12,7 @@ import {
   createPayment, 
   getCheckoutConfig,
   calculateSettlement,
+  recordProviderEarning,
   type PaymentRequest 
 } from '@/lib/usdc-settlement-service'
 
