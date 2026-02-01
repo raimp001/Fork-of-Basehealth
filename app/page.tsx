@@ -6,7 +6,7 @@
  */
 
 import Link from "next/link"
-import { ArrowRight, Shield, Check } from "lucide-react"
+import { ArrowRight, Shield, Check, Heart } from "lucide-react"
 
 const features = [
   {
@@ -18,6 +18,11 @@ const features = [
     title: "Provider Network",
     description: "Access 1M+ NPI-verified healthcare providers with real-time availability.",
     href: "/providers/search",
+  },
+  {
+    title: "Find Caregivers",
+    description: "Connect with verified caregivers for elder care, post-surgery support, and more.",
+    href: "/caregivers/search",
   },
   {
     title: "Clinical Trials",
@@ -47,15 +52,18 @@ export default function HomePage() {
               <span className="text-lg font-medium">BaseHealth</span>
             </Link>
 
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-6">
               <Link href="/screening" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Screenings
               </Link>
               <Link href="/providers/search" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Find Providers
               </Link>
+              <Link href="/caregivers/search" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
+                Find Caregivers
+              </Link>
               <Link href="/clinical-trials" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
-                Clinical Trials
+                Trials
               </Link>
             </div>
 
@@ -97,7 +105,7 @@ export default function HomePage() {
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-16">
+            <div className="flex flex-col sm:flex-row gap-4 mb-16 flex-wrap">
               <Link
                 href="/screening"
                 className="group inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg transition-all"
@@ -120,6 +128,18 @@ export default function HomePage() {
               >
                 Find a Provider
               </Link>
+              <Link
+                href="/caregivers/search"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg border transition-all"
+                style={{ 
+                  borderColor: 'var(--border-medium)',
+                  color: 'var(--text-primary)',
+                  backgroundColor: 'transparent'
+                }}
+              >
+                <Heart className="h-4 w-4" />
+                Find a Caregiver
+              </Link>
             </div>
 
             {/* Benefits */}
@@ -140,7 +160,7 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-2xl font-normal mb-12">What we offer</h2>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
               <Link
                 key={feature.title}
@@ -207,7 +227,7 @@ export default function HomePage() {
             <p className="text-lg mb-8" style={{ color: 'var(--text-secondary)' }}>
               Join thousands of users making informed healthcare decisions.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
               <Link
                 href="/register"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg transition-all"
@@ -220,7 +240,7 @@ export default function HomePage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/onboarding"
+                href="/onboarding?role=provider"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg border transition-all"
                 style={{ 
                   borderColor: 'var(--border-medium)',
@@ -228,6 +248,17 @@ export default function HomePage() {
                 }}
               >
                 Join as Provider
+              </Link>
+              <Link
+                href="/onboarding?role=caregiver"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg border transition-all"
+                style={{ 
+                  borderColor: 'var(--border-medium)',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                <Heart className="h-4 w-4" />
+                Join as Caregiver
               </Link>
             </div>
           </div>
