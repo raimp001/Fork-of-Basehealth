@@ -8,8 +8,9 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { 
   ArrowRight, ArrowLeft, Loader2, CheckCircle, 
-  AlertCircle, Shield, Heart, Brain, User
+  AlertCircle, Shield, Heart, Brain, User, CreditCard, X
 } from "lucide-react"
+import { ScreeningCheckout } from "@/components/checkout/screening-checkout"
 
 interface ScreeningRecommendation {
   id: string
@@ -57,6 +58,10 @@ export default function ScreeningPage() {
     medicalHistory: [] as string[],
     familyHistory: [] as string[],
   })
+  
+  // Checkout modal state
+  const [checkoutScreening, setCheckoutScreening] = useState<ScreeningRecommendation | null>(null)
+  const [paymentComplete, setPaymentComplete] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -211,14 +216,31 @@ export default function ScreeningPage() {
 
                         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>📅 {rec.frequency}</p>
                       </div>
-                      <Link
-                        href={`/providers/search?query=${encodeURIComponent(rec.primaryProvider)}`}
-                        className="px-4 py-2 font-medium rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
-                        style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
-                      >
-                        Find Provider
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
+                      <div className="flex flex-col gap-2">
+                        {paymentComplete === rec.id ? (
+                          <div className="px-4 py-2 rounded-lg text-sm flex items-center gap-2 whitespace-nowrap" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}>
+                            <CheckCircle className="h-4 w-4" />
+                            Booked
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setCheckoutScreening(rec)}
+                            className="px-4 py-2 font-medium rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
+                            style={{ backgroundColor: '#0052FF', color: 'white' }}
+                          >
+                            <CreditCard className="h-4 w-4" />
+                            Book & Pay
+                          </button>
+                        )}
+                        <Link
+                          href={`/providers/search?query=${encodeURIComponent(rec.primaryProvider)}`}
+                          className="px-4 py-2 font-medium rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap border"
+                          style={{ borderColor: 'var(--border-medium)', color: 'var(--text-primary)' }}
+                        >
+                          Find Provider
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -253,6 +275,34 @@ export default function ScreeningPage() {
             </div>
           </div>
         </main>
+
+        {/* Checkout Modal */}
+        {checkoutScreening && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
+            <div className="relative w-full max-w-md">
+              <button
+                onClick={() => setCheckoutScreening(null)}
+                className="absolute -top-10 right-0 p-2 rounded-full transition-colors"
+                style={{ color: 'white' }}
+                aria-label="Close checkout"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              <ScreeningCheckout
+                screeningName={checkoutScreening.name}
+                screeningDescription={checkoutScreening.description}
+                providerName={checkoutScreening.primaryProvider}
+                providerId={checkoutScreening.id}
+                amount={75} // Standard consultation fee
+                onSuccess={() => {
+                  setPaymentComplete(checkoutScreening.id)
+                  setCheckoutScreening(null)
+                }}
+                onCancel={() => setCheckoutScreening(null)}
+              />
+            </div>
+          </div>
+        )}
       </div>
     )
   }
