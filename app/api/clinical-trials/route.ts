@@ -4,6 +4,28 @@ import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
 import { apiCache, generateKey } from '@/lib/api-cache'
 import { healthDBService } from '@/lib/healthdb-service'
 
+// Major cancer centers and their variations for search
+const MAJOR_CANCER_CENTERS: Record<string, string[]> = {
+  'MD Anderson': ['MD Anderson', 'MD Anderson Cancer Center', 'University of Texas MD Anderson'],
+  'Memorial Sloan Kettering': ['Memorial Sloan Kettering', 'MSK', 'Sloan Kettering', 'MSKCC'],
+  'Mayo Clinic': ['Mayo Clinic', 'Mayo'],
+  'Dana-Farber': ['Dana-Farber', 'Dana Farber', 'DFCI'],
+  'Johns Hopkins': ['Johns Hopkins', 'Hopkins', 'Johns Hopkins Oncology'],
+  'Fred Hutch': ['Fred Hutchinson', 'Fred Hutch', 'Seattle Cancer Care Alliance', 'SCCA'],
+  'UCSF': ['UCSF', 'UC San Francisco', 'UCSF Medical Center', 'UCSF Helen Diller'],
+  'UCLA': ['UCLA', 'UCLA Jonsson', 'UCLA Medical Center'],
+  'Stanford': ['Stanford', 'Stanford Cancer Center', 'Stanford Medicine'],
+  'OHSU': ['OHSU', 'Oregon Health & Science', 'Knight Cancer Institute'],
+  'City of Hope': ['City of Hope'],
+  'Moffitt': ['Moffitt', 'Moffitt Cancer Center', 'H. Lee Moffitt'],
+  'Cleveland Clinic': ['Cleveland Clinic', 'Cleveland Clinic Taussig'],
+  'Duke': ['Duke', 'Duke Cancer Institute', 'Duke University Medical'],
+  'Penn': ['Penn Medicine', 'University of Pennsylvania', 'Abramson Cancer Center'],
+  'Northwestern': ['Northwestern', 'Northwestern Memorial', 'Lurie Cancer Center'],
+  'Mount Sinai': ['Mount Sinai', 'Icahn School'],
+  'NYU': ['NYU Langone', 'NYU', 'Perlmutter Cancer Center'],
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   
@@ -19,6 +41,7 @@ export async function GET(request: NextRequest) {
     const userLocation = searchParams.get('userLocation')
     const location = searchParams.get('location')
     const naturalLanguage = searchParams.get('naturalLanguage')
+    const institution = searchParams.get('institution') // New: filter by institution/sponsor
     
     // Build search query - separate condition from location for better results
     let searchCondition = ''
@@ -470,6 +493,27 @@ export async function GET(request: NextRequest) {
     if (searchLocation) {
       apiParams.append('query.locn', searchLocation)
     }
+
+    // Add institution/sponsor filter if provided
+    if (institution && institution.trim()) {
+      // Check if it's a known cancer center
+      const institutionLower = institution.toLowerCase().trim()
+      let searchTerms: string[] = [institution.trim()]
+      
+      for (const [centerName, aliases] of Object.entries(MAJOR_CANCER_CENTERS)) {
+        if (centerName.toLowerCase().includes(institutionLower) || 
+            aliases.some(alias => alias.toLowerCase().includes(institutionLower))) {
+          searchTerms = aliases
+          break
+        }
+      }
+      
+      // Search in both sponsor and location facility fields
+      apiParams.append('query.spons', searchTerms[0])
+    }
+
+    // Only show actively recruiting studies
+    apiParams.append('filter.overallStatus', 'RECRUITING')
 
     const apiUrl = `https://clinicaltrials.gov/api/v2/studies?${apiParams.toString()}`
     

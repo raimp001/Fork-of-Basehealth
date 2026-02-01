@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Search, MapPin, FlaskConical, ExternalLink, Loader2, Users, CheckCircle, AlertCircle } from "lucide-react"
+import { Search, MapPin, FlaskConical, ExternalLink, Loader2, Users, CheckCircle, AlertCircle, Building2 } from "lucide-react"
 
 interface ClinicalTrial {
   nctId: string
@@ -21,9 +21,26 @@ interface ClinicalTrial {
   recommendationLevel?: string
 }
 
+// Major Cancer Centers for filtering
+const CANCER_CENTERS = [
+  { name: 'MD Anderson', city: 'Houston, TX' },
+  { name: 'Memorial Sloan Kettering', city: 'New York, NY' },
+  { name: 'Mayo Clinic', city: 'Rochester, MN' },
+  { name: 'Dana-Farber', city: 'Boston, MA' },
+  { name: 'Fred Hutch', city: 'Seattle, WA' },
+  { name: 'UCSF', city: 'San Francisco, CA' },
+  { name: 'UCLA', city: 'Los Angeles, CA' },
+  { name: 'Stanford', city: 'Palo Alto, CA' },
+  { name: 'OHSU', city: 'Portland, OR' },
+  { name: 'Johns Hopkins', city: 'Baltimore, MD' },
+  { name: 'Cleveland Clinic', city: 'Cleveland, OH' },
+  { name: 'Duke', city: 'Durham, NC' },
+]
+
 export default function ClinicalTrialsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [location, setLocation] = useState('')
+  const [institution, setInstitution] = useState('')
   const [trials, setTrials] = useState<ClinicalTrial[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -34,9 +51,13 @@ export default function ClinicalTrialsPage() {
     setMounted(true)
   }, [])
 
-  const searchTrials = async () => {
-    if (!searchQuery.trim() && !location.trim()) {
-      setError('Please enter a condition or location to search')
+  const searchTrials = async (conditionOverride?: string, locationOverride?: string, institutionOverride?: string) => {
+    const searchCondition = conditionOverride ?? searchQuery
+    const searchLocation = locationOverride ?? location
+    const searchInstitution = institutionOverride ?? institution
+
+    if (!searchCondition.trim() && !searchLocation.trim() && !searchInstitution.trim()) {
+      setError('Please enter a condition, location, or institution to search')
       return
     }
 
@@ -46,12 +67,16 @@ export default function ClinicalTrialsPage() {
 
     try {
       const params = new URLSearchParams()
-      const queryParts = []
-      if (searchQuery.trim()) queryParts.push(searchQuery.trim())
-      if (location.trim()) queryParts.push(location.trim())
       
-      params.append('query', queryParts.join(' '))
-      if (location.trim()) params.append('location', location.trim())
+      if (searchCondition.trim()) {
+        params.append('query', searchCondition.trim())
+      }
+      if (searchLocation.trim()) {
+        params.append('location', searchLocation.trim())
+      }
+      if (searchInstitution.trim()) {
+        params.append('institution', searchInstitution.trim())
+      }
       params.append('pageSize', '25')
 
       const response = await fetch(`/api/clinical-trials?${params}`)
@@ -69,7 +94,7 @@ export default function ClinicalTrialsPage() {
         setTrials(data.studies)
         setTotalCount(data.totalCount || data.studies.length)
       } else {
-        setError('No clinical trials found. Try different search terms.')
+        setError('No actively recruiting trials found. Try different search terms or check back later.')
         setTrials([])
       }
     } catch (err) {
@@ -84,6 +109,13 @@ export default function ClinicalTrialsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     searchTrials()
+  }
+
+  const searchByCenter = (centerName: string, centerCity: string) => {
+    setSearchQuery('')
+    setLocation(centerCity)
+    setInstitution(centerName)
+    searchTrials('', centerCity, centerName)
   }
 
   // Focus on common conditions with high trial volume
@@ -118,31 +150,8 @@ export default function ClinicalTrialsPage() {
   const runExampleSearch = (condition: string, loc: string) => {
     setSearchQuery(condition)
     setLocation(loc)
-    setTimeout(() => {
-      const params = new URLSearchParams()
-      const queryParts = []
-      if (condition) queryParts.push(condition)
-      if (loc) queryParts.push(loc)
-      params.append('query', queryParts.join(' '))
-      if (loc) params.append('location', loc)
-      params.append('pageSize', '25')
-      
-      setIsLoading(true)
-      setError(null)
-      
-      fetch(`/api/clinical-trials?${params}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.studies && data.studies.length > 0) {
-            setTrials(data.studies)
-            setTotalCount(data.totalCount || data.studies.length)
-          } else {
-            setError('No clinical trials found for this search.')
-          }
-        })
-        .catch(() => setError('Search failed'))
-        .finally(() => setIsLoading(false))
-    }, 100)
+    setInstitution('')
+    searchTrials(condition, loc, '')
   }
 
   return (
@@ -228,14 +237,34 @@ export default function ClinicalTrialsPage() {
             </div>
           </div>
 
+          {/* Major Cancer Centers */}
+          <div className={`mb-8 ${mounted ? 'animate-fade-in-up delay-150' : 'opacity-0'}`}>
+            <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
+              🏥 Major Cancer & Research Centers
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {CANCER_CENTERS.map((center) => (
+                <button
+                  key={center.name}
+                  onClick={() => searchByCenter(center.name, center.city)}
+                  className="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-1"
+                  style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
+                >
+                  {center.name}
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>({center.city.split(',')[0]})</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Search */}
           <form onSubmit={handleSubmit} className={`mb-10 ${mounted ? 'animate-fade-in-up delay-200' : 'opacity-0'}`}>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-4 gap-4">
               <div className="md:col-span-2 relative">
                 <FlaskConical className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                 <input
                   type="text"
-                  placeholder="Search by condition (e.g., diabetes, cancer)..."
+                  placeholder="Condition (e.g., lung cancer, diabetes)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-12 pr-4 py-3.5 rounded-lg text-base focus:outline-none transition-colors"
@@ -246,18 +275,28 @@ export default function ClinicalTrialsPage() {
                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                 <input
                   type="text"
-                  placeholder="Location (city, state)"
+                  placeholder="City, State"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className="w-full pl-12 pr-4 py-3.5 rounded-lg focus:outline-none transition-colors"
                   style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                 />
               </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Institution (optional)"
+                  value={institution}
+                  onChange={(e) => setInstitution(e.target.value)}
+                  className="w-full px-4 py-3.5 rounded-lg focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
+                />
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-4">
               <div className="flex flex-wrap gap-2">
-                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Try:</span>
-                {exampleSearches.map((ex, i) => (
+                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Quick:</span>
+                {exampleSearches.slice(0, 4).map((ex, i) => (
                   <button
                     key={i}
                     type="button"
@@ -265,7 +304,7 @@ export default function ClinicalTrialsPage() {
                     className="px-3 py-1 text-sm rounded-lg transition-colors"
                     style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
                   >
-                    {ex.condition}{ex.location ? ` in ${ex.location}` : ''}
+                    {ex.condition}{ex.location ? ` (${ex.location.split(',')[0]})` : ''}
                   </button>
                 ))}
               </div>
