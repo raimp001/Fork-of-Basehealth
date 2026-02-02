@@ -104,7 +104,10 @@ export const basePayConfig = {
   testnet: true, // Force testnet for Base Sepolia testing
   
   // Platform treasury wallet (receives payments)
-  recipientAddress: process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS || '',
+  // Default to a test treasury address if not set
+  // TODO: Set NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS in production
+  recipientAddress: process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS 
+    || '0x742d35Cc6634C0532925a3b844Bc9e7595f5fEcA', // Test treasury address for Base Sepolia
   
   // Callback URL for validating user info
   callbackUrl: process.env.NEXT_PUBLIC_APP_URL 
