@@ -1,3 +1,7 @@
+"use client"
+
+import { Web3Provider } from "@/app/web3-provider"
+
 export const dynamic = 'force-dynamic'
 
 export default function BasePaymentLayout({
@@ -5,6 +9,10 @@ export default function BasePaymentLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <>{children}</>
+  return (
+    <Web3Provider>
+      {children}
+    </Web3Provider>
+  )
 }
 
