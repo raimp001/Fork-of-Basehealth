@@ -30,6 +30,12 @@ import {
   Zap,
 } from 'lucide-react'
 
+// Format wallet address for display (0x1234...5678)
+function formatAddress(address: string | null): string {
+  if (!address) return ''
+  return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`
+}
+
 // Detect if we're in a wallet's in-app browser (Base app, Coinbase Wallet, etc.)
 function detectWalletBrowser(): { isWalletBrowser: boolean; walletName: string | null } {
   if (typeof window === 'undefined') return { isWalletBrowser: false, walletName: null }
@@ -477,7 +483,7 @@ export function ScreeningCheckout({
       {/* Wallet info */}
       {context.wallet && (
         <p className="text-xs text-center mt-3" style={{ color: 'var(--text-muted)' }}>
-          {walletService.formatAddress(context.wallet.address)}
+          {formatAddress(context.wallet.address)}
         </p>
       )}
 
