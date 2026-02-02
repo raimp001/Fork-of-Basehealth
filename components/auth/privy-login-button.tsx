@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { Wallet, LogOut, User, ChevronDown, Copy, ExternalLink, Loader2 } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Wallet, LogOut, ChevronDown, Copy, ExternalLink } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,26 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-// Dynamic import of Privy hooks to avoid SSR issues
-let usePrivyHook: any = null
-let useWalletsHook: any = null
-
-function usePrivySafe() {
-  const [hooks, setHooks] = useState<{ usePrivy: any; useWallets: any } | null>(null)
-  
-  useEffect(() => {
-    import('@privy-io/react-auth').then((mod) => {
-      usePrivyHook = mod.usePrivy
-      useWalletsHook = mod.useWallets
-      setHooks({ usePrivy: mod.usePrivy, useWallets: mod.useWallets })
-    }).catch(() => {
-      // Privy not available
-    })
-  }, [])
-  
-  return hooks
-}
 
 interface PrivyLoginButtonProps {
   className?: string
@@ -40,68 +20,82 @@ interface PrivyLoginButtonProps {
 export function PrivyLoginButton({ 
   className = '', 
   variant = 'primary',
-  showBalances = true 
 }: PrivyLoginButtonProps) {
   const [mounted, setMounted] = useState(false)
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [isConnecting, setIsConnecting] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [privyState, setPrivyState] = useState<any>(null)
-  const [walletsState, setWalletsState] = useState<any>(null)
 
   useEffect(() => {
     setMounted(true)
-    
-    // Try to use Privy hooks dynamically
-    const loadPrivy = async () => {
-      try {
-        const mod = await import('@privy-io/react-auth')
-        // We can't call hooks outside React, so we need a different approach
-        // The hooks will be used via a wrapper
-      } catch {
-        // Privy not available
-      }
-    }
-    loadPrivy()
+    // Check if already connected
+    checkConnection()
   }, [])
-  
-  // Use a try-catch wrapper for hooks
-  let ready = false
-  let authenticated = false
-  let user: any = null
-  let login = () => {}
-  let logout = () => {}
-  let linkWallet = () => {}
-  let wallets: any[] = []
-  
-  try {
-    // These hooks will only work if PrivyProvider is active
-    const privyMod = require('@privy-io/react-auth')
-    const privyHook = privyMod.usePrivy()
-    const walletsHook = privyMod.useWallets()
-    
-    ready = privyHook.ready
-    authenticated = privyHook.authenticated
-    user = privyHook.user
-    login = privyHook.login
-    logout = privyHook.logout
-    linkWallet = privyHook.linkWallet
-    wallets = walletsHook.wallets || []
-  } catch {
-    // Privy not available or not in provider context
+
+  const checkConnection = async () => {
+    try {
+      const ethereum = (window as any).ethereum
+      if (!ethereum) return
+      
+      const accounts = await ethereum.request({ method: 'eth_accounts' })
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0])
+      }
+    } catch {
+      // No wallet
+    }
   }
 
-  // Prevent hydration errors
-  if (!mounted || !ready) {
-    return (
-      <button 
-        disabled
-        className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors opacity-50 ${className}`}
-        style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
-      >
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="hidden sm:inline">Loading...</span>
-      </button>
-    )
-  }
+  const connectWallet = useCallback(async () => {
+    setIsConnecting(true)
+    try {
+      const ethereum = (window as any).ethereum
+      
+      if (!ethereum) {
+        // No wallet - open Base app download or show message
+        window.open('https://base.org/names', '_blank')
+        setIsConnecting(false)
+        return
+      }
+      
+      // Request accounts
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+      
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0])
+        
+        // Try to switch to Base Mainnet
+        try {
+          await ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x2105' }], // 8453 in hex
+          })
+        } catch (switchError: any) {
+          // Chain not added, try to add it
+          if (switchError.code === 4902) {
+            await ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: '0x2105',
+                chainName: 'Base',
+                rpcUrls: ['https://mainnet.base.org'],
+                blockExplorerUrls: ['https://basescan.org'],
+                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              }],
+            })
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('Wallet connection error:', error)
+    } finally {
+      setIsConnecting(false)
+    }
+  }, [])
+
+  const disconnectWallet = useCallback(() => {
+    setWalletAddress(null)
+  }, [])
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`
@@ -113,9 +107,18 @@ export function PrivyLoginButton({
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Get primary wallet
-  const primaryWallet = wallets[0]
-  const walletAddress = primaryWallet?.address || user?.wallet?.address
+  // Prevent hydration errors
+  if (!mounted) {
+    return (
+      <button 
+        className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${className}`}
+        style={{ backgroundColor: '#0052FF', color: 'white' }}
+      >
+        <Wallet className="h-4 w-4" />
+        <span className="hidden sm:inline">Connect</span>
+      </button>
+    )
+  }
 
   // Base styles
   const baseStyles = "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
@@ -126,21 +129,24 @@ export function PrivyLoginButton({
     outline: { backgroundColor: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-medium)' },
   }
 
-  // Not authenticated - show login button
-  if (!authenticated) {
+  // Not connected - show connect button
+  if (!walletAddress) {
     return (
       <button
-        onClick={login}
-        className={`${baseStyles} ${className}`}
+        onClick={connectWallet}
+        disabled={isConnecting}
+        className={`${baseStyles} ${className} ${isConnecting ? 'opacity-70' : ''}`}
         style={variantStyles[variant]}
       >
         <Wallet className="h-4 w-4" />
-        <span className="hidden sm:inline">Login</span>
+        <span className="hidden sm:inline">
+          {isConnecting ? 'Connecting...' : 'Connect'}
+        </span>
       </button>
     )
   }
 
-  // Authenticated - show user menu
+  // Connected - show wallet menu
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -148,21 +154,10 @@ export function PrivyLoginButton({
           className={`${baseStyles} ${className}`}
           style={variantStyles.secondary}
         >
-          {walletAddress ? (
-            <>
-              <Wallet className="h-4 w-4" />
-              <span className="hidden sm:inline">
-                {formatAddress(walletAddress)}
-              </span>
-            </>
-          ) : (
-            <>
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">
-                {user?.email?.address || 'Account'}
-              </span>
-            </>
-          )}
+          <Wallet className="h-4 w-4" />
+          <span className="hidden sm:inline">
+            {formatAddress(walletAddress)}
+          </span>
           <ChevronDown className="h-4 w-4" />
         </button>
       </DropdownMenuTrigger>
@@ -170,36 +165,25 @@ export function PrivyLoginButton({
       <DropdownMenuContent align="end" className="w-64" style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-medium)' }}>
         <DropdownMenuLabel>
           <div className="flex items-center justify-between">
-            <span>Account</span>
-            {walletAddress && (
-              <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: 'rgba(0, 82, 255, 0.1)', color: '#0052FF' }}>
-                Base
-              </span>
-            )}
+            <span>Wallet</span>
+            <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: 'rgba(0, 82, 255, 0.1)', color: '#0052FF' }}>
+              Base
+            </span>
           </div>
         </DropdownMenuLabel>
         
         <DropdownMenuSeparator style={{ backgroundColor: 'var(--border-subtle)' }} />
         
-        {/* Email if available */}
-        {user?.email?.address && (
-          <div className="px-2 py-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            {user.email.address}
-          </div>
-        )}
-        
         {/* Wallet address */}
-        {walletAddress && (
-          <DropdownMenuItem 
-            className="flex items-center justify-between cursor-pointer"
-            onClick={() => copyAddress(walletAddress)}
-          >
-            <span className="text-sm font-mono">
-              {formatAddress(walletAddress)}
-            </span>
-            <Copy className="h-3 w-3" />
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem 
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => copyAddress(walletAddress)}
+        >
+          <span className="text-sm font-mono">
+            {formatAddress(walletAddress)}
+          </span>
+          <Copy className="h-3 w-3" />
+        </DropdownMenuItem>
         
         {copied && (
           <div className="px-2 py-1 text-xs" style={{ color: '#6b9b6b' }}>
@@ -209,36 +193,23 @@ export function PrivyLoginButton({
         
         <DropdownMenuSeparator style={{ backgroundColor: 'var(--border-subtle)' }} />
         
-        {/* Link wallet if no wallet */}
-        {!walletAddress && (
-          <DropdownMenuItem 
-            className="cursor-pointer"
-            onClick={linkWallet}
-          >
-            <Wallet className="h-4 w-4 mr-2" />
-            Link Wallet
-          </DropdownMenuItem>
-        )}
-        
         {/* View on explorer */}
-        {walletAddress && (
-          <DropdownMenuItem 
-            className="cursor-pointer"
-            onClick={() => window.open(`https://basescan.org/address/${walletAddress}`, '_blank')}
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            View on Explorer
-          </DropdownMenuItem>
-        )}
-        
-        {/* Logout */}
         <DropdownMenuItem 
           className="cursor-pointer"
-          onClick={logout}
+          onClick={() => window.open(`https://basescan.org/address/${walletAddress}`, '_blank')}
+        >
+          <ExternalLink className="h-4 w-4 mr-2" />
+          View on Explorer
+        </DropdownMenuItem>
+        
+        {/* Disconnect */}
+        <DropdownMenuItem 
+          className="cursor-pointer"
+          onClick={disconnectWallet}
           style={{ color: '#dc6464' }}
         >
           <LogOut className="h-4 w-4 mr-2" />
-          Logout
+          Disconnect
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -246,43 +217,37 @@ export function PrivyLoginButton({
 }
 
 /**
- * Hook to get Privy auth state
+ * Hook to get wallet auth state
  * Use this in components that need to check auth status
  */
 export function usePrivyAuth() {
   const [state, setState] = useState({
     ready: false,
     authenticated: false,
-    user: null as any,
     walletAddress: null as string | null,
-    privyUserId: null as string | null,
-    email: null as string | null,
-    login: () => {},
-    logout: () => {},
   })
 
   useEffect(() => {
-    try {
-      const privyMod = require('@privy-io/react-auth')
-      const { ready, authenticated, user, login, logout } = privyMod.usePrivy()
-      const { wallets } = privyMod.useWallets()
-      
-      const primaryWallet = wallets?.[0]
-      const walletAddress = primaryWallet?.address || user?.wallet?.address
-      
-      setState({
-        ready,
-        authenticated,
-        user,
-        walletAddress,
-        privyUserId: user?.id,
-        email: user?.email?.address,
-        login,
-        logout,
-      })
-    } catch {
-      // Privy not available
+    const checkWallet = async () => {
+      try {
+        const ethereum = (window as any).ethereum
+        if (!ethereum) {
+          setState({ ready: true, authenticated: false, walletAddress: null })
+          return
+        }
+        
+        const accounts = await ethereum.request({ method: 'eth_accounts' })
+        if (accounts && accounts.length > 0) {
+          setState({ ready: true, authenticated: true, walletAddress: accounts[0] })
+        } else {
+          setState({ ready: true, authenticated: false, walletAddress: null })
+        }
+      } catch {
+        setState({ ready: true, authenticated: false, walletAddress: null })
+      }
     }
+    
+    checkWallet()
   }, [])
   
   return state
