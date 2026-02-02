@@ -15,12 +15,25 @@ import {
   basePayConfig,
 } from '@/lib/base-pay-service'
 import { recordProviderEarning } from '@/lib/usdc-settlement-service'
+import { 
+  sendPatientReceipt, 
+  notifyProviderOfBooking, 
+  notifyAdminOfBooking 
+} from '@/lib/booking-notifications'
 
 interface VerifyRequest {
   paymentId: string
   orderId: string
   expectedAmount: string
   expectedRecipient?: string
+  // Optional booking details for notifications
+  patientName?: string
+  patientEmail?: string
+  providerName?: string
+  providerEmail?: string
+  serviceType?: string
+  appointmentDate?: string
+  providerId?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -94,6 +107,31 @@ export async function POST(request: NextRequest) {
       const amountUsd = parseFloat(expectedAmount)
       await recordProviderEarning(providerId, amountUsd, paymentId)
     }
+    
+    // Send notifications (don't block on these)
+    const bookingDetails = {
+      bookingId: orderId,
+      patientName: body.patientName || 'Patient',
+      patientEmail: body.patientEmail || '',
+      providerName: body.providerName || 'Provider',
+      providerEmail: body.providerEmail,
+      serviceType: body.serviceType || 'Healthcare Service',
+      appointmentDate: body.appointmentDate || new Date().toLocaleDateString(),
+      amount: parseFloat(expectedAmount),
+      currency: 'USDC',
+      txHash: paymentId,
+    }
+    
+    // Send receipt to patient
+    if (body.patientEmail) {
+      sendPatientReceipt(bookingDetails).catch(console.error)
+    }
+    
+    // Notify provider of new booking
+    notifyProviderOfBooking(bookingDetails).catch(console.error)
+    
+    // Notify admin
+    notifyAdminOfBooking(bookingDetails).catch(console.error)
     
     return NextResponse.json({
       success: true,

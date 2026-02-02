@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { sendRefundNotification } from "@/lib/booking-notifications"
 
 /**
  * Booking Refund API
@@ -108,8 +109,16 @@ export async function POST(
       },
     })
 
-    // TODO: Send email notification to user about refund
-    // await sendRefundNotification(booking.user.email, { ... })
+    // Send email notification to user about refund
+    if (booking.user?.email) {
+      sendRefundNotification(booking.user.email, {
+        bookingId: id,
+        amount: amountToRefund,
+        currency: booking.currency || 'USDC',
+        reason: reason || 'Service not available',
+        providerName: booking.caregiver?.name || 'Provider',
+      }).catch(console.error)
+    }
 
     return NextResponse.json({
       success: true,
