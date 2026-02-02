@@ -2,13 +2,32 @@
  * Booking Notification Service
  * 
  * Handles sending notifications to providers and patients for bookings.
+ * Uses Resend for email delivery if available, otherwise logs to console.
  */
 
-import { Resend } from 'resend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@basehealth.xyz'
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@basehealth.xyz'
+
+// Dynamically import Resend to avoid build errors if not installed
+let resendClient: any = null
+
+async function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    return null
+  }
+  
+  if (!resendClient) {
+    try {
+      const { Resend } = await import('resend')
+      resendClient = new Resend(process.env.RESEND_API_KEY)
+    } catch (error) {
+      console.warn('Resend not available:', error)
+      return null
+    }
+  }
+  
+  return resendClient
+}
 
 interface BookingDetails {
   bookingId: string
@@ -33,8 +52,10 @@ interface BookingDetails {
  */
 export async function sendPatientReceipt(booking: BookingDetails): Promise<boolean> {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.log('RESEND_API_KEY not set, skipping email')
+    const resend = await getResend()
+    if (!resend) {
+      console.log('Email service not available, skipping patient receipt')
+      console.log('Would send receipt to:', booking.patientEmail, 'for', booking.amount, booking.currency)
       return false
     }
 
@@ -106,8 +127,10 @@ export async function sendPatientReceipt(booking: BookingDetails): Promise<boole
  */
 export async function notifyProviderOfBooking(booking: BookingDetails): Promise<boolean> {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.log('RESEND_API_KEY not set, skipping email')
+    const resend = await getResend()
+    if (!resend) {
+      console.log('Email service not available, skipping provider notification')
+      console.log('Would notify provider:', booking.providerEmail || ADMIN_EMAIL, 'about booking from', booking.patientName)
       return false
     }
 
@@ -206,8 +229,10 @@ export async function sendRefundNotification(
   }
 ): Promise<boolean> {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.log('RESEND_API_KEY not set, skipping email')
+    const resend = await getResend()
+    if (!resend) {
+      console.log('Email service not available, skipping refund notification')
+      console.log('Would send refund notification to:', patientEmail, 'for', details.amount, details.currency)
       return false
     }
 
@@ -271,8 +296,10 @@ export async function sendRefundNotification(
  */
 export async function notifyAdminOfBooking(booking: BookingDetails): Promise<boolean> {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.log('RESEND_API_KEY not set, skipping email')
+    const resend = await getResend()
+    if (!resend) {
+      console.log('Email service not available, skipping admin notification')
+      console.log('Would notify admin about booking:', booking.bookingId)
       return false
     }
 
