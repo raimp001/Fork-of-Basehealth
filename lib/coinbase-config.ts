@@ -1,6 +1,6 @@
 import { createConfig } from 'wagmi'
 import { base, baseSepolia } from 'wagmi/chains'
-import { coinbaseWallet } from 'wagmi/connectors'
+import { coinbaseWallet, walletConnect, injected } from 'wagmi/connectors'
 import { http } from 'viem'
 
 // Base chain configuration
@@ -8,19 +8,40 @@ import { http } from 'viem'
 // TODO: Revert to `process.env.NODE_ENV === 'production' ? base : baseSepolia` after testing
 export const baseChain = baseSepolia // Force testnet for testing
 
+// WalletConnect Project ID - required for mobile wallet connections
+// Get one free at https://cloud.walletconnect.com/
+const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo-project-id'
+
 // Wagmi configuration for Base
+// Supports: Base app (mobile), Coinbase Wallet, MetaMask, and other wallets
 export const wagmiConfig = createConfig({
-  chains: [baseChain],
+  chains: [baseSepolia, base], // Both chains available, Sepolia first for testing
   connectors: [
+    // Coinbase Wallet - works with Base app on mobile
     coinbaseWallet({
       appName: 'BaseHealth',
-      preference: 'smartWalletOnly',
+      preference: 'all', // Allow both smart wallet and regular wallet
+    }),
+    // WalletConnect - for mobile wallet connections (Base app, Rainbow, etc.)
+    walletConnect({
+      projectId: walletConnectProjectId,
+      metadata: {
+        name: 'BaseHealth',
+        description: 'Healthcare payments on Base',
+        url: 'https://basehealth.xyz',
+        icons: ['https://basehealth.xyz/logo.png'],
+      },
+      showQrModal: true,
+    }),
+    // Injected wallets (MetaMask, etc.)
+    injected({
+      shimDisconnect: true,
     }),
   ],
   ssr: true,
   transports: {
-    [base.id]: http(),
-    [baseSepolia.id]: http(),
+    [base.id]: http('https://mainnet.base.org'),
+    [baseSepolia.id]: http('https://sepolia.base.org'),
   },
 })
 
