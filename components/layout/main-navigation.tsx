@@ -3,72 +3,25 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Home, Search, Calendar, MessageSquare, Activity, Wallet, Dashboard, Hospital, Users } from "lucide-react"
+import { Menu, Home, Search, Calendar, Activity, Hospital } from "lucide-react"
 import { PrivyLoginButton } from "@/components/auth/privy-login-button"
 
 export function MainNavigation() {
   const [isOpen, setIsOpen] = useState(false)
 
-  const solutions = [
-    {
-      title: "Analytics",
-      description: "Get a better understanding of where your traffic is coming from.",
-      href: "#",
-    },
-    {
-      title: "Engagement",
-      description: "Speak directly to your customers in a more meaningful way.",
-      href: "#",
-    },
-    {
-      title: "Security",
-      description: "Your customers' data will be safe and secure.",
-      href: "#",
-    },
-    {
-      title: "Integrations",
-      description: "Connect with third-party tools that you're already using.",
-      href: "#",
-    },
-    {
-      title: "Automations",
-      description: "Build strategic funnels that will drive your customers to convert",
-      href: "#",
-    },
-    {
-      title: "OnchainKit",
-      description: "Connect with blockchain wallets and manage crypto payments.",
-      href: "/wallet/onchain",
-    },
-  ]
-
   const mainLinks = [
-    { name: "Product", href: "#" },
-    { name: "Features", href: "#" },
-    { name: "Marketplace", href: "#" },
-    { name: "Company", href: "#" },
+    { name: "Screening", href: "/screening" },
+    { name: "Find Providers", href: "/providers/search" },
+    { name: "Clinical Trials", href: "/clinical-trials" },
   ]
 
   const mobileLinks = [
     { name: "Home", href: "/", icon: Home },
+    { name: "Health Screening", href: "/screening", icon: Activity },
     { name: "Find Providers", href: "/providers/search", icon: Search },
+    { name: "Clinical Trials", href: "/clinical-trials", icon: Hospital },
     { name: "Appointments", href: "/appointment/request", icon: Calendar },
-    { name: "Chat", href: "/chat", icon: MessageSquare },
-    { name: "Health Dashboard", href: "/health/dashboard", icon: Activity },
-    { name: "Wallet", href: "/wallet", icon: Wallet },
-    { name: "Dashboard", href: "/dashboard", icon: Dashboard },
-    { name: "Retrieve Patient Info", href: "/portal/retrieve-pt-info", icon: Hospital },
-    { name: "Patients", href: "/patients", icon: Users },
   ]
 
   return (
@@ -120,9 +73,21 @@ export function MainNavigation() {
             </Sheet>
           </div>
 
-          {/* Desktop navigation - simplified */}
+          {/* Desktop navigation */}
+          <div className="hidden md:flex md:items-center md:space-x-8">
+            {mainLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className="text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+          
+          {/* Login button */}
           <div className="hidden md:flex md:items-center md:justify-end md:flex-1">
-            {/* Privy wallet-as-login button */}
             <PrivyLoginButton />
           </div>
         </div>

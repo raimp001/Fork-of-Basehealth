@@ -36,41 +36,6 @@ function formatAddress(address: string | null): string {
   return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`
 }
 
-// Hook to use Privy for wallet connection (unified auth)
-function usePrivyWallet() {
-  const [state, setState] = useState({
-    ready: false,
-    authenticated: false,
-    walletAddress: null as string | null,
-    login: (() => {}) as () => void,
-    logout: (() => {}) as () => void,
-    getProvider: (null as any),
-  })
-  
-  useEffect(() => {
-    try {
-      const privyMod = require('@privy-io/react-auth')
-      const { ready, authenticated, user, login, logout } = privyMod.usePrivy()
-      const { wallets } = privyMod.useWallets()
-      
-      const primaryWallet = wallets?.[0]
-      const walletAddress = primaryWallet?.address || user?.wallet?.address
-      
-      setState({
-        ready,
-        authenticated,
-        walletAddress,
-        login,
-        logout,
-        getProvider: primaryWallet?.getEthereumProvider,
-      })
-    } catch {
-      // Privy not available - fall back to direct wallet connection
-    }
-  })
-  
-  return state
-}
 
 // Detect if we're in a wallet's in-app browser (Base app, Coinbase Wallet, etc.)
 function detectWalletBrowser(): { isWalletBrowser: boolean; walletName: string | null } {
@@ -125,34 +90,19 @@ export function ScreeningCheckout({
   const [walletChainId, setWalletChainId] = useState<number | null>(null)
   const [connectionError, setConnectionError] = useState<string | null>(null)
   
-  // Use Privy for unified wallet-as-login
-  const privy = usePrivyWallet()
-  
   // Target chain - Base Mainnet
   const targetChainId = 8453 // Base Mainnet
 
-  // Sync Privy wallet state with component state
-  useEffect(() => {
-    if (privy.authenticated && privy.walletAddress) {
-      setWalletAddress(privy.walletAddress)
-      // Update FSM with Privy wallet
-      actions.connectWallet({
-        address: privy.walletAddress,
-        chainId: targetChainId, // Assume correct chain for Privy wallets
-      })
-    }
-  }, [privy.authenticated, privy.walletAddress, actions, targetChainId])
-
-  // Detect wallet browser on mount
+  // Detect wallet browser on mount and auto-connect if available
   useEffect(() => {
     const detected = detectWalletBrowser()
     setWalletInfo(detected)
     
-    // If in wallet browser and not using Privy, try to auto-connect
-    if (detected.isWalletBrowser && !privy.authenticated) {
+    // Auto-connect if in wallet browser
+    if (detected.isWalletBrowser) {
       checkExistingConnection()
     }
-  }, [privy.authenticated])
+  }, [])
 
   // Check if wallet is already connected (fallback for non-Privy)
   const checkExistingConnection = async () => {
@@ -208,36 +158,17 @@ export function ScreeningCheckout({
     actions.setQuote(quote)
   }, [screeningName, amount, providerId, providerName, providerWallet, actions, screeningDescription])
 
-  // Handle wallet connection - uses Privy for seamless auth, falls back to direct connection
+  // Handle wallet connection - direct wallet connection
   const handleConnectWallet = useCallback(async () => {
     setIsConnecting(true)
     setConnectionError(null)
     
     try {
-      // Try Privy login first (unified auth experience)
-      if (privy.ready && !privy.authenticated) {
-        privy.login()
-        setIsConnecting(false)
-        return // Privy will handle the rest via useEffect
-      }
-      
-      // If Privy is authenticated, we're already connected via useEffect
-      if (privy.authenticated && privy.walletAddress) {
-        setIsConnecting(false)
-        return
-      }
-      
-      // Fallback: Direct wallet connection for in-app browsers
       const ethereum = (window as any).ethereum
       
       if (!ethereum) {
-        // No wallet and no Privy - trigger Privy login which supports email/SMS
-        if (privy.ready) {
-          privy.login()
-          setIsConnecting(false)
-          return
-        }
-        setConnectionError('Please install a wallet or use email/phone to login.')
+        // No wallet detected - show helpful message
+        setConnectionError('Please open this page in the Base app, Coinbase Wallet, or install a wallet extension.')
         setIsConnecting(false)
         return
       }
@@ -303,7 +234,7 @@ export function ScreeningCheckout({
     } finally {
       setIsConnecting(false)
     }
-  }, [actions, targetChainId, privy])
+  }, [actions, targetChainId])
 
   // USDC contract address on Base Mainnet
   const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
@@ -561,11 +492,6 @@ export function ScreeningCheckout({
               <Loader2 className="h-6 w-6 animate-spin" />
               Connecting...
             </>
-          ) : privy.authenticated && privy.walletAddress ? (
-            <>
-              <Wallet className="h-6 w-6" />
-              Continue with {formatAddress(privy.walletAddress)}
-            </>
           ) : walletInfo.isWalletBrowser ? (
             <>
               <Wallet className="h-6 w-6" />
@@ -574,7 +500,7 @@ export function ScreeningCheckout({
           ) : (
             <>
               <Wallet className="h-6 w-6" />
-              Login to Pay
+              Connect Wallet
             </>
           )}
         </button>

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Stethoscope, Video, Wallet, Menu } from "lucide-react"
+import { Stethoscope, Search, FlaskConical, Menu } from "lucide-react"
 import { PrivyLoginButton } from "@/components/auth/privy-login-button"
 
 export function SimplifiedNav() {
@@ -15,26 +15,26 @@ export function SimplifiedNav() {
 
   const routes = [
     {
-      href: "/simplified-screening",
+      href: "/screening",
       label: "Screening",
       icon: Stethoscope,
     },
     {
-      href: "/simplified-telemedicine",
-      label: "Telemedicine",
-      icon: Video,
+      href: "/providers/search",
+      label: "Providers",
+      icon: Search,
     },
     {
-      href: "/simplified-wallet",
-      label: "Wallet",
-      icon: Wallet,
+      href: "/clinical-trials",
+      label: "Clinical Trials",
+      icon: FlaskConical,
     },
   ]
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
-        <Link href="/simplified" className="mr-4 flex items-center space-x-2">
+        <Link href="/" className="mr-4 flex items-center space-x-2">
           <span className="font-bold">BaseHealth</span>
         </Link>
 
