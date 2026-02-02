@@ -594,7 +594,7 @@ export default function ScreeningPage() {
                   <div className="flex items-center gap-3">
                     <Lock className="h-5 w-5" style={{ color: '#0052FF' }} />
                     <div>
-                      <p className="font-medium" style={{ color: 'var(--text-primary)' }}>$0.50 Assessment Fee</p>
+                      <p className="font-medium" style={{ color: 'var(--text-primary)' }}>$5 Assessment Fee</p>
                       <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                         One-time payment to unlock your personalized USPSTF screening recommendations
                       </p>
@@ -642,7 +642,7 @@ export default function ScreeningPage() {
                   ) : (
                     <>
                       <Lock className="h-4 w-4" />
-                      Pay $0.50 & Get Recommendations
+                      Pay $5 & Get Recommendations
                     </>
                   )}
                 </button>
@@ -673,7 +673,7 @@ export default function ScreeningPage() {
               screeningDescription="USPSTF Grade A & B personalized recommendations based on your health profile"
               providerName="BaseHealth"
               providerId="screening-assessment"
-              amount={0.5}
+              amount={5}
               onSuccess={handlePaymentSuccess}
               onCancel={() => setShowPaymentModal(false)}
             />

@@ -13,7 +13,7 @@
 // ============================================================
 // MAINNET TOGGLE - SET TO TRUE FOR PRODUCTION
 // ============================================================
-export const USE_MAINNET = process.env.NEXT_PUBLIC_USE_MAINNET === 'true' || false
+export const USE_MAINNET = true // LIVE ON MAINNET
 
 // Alternative: Check NODE_ENV (uncomment when ready)
 // export const USE_MAINNET = process.env.NODE_ENV === 'production'

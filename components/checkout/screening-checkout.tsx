@@ -89,8 +89,8 @@ export function ScreeningCheckout({
   const [walletChainId, setWalletChainId] = useState<number | null>(null)
   const [connectionError, setConnectionError] = useState<string | null>(null)
   
-  // Target chain (force Sepolia for testing)
-  const targetChainId = 84532 // Base Sepolia
+  // Target chain - Base Mainnet
+  const targetChainId = 8453 // Base Mainnet
 
   // Detect wallet browser on mount
   useEffect(() => {
@@ -183,11 +183,11 @@ export function ScreeningCheckout({
         
         // Check if on correct chain
         if (chainIdNum !== targetChainId) {
-          // Try to switch to Base Sepolia
+          // Try to switch to Base Mainnet
           try {
             await ethereum.request({
               method: 'wallet_switchEthereumChain',
-              params: [{ chainId: '0x14A34' }], // 84532 in hex
+              params: [{ chainId: '0x2105' }], // 8453 in hex
             })
             setWalletChainId(targetChainId)
           } catch (switchError: any) {
@@ -197,21 +197,21 @@ export function ScreeningCheckout({
                 await ethereum.request({
                   method: 'wallet_addEthereumChain',
                   params: [{
-                    chainId: '0x14A34',
-                    chainName: 'Base Sepolia',
-                    rpcUrls: ['https://sepolia.base.org'],
-                    blockExplorerUrls: ['https://sepolia.basescan.org'],
+                    chainId: '0x2105',
+                    chainName: 'Base',
+                    rpcUrls: ['https://mainnet.base.org'],
+                    blockExplorerUrls: ['https://basescan.org'],
                     nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
                   }],
                 })
                 setWalletChainId(targetChainId)
               } catch (addError) {
-                console.error('Failed to add Base Sepolia:', addError)
-                setConnectionError('Please switch to Base Sepolia network in your wallet.')
+                console.error('Failed to add Base:', addError)
+                setConnectionError('Please switch to Base network in your wallet.')
               }
             } else {
               console.error('Failed to switch chain:', switchError)
-              setConnectionError('Please switch to Base Sepolia network in your wallet.')
+              setConnectionError('Please switch to Base network in your wallet.')
             }
           }
         }
@@ -234,8 +234,8 @@ export function ScreeningCheckout({
     }
   }, [actions, targetChainId])
 
-  // USDC contract address on Base Sepolia
-  const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
+  // USDC contract address on Base Mainnet
+  const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
   
   // ERC20 transfer ABI
   const ERC20_ABI = [
