@@ -318,27 +318,27 @@ export function ScreeningCheckout({
     
     return (
       <div 
-        className="p-6 rounded-xl text-center"
+        className="p-8 rounded-2xl text-center"
         style={{ backgroundColor: 'rgba(107, 155, 107, 0.1)', border: '1px solid rgba(107, 155, 107, 0.2)' }}
       >
         <div 
-          className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+          className="w-20 h-20 mx-auto mb-5 rounded-full flex items-center justify-center"
           style={{ backgroundColor: 'rgba(107, 155, 107, 0.2)' }}
         >
-          <CheckCircle className="h-8 w-8" style={{ color: '#6b9b6b' }} />
+          <CheckCircle className="h-10 w-10" style={{ color: '#6b9b6b' }} />
         </div>
         
-        <h3 className="text-xl font-medium mb-2">Payment Complete</h3>
-        <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
-          ${context.quote?.amountUsd.toFixed(2)} USDC paid for {screeningName}
+        <h3 className="text-2xl font-semibold mb-3">Payment Complete</h3>
+        <p className="text-lg mb-5" style={{ color: 'var(--text-secondary)' }}>
+          ${context.quote?.amountUsd.toFixed(2)} USDC paid
         </p>
         
         {context.transaction?.paymentId && (
           <div 
-            className="p-3 rounded-lg mb-4"
+            className="p-4 rounded-xl mb-5"
             style={{ backgroundColor: 'var(--bg-tertiary)' }}
           >
-            <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Transaction ID</p>
+            <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>Transaction ID</p>
             <p className="font-mono text-sm break-all">{context.transaction.paymentId}</p>
           </div>
         )}
@@ -348,10 +348,10 @@ export function ScreeningCheckout({
             href={explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm transition-colors"
+            className="inline-flex items-center gap-2 text-base font-medium transition-colors"
             style={{ color: 'var(--accent)' }}
           >
-            View on BaseScan <ExternalLink className="h-3 w-3" />
+            View on BaseScan <ExternalLink className="h-4 w-4" />
           </a>
         )}
       </div>
@@ -362,14 +362,14 @@ export function ScreeningCheckout({
   if (is.failed) {
     return (
       <div 
-        className="p-6 rounded-xl"
+        className="p-8 rounded-2xl"
         style={{ backgroundColor: 'rgba(220, 100, 100, 0.1)', border: '1px solid rgba(220, 100, 100, 0.2)' }}
       >
-        <div className="flex items-start gap-3 mb-4">
-          <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: '#dc6464' }} />
+        <div className="flex items-start gap-4 mb-5">
+          <AlertCircle className="h-6 w-6 flex-shrink-0 mt-0.5" style={{ color: '#dc6464' }} />
           <div>
-            <h3 className="font-medium" style={{ color: '#dc6464' }}>Payment Failed</h3>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+            <h3 className="text-lg font-semibold" style={{ color: '#dc6464' }}>Payment Failed</h3>
+            <p className="text-base mt-2" style={{ color: 'var(--text-secondary)' }}>
               {context.error || 'An error occurred during payment.'}
             </p>
           </div>
@@ -379,17 +379,17 @@ export function ScreeningCheckout({
           {is.canRetry && (
             <button
               onClick={actions.retry}
-              className="flex-1 px-4 py-2.5 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="flex-1 px-5 py-3.5 text-base font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-5 w-5" />
               Try Again
             </button>
           )}
           {onCancel && (
             <button
               onClick={onCancel}
-              className="px-4 py-2.5 rounded-lg transition-colors border"
+              className="px-5 py-3.5 text-base font-medium rounded-xl transition-colors border"
               style={{ borderColor: 'var(--border-medium)', color: 'var(--text-primary)' }}
             >
               Cancel
@@ -397,7 +397,7 @@ export function ScreeningCheckout({
           )}
         </div>
         
-        <p className="text-xs text-center mt-3" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-sm text-center mt-4" style={{ color: 'var(--text-muted)' }}>
           Retry attempts: {context.retryCount} / {context.maxRetries}
         </p>
       </div>
@@ -408,14 +408,14 @@ export function ScreeningCheckout({
   if (is.pending || is.awaitingConfirm) {
     return (
       <div 
-        className="p-6 rounded-xl text-center"
+        className="p-8 rounded-2xl text-center"
         style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
       >
-        <Loader2 className="h-10 w-10 mx-auto mb-4 animate-spin" style={{ color: 'var(--accent)' }} />
-        <h3 className="text-lg font-medium mb-2">
+        <Loader2 className="h-12 w-12 mx-auto mb-5 animate-spin" style={{ color: 'var(--accent)' }} />
+        <h3 className="text-xl font-semibold mb-3">
           {is.awaitingConfirm ? 'Confirm Payment' : 'Processing...'}
         </h3>
-        <p style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-base" style={{ color: 'var(--text-secondary)' }}>
           {is.awaitingConfirm 
             ? 'Please confirm the transaction in your wallet' 
             : 'Your payment is being processed'
@@ -428,49 +428,49 @@ export function ScreeningCheckout({
   // Main checkout view (quote_ready or wallet_ready)
   return (
     <div 
-      className="p-6 rounded-xl"
+      className="p-8 rounded-2xl"
       style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
     >
       {/* Amount */}
       <div className="text-center mb-6">
-        <p className="text-3xl font-medium mb-1">${amount.toFixed(2)}</p>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {screeningName} with {providerName}
+        <p className="text-4xl font-semibold mb-2">${amount.toFixed(2)}</p>
+        <p className="text-base" style={{ color: 'var(--text-secondary)' }}>
+          {screeningName}
         </p>
       </div>
 
       {/* Benefits */}
-      <div className="grid grid-cols-3 gap-2 text-center mb-6">
-        <div className="p-2">
-          <Zap className="h-5 w-5 mx-auto mb-1" style={{ color: 'var(--accent)' }} />
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>~2 sec</p>
+      <div className="grid grid-cols-3 gap-3 text-center mb-6">
+        <div className="p-3">
+          <Zap className="h-6 w-6 mx-auto mb-1.5" style={{ color: 'var(--accent)' }} />
+          <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>~2 sec</p>
         </div>
-        <div className="p-2">
-          <Shield className="h-5 w-5 mx-auto mb-1" style={{ color: '#6b9b6b' }} />
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Secure</p>
+        <div className="p-3">
+          <Shield className="h-6 w-6 mx-auto mb-1.5" style={{ color: '#6b9b6b' }} />
+          <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Secure</p>
         </div>
-        <div className="p-2">
-          <Clock className="h-5 w-5 mx-auto mb-1" style={{ color: 'var(--text-secondary)' }} />
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No fees</p>
+        <div className="p-3">
+          <Clock className="h-6 w-6 mx-auto mb-1.5" style={{ color: 'var(--text-secondary)' }} />
+          <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>No fees</p>
         </div>
       </div>
 
       {/* Error display */}
       {context.error && (
         <div 
-          className="mb-4 p-3 rounded-lg flex items-center gap-2 text-sm"
+          className="mb-5 p-4 rounded-xl flex items-center gap-3 text-base"
           style={{ backgroundColor: 'rgba(220, 100, 100, 0.1)', color: '#dc6464' }}
         >
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <AlertCircle className="h-5 w-5 flex-shrink-0" />
           {context.error}
         </div>
       )}
 
       {/* Connection error display */}
       {connectionError && (
-        <div className="mb-4 p-3 rounded-lg text-sm" style={{ backgroundColor: 'rgba(220, 100, 100, 0.1)', color: '#dc6464' }}>
-          <div className="flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+        <div className="mb-5 p-4 rounded-xl text-base" style={{ backgroundColor: 'rgba(220, 100, 100, 0.1)', color: '#dc6464' }}>
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
             <span>{connectionError}</span>
           </div>
         </div>
@@ -482,17 +482,17 @@ export function ScreeningCheckout({
         <button
           onClick={handleConnectWallet}
           disabled={isConnecting}
-          className="w-full py-3.5 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full py-4 text-lg font-semibold rounded-xl transition-colors flex items-center justify-center gap-3 disabled:opacity-50"
           style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
         >
           {isConnecting ? (
             <>
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-6 w-6 animate-spin" />
               Connecting{walletInfo.walletName ? ` to ${walletInfo.walletName}` : ''}...
             </>
           ) : (
             <>
-              <Wallet className="h-5 w-5" />
+              <Wallet className="h-6 w-6" />
               {walletInfo.isWalletBrowser 
                 ? `Connect ${walletInfo.walletName}` 
                 : 'Connect Wallet'}
@@ -503,11 +503,11 @@ export function ScreeningCheckout({
         // Ready to pay
         <button
           onClick={handlePay}
-          className="w-full py-3.5 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full py-4 text-lg font-semibold rounded-xl transition-colors flex items-center justify-center gap-3"
           style={{ backgroundColor: '#0052FF', color: 'white' }}
         >
           <svg 
-            className="h-5 w-5" 
+            className="h-6 w-6" 
             viewBox="0 0 24 24" 
             fill="currentColor"
           >
@@ -523,7 +523,7 @@ export function ScreeningCheckout({
 
       {/* Wallet info */}
       {context.wallet && (
-        <p className="text-xs text-center mt-3" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-sm text-center mt-4 font-mono" style={{ color: 'var(--text-muted)' }}>
           {formatAddress(context.wallet.address)}
         </p>
       )}
@@ -532,7 +532,7 @@ export function ScreeningCheckout({
       {onCancel && (
         <button
           onClick={onCancel}
-          className="w-full mt-3 py-2 text-sm transition-colors"
+          className="w-full mt-4 py-3 text-base font-medium transition-colors"
           style={{ color: 'var(--text-secondary)' }}
         >
           Cancel
@@ -540,9 +540,9 @@ export function ScreeningCheckout({
       )}
 
       {/* Network badge */}
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-5">
         <span 
-          className="px-2 py-1 text-xs rounded"
+          className="px-3 py-1.5 text-sm rounded-lg font-medium"
           style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)' }}
         >
           {basePayConfig.testnet ? 'Base Sepolia (Testnet)' : 'Base Mainnet'}
