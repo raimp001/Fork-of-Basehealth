@@ -36,9 +36,14 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
+  
+  // Privy Authentication (wallet-as-login)
+  privyUserId   String?   @unique // Privy user ID - stable identity
+  walletAddress String?   @unique // Primary wallet address (0x...)
+  
   /// @phi - EMAIL (electronic identifiers)
-  email     String   @unique
-  password  String? // Nullable for OAuth users - NEVER log this field
+  email     String?   @unique // Made nullable for wallet-only users
+  password  String? // Nullable for OAuth/Privy users - NEVER log this field
   /// @phi - NAME (individual identifiers)
   name      String?
   role      UserRole @default(PATIENT)
@@ -56,6 +61,8 @@ model User {
   auditLogs AuditLog[]
   
   @@index([email])
+  @@index([privyUserId])
+  @@index([walletAddress])
   @@map("users")
 }
 
