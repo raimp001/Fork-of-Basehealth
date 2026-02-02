@@ -2,13 +2,15 @@
 
 /**
  * Health Screening Assessment - Claude.ai Design
+ * 
+ * Flow: Form (4 steps) → Pay $5 → Get USPSTF Recommendations
  */
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { 
   ArrowRight, ArrowLeft, Loader2, CheckCircle, 
-  AlertCircle, Shield, Heart, Brain, User, CreditCard, X
+  AlertCircle, Shield, Heart, Brain, User, CreditCard, X, Lock
 } from "lucide-react"
 import { ScreeningCheckout } from "@/components/checkout/screening-checkout"
 
@@ -59,14 +61,15 @@ export default function ScreeningPage() {
     familyHistory: [] as string[],
   })
   
-  // Checkout modal state
-  const [checkoutScreening, setCheckoutScreening] = useState<ScreeningRecommendation | null>(null)
-  const [paymentComplete, setPaymentComplete] = useState<string | null>(null)
+  // Payment state - $5 required before showing recommendations
+  const [hasPaid, setHasPaid] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // Steps: 1-4 = Form, 5 = Payment, 6 = Results
   const totalSteps = 4
 
   const toggleArrayItem = (array: string[], item: string) => {
@@ -75,7 +78,15 @@ export default function ScreeningPage() {
       : [...array, item]
   }
 
-  const handleSubmit = async () => {
+  // After form is complete, show payment modal
+  const handleFormComplete = () => {
+    setShowPaymentModal(true)
+  }
+
+  // After payment is successful, fetch recommendations
+  const handlePaymentSuccess = async () => {
+    setHasPaid(true)
+    setShowPaymentModal(false)
     setIsLoading(true)
     setError(null)
 
@@ -92,7 +103,7 @@ export default function ScreeningPage() {
         setRecommendations(data.recommendations || [])
         setRiskProfile(data.riskProfile || null)
         setSummary(data.summary || null)
-        setStep(5)
+        setStep(5) // Show results
       } else {
         setError(data.error || 'Failed to get recommendations')
       }
@@ -131,9 +142,15 @@ export default function ScreeningPage() {
           <div className="max-w-3xl mx-auto px-6">
             {/* Header */}
             <div className={`mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium mb-4" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}>
-                <CheckCircle className="h-4 w-4" />
-                Assessment Complete
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}>
+                  <CheckCircle className="h-4 w-4" />
+                  Assessment Complete
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium" style={{ backgroundColor: 'rgba(0, 82, 255, 0.1)', color: '#0052FF' }}>
+                  <CreditCard className="h-4 w-4" />
+                  Paid
+                </div>
               </div>
               <h1 className="text-3xl md:text-4xl font-normal tracking-tight mb-3">
                 Your Screening Recommendations
@@ -217,28 +234,21 @@ export default function ScreeningPage() {
                         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>📅 {rec.frequency}</p>
                       </div>
                       <div className="flex flex-col gap-2">
-                        {paymentComplete === rec.id ? (
-                          <div className="px-4 py-2 rounded-lg text-sm flex items-center gap-2 whitespace-nowrap" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}>
-                            <CheckCircle className="h-4 w-4" />
-                            Booked
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setCheckoutScreening(rec)}
-                            className="px-4 py-2 font-medium rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
-                            style={{ backgroundColor: '#0052FF', color: 'white' }}
-                          >
-                            <CreditCard className="h-4 w-4" />
-                            Book & Pay
-                          </button>
-                        )}
                         <Link
                           href={`/providers/search?query=${encodeURIComponent(rec.primaryProvider)}`}
-                          className="px-4 py-2 font-medium rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap border"
-                          style={{ borderColor: 'var(--border-medium)', color: 'var(--text-primary)' }}
+                          className="px-4 py-2 font-medium rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
+                          style={{ backgroundColor: '#0052FF', color: 'white' }}
                         >
                           Find Provider
                           <ArrowRight className="h-4 w-4" />
+                        </Link>
+                        <Link
+                          href={`/appointment/book?screening=${encodeURIComponent(rec.name)}`}
+                          className="px-4 py-2 font-medium rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap border"
+                          style={{ borderColor: 'var(--border-medium)', color: 'var(--text-primary)' }}
+                        >
+                          <CreditCard className="h-4 w-4" />
+                          Book Appointment
                         </Link>
                       </div>
                     </div>
@@ -276,33 +286,6 @@ export default function ScreeningPage() {
           </div>
         </main>
 
-        {/* Checkout Modal */}
-        {checkoutScreening && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
-            <div className="relative w-full max-w-md">
-              <button
-                onClick={() => setCheckoutScreening(null)}
-                className="absolute -top-10 right-0 p-2 rounded-full transition-colors"
-                style={{ color: 'white' }}
-                aria-label="Close checkout"
-              >
-                <X className="h-6 w-6" />
-              </button>
-              <ScreeningCheckout
-                screeningName={checkoutScreening.name}
-                screeningDescription={checkoutScreening.description}
-                providerName={checkoutScreening.primaryProvider}
-                providerId={checkoutScreening.id}
-                amount={5} // Test amount - reduced for testnet testing
-                onSuccess={() => {
-                  setPaymentComplete(checkoutScreening.id)
-                  setCheckoutScreening(null)
-                }}
-                onCancel={() => setCheckoutScreening(null)}
-              />
-            </div>
-          </div>
-        )}
       </div>
     )
   }
@@ -605,6 +588,19 @@ export default function ScreeningPage() {
                 <p className="text-sm text-center" style={{ color: 'var(--text-muted)' }}>
                   Select all that apply, or skip if none
                 </p>
+
+                {/* Payment notice */}
+                <div className="p-4 rounded-lg border" style={{ backgroundColor: 'rgba(0, 82, 255, 0.05)', borderColor: 'rgba(0, 82, 255, 0.2)' }}>
+                  <div className="flex items-center gap-3">
+                    <Lock className="h-5 w-5" style={{ color: '#0052FF' }} />
+                    <div>
+                      <p className="font-medium" style={{ color: 'var(--text-primary)' }}>$5 Assessment Fee</p>
+                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        One-time payment to unlock your personalized USPSTF screening recommendations
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -633,10 +629,10 @@ export default function ScreeningPage() {
                 </button>
               ) : (
                 <button
-                  onClick={handleSubmit}
+                  onClick={handleFormComplete}
                   disabled={isLoading}
                   className="flex-1 py-2.5 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+                  style={{ backgroundColor: '#0052FF', color: 'white' }}
                 >
                   {isLoading ? (
                     <>
@@ -645,8 +641,8 @@ export default function ScreeningPage() {
                     </>
                   ) : (
                     <>
-                      Get Recommendations
-                      <ArrowRight className="h-5 w-5" />
+                      <Lock className="h-4 w-4" />
+                      Pay $5 & Get Recommendations
                     </>
                   )}
                 </button>
@@ -659,6 +655,31 @@ export default function ScreeningPage() {
           </div>
         </div>
       </main>
+
+      {/* Payment Modal - Required before showing recommendations */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
+          <div className="relative w-full max-w-md">
+            <button
+              onClick={() => setShowPaymentModal(false)}
+              className="absolute -top-10 right-0 p-2 rounded-full transition-colors"
+              style={{ color: 'white' }}
+              aria-label="Close payment"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <ScreeningCheckout
+              screeningName="Health Screening Assessment"
+              screeningDescription="USPSTF Grade A & B personalized recommendations based on your health profile"
+              providerName="BaseHealth"
+              providerId="screening-assessment"
+              amount={5}
+              onSuccess={handlePaymentSuccess}
+              onCancel={() => setShowPaymentModal(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
