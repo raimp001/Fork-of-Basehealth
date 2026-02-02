@@ -15,7 +15,8 @@ import {
   ArrowRight,
   RefreshCw,
   Database,
-  Loader2
+  Loader2,
+  Calendar
 } from "lucide-react"
 
 interface Stats {
@@ -198,6 +199,23 @@ export default function AdminPortalPage() {
                           <p className="font-medium">Caregiver Applications</p>
                           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
                             {stats?.caregivers.pending || 0} pending
+                          </p>
+                        </div>
+                      </div>
+                      <ArrowRight className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
+                    </div>
+                  </div>
+                </Link>
+
+                <Link href="/admin/bookings">
+                  <div className="rounded-xl p-5 transition-all cursor-pointer group" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Calendar className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                        <div>
+                          <p className="font-medium">Bookings & Refunds</p>
+                          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                            View bookings and process refunds
                           </p>
                         </div>
                       </div>
