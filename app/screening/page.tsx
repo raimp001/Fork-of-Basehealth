@@ -642,7 +642,7 @@ export default function ScreeningPage() {
                   ) : (
                     <>
                       <Lock className="h-4 w-4" />
-                      Pay $5 & Get Recommendations
+                      Pay $0.50 & Get Recommendations
                     </>
                   )}
                 </button>
