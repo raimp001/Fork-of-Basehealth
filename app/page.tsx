@@ -7,7 +7,7 @@
 
 import Link from "next/link"
 import { ArrowRight, Shield, Check, Heart } from "lucide-react"
-import { PrivyLoginButton } from "@/components/auth/privy-login-button"
+import { SignInWithBase } from "@/components/auth/sign-in-with-base"
 
 const features = [
   {
@@ -69,7 +69,7 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <PrivyLoginButton />
+              <SignInWithBase />
             </div>
           </div>
         </div>

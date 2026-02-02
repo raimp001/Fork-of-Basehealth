@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Stethoscope, Search, FlaskConical, Menu } from "lucide-react"
-import { PrivyLoginButton } from "@/components/auth/privy-login-button"
+import { SignInWithBase } from "@/components/auth/sign-in-with-base"
 
 export function SimplifiedNav() {
   const pathname = usePathname()
@@ -60,7 +60,7 @@ export function SimplifiedNav() {
         </div>
 
         <div className="hidden md:flex items-center justify-end space-x-2">
-          <PrivyLoginButton variant="outline" />
+          <SignInWithBase />
         </div>
 
         <div className="md:hidden flex flex-1 justify-end">
@@ -91,7 +91,7 @@ export function SimplifiedNav() {
                   )
                 })}
                 <div className="mt-4 pt-4 border-t">
-                  <PrivyLoginButton className="w-full justify-center" variant="outline" />
+                  <SignInWithBase className="w-full justify-center" />
                 </div>
               </nav>
             </SheetContent>
