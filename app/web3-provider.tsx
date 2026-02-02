@@ -1,40 +1,112 @@
 "use client"
 
-import { useEffect, useState } from 'react'
-import { WagmiProvider } from 'wagmi'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { RainbowKitProvider } from '@rainbow-me/rainbowkit'
-import { base, baseSepolia } from 'wagmi/chains'
-import { wagmiConfig } from '@/lib/coinbase-config'
-import '@rainbow-me/rainbowkit/styles.css'
+import { useEffect, useState, type ReactNode } from 'react'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 1000 * 60 * 5, // 5 minutes
+/**
+ * Web3Provider - Wraps the app with wallet providers
+ * 
+ * This provider is designed to be resilient - if RainbowKit/Wagmi
+ * fails to load (e.g., in some mobile browsers), the app still works
+ * and uses native window.ethereum for wallet connections.
+ */
+
+// Lazy load wagmi/rainbowkit to prevent SSR issues
+let WagmiProvider: any = null
+let QueryClientProvider: any = null
+let RainbowKitProvider: any = null
+let wagmiConfig: any = null
+let baseSepolia: any = null
+let QueryClient: any = null
+
+// Track if we've attempted to load the providers
+let providersLoaded = false
+let providersError: Error | null = null
+
+async function loadProviders() {
+  if (providersLoaded) return !providersError
+  
+  try {
+    const [wagmiModule, queryModule, rainbowModule, configModule, chainsModule] = await Promise.all([
+      import('wagmi'),
+      import('@tanstack/react-query'),
+      import('@rainbow-me/rainbowkit'),
+      import('@/lib/coinbase-config'),
+      import('wagmi/chains'),
+    ])
+    
+    WagmiProvider = wagmiModule.WagmiProvider
+    QueryClientProvider = queryModule.QueryClientProvider
+    QueryClient = queryModule.QueryClient
+    RainbowKitProvider = rainbowModule.RainbowKitProvider
+    wagmiConfig = configModule.wagmiConfig
+    baseSepolia = chainsModule.baseSepolia
+    
+    // Import styles
+    await import('@rainbow-me/rainbowkit/styles.css')
+    
+    providersLoaded = true
+    return true
+  } catch (error) {
+    console.warn('Failed to load Web3 providers:', error)
+    providersError = error as Error
+    providersLoaded = true
+    return false
+  }
+}
+
+// Simple wrapper that doesn't crash if providers fail
+function SafeWeb3Wrapper({ children, loaded }: { children: ReactNode; loaded: boolean }) {
+  if (!loaded || !WagmiProvider || !QueryClientProvider || !RainbowKitProvider) {
+    // Providers failed to load - render children without wallet providers
+    // The app will use native window.ethereum for wallet connections
+    return <>{children}</>
+  }
+  
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+        staleTime: 1000 * 60 * 5,
+      },
     },
-  },
-})
+  })
+  
+  try {
+    return (
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider
+            modalSize="compact"
+            initialChain={baseSepolia}
+          >
+            {children}
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    )
+  } catch (error) {
+    console.warn('Web3Provider render error:', error)
+    return <>{children}</>
+  }
+}
 
-export function Web3Provider({ children }: { children: React.ReactNode }) {
+export function Web3Provider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
+  const [loaded, setLoaded] = useState(false)
   
   useEffect(() => {
     setMounted(true)
+    
+    // Load providers asynchronously
+    loadProviders().then((success) => {
+      setLoaded(success)
+    })
   }, [])
   
-  // Always render WagmiProvider but delay wallet features
-  return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          modalSize="compact"
-          initialChain={baseSepolia} // TESTING: Force Base Sepolia - TODO: revert to production check
-        >
-          {mounted ? children : <div style={{ minHeight: '100vh' }}>{children}</div>}
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
-  )
+  // During SSR or before mount, just render children
+  if (!mounted) {
+    return <div style={{ minHeight: '100vh' }}>{children}</div>
+  }
+  
+  return <SafeWeb3Wrapper loaded={loaded}>{children}</SafeWeb3Wrapper>
 }

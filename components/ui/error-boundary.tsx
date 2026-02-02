@@ -89,11 +89,19 @@ export function DefaultErrorFallback({ error, resetError, className }: ErrorFall
           </p>
         </div>
 
-        {process.env.NODE_ENV === "development" && error && (
+        {error && (
           <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-left">
             <p className="text-xs font-mono text-red-800 break-all">
-              {error.message}
+              {error.message || 'Unknown error'}
             </p>
+            {error.stack && (
+              <details className="mt-2">
+                <summary className="text-xs text-red-600 cursor-pointer">Show details</summary>
+                <pre className="text-xs text-red-700 mt-1 overflow-auto max-h-32">
+                  {error.stack.split('\n').slice(0, 5).join('\n')}
+                </pre>
+              </details>
+            )}
           </div>
         )}
 

@@ -1,8 +1,10 @@
 "use client"
 
-import { base, baseSepolia } from 'wagmi/chains'
-
 const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || ''
+
+// Chain IDs (avoid importing wagmi/chains which can cause issues in some browsers)
+const BASE_MAINNET_ID = 8453
+const BASE_SEPOLIA_ID = 84532
 
 export function PrivyProvider({ children }: { children: React.ReactNode }) {
   // If Privy app ID is not set, skip Privy provider (optional feature)
@@ -15,7 +17,7 @@ export function PrivyProvider({ children }: { children: React.ReactNode }) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { PrivyProvider: PrivyProviderBase } = require('@privy-io/react-auth')
-    const chainId = process.env.NODE_ENV === 'production' ? base.id : baseSepolia.id
+    const chainId = process.env.NODE_ENV === 'production' ? BASE_MAINNET_ID : BASE_SEPOLIA_ID
 
     return (
       <PrivyProviderBase
