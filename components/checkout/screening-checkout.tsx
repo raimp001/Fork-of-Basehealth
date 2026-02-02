@@ -17,7 +17,7 @@ import {
   type QuoteData,
   type TransactionResult 
 } from '@/lib/checkout-machine'
-import { basePayConfig, createPaymentConfig } from '@/lib/base-pay-service'
+import { basePayConfig } from '@/lib/base-pay-service'
 import { 
   CheckCircle, 
   Loader2, 
@@ -234,53 +234,77 @@ export function ScreeningCheckout({
     }
   }, [actions, targetChainId])
 
-  // Handle Base Pay payment
+  // USDC contract address on Base Sepolia
+  const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
+  
+  // ERC20 transfer ABI
+  const ERC20_ABI = [
+    'function transfer(address to, uint256 amount) returns (bool)',
+    'function balanceOf(address account) view returns (uint256)',
+    'function decimals() view returns (uint8)',
+  ]
+
+  // Handle direct USDC payment
   const handlePay = useCallback(async () => {
     if (!context.quote || !context.wallet) return
+    
+    const ethereum = (window as any).ethereum
+    if (!ethereum) {
+      actions.failTx('No wallet detected', true)
+      return
+    }
     
     actions.requestConfirm()
     
     try {
-      // Dynamic import Base Pay SDK
-      const { pay } = await import('@base-org/account')
-      
       const recipientAddress = context.quote.providerWallet || getRecipientAddress()
       
-      const config = createPaymentConfig({
-        amount: context.quote.amountUsdc,
-        orderId: context.quote.orderId,
-        providerId: context.quote.providerId,
-        providerWallet: recipientAddress,
-        serviceType: 'consultation',
-        serviceDescription: context.quote.serviceDescription,
-        collectEmail: true,
-      })
+      // Convert amount to USDC units (6 decimals)
+      const amountFloat = parseFloat(context.quote.amountUsdc)
+      const amountInUnits = Math.floor(amountFloat * 1_000_000) // USDC has 6 decimals
+      const amountHex = '0x' + amountInUnits.toString(16)
+      
+      // Encode the transfer function call
+      // transfer(address,uint256) = 0xa9059cbb
+      const transferSelector = '0xa9059cbb'
+      const paddedRecipient = recipientAddress.slice(2).padStart(64, '0')
+      const paddedAmount = amountInUnits.toString(16).padStart(64, '0')
+      const data = transferSelector + paddedRecipient + paddedAmount
       
       actions.confirm()
       
-      const payment = await pay(config)
+      // Send the transaction
+      const txHash = await ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [{
+          from: context.wallet.address,
+          to: USDC_ADDRESS,
+          data: data,
+          // Gas will be estimated by the wallet
+        }],
+      })
       
-      actions.submitTx(payment.id)
+      actions.submitTx(txHash)
       
       // Payment successful
       const result: TransactionResult = {
-        paymentId: payment.id,
-        txHash: payment.id,
+        paymentId: txHash,
+        txHash: txHash,
         sender: context.wallet.address,
         amountUsdc: context.quote.amountUsdc,
-        recipient: context.quote.providerWallet || '',
+        recipient: recipientAddress,
         timestamp: new Date(),
       }
       
       actions.confirmTx(result)
       onSuccess?.(result)
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment error:', error)
-      const message = error instanceof Error ? error.message : 'Payment failed'
+      const message = error?.message || 'Payment failed'
       
       // Check if user rejected
-      if (message.includes('rejected') || message.includes('cancelled')) {
+      if (error?.code === 4001 || message.includes('rejected') || message.includes('denied')) {
         actions.reject()
       } else {
         actions.failTx(message, true)
