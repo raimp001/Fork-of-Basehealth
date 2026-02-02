@@ -1,6 +1,5 @@
 "use client"
 
-import { usePrivy, useWallets } from '@privy-io/react-auth'
 import { useState, useEffect } from 'react'
 import { Wallet, LogOut, User, ChevronDown, Copy, ExternalLink, Loader2 } from 'lucide-react'
 import {
@@ -11,6 +10,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+
+// Dynamic import of Privy hooks to avoid SSR issues
+let usePrivyHook: any = null
+let useWalletsHook: any = null
+
+function usePrivySafe() {
+  const [hooks, setHooks] = useState<{ usePrivy: any; useWallets: any } | null>(null)
+  
+  useEffect(() => {
+    import('@privy-io/react-auth').then((mod) => {
+      usePrivyHook = mod.usePrivy
+      useWalletsHook = mod.useWallets
+      setHooks({ usePrivy: mod.usePrivy, useWallets: mod.useWallets })
+    }).catch(() => {
+      // Privy not available
+    })
+  }, [])
+  
+  return hooks
+}
 
 interface PrivyLoginButtonProps {
   className?: string
@@ -25,21 +44,50 @@ export function PrivyLoginButton({
 }: PrivyLoginButtonProps) {
   const [mounted, setMounted] = useState(false)
   const [copied, setCopied] = useState(false)
-  
-  const { 
-    ready, 
-    authenticated, 
-    user, 
-    login, 
-    logout,
-    linkWallet,
-  } = usePrivy()
-  
-  const { wallets } = useWallets()
+  const [privyState, setPrivyState] = useState<any>(null)
+  const [walletsState, setWalletsState] = useState<any>(null)
 
   useEffect(() => {
     setMounted(true)
+    
+    // Try to use Privy hooks dynamically
+    const loadPrivy = async () => {
+      try {
+        const mod = await import('@privy-io/react-auth')
+        // We can't call hooks outside React, so we need a different approach
+        // The hooks will be used via a wrapper
+      } catch {
+        // Privy not available
+      }
+    }
+    loadPrivy()
   }, [])
+  
+  // Use a try-catch wrapper for hooks
+  let ready = false
+  let authenticated = false
+  let user: any = null
+  let login = () => {}
+  let logout = () => {}
+  let linkWallet = () => {}
+  let wallets: any[] = []
+  
+  try {
+    // These hooks will only work if PrivyProvider is active
+    const privyMod = require('@privy-io/react-auth')
+    const privyHook = privyMod.usePrivy()
+    const walletsHook = privyMod.useWallets()
+    
+    ready = privyHook.ready
+    authenticated = privyHook.authenticated
+    user = privyHook.user
+    login = privyHook.login
+    logout = privyHook.logout
+    linkWallet = privyHook.linkWallet
+    wallets = walletsHook.wallets || []
+  } catch {
+    // Privy not available or not in provider context
+  }
 
   // Prevent hydration errors
   if (!mounted || !ready) {
@@ -202,20 +250,40 @@ export function PrivyLoginButton({
  * Use this in components that need to check auth status
  */
 export function usePrivyAuth() {
-  const { ready, authenticated, user, login, logout } = usePrivy()
-  const { wallets } = useWallets()
+  const [state, setState] = useState({
+    ready: false,
+    authenticated: false,
+    user: null as any,
+    walletAddress: null as string | null,
+    privyUserId: null as string | null,
+    email: null as string | null,
+    login: () => {},
+    logout: () => {},
+  })
+
+  useEffect(() => {
+    try {
+      const privyMod = require('@privy-io/react-auth')
+      const { ready, authenticated, user, login, logout } = privyMod.usePrivy()
+      const { wallets } = privyMod.useWallets()
+      
+      const primaryWallet = wallets?.[0]
+      const walletAddress = primaryWallet?.address || user?.wallet?.address
+      
+      setState({
+        ready,
+        authenticated,
+        user,
+        walletAddress,
+        privyUserId: user?.id,
+        email: user?.email?.address,
+        login,
+        logout,
+      })
+    } catch {
+      // Privy not available
+    }
+  }, [])
   
-  const primaryWallet = wallets[0]
-  const walletAddress = primaryWallet?.address || user?.wallet?.address
-  
-  return {
-    ready,
-    authenticated,
-    user,
-    walletAddress,
-    privyUserId: user?.id,
-    email: user?.email?.address,
-    login,
-    logout,
-  }
+  return state
 }

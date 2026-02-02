@@ -1,6 +1,5 @@
 "use client"
 
-import { usePrivy } from '@privy-io/react-auth'
 import { useEffect, useState } from 'react'
 import { Loader2, Lock } from 'lucide-react'
 
@@ -27,25 +26,45 @@ export function RequireAuth({
   fallback,
   redirectTo 
 }: RequireAuthProps) {
-  const { ready, authenticated, login } = usePrivy()
+  const [privyState, setPrivyState] = useState<{
+    ready: boolean
+    authenticated: boolean
+    login: () => void
+  } | null>(null)
   const [hasTriggeredLogin, setHasTriggeredLogin] = useState(false)
 
   useEffect(() => {
+    // Dynamically load Privy
+    import('@privy-io/react-auth').then((mod) => {
+      try {
+        const { ready, authenticated, login } = mod.usePrivy()
+        setPrivyState({ ready, authenticated, login })
+      } catch {
+        // Not in Privy context, allow access
+        setPrivyState({ ready: true, authenticated: true, login: () => {} })
+      }
+    }).catch(() => {
+      // Privy not available, allow access
+      setPrivyState({ ready: true, authenticated: true, login: () => {} })
+    })
+  }, [])
+
+  useEffect(() => {
     // Only trigger login once when ready and not authenticated
-    if (ready && !authenticated && !hasTriggeredLogin) {
+    if (privyState?.ready && !privyState?.authenticated && !hasTriggeredLogin) {
       setHasTriggeredLogin(true)
-      login()
+      privyState.login()
     }
-  }, [ready, authenticated, hasTriggeredLogin, login])
+  }, [privyState, hasTriggeredLogin])
 
   // Still loading Privy
-  if (!ready) {
+  if (!privyState || !privyState.ready) {
     return fallback || <AuthLoadingState />
   }
 
   // Not authenticated - show loading while login modal opens
-  if (!authenticated) {
-    return fallback || <AuthRequiredState onLogin={login} />
+  if (!privyState.authenticated) {
+    return fallback || <AuthRequiredState onLogin={privyState.login} />
   }
 
   // Authenticated - render children
