@@ -293,7 +293,7 @@ export default function ScreeningPage() {
                 screeningDescription={checkoutScreening.description}
                 providerName={checkoutScreening.primaryProvider}
                 providerId={checkoutScreening.id}
-                amount={75} // Standard consultation fee
+                amount={5} // Test amount - reduced for testnet testing
                 onSuccess={() => {
                   setPaymentComplete(checkoutScreening.id)
                   setCheckoutScreening(null)

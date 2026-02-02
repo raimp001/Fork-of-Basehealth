@@ -99,8 +99,9 @@ export interface PaymentVerification {
 // =============================================================================
 
 export const basePayConfig = {
-  // Use testnet in development
-  testnet: process.env.NODE_ENV !== 'production',
+  // Use testnet in development or when explicitly set
+  // Set NEXT_PUBLIC_USE_TESTNET=true to force testnet in production
+  testnet: process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_USE_TESTNET === 'true',
   
   // Platform treasury wallet (receives payments)
   recipientAddress: process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS || '',
