@@ -127,8 +127,23 @@ export function ScreeningCheckout({
     }
   }
 
+  // Default treasury wallet (fallback if env var not set)
+  const DEFAULT_TREASURY = '0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b'
+  
+  // Get valid recipient address
+  const getRecipientAddress = () => {
+    if (providerWallet && providerWallet.startsWith('0x') && providerWallet.length === 42) {
+      return providerWallet
+    }
+    if (basePayConfig.recipientAddress && basePayConfig.recipientAddress.startsWith('0x') && basePayConfig.recipientAddress.length === 42) {
+      return basePayConfig.recipientAddress
+    }
+    return DEFAULT_TREASURY
+  }
+
   // Initialize quote on mount
   useEffect(() => {
+    const recipientAddress = getRecipientAddress()
     const quote: QuoteData = {
       orderId: `screening-${Date.now()}`,
       serviceName: screeningName,
@@ -137,7 +152,7 @@ export function ScreeningCheckout({
       amountUsdc: amount.toFixed(2),
       providerId,
       providerName,
-      providerWallet: providerWallet || basePayConfig.recipientAddress,
+      providerWallet: recipientAddress,
     }
     actions.setQuote(quote)
   }, [screeningName, amount, providerId, providerName, providerWallet, actions, screeningDescription])
@@ -229,11 +244,13 @@ export function ScreeningCheckout({
       // Dynamic import Base Pay SDK
       const { pay } = await import('@base-org/account')
       
+      const recipientAddress = context.quote.providerWallet || getRecipientAddress()
+      
       const config = createPaymentConfig({
         amount: context.quote.amountUsdc,
         orderId: context.quote.orderId,
         providerId: context.quote.providerId,
-        providerWallet: context.quote.providerWallet || basePayConfig.recipientAddress,
+        providerWallet: recipientAddress,
         serviceType: 'consultation',
         serviceDescription: context.quote.serviceDescription,
         collectEmail: true,

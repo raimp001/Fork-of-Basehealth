@@ -75,13 +75,14 @@ export const ACTIVE_CHAIN = USE_MAINNET ? CHAINS.mainnet : CHAINS.sepolia
 // PAYMENT CONFIGURATION
 // ============================================================
 
+// Default treasury wallet address (used if env var not set)
+const DEFAULT_TREASURY_ADDRESS = '0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b'
+
 export const PAYMENT_CONFIG = {
   // Platform treasury wallet - receives payments
-  // IMPORTANT: Set this to your real wallet for mainnet!
+  // Can be overridden with NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS env var
   recipientAddress: process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS 
-    || (USE_MAINNET 
-      ? '' // MUST set env var for mainnet
-      : '0x742d35Cc6634C0532925a3b844Bc9e7595f5fEcA'), // Test address for Sepolia
+    || DEFAULT_TREASURY_ADDRESS,
   
   // Platform fee percentage (2.5%)
   platformFeePercent: 2.5,
