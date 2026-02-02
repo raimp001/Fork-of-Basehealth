@@ -6,11 +6,10 @@
  * Integrated with HTTP 402 protocol and Coinbase Design System
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { MinimalNavigation } from '@/components/layout/minimal-navigation'
-import { BaseCDSPayment } from '@/components/payment/base-cds-payment'
-import { PrivyX402Payment } from '@/components/payment/privy-x402-payment'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -28,9 +27,35 @@ import {
   Brain,
   FileText,
   Crown,
+  Loader2,
 } from 'lucide-react'
 import { PAYMENT_TIERS, type PaymentProof } from '@/lib/http-402-service'
 import { toast } from 'sonner'
+
+// Dynamically import components that use Wagmi hooks to prevent SSR/build errors
+const BaseCDSPayment = dynamic(
+  () => import('@/components/payment/base-cds-payment').then(mod => mod.BaseCDSPayment),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    ),
+  }
+)
+
+const PrivyX402Payment = dynamic(
+  () => import('@/components/payment/privy-x402-payment').then(mod => mod.PrivyX402Payment),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    ),
+  }
+)
 
 export default function BasePaymentPage() {
   const router = useRouter()
