@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Home, Search, Calendar, MessageSquare, Activity, Wallet, Dashboard, Hospital, Users } from "lucide-react"
+import { PrivyLoginButton } from "@/components/auth/privy-login-button"
 
 export function MainNavigation() {
   const [isOpen, setIsOpen] = useState(false)
@@ -109,20 +110,9 @@ export function MainNavigation() {
                       </Link>
                     ))}
                     <div className="pt-4 mt-4 border-t border-slate-200">
-                      <Link
-                        href="/login"
-                        className="block px-3 py-2 text-base font-medium rounded-md hover:bg-slate-50 text-slate-700 hover:text-slate-900"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Sign in
-                      </Link>
-                      <Link
-                        href="/register"
-                        className="block px-3 py-2 mt-2 text-base font-medium text-white bg-slate-900 rounded-md hover:bg-slate-800"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Sign up
-                      </Link>
+                      <div className="px-3 py-2">
+                        <PrivyLoginButton className="w-full justify-center" />
+                      </div>
                     </div>
                   </nav>
                 </div>
@@ -131,19 +121,9 @@ export function MainNavigation() {
           </div>
 
           {/* Desktop navigation - simplified */}
-          <div className="hidden md:flex md:items-center md:justify-between md:flex-1">
-            {/* No navigation menu, just sign in/up */}
-            <div className="flex items-center">
-              <Link
-                href="/login"
-                className="whitespace-nowrap text-base font-medium text-slate-600 hover:text-slate-900 mr-8"
-              >
-                Sign in
-              </Link>
-              <Button asChild className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200">
-                <Link href="/register">Sign up</Link>
-              </Button>
-            </div>
+          <div className="hidden md:flex md:items-center md:justify-end md:flex-1">
+            {/* Privy wallet-as-login button */}
+            <PrivyLoginButton />
           </div>
         </div>
       </div>

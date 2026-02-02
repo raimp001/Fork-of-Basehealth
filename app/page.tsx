@@ -7,6 +7,7 @@
 
 import Link from "next/link"
 import { ArrowRight, Shield, Check, Heart } from "lucide-react"
+import { PrivyLoginButton } from "@/components/auth/privy-login-button"
 
 const features = [
   {
@@ -68,23 +69,7 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Link 
-                href="/login" 
-                className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-                style={{ color: 'var(--text-secondary)' }}
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/register"
-                className="px-4 py-2 text-sm font-medium rounded-lg transition-all"
-                style={{ 
-                  backgroundColor: 'var(--text-primary)', 
-                  color: 'var(--bg-primary)' 
-                }}
-              >
-                Get Started
-              </Link>
+              <PrivyLoginButton />
             </div>
           </div>
         </div>
