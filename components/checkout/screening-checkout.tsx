@@ -5,7 +5,7 @@
  * 
  * Base Pay checkout for paid screening bookings.
  * Uses FSM for robust state management and error recovery.
- * Uses Coinbase Smart Wallet via RainbowKit for one-click experience.
+ * Compatible with Base app, Coinbase Wallet, and other wallets.
  * 
  * Matches existing BaseHealth design system.
  */
@@ -29,10 +29,31 @@ import {
   Clock,
   Zap,
 } from 'lucide-react'
-// RainbowKit / Wagmi for Coinbase Smart Wallet
-import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
-import { baseSepolia, base } from 'wagmi/chains'
+
+// Detect if we're in a wallet's in-app browser (Base app, Coinbase Wallet, etc.)
+function detectWalletBrowser(): { isWalletBrowser: boolean; walletName: string | null } {
+  if (typeof window === 'undefined') return { isWalletBrowser: false, walletName: null }
+  
+  const ethereum = (window as any).ethereum
+  if (!ethereum) return { isWalletBrowser: false, walletName: null }
+  
+  // Check for Coinbase Wallet / Base app
+  if (ethereum.isCoinbaseWallet || ethereum.isCoinbaseBrowser) {
+    return { isWalletBrowser: true, walletName: 'Coinbase Wallet' }
+  }
+  
+  // Check for MetaMask
+  if (ethereum.isMetaMask) {
+    return { isWalletBrowser: true, walletName: 'MetaMask' }
+  }
+  
+  // Generic injected wallet
+  if (ethereum.isWalletConnect || ethereum.request) {
+    return { isWalletBrowser: true, walletName: 'Wallet' }
+  }
+  
+  return { isWalletBrowser: false, walletName: null }
+}
 
 interface ScreeningCheckoutProps {
   screeningName: string
@@ -57,14 +78,48 @@ export function ScreeningCheckout({
 }: ScreeningCheckoutProps) {
   const { context, actions, is } = useCheckoutMachine()
   const [isConnecting, setIsConnecting] = useState(false)
-  
-  // RainbowKit / Wagmi hooks for Coinbase Smart Wallet
-  const { openConnectModal } = useConnectModal()
-  const { address, isConnected, chainId } = useAccount()
-  const { switchChain } = useSwitchChain()
+  const [walletInfo, setWalletInfo] = useState<{ isWalletBrowser: boolean; walletName: string | null }>({ isWalletBrowser: false, walletName: null })
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [walletChainId, setWalletChainId] = useState<number | null>(null)
+  const [connectionError, setConnectionError] = useState<string | null>(null)
   
   // Target chain (force Sepolia for testing)
-  const targetChainId = baseSepolia.id // TODO: Use basePayConfig.testnet ? baseSepolia.id : base.id
+  const targetChainId = 84532 // Base Sepolia
+
+  // Detect wallet browser on mount
+  useEffect(() => {
+    const detected = detectWalletBrowser()
+    setWalletInfo(detected)
+    
+    // If in wallet browser, try to auto-connect
+    if (detected.isWalletBrowser) {
+      checkExistingConnection()
+    }
+  }, [])
+
+  // Check if wallet is already connected
+  const checkExistingConnection = async () => {
+    try {
+      const ethereum = (window as any).ethereum
+      if (!ethereum) return
+      
+      const accounts = await ethereum.request({ method: 'eth_accounts' })
+      if (accounts && accounts.length > 0) {
+        const chainIdHex = await ethereum.request({ method: 'eth_chainId' })
+        const chainIdNum = parseInt(chainIdHex, 16)
+        setWalletAddress(accounts[0])
+        setWalletChainId(chainIdNum)
+        
+        // Update FSM
+        actions.connectWallet({
+          address: accounts[0],
+          chainId: chainIdNum,
+        })
+      }
+    } catch (error) {
+      console.error('Error checking existing connection:', error)
+    }
+  }
 
   // Initialize quote on mount
   useEffect(() => {
@@ -81,36 +136,82 @@ export function ScreeningCheckout({
     actions.setQuote(quote)
   }, [screeningName, amount, providerId, providerName, providerWallet, actions, screeningDescription])
 
-  // Sync wallet state from Wagmi to FSM
-  useEffect(() => {
-    if (isConnected && address) {
-      // If on wrong chain, prompt to switch
-      if (chainId !== targetChainId && switchChain) {
-        switchChain({ chainId: targetChainId })
-      }
-      // Update FSM with wallet info
-      actions.connectWallet({
-        address,
-        chainId: chainId || targetChainId,
-      })
-    }
-  }, [isConnected, address, chainId, targetChainId, switchChain, actions])
-
-  // Handle wallet connection via RainbowKit modal (Coinbase Smart Wallet)
+  // Handle wallet connection - works in both wallet browsers and regular browsers
   const handleConnectWallet = useCallback(async () => {
     setIsConnecting(true)
+    setConnectionError(null)
+    
     try {
-      // Open RainbowKit modal - enables Coinbase Smart Wallet for one-click UX
-      if (openConnectModal) {
-        openConnectModal()
+      const ethereum = (window as any).ethereum
+      
+      if (!ethereum) {
+        setConnectionError('No wallet detected. Please open this page in the Base app or install a wallet.')
+        setIsConnecting(false)
+        return
       }
-    } catch (error) {
+      
+      // Request account access
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+      
+      if (accounts && accounts.length > 0) {
+        const chainIdHex = await ethereum.request({ method: 'eth_chainId' })
+        const chainIdNum = parseInt(chainIdHex, 16)
+        
+        setWalletAddress(accounts[0])
+        setWalletChainId(chainIdNum)
+        
+        // Check if on correct chain
+        if (chainIdNum !== targetChainId) {
+          // Try to switch to Base Sepolia
+          try {
+            await ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x14A34' }], // 84532 in hex
+            })
+            setWalletChainId(targetChainId)
+          } catch (switchError: any) {
+            // Chain not added, try to add it
+            if (switchError.code === 4902) {
+              try {
+                await ethereum.request({
+                  method: 'wallet_addEthereumChain',
+                  params: [{
+                    chainId: '0x14A34',
+                    chainName: 'Base Sepolia',
+                    rpcUrls: ['https://sepolia.base.org'],
+                    blockExplorerUrls: ['https://sepolia.basescan.org'],
+                    nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                  }],
+                })
+                setWalletChainId(targetChainId)
+              } catch (addError) {
+                console.error('Failed to add Base Sepolia:', addError)
+                setConnectionError('Please switch to Base Sepolia network in your wallet.')
+              }
+            } else {
+              console.error('Failed to switch chain:', switchError)
+              setConnectionError('Please switch to Base Sepolia network in your wallet.')
+            }
+          }
+        }
+        
+        // Update FSM with wallet info
+        actions.connectWallet({
+          address: accounts[0],
+          chainId: targetChainId,
+        })
+      }
+    } catch (error: any) {
       console.error('Wallet connection error:', error)
+      if (error.code === 4001) {
+        setConnectionError('Connection rejected. Please try again.')
+      } else {
+        setConnectionError(error.message || 'Failed to connect wallet.')
+      }
     } finally {
-      // isConnecting will be updated via useEffect when wallet connects
-      setTimeout(() => setIsConnecting(false), 1000)
+      setIsConnecting(false)
     }
-  }, [openConnectModal])
+  }, [actions, targetChainId])
 
   // Handle Base Pay payment
   const handlePay = useCallback(async () => {
@@ -318,6 +419,16 @@ export function ScreeningCheckout({
         </div>
       )}
 
+      {/* Connection error display */}
+      {connectionError && (
+        <div className="mb-4 p-3 rounded-lg text-sm" style={{ backgroundColor: 'rgba(220, 100, 100, 0.1)', color: '#dc6464' }}>
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <span>{connectionError}</span>
+          </div>
+        </div>
+      )}
+
       {/* Action buttons */}
       {!is.walletReady ? (
         // Need to connect wallet
@@ -330,12 +441,14 @@ export function ScreeningCheckout({
           {isConnecting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              Connecting...
+              Connecting{walletInfo.walletName ? ` to ${walletInfo.walletName}` : ''}...
             </>
           ) : (
             <>
               <Wallet className="h-5 w-5" />
-              Connect Wallet
+              {walletInfo.isWalletBrowser 
+                ? `Connect ${walletInfo.walletName}` 
+                : 'Connect Wallet'}
             </>
           )}
         </button>
