@@ -98,21 +98,28 @@ export interface PaymentVerification {
 // CONFIGURATION
 // =============================================================================
 
+import { USE_MAINNET, PAYMENT_CONFIG, ACTIVE_CHAIN } from './network-config'
+
 export const basePayConfig = {
-  // TESTING MODE: Force testnet for payment testing
-  // TODO: Set back to `process.env.NODE_ENV !== 'production'` after testing
-  testnet: true, // Force testnet for Base Sepolia testing
+  // Network toggle - controlled by network-config.ts
+  // Set NEXT_PUBLIC_USE_MAINNET=true for production
+  testnet: !USE_MAINNET,
   
   // Platform treasury wallet (receives payments)
-  // Default to a test treasury address if not set
-  // TODO: Set NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS in production
-  recipientAddress: process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS 
-    || '0x742d35Cc6634C0532925a3b844Bc9e7595f5fEcA', // Test treasury address for Base Sepolia
+  // Set NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS for production
+  recipientAddress: PAYMENT_CONFIG.recipientAddress,
+  
+  // Platform fee (2.5%)
+  platformFeePercent: PAYMENT_CONFIG.platformFeePercent,
   
   // Callback URL for validating user info
   callbackUrl: process.env.NEXT_PUBLIC_APP_URL 
     ? `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/base-pay/validate`
     : undefined,
+    
+  // Chain info
+  chainId: ACTIVE_CHAIN.id,
+  chainName: ACTIVE_CHAIN.name,
 }
 
 // =============================================================================
@@ -327,16 +334,12 @@ export function calculateProviderPayout(
  * 4. Session keys for recurring payments (future)
  */
 export const baseAccountConfig = {
-  // Chain configuration - TESTING MODE: Force Sepolia
-  // TODO: Set back to production check after testing
-  chain: 'base-sepolia', // Force Sepolia for testing
-  chainId: 84532, // Base Sepolia
+  // Chain configuration - controlled by network-config.ts
+  chain: ACTIVE_CHAIN.network,
+  chainId: ACTIVE_CHAIN.id,
   
-  // USDC contract addresses
-  usdc: {
-    base: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-    baseSepolia: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-  },
+  // USDC contract address for active chain
+  usdcAddress: ACTIVE_CHAIN.contracts.usdc,
   
   // Paymaster for gas sponsorship (if using one)
   paymaster: process.env.BASE_PAYMASTER_URL || null,
@@ -346,22 +349,16 @@ export const baseAccountConfig = {
   
   // Get USDC address for current environment
   getUsdcAddress(): string {
-    return process.env.NODE_ENV === 'production' 
-      ? this.usdc.base 
-      : this.usdc.baseSepolia
+    return ACTIVE_CHAIN.contracts.usdc
   },
   
-  // RPC endpoints
-  rpc: {
-    base: 'https://mainnet.base.org',
-    baseSepolia: 'https://sepolia.base.org',
-  },
-  
+  // RPC URL for current environment
   getRpcUrl(): string {
-    return process.env.NODE_ENV === 'production' 
-      ? this.rpc.base 
-      : this.rpc.baseSepolia
+    return ACTIVE_CHAIN.rpcUrls.default
   },
+  
+  // Is mainnet?
+  isMainnet: USE_MAINNET,
 }
 
 /**
