@@ -99,9 +99,9 @@ export interface PaymentVerification {
 // =============================================================================
 
 export const basePayConfig = {
-  // Use testnet in development or when explicitly set
-  // Set NEXT_PUBLIC_USE_TESTNET=true to force testnet in production
-  testnet: process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_USE_TESTNET === 'true',
+  // TESTING MODE: Force testnet for payment testing
+  // TODO: Set back to `process.env.NODE_ENV !== 'production'` after testing
+  testnet: true, // Force testnet for Base Sepolia testing
   
   // Platform treasury wallet (receives payments)
   recipientAddress: process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS || '',
@@ -324,9 +324,10 @@ export function calculateProviderPayout(
  * 4. Session keys for recurring payments (future)
  */
 export const baseAccountConfig = {
-  // Chain configuration
-  chain: process.env.NODE_ENV === 'production' ? 'base' : 'base-sepolia',
-  chainId: process.env.NODE_ENV === 'production' ? 8453 : 84532,
+  // Chain configuration - TESTING MODE: Force Sepolia
+  // TODO: Set back to production check after testing
+  chain: 'base-sepolia', // Force Sepolia for testing
+  chainId: 84532, // Base Sepolia
   
   // USDC contract addresses
   usdc: {
