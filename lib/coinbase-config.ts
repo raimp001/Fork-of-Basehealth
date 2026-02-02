@@ -4,7 +4,9 @@ import { coinbaseWallet } from 'wagmi/connectors'
 import { http } from 'viem'
 
 // Base chain configuration
-export const baseChain = process.env.NODE_ENV === 'production' ? base : baseSepolia
+// TESTING MODE: Force Base Sepolia for testnet testing
+// TODO: Revert to `process.env.NODE_ENV === 'production' ? base : baseSepolia` after testing
+export const baseChain = baseSepolia // Force testnet for testing
 
 // Wagmi configuration for Base
 export const wagmiConfig = createConfig({

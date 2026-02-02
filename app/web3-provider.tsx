@@ -30,7 +30,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           modalSize="compact"
-          initialChain={process.env.NODE_ENV === 'production' ? base : baseSepolia}
+          initialChain={baseSepolia} // TESTING: Force Base Sepolia - TODO: revert to production check
         >
           {mounted ? children : <div style={{ minHeight: '100vh' }}>{children}</div>}
         </RainbowKitProvider>

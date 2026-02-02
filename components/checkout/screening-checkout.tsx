@@ -5,6 +5,7 @@
  * 
  * Base Pay checkout for paid screening bookings.
  * Uses FSM for robust state management and error recovery.
+ * Uses Coinbase Smart Wallet via RainbowKit for one-click experience.
  * 
  * Matches existing BaseHealth design system.
  */
@@ -17,7 +18,6 @@ import {
   type TransactionResult 
 } from '@/lib/checkout-machine'
 import { basePayConfig, createPaymentConfig } from '@/lib/base-pay-service'
-import { walletService } from '@/lib/wallet-service'
 import { 
   CheckCircle, 
   Loader2, 
@@ -29,6 +29,10 @@ import {
   Clock,
   Zap,
 } from 'lucide-react'
+// RainbowKit / Wagmi for Coinbase Smart Wallet
+import { useConnectModal } from '@rainbow-me/rainbowkit'
+import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
+import { baseSepolia, base } from 'wagmi/chains'
 
 interface ScreeningCheckoutProps {
   screeningName: string
@@ -53,6 +57,14 @@ export function ScreeningCheckout({
 }: ScreeningCheckoutProps) {
   const { context, actions, is } = useCheckoutMachine()
   const [isConnecting, setIsConnecting] = useState(false)
+  
+  // RainbowKit / Wagmi hooks for Coinbase Smart Wallet
+  const { openConnectModal } = useConnectModal()
+  const { address, isConnected, chainId } = useAccount()
+  const { switchChain } = useSwitchChain()
+  
+  // Target chain (force Sepolia for testing)
+  const targetChainId = baseSepolia.id // TODO: Use basePayConfig.testnet ? baseSepolia.id : base.id
 
   // Initialize quote on mount
   useEffect(() => {
@@ -69,25 +81,36 @@ export function ScreeningCheckout({
     actions.setQuote(quote)
   }, [screeningName, amount, providerId, providerName, providerWallet, actions, screeningDescription])
 
-  // Handle wallet connection
+  // Sync wallet state from Wagmi to FSM
+  useEffect(() => {
+    if (isConnected && address) {
+      // If on wrong chain, prompt to switch
+      if (chainId !== targetChainId && switchChain) {
+        switchChain({ chainId: targetChainId })
+      }
+      // Update FSM with wallet info
+      actions.connectWallet({
+        address,
+        chainId: chainId || targetChainId,
+      })
+    }
+  }, [isConnected, address, chainId, targetChainId, switchChain, actions])
+
+  // Handle wallet connection via RainbowKit modal (Coinbase Smart Wallet)
   const handleConnectWallet = useCallback(async () => {
     setIsConnecting(true)
     try {
-      const walletInfo = await walletService.connectWallet()
-      if (walletInfo.isConnected && walletInfo.address) {
-        // Ensure correct network
-        await walletService.switchToNetwork()
-        actions.connectWallet({
-          address: walletInfo.address,
-          chainId: parseInt(walletInfo.chainId || '0', 16),
-        })
+      // Open RainbowKit modal - enables Coinbase Smart Wallet for one-click UX
+      if (openConnectModal) {
+        openConnectModal()
       }
     } catch (error) {
       console.error('Wallet connection error:', error)
     } finally {
-      setIsConnecting(false)
+      // isConnecting will be updated via useEffect when wallet connects
+      setTimeout(() => setIsConnecting(false), 1000)
     }
-  }, [actions])
+  }, [openConnectModal])
 
   // Handle Base Pay payment
   const handlePay = useCallback(async () => {

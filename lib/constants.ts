@@ -3,14 +3,14 @@ export const NETWORK_ID = process.env.NETWORK_ID || "base-sepolia"
 
 export const NETWORK_CONFIG = {
   "base-mainnet": {
-    chainId: "0x8453", // 33875 in decimal
+    chainId: "0x2105", // 8453 in decimal (Base Mainnet correct chain ID)
     chainName: "Base Mainnet",
     currencySymbol: "ETH",
     rpcUrl: "https://mainnet.base.org",
     blockExplorer: "https://basescan.org",
   },
   "base-sepolia": {
-    chainId: "0x14a33", // 84531 in decimal
+    chainId: "0x14A34", // 84532 in decimal (Base Sepolia correct chain ID)
     chainName: "Base Sepolia Testnet",
     currencySymbol: "ETH",
     rpcUrl: "https://sepolia.base.org",
