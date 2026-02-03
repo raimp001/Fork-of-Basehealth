@@ -5,6 +5,8 @@ import { Providers } from "./providers"
 import { SkipToContent, Announcer } from "@/components/ui/accessibility"
 import { OfflineIndicator, UpdateBanner, InstallPrompt } from "@/hooks/use-pwa"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://basehealth.xyz'
+
 export const metadata: Metadata = {
   title: "BaseHealth - Healthcare Simplified",
   description:
@@ -14,19 +16,36 @@ export const metadata: Metadata = {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
     "apple-mobile-web-app-capable": "yes",
+    // Base Mini App embed metadata
+    "fc:miniapp": JSON.stringify({
+      version: "next",
+      imageUrl: `${APP_URL}/og-image.png`,
+      button: {
+        title: "Open BaseHealth",
+        action: {
+          type: "launch_miniapp",
+          name: "BaseHealth",
+          url: APP_URL,
+          splashImageUrl: `${APP_URL}/icon-512.png`,
+          splashBackgroundColor: "#1a1a1a",
+        },
+      },
+    }),
   },
   openGraph: {
-    title: "BaseHealth - Healthcare Simplified",
-    description: "Evidence-based health screenings, clinical trial matching, and expert care—all in one seamless platform.",
-    url: "https://basehealth.app",
+    title: "BaseHealth - Healthcare on Base",
+    description: "Evidence-based health screenings, verified providers with on-chain attestations, and USDC payments on Base.",
+    url: APP_URL,
     siteName: "BaseHealth",
     locale: "en_US",
     type: "website",
+    images: [`${APP_URL}/og-image.png`],
   },
   twitter: {
     card: "summary_large_image",
-    title: "BaseHealth - Healthcare Simplified",
-    description: "Evidence-based health screenings, clinical trial matching, and expert care—all in one seamless platform.",
+    title: "BaseHealth - Healthcare on Base",
+    description: "Evidence-based health screenings, verified providers, and USDC payments on Base.",
+    images: [`${APP_URL}/og-image.png`],
   },
 }
 
