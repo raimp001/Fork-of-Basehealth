@@ -25,9 +25,9 @@ const EAS_CONTRACTS = {
 // Schema defines what data is included in the attestation
 const PROVIDER_SCHEMA = 'string npi,string name,string specialty,bool npiVerified,bool oigCleared,bool samCleared,bool licenseVerified,uint64 verificationDate'
 
-// Pre-registered schema UIDs (would be registered on first deployment)
+// Pre-registered schema UIDs
 const SCHEMA_UIDS = {
-  mainnet: process.env.EAS_SCHEMA_UID_MAINNET || '',
+  mainnet: process.env.EAS_SCHEMA_UID_MAINNET || '0xc418e5961df11f29f7e16d0a4d7450e9640a055822a8fd3c1edf90b425116fa5',
   sepolia: process.env.EAS_SCHEMA_UID_SEPOLIA || '0x0000000000000000000000000000000000000000000000000000000000000000',
 }
 

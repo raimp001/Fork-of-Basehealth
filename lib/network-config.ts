@@ -101,15 +101,18 @@ export const PAYMENT_CONFIG = {
 // ATTESTATION CONFIGURATION
 // ============================================================
 
+// Registered schema UID on Base Mainnet
+const MAINNET_SCHEMA_UID = '0xc418e5961df11f29f7e16d0a4d7450e9640a055822a8fd3c1edf90b425116fa5'
+
 export const ATTESTATION_CONFIG = {
   // EAS contract addresses
   easAddress: ACTIVE_CHAIN.contracts.eas,
   schemaRegistryAddress: ACTIVE_CHAIN.contracts.schemaRegistry,
   
   // BaseHealth provider schema UID
-  // These are registered once and then reused
+  // Registered on Base Mainnet by 0xEf352b65503b01997b0d91e9c24621FB1f141726
   schemaUid: USE_MAINNET
-    ? process.env.EAS_SCHEMA_UID_MAINNET || ''
+    ? process.env.EAS_SCHEMA_UID_MAINNET || MAINNET_SCHEMA_UID
     : process.env.EAS_SCHEMA_UID_SEPOLIA || '0x0000000000000000000000000000000000000000000000000000000000000000',
   
   // EAS scan URL
