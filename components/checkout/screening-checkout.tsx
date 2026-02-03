@@ -129,7 +129,7 @@ export function ScreeningCheckout({
   }
 
   // Default treasury wallet (fallback if env var not set)
-  const DEFAULT_TREASURY = '0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b'
+  const DEFAULT_TREASURY = '0xEf352b65503b01997b0d91e9c24621FB1f141726'
   
   // Get valid recipient address
   const getRecipientAddress = () => {

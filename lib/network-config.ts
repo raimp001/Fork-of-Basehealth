@@ -76,7 +76,7 @@ export const ACTIVE_CHAIN = USE_MAINNET ? CHAINS.mainnet : CHAINS.sepolia
 // ============================================================
 
 // Default treasury wallet address (used if env var not set)
-const DEFAULT_TREASURY_ADDRESS = '0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b'
+const DEFAULT_TREASURY_ADDRESS = '0xEf352b65503b01997b0d91e9c24621FB1f141726'
 
 export const PAYMENT_CONFIG = {
   // Platform treasury wallet - receives payments
