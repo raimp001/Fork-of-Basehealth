@@ -33,10 +33,24 @@ const PAYMENT_CONTRACT_ABI = [
   "event PaymentMade(address indexed from, address indexed to, uint256 amount, uint256 timestamp)",
 ]
 
+// Insurance Claims Contract ABI
+const INSURANCE_CONTRACT_ABI = [
+  "function submitClaim(string calldata claimId, uint256 amount, string calldata description) returns (bool)",
+  "function getClaimStatus(string calldata claimId) view returns (uint8)",
+  "function approveClaim(string calldata claimId) returns (bool)",
+  "function rejectClaim(string calldata claimId, string calldata reason) returns (bool)",
+  "function getClaimsByPatient(address patient) view returns (string[])",
+  "function getClaimsByProvider(address provider) view returns (string[])",
+  "function getClaimDetails(string calldata claimId) view returns (uint256 amount, uint8 status, uint256 timestamp)",
+  "event ClaimSubmitted(address indexed patient, string claimId, uint256 amount)",
+  "event ClaimStatusChanged(string claimId, uint8 status, string reason)"
+]
+
 export class BlockchainService {
   private provider: ethers.BrowserProvider | null = null
   private signer: ethers.JsonRpcSigner | null = null
   private paymentContract: ethers.Contract | null = null
+  private insuranceContract: ethers.Contract | null = null
   private isConnected = false
   private network: "mainnet" | "testnet" = "testnet" // Default to testnet
 
@@ -101,6 +115,14 @@ export class BlockchainService {
     this.paymentContract = new ethers.Contract(contractAddress, PAYMENT_CONTRACT_ABI, this.signer)
   }
 
+  async initializeInsuranceContract(contractAddress: string): Promise<void> {
+    if (!this.signer) {
+      throw new Error("Wallet not connected")
+    }
+
+    this.insuranceContract = new ethers.Contract(contractAddress, INSURANCE_CONTRACT_ABI, this.signer)
+  }
+
   async makePayment(providerAddress: string, amountInEth: string): Promise<ethers.TransactionResponse> {
     if (!this.signer) {
       throw new Error("Wallet not connected")
@@ -134,6 +156,61 @@ export class BlockchainService {
 
     const payments = await this.paymentContract.getPaymentHistory(userAddress)
     return payments.map((amount: bigint) => ethers.formatEther(amount))
+  }
+
+  async submitInsuranceClaim(claimId: string, amount: string, description: string): Promise<ethers.TransactionResponse> {
+    if (!this.insuranceContract || !this.signer) {
+      throw new Error("Insurance contract not initialized or wallet not connected")
+    }
+
+    const amountInWei = ethers.parseEther(amount)
+    return await this.insuranceContract.submitClaim(claimId, amountInWei, description)
+  }
+
+  async getClaimStatus(claimId: string): Promise<number> {
+    if (!this.insuranceContract) {
+      throw new Error("Insurance contract not initialized")
+    }
+
+    return await this.insuranceContract.getClaimStatus(claimId)
+  }
+
+  async getPatientClaims(patientAddress: string): Promise<string[]> {
+    if (!this.insuranceContract) {
+      throw new Error("Insurance contract not initialized")
+    }
+
+    return await this.insuranceContract.getClaimsByPatient(patientAddress)
+  }
+
+  async getProviderClaims(providerAddress: string): Promise<Array<{
+    claimId: string
+    amount: bigint
+    status: number
+    timestamp: bigint
+  }>> {
+    if (!this.insuranceContract) {
+      throw new Error("Insurance contract not initialized")
+    }
+
+    const claimIds = await this.insuranceContract.getClaimsByProvider(providerAddress)
+    
+    const claims = await Promise.all(
+      claimIds.map(async (claimId: string) => {
+        if (!this.insuranceContract) {
+          throw new Error("Insurance contract not initialized")
+        }
+        const details = await this.insuranceContract.getClaimDetails(claimId)
+        return {
+          claimId,
+          amount: details.amount,
+          status: details.status,
+          timestamp: details.timestamp,
+        }
+      })
+    )
+
+    return claims
   }
 
   async getWalletAddress(): Promise<string | null> {
