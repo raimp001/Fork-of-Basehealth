@@ -4,22 +4,90 @@
  * Patient Portal Dashboard - Claude.ai Design
  */
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { 
   ArrowRight, Calendar, FileText, 
   ClipboardList, FlaskConical, Users, Bell, Settings,
-  TrendingUp, Shield
+  TrendingUp, Shield, Watch, Link2
 } from "lucide-react"
+
+
+
+type SupportedDevice = {
+  id: string
+  name: string
+  category: "activity" | "heart" | "sleep"
+}
+
+type Insight = {
+  id: string
+  title: string
+  recommendation: string
+  severity: "info" | "attention"
+}
 
 export default function PatientPortalPage() {
   const [mounted, setMounted] = useState(false)
   const { data: session } = useSession()
+  const [supportedDevices, setSupportedDevices] = useState<SupportedDevice[]>([])
+  const [connectedDevices, setConnectedDevices] = useState<string[]>([])
+  const [insights, setInsights] = useState<Insight[]>([])
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    const loadDevices = async () => {
+      const response = await fetch('/api/devices/recommendations')
+      if (!response.ok) return
+      const data = await response.json()
+      setSupportedDevices(data.devices || [])
+    }
+
+    loadDevices()
+  }, [])
+
+  const deviceMetrics = useMemo(() => {
+    if (connectedDevices.length === 0) return {}
+
+    return {
+      steps: 4200 + connectedDevices.length * 1400,
+      restingHeartRate: 88 - connectedDevices.length,
+      sleepHours: 5.8 + connectedDevices.length * 0.6,
+    }
+  }, [connectedDevices])
+
+  useEffect(() => {
+    const refreshInsights = async () => {
+      setIsLoadingInsights(true)
+      const response = await fetch('/api/devices/recommendations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ metrics: deviceMetrics }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setInsights(data.insights || [])
+      }
+
+      setIsLoadingInsights(false)
+    }
+
+    refreshInsights()
+  }, [deviceMetrics])
+
+  const toggleDeviceConnection = (deviceId: string) => {
+    setConnectedDevices((current) =>
+      current.includes(deviceId)
+        ? current.filter((item) => item !== deviceId)
+        : [...current, deviceId]
+    )
+  }
 
   const userName = session?.user?.name 
     ? session.user.name.split(' ')[0] 
@@ -34,6 +102,7 @@ export default function PatientPortalPage() {
     { title: 'Find Providers', description: 'Search doctors & specialists', icon: Users, href: '/providers/search' },
     { title: 'Clinical Trials', description: 'Browse active studies', icon: FlaskConical, href: '/clinical-trials' },
     { title: 'Messages', description: 'Secure provider communication', icon: FileText, href: '/messages' },
+    { title: 'Connect Devices', description: 'Sync wearable data for recommendations', icon: Watch, href: '/patient-portal#device-connect' },
   ]
 
   const upcomingAppointments = [
@@ -190,6 +259,65 @@ export default function PatientPortalPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </section>
+
+              {/* Device Connect */}
+              <section id="device-connect" className={`${mounted ? 'animate-fade-in-up delay-400' : 'opacity-0'}`}>
+                <div className="p-4 rounded-xl border" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Watch className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+                      <h2 className="font-medium text-sm">Device Connect</h2>
+                    </div>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {connectedDevices.length} connected
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 mb-3">
+                    {supportedDevices.map((device) => {
+                      const isConnected = connectedDevices.includes(device.id)
+                      return (
+                        <button
+                          key={device.id}
+                          type="button"
+                          onClick={() => toggleDeviceConnection(device.id)}
+                          className="w-full p-2 rounded-lg border text-left flex items-center justify-between"
+                          style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border-subtle)' }}
+                        >
+                          <span className="text-xs font-medium">{device.name}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded" style={{ backgroundColor: isConnected ? 'rgba(107, 155, 107, 0.2)' : 'rgba(255,255,255,0.06)' }}>
+                            {isConnected ? 'Connected' : 'Connect'}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Link2 className="h-3 w-3" style={{ color: 'var(--text-muted)' }} />
+                      <p className="text-xs font-medium">Personalized recommendations</p>
+                    </div>
+                    {isLoadingInsights ? (
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Refreshing insights...</p>
+                    ) : (
+                      insights.slice(0, 2).map((insight) => (
+                        <div
+                          key={insight.id}
+                          className="text-xs p-2 rounded-lg"
+                          style={{
+                            backgroundColor: insight.severity === 'attention' ? 'rgba(212, 165, 116, 0.12)' : 'var(--bg-tertiary)',
+                            color: 'var(--text-secondary)'
+                          }}
+                        >
+                          <p className="font-medium mb-1">{insight.title}</p>
+                          <p>{insight.recommendation}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </section>
 
