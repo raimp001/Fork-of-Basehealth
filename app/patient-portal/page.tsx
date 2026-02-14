@@ -1,4 +1,4 @@
-"use client"
+x"use client"
 
 /**
  * Patient Portal Dashboard - Claude.ai Design
@@ -12,8 +12,6 @@ import {
   ClipboardList, FlaskConical, Users, Bell, Settings,
   TrendingUp, Shield, Watch, Link2, Pill, TestTube2, ScanLine, Receipt, Newspaper
 } from "lucide-react"
-
-
 
 type SupportedDevice = {
   id: string
@@ -111,7 +109,6 @@ export default function PatientPortalPage() {
     )
   }
 
-
   const requestPrimaryCareFollowUp = async () => {
     const attentionInsights = insights.filter((insight) => insight.severity === "attention")
 
@@ -158,7 +155,6 @@ export default function PatientPortalPage() {
     { label: 'Active Providers', value: '4', trend: '+1 this month' },
     { label: 'Health Score', value: '85', trend: '+5 from last' },
   ]
-
 
   const easyActionPlan = [
     insights.find((item) => item.severity === 'attention')
@@ -399,7 +395,6 @@ export default function PatientPortalPage() {
                   </div>
                 </div>
               </section>
-
 
               {/* Care Coordination */}
               <section className={`${mounted ? 'animate-fade-in-up delay-400' : 'opacity-0'}`}>
