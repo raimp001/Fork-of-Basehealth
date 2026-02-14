@@ -21,8 +21,12 @@ import { attestProviderCredential, type ProviderCredentialData } from './base-at
 // EIP-712 TYPED DATA DEFINITION
 // =============================================================================
 
-const DEFAULT_CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK === 'base' ? 8453 : 84532
-const SIGNING_CHAIN_ID = Number(process.env.NEXT_PUBLIC_BASE_CHAIN_ID || process.env.BASE_CHAIN_ID || DEFAULT_CHAIN_ID)
+const DEFAULT_CHAIN_ID = process.env.NODE_ENV === 'production' ? 8453 : 84532
+const SIGNING_CHAIN_ID = Number(
+  process.env.NEXT_PUBLIC_BASE_CHAIN_ID
+  || process.env.BASE_CHAIN_ID
+  || (process.env.NEXT_PUBLIC_NETWORK === 'base' ? 8453 : DEFAULT_CHAIN_ID)
+)
 
 const EIP712_DOMAIN = {
   name: 'BaseHealth',
@@ -180,9 +184,20 @@ export async function verifyAndAttest(
       return { success: false, error: 'Signing request expired (>1 hour old)' }
     }
 
-    // Get provider by wallet address
+    // Get provider by wallet address (case-tolerant matching)
+    const addressCandidates = [...new Set([
+      normalizedSigner,
+      signerAddress,
+      message.walletAddress,
+      normalizedSigner.toLowerCase(),
+      signerAddress.toLowerCase(),
+      message.walletAddress.toLowerCase(),
+    ])]
+
     const provider = await prisma.provider.findFirst({
-      where: { walletAddress: normalizedSigner },
+      where: {
+        OR: addressCandidates.map((address) => ({ walletAddress: address })),
+      },
     })
 
     if (!provider) {

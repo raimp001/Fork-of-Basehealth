@@ -52,6 +52,7 @@ import { getOpenCloudStatus, runOpenCloudTask } from "@/lib/opencloud-agent"
 import { CARE_AGENTS, buildAgentPlan } from "@/lib/agent-mesh"
 
 const ACTION_LOG: Array<{ id: string; type: string; createdAt: string; payload?: Record<string, unknown>; openCloudResult?: string; routedTasks?: number }> = []
+const MAX_ACTION_LOG_ENTRIES = 500
 
 export async function getCareSnapshot(patientId = "demo-patient"): Promise<CareSnapshot> {
   return {
@@ -101,5 +102,6 @@ export async function createCareAction(type: string, payload?: Record<string, un
   }
 
   ACTION_LOG.push(action)
+  if (ACTION_LOG.length > MAX_ACTION_LOG_ENTRIES) ACTION_LOG.shift()
   return { ...action, openCloud, routedPlan }
 }
