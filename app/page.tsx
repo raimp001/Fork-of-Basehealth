@@ -6,7 +6,7 @@
  */
 
 import Link from "next/link"
-import { ArrowRight, Shield, Check, Heart } from "lucide-react"
+import { ArrowRight, Shield, Check, Heart, Bot, Stethoscope, Users, CreditCard } from "lucide-react"
 import { SignInWithBase } from "@/components/auth/sign-in-with-base"
 
 const features = [
@@ -39,6 +39,29 @@ const benefits = [
   "Secure USDC payments on Base",
 ]
 
+const openClawAgents = [
+  {
+    title: "General Health Agent",
+    description: "Fast, practical answers for common symptoms and wellness questions.",
+    icon: Bot,
+  },
+  {
+    title: "Screening Specialist",
+    description: "USPSTF-aligned preventive screening guidance based on your profile.",
+    icon: Stethoscope,
+  },
+  {
+    title: "Care Navigator",
+    description: "Provider and caregiver matching support with next-step planning.",
+    icon: Users,
+  },
+  {
+    title: "Billing Guide",
+    description: "Clear payment and Base blockchain transaction explanations.",
+    icon: CreditCard,
+  },
+]
+
 export default function HomePage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
@@ -65,6 +88,9 @@ export default function HomePage() {
               </Link>
               <Link href="/clinical-trials" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Trials
+              </Link>
+              <Link href="/chat" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
+                Agents
               </Link>
             </div>
 
@@ -169,6 +195,55 @@ export default function HomePage() {
                 </span>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* OpenClaw Agents */}
+      <section className="py-20 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
+            <div>
+              <h2 className="text-2xl font-normal mb-3">OpenClaw Agents</h2>
+              <p className="text-sm max-w-2xl" style={{ color: "var(--text-secondary)", lineHeight: "1.7" }}>
+                Route each question to the right specialist agent for better answers across screening, care, and billing workflows.
+              </p>
+            </div>
+            <Link
+              href="/chat"
+              className="inline-flex items-center gap-2 text-sm font-medium"
+              style={{ color: "var(--accent)" }}
+            >
+              Open Agent Workspace
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {openClawAgents.map((agent) => {
+              const Icon = agent.icon
+              return (
+                <div
+                  key={agent.title}
+                  className="p-6 rounded-xl border"
+                  style={{
+                    backgroundColor: "var(--bg-secondary)",
+                    borderColor: "var(--border-subtle)",
+                  }}
+                >
+                  <div
+                    className="w-10 h-10 rounded-lg mb-4 flex items-center justify-center"
+                    style={{ backgroundColor: "var(--bg-tertiary)" }}
+                  >
+                    <Icon className="h-5 w-5" style={{ color: "var(--accent)" }} />
+                  </div>
+                  <h3 className="text-base font-medium mb-2">{agent.title}</h3>
+                  <p className="text-sm" style={{ color: "var(--text-secondary)", lineHeight: "1.6" }}>
+                    {agent.description}
+                  </p>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>

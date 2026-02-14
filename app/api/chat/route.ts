@@ -3,6 +3,14 @@ import { streamText } from "ai"
 import { NextResponse } from "next/server"
 import { sanitizeInput } from "@/lib/phiScrubber"
 import { logger } from "@/lib/logger"
+import {
+  agentKit,
+  buildAgentSystemPrompt,
+  getHealthcarePaymentContext,
+  getOpenClawModel,
+  getWalletContext,
+  resolveAgent,
+} from "@/lib/agent-service"
 
 // System prompt that defines the AI's behavior and knowledge
 const SYSTEM_PROMPT = `You are a helpful health assistant for the BaseHealth platform. 
@@ -35,7 +43,12 @@ export const maxDuration = 30
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json()
+    const body = await req.json()
+    const { messages, agent: requestedAgent, walletAddress, appointmentId } = body || {}
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ error: "messages must be a non-empty array" }, { status: 400 })
+    }
 
     // IMPORTANT: Scrub PHI from user messages before sending to LLM
     const scrubbedMessages = messages.map((msg: any) => {
@@ -52,12 +65,42 @@ export async function POST(req: Request) {
       logger.debug(`Scrubbed ${userMessages.length} user message(s) for PHI`)
     }
 
-    const result = streamText({
-      model: groq("llama3-70b-8192"),
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...scrubbedMessages],
+    const selectedAgent = resolveAgent(scrubbedMessages, requestedAgent)
+
+    let context: Record<string, unknown> | null = null
+    if (typeof walletAddress === "string" && walletAddress.trim()) {
+      if (typeof appointmentId === "string" && appointmentId.trim()) {
+        context = await getHealthcarePaymentContext(appointmentId, walletAddress)
+      } else {
+        context = await getWalletContext(walletAddress)
+      }
+    }
+
+    const systemPrompt = buildAgentSystemPrompt(selectedAgent, SYSTEM_PROMPT, context)
+    const enhancedMessages = agentKit.enhanceMessages(scrubbedMessages, {
+      agent: selectedAgent,
+      context,
     })
 
-    return result.toDataStreamResponse()
+    const openClawModel = getOpenClawModel(selectedAgent)
+    const model = openClawModel || groq("llama3-70b-8192")
+    const provider = openClawModel ? "openclaw" : "groq"
+
+    logger.info("Chat request routed", {
+      provider,
+      agent: selectedAgent,
+      hasContext: Boolean(context),
+    })
+
+    const result = streamText({
+      model,
+      messages: [{ role: "system", content: systemPrompt }, ...enhancedMessages],
+    })
+
+    const response = result.toDataStreamResponse()
+    response.headers.set("x-basehealth-agent", selectedAgent)
+    response.headers.set("x-basehealth-llm-provider", provider)
+    return response
   } catch (error) {
     logger.error("Error in chat API", error)
     return NextResponse.json({ error: "There was an error processing your request" }, { status: 500 })

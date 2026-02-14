@@ -1,7 +1,16 @@
 import { groq } from "@ai-sdk/groq"
 import { streamText } from "ai"
 import { NextResponse } from "next/server"
-import { agentKit, getWalletContext, getHealthcarePaymentContext } from "@/lib/agent-service"
+import { sanitizeInput } from "@/lib/phiScrubber"
+import { logger } from "@/lib/logger"
+import {
+  agentKit,
+  buildAgentSystemPrompt,
+  getHealthcarePaymentContext,
+  getOpenClawModel,
+  getWalletContext,
+  resolveAgent,
+} from "@/lib/agent-service"
 
 // System prompt that defines the AI's behavior and knowledge with blockchain awareness
 const SYSTEM_PROMPT = `You are a helpful health assistant for the BaseHealth platform with blockchain awareness. 
@@ -28,30 +37,59 @@ export const maxDuration = 30
 
 export async function POST(req: Request) {
   try {
-    const { messages, walletAddress, appointmentId } = await req.json()
+    const body = await req.json()
+    const { messages, walletAddress, appointmentId, agent: requestedAgent } = body || {}
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ error: "messages must be a non-empty array" }, { status: 400 })
+    }
+
+    const scrubbedMessages = messages.map((msg: any) => {
+      if (msg.role === "user" && typeof msg.content === "string") {
+        const { cleanedText } = sanitizeInput(msg.content)
+        return { ...msg, content: cleanedText }
+      }
+      return msg
+    })
 
     // Get blockchain context if wallet address is provided
-    let context = null
-    if (walletAddress) {
-      if (appointmentId) {
+    let context: Record<string, unknown> | null = null
+    if (typeof walletAddress === "string" && walletAddress.trim()) {
+      if (typeof appointmentId === "string" && appointmentId.trim()) {
         context = await getHealthcarePaymentContext(appointmentId, walletAddress)
       } else {
         context = await getWalletContext(walletAddress)
       }
     }
 
-    // Use Agent Kit to enhance the AI with blockchain context
-    // Note: enhanceMessages API may have changed - using messages directly for now
-    const enhancedMessages = messages
-
-    const result = streamText({
-      model: groq("llama3-70b-8192"),
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...enhancedMessages],
+    const selectedAgent = resolveAgent(scrubbedMessages, requestedAgent, "billing-guide")
+    const systemPrompt = buildAgentSystemPrompt(selectedAgent, SYSTEM_PROMPT, context)
+    const enhancedMessages = agentKit.enhanceMessages(scrubbedMessages, {
+      agent: selectedAgent,
+      context,
     })
 
-    return result.toDataStreamResponse()
+    const openClawModel = getOpenClawModel(selectedAgent)
+    const model = openClawModel || groq("llama3-70b-8192")
+    const provider = openClawModel ? "openclaw" : "groq"
+
+    logger.info("Blockchain-aware chat request routed", {
+      provider,
+      agent: selectedAgent,
+      hasContext: Boolean(context),
+    })
+
+    const result = streamText({
+      model,
+      messages: [{ role: "system", content: systemPrompt }, ...enhancedMessages],
+    })
+
+    const response = result.toDataStreamResponse()
+    response.headers.set("x-basehealth-agent", selectedAgent)
+    response.headers.set("x-basehealth-llm-provider", provider)
+    return response
   } catch (error) {
-    // Error logged by error handler
+    logger.error("Error in blockchain-aware chat API", error)
     return NextResponse.json({ error: "There was an error processing your request" }, { status: 500 })
   }
 }
