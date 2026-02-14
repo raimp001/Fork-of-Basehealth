@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Loader2, User, Calendar, Pill, FileText, Stethoscope } from "lucide-react"
+import { User, Calendar, Pill, FileText, Stethoscope } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { PageLoading } from "@/components/ui/loading"
 import Link from "next/link"
+import { logger } from "@/lib/logger"
 
 interface Provider {
   id: string
@@ -172,17 +173,12 @@ export default function ProviderDashboard() {
               <Pill className="h-5 w-5" />
               Lab & Prescription Orders
             </CardTitle>
-            <CardDescription>Future: Order labs, send prescriptions, and view results</CardDescription>
+            <CardDescription>Order labs/prescriptions and coordinate patient logistics</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Coming soon...</p>
+            <p className="text-sm text-muted-foreground">Use integrated care orchestration to route to lab and pharmacy partners.</p>
             <div className="mt-4 space-y-2">
-              <Button variant="outline" size="sm" disabled>
-                Order Lab Test
-              </Button>
-              <Button variant="outline" size="sm" disabled>
-                Send Prescription
-              </Button>
+              <Link href="/provider/practice-hub"><Button variant="outline" size="sm">Open Practice Hub</Button></Link>
             </div>
           </CardContent>
         </Card>
@@ -193,14 +189,12 @@ export default function ProviderDashboard() {
               <FileText className="h-5 w-5" />
               Imaging Orders
             </CardTitle>
-            <CardDescription>Future: Order imaging studies and view reports</CardDescription>
+            <CardDescription>Coordinate radiology/imaging studies and follow-up</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Coming soon...</p>
+            <p className="text-sm text-muted-foreground">Route imaging orders through network centers with prior-auth tracking.</p>
             <div className="mt-4">
-              <Button variant="outline" size="sm" disabled>
-                Order Imaging Study
-              </Button>
+              <Link href="/provider/practice-hub"><Button variant="outline" size="sm">Manage Imaging Orders</Button></Link>
             </div>
           </CardContent>
         </Card>
@@ -229,14 +223,12 @@ export default function ProviderDashboard() {
               <Calendar className="h-5 w-5" />
               Availability & Scheduling
             </CardTitle>
-            <CardDescription>Future: Set your availability and manage your schedule</CardDescription>
+            <CardDescription>Scheduling, billing, prior auth and logistics through OpenCloud agent</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Coming soon...</p>
+            <p className="text-sm text-muted-foreground">Operate independently with a single workflow console.</p>
             <div className="mt-4">
-              <Button variant="outline" size="sm" disabled>
-                Update Availability
-              </Button>
+              <Link href="/provider/practice-hub"><Button variant="outline" size="sm">Launch Practice Operations</Button></Link>
             </div>
           </CardContent>
         </Card>
