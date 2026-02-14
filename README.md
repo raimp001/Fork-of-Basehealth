@@ -91,7 +91,7 @@ PROVIDER_SYSTEM_DOCUMENTATION.md       # Complete system documentation
 
 1. **Install dependencies:**
    ```bash
-   pnpm install
+   npm install
    ```
 
 2. **Set up environment variables:**
@@ -136,7 +136,7 @@ PROVIDER_SYSTEM_DOCUMENTATION.md       # Complete system documentation
 
 4. **Start development server:**
    ```bash
-   pnpm dev
+   npm run dev
    ```
 
 5. **Access the system:**

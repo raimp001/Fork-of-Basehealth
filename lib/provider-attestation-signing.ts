@@ -21,10 +21,14 @@ import { attestProviderCredential, type ProviderCredentialData } from './base-at
 // EIP-712 TYPED DATA DEFINITION
 // =============================================================================
 
+const DEFAULT_CHAIN_ID = process.env.NEXT_PUBLIC_NETWORK === 'base' ? 8453 : 84532
+const SIGNING_CHAIN_ID = Number(process.env.NEXT_PUBLIC_BASE_CHAIN_ID || process.env.BASE_CHAIN_ID || DEFAULT_CHAIN_ID)
+
 const EIP712_DOMAIN = {
   name: 'BaseHealth',
   version: '1',
-  chainId: process.env.NODE_ENV === 'production' ? 8453 : 84532, // Base mainnet / Sepolia
+  // Chain must match the connected wallet network when signing
+  chainId: SIGNING_CHAIN_ID,
   verifyingContract: '0x0000000000000000000000000000000000000000', // No contract, off-chain signing
 }
 
@@ -145,21 +149,29 @@ export async function verifyAndAttest(
 }> {
   try {
     const { message, signature, signerAddress } = signedCredential
+    const normalizedSigner = ethers.getAddress(signerAddress)
+    const normalizedMessageWallet = ethers.getAddress(message.walletAddress)
 
     // Verify the signature
-    const recoveredAddress = ethers.verifyTypedData(
+    const recoveredAddress = ethers.getAddress(ethers.verifyTypedData(
       EIP712_DOMAIN,
       CREDENTIAL_ATTESTATION_TYPES,
       message,
       signature
-    )
+    ))
 
-    if (recoveredAddress.toLowerCase() !== signerAddress.toLowerCase()) {
-      return { success: false, error: 'Invalid signature - address mismatch' }
+    if (recoveredAddress !== normalizedSigner) {
+      return {
+        success: false,
+        error: `Invalid signature - signer mismatch (expected ${normalizedSigner}, recovered ${recoveredAddress})`,
+      }
     }
 
-    if (recoveredAddress.toLowerCase() !== message.walletAddress.toLowerCase()) {
-      return { success: false, error: 'Signature address does not match provider wallet' }
+    if (recoveredAddress !== normalizedMessageWallet) {
+      return {
+        success: false,
+        error: `Signature does not match provider wallet on file. Connected: ${recoveredAddress}. Registered: ${normalizedMessageWallet}. Please update provider wallet address to the same Base account before signing.`,
+      }
     }
 
     // Check timestamp is recent (within 1 hour)
@@ -170,7 +182,7 @@ export async function verifyAndAttest(
 
     // Get provider by wallet address
     const provider = await prisma.provider.findFirst({
-      where: { walletAddress: signerAddress },
+      where: { walletAddress: normalizedSigner },
     })
 
     if (!provider) {

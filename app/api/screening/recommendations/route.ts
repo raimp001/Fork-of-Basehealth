@@ -1,6 +1,28 @@
 import { NextResponse } from "next/server"
 
 // USPSTF Grade A and B Recommendations with Provider Suggestions
+
+
+type CdcRecommendation = {
+  id: string
+  name: string
+  minAge: number
+  maxAge: number
+  notes: string
+}
+
+const CDC_GUIDELINES: CdcRecommendation[] = [
+  { id: 'flu', name: 'Influenza vaccine', minAge: 6, maxAge: 120, notes: 'CDC recommends annual influenza vaccination for everyone 6 months and older.' },
+  { id: 'covid', name: 'COVID-19 vaccine', minAge: 6, maxAge: 120, notes: 'CDC recommends staying up to date with age-appropriate COVID-19 vaccination.' },
+  { id: 'tdap', name: 'Td/Tdap booster', minAge: 18, maxAge: 120, notes: 'CDC recommends Td or Tdap booster every 10 years for adults.' },
+  { id: 'shingles', name: 'Shingles (Shingrix)', minAge: 50, maxAge: 120, notes: 'CDC recommends 2-dose Shingrix for adults 50+.' },
+  { id: 'pneumococcal', name: 'Pneumococcal vaccine', minAge: 65, maxAge: 120, notes: 'CDC recommends pneumococcal vaccination for adults 65+ and younger adults with certain risks.' },
+]
+
+function getCdcRecommendations(age: number) {
+  return CDC_GUIDELINES.filter((g) => age >= g.minAge && age <= g.maxAge)
+}
+
 const USPSTF_GUIDELINES = [
   // Grade A - Strongly Recommended
   { 
@@ -306,9 +328,12 @@ export async function GET(request: Request) {
     // Sort by grade (A first, then B)
     recommendations.sort((a, b) => a.grade.localeCompare(b.grade))
 
+    const cdcRecommendations = getCdcRecommendations(age)
+
     return NextResponse.json({ 
       success: true,
       recommendations,
+      cdcRecommendations,
       count: recommendations.length,
       timestamp: new Date().toISOString()
     })
@@ -370,6 +395,7 @@ export async function POST(request: Request) {
     if (familyHistory.includes('heart-disease')) riskFactors.push('cardiovascular disease')
 
     const recommendations = getRecommendations(Number(age), gender, riskFactors)
+    const cdcRecommendations = getCdcRecommendations(Number(age))
     
     // Sort by grade
     recommendations.sort((a, b) => a.grade.localeCompare(b.grade))
@@ -381,6 +407,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: true,
       recommendations,
+      cdcRecommendations,
       count: recommendations.length,
       summary: {
         totalScreenings: recommendations.length,

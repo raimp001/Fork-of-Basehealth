@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
         where: { id: user.id },
         data: {
           privyUserId,
-          ...(walletAddress && !user.walletAddress && { walletAddress }),
-          ...(email && !user.email && { email }),
+          ...(walletAddress && walletAddress !== user.walletAddress && { walletAddress }),
+          ...(email && email !== user.email && { email }),
           lastLoginAt: new Date(),
         },
       })
