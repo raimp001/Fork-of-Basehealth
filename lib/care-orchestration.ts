@@ -49,9 +49,9 @@ export type CareSnapshot = {
 }
 
 import { getOpenCloudStatus, runOpenCloudTask } from "@/lib/opencloud-agent"
-import { CARE_AGENTS } from "@/lib/agent-mesh"
+import { CARE_AGENTS, buildAgentPlan } from "@/lib/agent-mesh"
 
-const ACTION_LOG: Array<{ id: string; type: string; createdAt: string; payload?: Record<string, unknown>; openCloudResult?: string }> = []
+const ACTION_LOG: Array<{ id: string; type: string; createdAt: string; payload?: Record<string, unknown>; openCloudResult?: string; routedTasks?: number }> = []
 
 export async function getCareSnapshot(patientId = "demo-patient"): Promise<CareSnapshot> {
   return {
@@ -82,16 +82,24 @@ export async function getCareSnapshot(patientId = "demo-patient"): Promise<CareS
 }
 
 export async function createCareAction(type: string, payload?: Record<string, unknown>) {
-  const openCloud = await runOpenCloudTask(type, payload || {})
+  const safePayload = payload || {}
+  const intake = typeof safePayload.intake === "string" ? safePayload.intake : type
+  const routedPlan = buildAgentPlan(intake)
+
+  const openCloud = await runOpenCloudTask(type, {
+    ...safePayload,
+    routedPlan,
+  })
 
   const action = {
     id: `act-${Date.now()}`,
     type,
     createdAt: new Date().toISOString(),
-    payload,
+    payload: safePayload,
     openCloudResult: openCloud.message,
+    routedTasks: routedPlan.tasks.length,
   }
 
   ACTION_LOG.push(action)
-  return { ...action, openCloud }
+  return { ...action, openCloud, routedPlan }
 }

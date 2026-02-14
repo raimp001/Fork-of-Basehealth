@@ -18,3 +18,8 @@ This app now includes an initial **agent mesh** scaffold to support a future whe
 ## Notes
 - This is an orchestration baseline, intentionally rules-based and auditable.
 - Production deployment should plug each role into validated external tools, payer APIs, drug pricing feeds, and evidence services.
+
+
+## New orchestration behavior
+- `POST /api/care-orchestration/actions` now performs a coordinator pre-route (`buildAgentPlan`) before invoking OpenCloud tasks.
+- Each action response includes a routed task plan, enabling explicit inter-agent handoff visibility for audits and debugging.

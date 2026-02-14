@@ -7,5 +7,5 @@ export async function POST(request: Request) {
   const payload = typeof body?.payload === "object" && body?.payload ? body.payload : {}
 
   const action = await createCareAction(type, payload)
-  return NextResponse.json({ success: true, action })
+  return NextResponse.json({ success: true, action, meta: { routedBy: "coordinator-agent" } })
 }
