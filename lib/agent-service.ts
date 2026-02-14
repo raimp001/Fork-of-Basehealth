@@ -1,129 +1,21 @@
 import { createOpenAI } from "@ai-sdk/openai"
 import type { CoreMessage } from "ai"
 import { logger } from "@/lib/logger"
+import {
+  OPENCLAW_AGENT_CATALOG,
+  OPENCLAW_AGENT_IDS,
+  normalizeOpenClawAgent,
+  type OpenClawAgentId,
+} from "@/lib/openclaw-agent-catalog"
 
-export type OpenClawAgentId =
-  | "general-health"
-  | "screening-specialist"
-  | "care-navigator"
-  | "billing-guide"
+type AgentDefinition = (typeof OPENCLAW_AGENT_CATALOG)[OpenClawAgentId]
 
-type AgentDefinition = {
-  label: string
-  description: string
-  prompt: string
-  keywords: string[]
-  modelEnv: string
-}
-
-const OPENCLAW_AGENTS: Record<OpenClawAgentId, AgentDefinition> = {
-  "general-health": {
-    label: "General Health Agent",
-    description: "General symptom and wellness guidance with clear triage escalation.",
-    prompt:
-      "You are BaseHealth's general health assistant. Provide evidence-based guidance, stay concise, and always recommend professional care for diagnosis or emergencies.",
-    keywords: [
-      "symptom",
-      "headache",
-      "fever",
-      "wellness",
-      "sleep",
-      "nutrition",
-      "exercise",
-      "anxiety",
-      "stress",
-      "pain",
-    ],
-    modelEnv: "OPENCLAW_MODEL_GENERAL",
-  },
-  "screening-specialist": {
-    label: "Screening Specialist",
-    description: "Personalized preventive screening guidance using USPSTF logic.",
-    prompt:
-      "You are BaseHealth's screening specialist. Focus on preventive care and USPSTF-aligned screening recommendations based on age, sex, risk factors, and follow-up cadence.",
-    keywords: [
-      "screening",
-      "mammogram",
-      "colonoscopy",
-      "pap smear",
-      "uspstf",
-      "preventive",
-      "risk factors",
-      "diabetes screening",
-      "cholesterol",
-      "blood pressure",
-    ],
-    modelEnv: "OPENCLAW_MODEL_SCREENING",
-  },
-  "care-navigator": {
-    label: "Care Navigator",
-    description: "Provider/caregiver matching and care coordination support.",
-    prompt:
-      "You are BaseHealth's care navigator. Help users choose providers or caregivers, explain next steps, and suggest what details to prepare before visits.",
-    keywords: [
-      "provider",
-      "doctor",
-      "specialist",
-      "caregiver",
-      "appointment",
-      "telemedicine",
-      "find care",
-      "location",
-      "insurance",
-      "referral",
-    ],
-    modelEnv: "OPENCLAW_MODEL_CARE",
-  },
-  "billing-guide": {
-    label: "Billing Guide",
-    description: "Payment and Base blockchain transaction explanation with transparency.",
-    prompt:
-      "You are BaseHealth's billing guide. Explain healthcare payments, wallet transactions, and Base network settlement in plain language while preserving privacy.",
-    keywords: [
-      "payment",
-      "billing",
-      "wallet",
-      "base",
-      "blockchain",
-      "usdc",
-      "transaction",
-      "gas",
-      "invoice",
-      "receipt",
-    ],
-    modelEnv: "OPENCLAW_MODEL_BILLING",
-  },
-}
+const OPENCLAW_AGENTS = OPENCLAW_AGENT_CATALOG
 
 const OPENCLAW_GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL || "https://gateway.openclaw.ai").replace(
   /\/$/,
   "",
 )
-
-function normalizeAgent(input?: string | null): OpenClawAgentId | null {
-  if (!input) return null
-
-  const normalized = input.toLowerCase().trim()
-  if (
-    normalized === "general-health" ||
-    normalized === "general" ||
-    normalized === "health" ||
-    normalized === "health-assistant"
-  ) {
-    return "general-health"
-  }
-  if (normalized === "screening-specialist" || normalized === "screening" || normalized === "preventive") {
-    return "screening-specialist"
-  }
-  if (normalized === "care-navigator" || normalized === "care" || normalized === "provider" || normalized === "caregiver") {
-    return "care-navigator"
-  }
-  if (normalized === "billing-guide" || normalized === "billing" || normalized === "payments" || normalized === "blockchain") {
-    return "billing-guide"
-  }
-
-  return null
-}
 
 function scoreMessageForAgent(content: string, agent: OpenClawAgentId): number {
   const lower = content.toLowerCase()
@@ -136,7 +28,7 @@ export function resolveAgent(
   requestedAgent?: string | null,
   fallback: OpenClawAgentId = "general-health",
 ): OpenClawAgentId {
-  const explicitlySelected = normalizeAgent(requestedAgent)
+  const explicitlySelected = normalizeOpenClawAgent(requestedAgent)
   if (explicitlySelected) return explicitlySelected
 
   const lastUserMessage = [...messages]
@@ -145,7 +37,7 @@ export function resolveAgent(
 
   if (!lastUserMessage || typeof lastUserMessage.content !== "string") return fallback
 
-  const ranking = (Object.keys(OPENCLAW_AGENTS) as OpenClawAgentId[])
+  const ranking = OPENCLAW_AGENT_IDS
     .map((agent) => ({ agent, score: scoreMessageForAgent(lastUserMessage.content as string, agent) }))
     .sort((a, b) => b.score - a.score)
 

@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
-import { components } from "@/lib/design-system"
 // Removed wallet button import to fix client-side errors
 import { 
   Menu, 
@@ -23,7 +22,8 @@ import {
   CreditCard,
   Bell,
   Wallet,
-  Bookmark
+  Bookmark,
+  Bot
 } from "lucide-react"
 import { NotificationCenter } from "@/components/notifications/notification-center"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -33,6 +33,7 @@ const navigationItems = [
   { href: '/screening', label: 'Screenings', icon: Activity },
   { href: '/providers/search', label: 'Find care', icon: Search },
   { href: '/clinical-trials', label: 'Clinical trials', icon: FlaskConical },
+  { href: '/agents', label: 'Agents', icon: Brain },
   { href: '/providers/search?bounty=true', label: 'Caregivers', icon: Heart },
   { href: '/provider/signup', label: 'Join as provider', icon: User, badge: 'New' },
 ]
@@ -52,8 +53,24 @@ const adminMenuItems = [
 ]
 
 const quickActions = [
-  { href: '/second-opinion', label: 'Expert review', icon: Brain, badge: 'New' },
-  { href: '/chat', label: 'Health Chat', icon: Activity, badge: null },
+  { href: '/agents', label: 'OpenClaw agents', icon: Brain, badge: 'New' },
+  { href: '/chat', label: 'Agent console', icon: Bot, badge: null },
+  { href: '/second-opinion', label: 'Expert review', icon: Activity, badge: 'New' },
+]
+
+const desktopNavigationItems = [
+  { href: '/screening', label: 'Screenings' },
+  { href: '/providers/search', label: 'Find care' },
+  { href: '/clinical-trials', label: 'Clinical trials' },
+  { href: '/agents', label: 'Agents' },
+]
+
+const mobileBottomItems = [
+  { href: '/', label: 'Home', icon: Home },
+  { href: '/screening', label: 'Screenings', icon: Activity },
+  { href: '/agents', label: 'Agents', icon: Brain },
+  { href: '/chat', label: 'Chat', icon: Bot },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export function MinimalNavigation() {
@@ -87,7 +104,7 @@ export function MinimalNavigation() {
               </Link>
               
               <nav className="hidden md:flex items-center gap-1 lg:gap-2">
-                {navigationItems.slice(1, 4).map((item) => (
+                {desktopNavigationItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -299,7 +316,7 @@ export function MinimalNavigation() {
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-stone-300 md:hidden z-50 shadow-lg">
         <div className="grid grid-cols-5 h-16">
-          {navigationItems.map((item) => (
+          {mobileBottomItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}

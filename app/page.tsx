@@ -6,8 +6,22 @@
  */
 
 import Link from "next/link"
-import { ArrowRight, Shield, Check, Heart, Bot, Stethoscope, Users, CreditCard } from "lucide-react"
+import {
+  ArrowRight,
+  Shield,
+  Check,
+  Heart,
+  Bot,
+  Stethoscope,
+  Users,
+  CreditCard,
+  CalendarCheck2,
+  FlaskConical,
+  Settings,
+  ReceiptText,
+} from "lucide-react"
 import { SignInWithBase } from "@/components/auth/sign-in-with-base"
+import { OPENCLAW_AGENT_CATALOG, OPENCLAW_AGENT_IDS, type OpenClawAgentId } from "@/lib/openclaw-agent-catalog"
 
 const features = [
   {
@@ -39,28 +53,16 @@ const benefits = [
   "Secure USDC payments on Base",
 ]
 
-const openClawAgents = [
-  {
-    title: "General Health Agent",
-    description: "Fast, practical answers for common symptoms and wellness questions.",
-    icon: Bot,
-  },
-  {
-    title: "Screening Specialist",
-    description: "USPSTF-aligned preventive screening guidance based on your profile.",
-    icon: Stethoscope,
-  },
-  {
-    title: "Care Navigator",
-    description: "Provider and caregiver matching support with next-step planning.",
-    icon: Users,
-  },
-  {
-    title: "Billing Guide",
-    description: "Clear payment and Base blockchain transaction explanations.",
-    icon: CreditCard,
-  },
-]
+const OPENCLAW_ICONS: Record<OpenClawAgentId, typeof Bot> = {
+  "general-health": Bot,
+  "screening-specialist": Stethoscope,
+  "care-navigator": Users,
+  "appointment-coordinator": CalendarCheck2,
+  "clinical-trial-matcher": FlaskConical,
+  "account-manager": Settings,
+  "billing-guide": CreditCard,
+  "claims-refunds": ReceiptText,
+}
 
 export default function HomePage() {
   return (
@@ -89,7 +91,7 @@ export default function HomePage() {
               <Link href="/clinical-trials" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Trials
               </Link>
-              <Link href="/chat" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
+              <Link href="/agents" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
                 Agents
               </Link>
             </div>
@@ -206,25 +208,29 @@ export default function HomePage() {
             <div>
               <h2 className="text-2xl font-normal mb-3">OpenClaw Agents</h2>
               <p className="text-sm max-w-2xl" style={{ color: "var(--text-secondary)", lineHeight: "1.7" }}>
-                Route each question to the right specialist agent for better answers across screening, care, and billing workflows.
+                Run separate OpenClaw specialists for screening, care navigation, appointments, account support, billing,
+                and refunds.
               </p>
             </div>
             <Link
-              href="/chat"
+              href="/agents"
               className="inline-flex items-center gap-2 text-sm font-medium"
               style={{ color: "var(--accent)" }}
             >
-              Open Agent Workspace
+              Open Agent Hub
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {openClawAgents.map((agent) => {
-              const Icon = agent.icon
+            {OPENCLAW_AGENT_IDS.map((agentId) => {
+              const agent = OPENCLAW_AGENT_CATALOG[agentId]
+              const Icon = OPENCLAW_ICONS[agentId]
+              const launchHref = `/chat?agent=${agentId}&q=${encodeURIComponent(agent.launchPrompt)}`
               return (
-                <div
-                  key={agent.title}
+                <Link
+                  key={agentId}
+                  href={launchHref}
                   className="p-6 rounded-xl border"
                   style={{
                     backgroundColor: "var(--bg-secondary)",
@@ -237,11 +243,14 @@ export default function HomePage() {
                   >
                     <Icon className="h-5 w-5" style={{ color: "var(--accent)" }} />
                   </div>
-                  <h3 className="text-base font-medium mb-2">{agent.title}</h3>
+                  <h3 className="text-base font-medium mb-2">{agent.label}</h3>
                   <p className="text-sm" style={{ color: "var(--text-secondary)", lineHeight: "1.6" }}>
                     {agent.description}
                   </p>
-                </div>
+                  <p className="text-xs mt-3 font-medium" style={{ color: "var(--accent)" }}>
+                    Launch Agent
+                  </p>
+                </Link>
               )
             })}
           </div>

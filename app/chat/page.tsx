@@ -1,78 +1,45 @@
 "use client"
 
+import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { useChat } from "ai/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, Bot, CreditCard, Loader2, Send, Sparkles, Stethoscope, User, Users } from "lucide-react"
+import {
+  AlertCircle,
+  Bot,
+  CalendarCheck2,
+  CreditCard,
+  FlaskConical,
+  Loader2,
+  ReceiptText,
+  Send,
+  Settings,
+  Sparkles,
+  Stethoscope,
+  User,
+  Users,
+} from "lucide-react"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import {
+  OPENCLAW_AGENT_CATALOG,
+  OPENCLAW_AGENT_IDS,
+  normalizeOpenClawAgent,
+  type OpenClawAgentId,
+} from "@/lib/openclaw-agent-catalog"
 
-type AgentId = "general-health" | "screening-specialist" | "care-navigator" | "billing-guide"
-
-const AGENT_OPTIONS: Record<
-  AgentId,
-  {
-    label: string
-    shortLabel: string
-    description: string
-    placeholder: string
-    examples: string[]
-  }
-> = {
-  "general-health": {
-    label: "General Health Agent",
-    shortLabel: "General",
-    description: "Symptoms, wellness, and when to escalate care.",
-    placeholder: "Ask a general health question...",
-    examples: [
-      "What are early warning signs of diabetes?",
-      "How can I improve my sleep quality this week?",
-      "When should I go to urgent care versus ER?",
-    ],
-  },
-  "screening-specialist": {
-    label: "Screening Specialist",
-    shortLabel: "Screening",
-    description: "USPSTF-aligned screening guidance by age and risk.",
-    placeholder: "Ask about preventive screenings...",
-    examples: [
-      "Which screenings should a 46-year-old get this year?",
-      "How often should I get a colon cancer screening?",
-      "What risk factors change mammogram frequency?",
-    ],
-  },
-  "care-navigator": {
-    label: "Care Navigator",
-    shortLabel: "Care",
-    description: "Find providers, plan visits, and coordinate care.",
-    placeholder: "Ask about finding providers or next steps...",
-    examples: [
-      "What specialist should I see for recurring migraines?",
-      "How should I prepare for a telemedicine visit?",
-      "How do I choose between urgent care and primary care?",
-    ],
-  },
-  "billing-guide": {
-    label: "Billing Guide",
-    shortLabel: "Billing",
-    description: "Healthcare payments and Base blockchain transaction help.",
-    placeholder: "Ask about payments, wallets, and transactions...",
-    examples: [
-      "How do BaseHealth payments work on Base blockchain?",
-      "What does this transaction hash mean for my appointment payment?",
-      "How can I verify a USDC payment was settled?",
-    ],
-  },
-}
-
-const AGENT_ICONS = {
+const AGENT_ICONS: Record<OpenClawAgentId, typeof Bot> = {
   "general-health": Bot,
   "screening-specialist": Stethoscope,
   "care-navigator": Users,
+  "appointment-coordinator": CalendarCheck2,
+  "clinical-trial-matcher": FlaskConical,
+  "account-manager": Settings,
   "billing-guide": CreditCard,
+  "claims-refunds": ReceiptText,
 }
 
 function getMessageContent(message: any): string {
@@ -94,11 +61,13 @@ function getMessageContent(message: any): string {
 }
 
 export default function ChatPage() {
-  const [selectedAgent, setSelectedAgent] = useState<AgentId>("general-health")
+  const searchParams = useSearchParams()
+  const [selectedAgent, setSelectedAgent] = useState<OpenClawAgentId>("general-health")
   const [hasSentMessage, setHasSentMessage] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const appliedQueryState = useRef(false)
 
-  const activeAgent = useMemo(() => AGENT_OPTIONS[selectedAgent], [selectedAgent])
+  const activeAgent = useMemo(() => OPENCLAW_AGENT_CATALOG[selectedAgent], [selectedAgent])
   const ActiveIcon = AGENT_ICONS[selectedAgent]
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput } = useChat({
@@ -111,7 +80,7 @@ export default function ChatPage() {
         id: "welcome",
         role: "assistant",
         content:
-          "Welcome to BaseHealth AI. Pick an agent mode above and ask your question. For urgent symptoms, seek in-person medical care immediately.",
+          "Welcome to the OpenClaw Agent Console. Pick a specialist for your task and ask your question. For urgent symptoms, seek in-person medical care immediately.",
       },
     ],
   })
@@ -119,6 +88,23 @@ export default function ChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, isLoading])
+
+  useEffect(() => {
+    if (appliedQueryState.current) return
+
+    const requestedAgent = normalizeOpenClawAgent(searchParams.get("agent"))
+    const starterQuestion = searchParams.get("q")
+
+    if (requestedAgent) {
+      setSelectedAgent(requestedAgent)
+    }
+
+    if (starterQuestion && starterQuestion.trim()) {
+      setInput(starterQuestion.trim())
+    }
+
+    appliedQueryState.current = true
+  }, [searchParams, setInput])
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (input.trim()) {
@@ -131,87 +117,112 @@ export default function ChatPage() {
     setInput(question)
   }
 
+  const handleAgentSelect = (agentId: OpenClawAgentId) => {
+    setSelectedAgent(agentId)
+    if (!input.trim()) {
+      setInput(OPENCLAW_AGENT_CATALOG[agentId].launchPrompt)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
       <MinimalNavigation />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 pt-24">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-6 shadow-md">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pt-24">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-5 shadow-md">
             <Sparkles className="h-4 w-4" />
-            OpenClaw Agents
+            OpenClaw Agent Console
           </div>
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Health Assistant</h1>
-          <p className="text-gray-600">Get specialized support for screenings, care navigation, and billing</p>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-2">One Agent Per Function</h1>
+          <p className="text-gray-600">
+            Run separate specialists for care, appointments, account setup, billing, and refunds.
+          </p>
+          <Link href="/agents" className="text-sm text-blue-700 hover:underline inline-block mt-2">
+            Open the full agent hub
+          </Link>
         </div>
 
-        {/* Agent Selector */}
-        <Card className="p-4 border-gray-100 shadow-sm mb-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-gray-900">Active agent</p>
-              <p className="text-xs text-gray-600">{activeAgent.description}</p>
-            </div>
+        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
+          {OPENCLAW_AGENT_IDS.map((agentId) => {
+            const agent = OPENCLAW_AGENT_CATALOG[agentId]
+            const Icon = AGENT_ICONS[agentId]
+            const isActive = selectedAgent === agentId
 
-            <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="bg-stone-100 text-stone-700">
-                <ActiveIcon className="h-3.5 w-3.5 mr-1" />
-                {activeAgent.shortLabel}
-              </Badge>
-              <Select value={selectedAgent} onValueChange={(value) => setSelectedAgent(value as AgentId)}>
-                <SelectTrigger className="w-[230px] border-gray-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(AGENT_OPTIONS).map(([value, option]) => (
-                    <SelectItem key={value} value={value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            return (
+              <button
+                key={agentId}
+                type="button"
+                onClick={() => handleAgentSelect(agentId)}
+                className={`text-left rounded-xl border p-4 transition-all ${
+                  isActive
+                    ? "border-stone-900 bg-stone-900 text-white shadow-md"
+                    : "border-stone-200 bg-white hover:border-stone-400"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div
+                    className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                      isActive ? "bg-white/15" : "bg-stone-100"
+                    }`}
+                  >
+                    <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-stone-700"}`} />
+                  </div>
+                  <Badge
+                    variant="secondary"
+                    className={isActive ? "bg-white/15 text-white border-transparent" : "bg-stone-100 text-stone-700"}
+                  >
+                    {agent.functionArea}
+                  </Badge>
+                </div>
+                <p className={`text-sm font-semibold mb-1 ${isActive ? "text-white" : "text-stone-900"}`}>{agent.label}</p>
+                <p className={`text-xs leading-5 ${isActive ? "text-stone-100" : "text-stone-600"}`}>{agent.description}</p>
+              </button>
+            )
+          })}
+        </div>
+
+        <Card className="p-4 border-gray-100 shadow-sm mb-4">
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="bg-stone-100 text-stone-700">
+              <ActiveIcon className="h-3.5 w-3.5 mr-1" />
+              {activeAgent.shortLabel}
+            </Badge>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{activeAgent.label}</p>
+              <p className="text-xs text-gray-600">{activeAgent.description}</p>
             </div>
           </div>
         </Card>
 
-        {/* Chat Container */}
         <Card className="border-gray-100 shadow-sm overflow-hidden">
-          {/* Messages Area */}
-          <div className="h-[500px] overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="h-[520px] overflow-y-auto p-4 space-y-4 bg-gray-50">
             {messages.map((message: any) => {
               const content = getMessageContent(message)
               const isAssistant = message.role === "assistant"
 
               return (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${
-                  isAssistant ? "justify-start" : "justify-end"
-                }`}
-              >
-                {isAssistant && (
-                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Bot className="h-4 w-4 text-gray-600" />
-                  </div>
-                )}
-                
-                <div
-                  className={`max-w-[70%] p-3 rounded-lg ${
-                    isAssistant
-                      ? "bg-white border border-gray-200"
-                      : "bg-gray-900 text-white"
-                  }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap">{content}</p>
-                </div>
+                <div key={message.id} className={`flex gap-3 ${isAssistant ? "justify-start" : "justify-end"}`}>
+                  {isAssistant && (
+                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                      <ActiveIcon className="h-4 w-4 text-gray-600" />
+                    </div>
+                  )}
 
-                {!isAssistant && (
-                  <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="h-4 w-4 text-white" />
+                  <div
+                    className={`max-w-[75%] p-3 rounded-lg ${
+                      isAssistant ? "bg-white border border-gray-200" : "bg-gray-900 text-white"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{content}</p>
                   </div>
-                )}
-              </div>
+
+                  {!isAssistant && (
+                    <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="h-4 w-4 text-white" />
+                    </div>
+                  )}
+                </div>
               )
             })}
 
@@ -235,7 +246,7 @@ export default function ChatPage() {
             {isLoading && (
               <div className="flex gap-3 justify-start">
                 <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-gray-600" />
+                  <ActiveIcon className="h-4 w-4 text-gray-600" />
                 </div>
                 <div className="bg-white border border-gray-200 p-3 rounded-lg">
                   <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
@@ -253,7 +264,6 @@ export default function ChatPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
           <div className="p-4 bg-white border-t border-gray-100">
             <form onSubmit={onSubmit} className="flex gap-2">
               <Input
