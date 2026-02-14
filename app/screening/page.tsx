@@ -128,17 +128,7 @@ export default function ScreeningPage() {
   if (step === 5) {
     return (
       <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-        <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
-          <div className="max-w-5xl mx-auto px-6">
-            <div className="flex items-center justify-between h-16">
-              <Link href="/" className="text-lg font-medium tracking-tight hover:opacity-80 transition-opacity">
-                BaseHealth
-              </Link>
-            </div>
-          </div>
-        </nav>
-
-        <main className="pt-28 pb-24">
+        <main className="py-8">
           <div className="max-w-3xl mx-auto px-6">
             {/* Header */}
             <div className={`mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
@@ -293,25 +283,7 @@ export default function ScreeningPage() {
   // Form view
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="text-lg font-medium tracking-tight hover:opacity-80 transition-opacity">
-              BaseHealth
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/providers/search" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
-                Find Providers
-              </Link>
-              <Link href="/clinical-trials" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
-                Clinical Trials
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="pt-28 pb-24">
+      <main className="py-8">
         <div className="max-w-xl mx-auto px-6">
           {/* Header */}
           <div className={`text-center mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>

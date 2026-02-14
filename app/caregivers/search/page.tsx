@@ -150,30 +150,7 @@ export default function CaregiverSearchPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="text-lg font-medium tracking-tight hover:opacity-80 transition-opacity">
-              BaseHealth
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/providers/search" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
-                Find Doctors
-              </Link>
-              <Link 
-                href="/onboarding?role=caregiver" 
-                className="text-sm px-4 py-2 rounded-lg transition-all"
-                style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
-              >
-                Become a Caregiver
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="pt-28 pb-24">
+      <main className="py-8">
         <div className="max-w-5xl mx-auto px-6">
           {/* Header */}
           <div className={`max-w-3xl mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>

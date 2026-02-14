@@ -3,7 +3,6 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { PageLoading } from "@/components/ui/loading"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 
 /**
  * This page redirects to the new admin pages.
@@ -20,8 +19,7 @@ export default function AdminApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
-      <main className="pt-16">
+      <main>
         <PageLoading 
           title="Redirecting..."
           description="Taking you to the applications page..."

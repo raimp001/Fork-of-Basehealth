@@ -177,13 +177,7 @@ export default function BookAppointmentPage() {
   if (isBooked) {
     return (
       <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-        <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
-          <div className="max-w-5xl mx-auto px-6 h-16 flex items-center">
-            <Link href="/" className="text-lg font-medium tracking-tight">BaseHealth</Link>
-          </div>
-        </nav>
-        
-        <main className="max-w-lg mx-auto px-6 pt-32 pb-24 text-center">
+        <main className="max-w-lg mx-auto px-6 py-8 text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)' }}>
             <CheckCircle className="h-8 w-8" style={{ color: '#6b9b6b' }} />
           </div>
@@ -254,13 +248,7 @@ export default function BookAppointmentPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center">
-          <Link href="/" className="text-lg font-medium tracking-tight">BaseHealth</Link>
-        </div>
-      </nav>
-      
-      <main className="max-w-3xl mx-auto px-6 pt-28 pb-24">
+      <main className="max-w-3xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <button

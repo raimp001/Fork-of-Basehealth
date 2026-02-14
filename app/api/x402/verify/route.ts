@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { 
   decodePaymentPayload, 
-  verifyExactPayment,
   type PaymentPayload,
   type PaymentRequirement,
   type VerificationResponse 
 } from '@/lib/x402-protocol'
+import { verifyExactPayment } from "@/lib/x402-verify"
 
 /**
  * POST /api/x402/verify
@@ -119,4 +119,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

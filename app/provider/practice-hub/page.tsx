@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -35,8 +34,7 @@ export default function PracticeHubPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
-      <div className="container mx-auto px-4 py-8 max-w-6xl pt-24 space-y-6">
+      <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
         <h1 className="text-3xl font-bold">Primary Care Practice Hub</h1>
 
         <Card>

@@ -11,7 +11,6 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import {
   Heart,
   FlaskConical,
@@ -70,9 +69,7 @@ export default function SavedItemsPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <MinimalNavigation />
-
-      <main className="pt-24 pb-20">
+      <main className="py-8">
         <div className="max-w-4xl mx-auto px-6">
           {/* Header */}
           <div className="mb-8">
@@ -291,4 +288,3 @@ export default function SavedItemsPage() {
     </div>
   )
 }
-

@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { LoadingSpinner } from "@/components/ui/loading"
 import {
   Users,
@@ -113,9 +112,7 @@ export default function AdminApplicationsNewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
-
-      <main className="pt-16">
+      <main>
         <div className="max-w-6xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">

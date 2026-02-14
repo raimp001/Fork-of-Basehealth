@@ -4,9 +4,15 @@ export type OpenClawAgentId =
   | "care-navigator"
   | "appointment-coordinator"
   | "clinical-trial-matcher"
+  | "records-specialist"
+  | "medication-coach"
   | "account-manager"
   | "billing-guide"
   | "claims-refunds"
+  | "provider-ops"
+  | "admin-ops"
+  | "treasury-operator"
+  | "emergency-triage"
 
 export type OpenClawAgentDefinition = {
   label: string
@@ -174,6 +180,66 @@ export const OPENCLAW_AGENT_CATALOG: Record<OpenClawAgentId, OpenClawAgentDefini
     workflowHref: "/clinical-trials",
     workflowLabel: "Browse trials",
   },
+  "records-specialist": {
+    label: "Medical Records Specialist",
+    shortLabel: "Records",
+    description: "Medical record organization, exports, summaries, and privacy-safe sharing guidance.",
+    functionArea: "Medical Records",
+    prompt:
+      "You are BaseHealth's medical records specialist. Help users organize, summarize, and export their medical information while minimizing sensitive data exposure. Provide practical steps and checklist-style guidance.",
+    placeholder: "Ask about importing, exporting, or summarizing records...",
+    examples: [
+      "Help me create a one-page medical history summary for a new doctor.",
+      "What should I include in an ER-ready medication and allergy list?",
+      "How do I export my records and share them securely?",
+    ],
+    keywords: [
+      "medical records",
+      "records",
+      "export",
+      "summary",
+      "allergies",
+      "immunizations",
+      "lab results",
+      "privacy",
+      "hipaa",
+      "share",
+    ],
+    modelEnv: "OPENCLAW_MODEL_RECORDS",
+    launchPrompt: "Help me build a clean medical summary (conditions, meds, allergies, key labs) for a new provider.",
+    workflowHref: "/medical-records",
+    workflowLabel: "Open records",
+  },
+  "medication-coach": {
+    label: "Medication Coach",
+    shortLabel: "Meds",
+    description: "Medication reminders, adherence plans, and safety-first interaction questions for your clinician.",
+    functionArea: "Medication Management",
+    prompt:
+      "You are BaseHealth's medication coach. Help users manage medication schedules and prepare safety questions for clinicians. Do not prescribe or diagnose; emphasize contacting a pharmacist or clinician for interaction questions.",
+    placeholder: "Ask about medication schedules or adherence...",
+    examples: [
+      "Create a daily schedule for my meds with meal timing.",
+      "What questions should I ask about side effects and interactions?",
+      "Help me set up a simple refill and reminder plan.",
+    ],
+    keywords: [
+      "medication",
+      "meds",
+      "refill",
+      "dose",
+      "schedule",
+      "side effects",
+      "interaction",
+      "pharmacy",
+      "adherence",
+      "reminder",
+    ],
+    modelEnv: "OPENCLAW_MODEL_MEDICATION",
+    launchPrompt: "Build a simple, safe medication schedule and reminder plan for me (include meal timing and refills).",
+    workflowHref: "/medication",
+    workflowLabel: "Open meds",
+  },
   "account-manager": {
     label: "Account Manager",
     shortLabel: "Account",
@@ -264,6 +330,126 @@ export const OPENCLAW_AGENT_CATALOG: Record<OpenClawAgentId, OpenClawAgentDefini
     workflowHref: "/admin/bookings",
     workflowLabel: "Open refund ops",
   },
+  "provider-ops": {
+    label: "Provider Ops Agent",
+    shortLabel: "Provider",
+    description: "Provider onboarding, credential verification, attestations, payouts, and practice setup guidance.",
+    functionArea: "Provider Operations",
+    prompt:
+      "You are BaseHealth's provider operations agent. Help providers complete onboarding, understand verification steps, configure payout wallets, and follow compliance-friendly workflows. Do not request private keys or secrets.",
+    placeholder: "Ask about provider onboarding, verification, or payouts...",
+    examples: [
+      "What do I need to finish provider onboarding and get approved?",
+      "How do attestations work for provider credentials on Base?",
+      "Help me configure a payout wallet for USDC.",
+    ],
+    keywords: [
+      "provider",
+      "onboarding",
+      "npi",
+      "license",
+      "verification",
+      "attestation",
+      "payout",
+      "usdc",
+      "practice",
+      "dashboard",
+    ],
+    modelEnv: "OPENCLAW_MODEL_PROVIDER_OPS",
+    launchPrompt: "Audit my provider onboarding checklist and tell me what is missing to get approved.",
+    workflowHref: "/provider/dashboard",
+    workflowLabel: "Open provider hub",
+  },
+  "admin-ops": {
+    label: "Admin Ops Agent",
+    shortLabel: "Admin",
+    description: "Operational support for reviews, bookings, refunds, compliance checklists, and incident triage.",
+    functionArea: "Operations",
+    prompt:
+      "You are BaseHealth's admin operations agent. Help admins run reviews, handle booking exceptions, and keep billing/refund workflows consistent. Prioritize clear checklists and auditability.",
+    placeholder: "Ask about operations, reviews, and refunds...",
+    examples: [
+      "Walk me through processing a refund with a proper audit trail.",
+      "What are the steps to review and approve a provider application?",
+      "Help me triage a payment dispute and gather the right info.",
+    ],
+    keywords: [
+      "admin",
+      "operations",
+      "refund",
+      "review",
+      "application",
+      "audit",
+      "compliance",
+      "incident",
+      "triage",
+      "ops",
+    ],
+    modelEnv: "OPENCLAW_MODEL_ADMIN_OPS",
+    launchPrompt: "Give me an ops checklist for refunds and booking exceptions (including what to record for audit).",
+    workflowHref: "/admin",
+    workflowLabel: "Open admin",
+  },
+  "treasury-operator": {
+    label: "Treasury Operator",
+    shortLabel: "Treasury",
+    description: "Treasury balance checks, settlement operations, refunds/payout planning, and key-management hygiene.",
+    functionArea: "Treasury",
+    prompt:
+      "You are BaseHealth's treasury operator agent. Help manage Base USDC treasury operations, reconcile receipts, and plan refunds/payouts safely. Do not request private keys or secrets; recommend hardware wallets and proper access controls.",
+    placeholder: "Ask about treasury balances, payouts, or refunds...",
+    examples: [
+      "How do I reconcile Base Pay receipts with treasury balances?",
+      "What is a safe operational flow for refunds using the treasury wallet?",
+      "How should I store and rotate secrets for production?",
+    ],
+    keywords: [
+      "treasury",
+      "settlement",
+      "usdc",
+      "balance",
+      "refund",
+      "payout",
+      "reconcile",
+      "wallet",
+      "security",
+      "basescan",
+    ],
+    modelEnv: "OPENCLAW_MODEL_TREASURY",
+    launchPrompt: "Help me set up a safe treasury ops workflow for Base USDC (receipts, refunds, payouts, audit trail).",
+    workflowHref: "/treasury",
+    workflowLabel: "Open treasury",
+  },
+  "emergency-triage": {
+    label: "Emergency Triage Agent",
+    shortLabel: "Emergency",
+    description: "Fast symptom triage guidance focused on when to call 911 / ER / urgent care.",
+    functionArea: "Emergency",
+    prompt:
+      "You are BaseHealth's emergency triage agent. Keep responses short, prioritize safety, and recommend emergency services when red flags are present. Do not provide definitive diagnoses.",
+    placeholder: "Describe symptoms for urgent guidance...",
+    examples: [
+      "Chest pain with shortness of breath: what should I do?",
+      "Signs of stroke to watch for right now?",
+      "High fever and confusion: ER or urgent care?",
+    ],
+    keywords: [
+      "emergency",
+      "triage",
+      "chest pain",
+      "stroke",
+      "shortness of breath",
+      "bleeding",
+      "poisoning",
+      "seizure",
+      "911",
+      "er",
+    ],
+    modelEnv: "OPENCLAW_MODEL_EMERGENCY",
+    launchPrompt: "Triage my symptoms and tell me whether to call 911, go to ER, or schedule urgent care (include red flags).",
+    workflowHref: "/emergency",
+    workflowLabel: "Open emergency",
+  },
 }
 
 export const OPENCLAW_AGENT_IDS = Object.keys(OPENCLAW_AGENT_CATALOG) as OpenClawAgentId[]
@@ -286,6 +472,12 @@ const OPENCLAW_AGENT_ALIASES: Record<string, OpenClawAgentId> = {
   "clinical-trial-matcher": "clinical-trial-matcher",
   trials: "clinical-trial-matcher",
   trial: "clinical-trial-matcher",
+  "records-specialist": "records-specialist",
+  records: "records-specialist",
+  "medical-records": "records-specialist",
+  "medication-coach": "medication-coach",
+  meds: "medication-coach",
+  medication: "medication-coach",
   "account-manager": "account-manager",
   account: "account-manager",
   signin: "account-manager",
@@ -298,6 +490,14 @@ const OPENCLAW_AGENT_ALIASES: Record<string, OpenClawAgentId> = {
   refunds: "claims-refunds",
   refund: "claims-refunds",
   claims: "claims-refunds",
+  "provider-ops": "provider-ops",
+  "provider-operations": "provider-ops",
+  "admin-ops": "admin-ops",
+  ops: "admin-ops",
+  treasury: "treasury-operator",
+  "treasury-operator": "treasury-operator",
+  emergency: "emergency-triage",
+  "emergency-triage": "emergency-triage",
 }
 
 export function normalizeOpenClawAgent(input?: string | null): OpenClawAgentId | null {

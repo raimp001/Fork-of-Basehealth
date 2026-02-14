@@ -9,7 +9,6 @@ import { StandardizedButton, PrimaryActionButton } from "@/components/ui/standar
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { components } from "@/lib/design-system"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { FunctionAgentCTA } from "@/components/agents/function-agent-cta"
 import Link from "next/link"
 import { 
@@ -38,9 +37,7 @@ export default function BillingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
-      <MinimalNavigation />
-      
-      <main className="pt-20 md:pt-24 pb-24 md:pb-8">
+      <main className="py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {/* Header */}
           <div className="mb-10">

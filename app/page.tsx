@@ -19,8 +19,11 @@ import {
   FlaskConical,
   Settings,
   ReceiptText,
+  FileText,
+  Pill,
+  DollarSign,
+  AlertTriangle,
 } from "lucide-react"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { OPENCLAW_AGENT_CATALOG, OPENCLAW_AGENT_IDS, type OpenClawAgentId } from "@/lib/openclaw-agent-catalog"
 
 const features = [
@@ -59,18 +62,22 @@ const OPENCLAW_ICONS: Record<OpenClawAgentId, typeof Bot> = {
   "care-navigator": Users,
   "appointment-coordinator": CalendarCheck2,
   "clinical-trial-matcher": FlaskConical,
+  "records-specialist": FileText,
+  "medication-coach": Pill,
   "account-manager": Settings,
   "billing-guide": CreditCard,
   "claims-refunds": ReceiptText,
+  "provider-ops": Users,
+  "admin-ops": Shield,
+  "treasury-operator": DollarSign,
+  "emergency-triage": AlertTriangle,
 }
 
 export default function HomePage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      <MinimalNavigation />
-
       {/* Hero Section */}
-      <section className="pt-24 pb-20">
+      <section className="pt-8 md:pt-12 pb-20">
         <div className="max-w-5xl mx-auto px-6">
           <div className="max-w-3xl">
             <h1 className="text-5xl md:text-6xl font-normal tracking-tight mb-6" style={{ lineHeight: '1.1' }}>

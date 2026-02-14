@@ -287,33 +287,7 @@ function OnboardingContent() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      {/* Navigation - Claude style */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(26, 25, 21, 0.9)', borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-lg font-medium tracking-tight">
-            BaseHealth
-          </Link>
-          
-          <div className="flex items-center gap-6">
-            <Link 
-              href="/"
-              className="text-sm transition-colors"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              Home
-            </Link>
-            <Link
-              href="/login"
-              className="text-sm px-4 py-2 border rounded-lg transition-all"
-              style={{ borderColor: 'var(--border-medium)', color: 'var(--text-primary)' }}
-            >
-              Sign In
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      <main className="pt-28 pb-16 px-6">
+      <main className="py-8 px-6">
         <div className="max-w-xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10">

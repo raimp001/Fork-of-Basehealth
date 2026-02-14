@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -26,9 +25,7 @@ export default function AgentBillingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <MinimalNavigation />
-
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pt-24 pb-24 md:pb-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-foreground text-sm font-semibold mb-4">
             <Zap className="h-4 w-4" />

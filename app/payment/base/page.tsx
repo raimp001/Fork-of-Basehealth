@@ -9,7 +9,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { MinimalNavigation } from '@/components/layout/minimal-navigation'
 import { FunctionAgentCTA } from "@/components/agents/function-agent-cta"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -114,8 +113,7 @@ export default function BasePaymentPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <MinimalNavigation />
-      <div className="container mx-auto py-8 px-4 max-w-7xl pt-24 pb-24 md:pb-8">
+      <div className="container mx-auto py-8 px-4 max-w-7xl">
       {/* Header */}
       <div className="mb-8 text-center space-y-4">
         <div className="flex items-center justify-center gap-2">

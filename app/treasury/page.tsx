@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Copy, ExternalLink, Loader2, ShieldAlert, Wallet } from "lucide-react"
 import { toast } from "sonner"
+import { TreasuryTransfer } from "@/components/treasury/treasury-transfer"
 
 type TreasuryBalancesResponse = {
   success: boolean
@@ -62,9 +62,7 @@ export default function TreasuryPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <MinimalNavigation />
-
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pt-24 pb-24 md:pb-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-foreground text-sm font-semibold mb-4">
             <Wallet className="h-4 w-4" />
@@ -166,6 +164,10 @@ export default function TreasuryPage() {
           </Card>
         </div>
 
+        <div className="mt-6">
+          <TreasuryTransfer />
+        </div>
+
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Refunds, Receipts, Agent Payments</CardTitle>
@@ -187,4 +189,3 @@ export default function TreasuryPage() {
     </div>
   )
 }
-

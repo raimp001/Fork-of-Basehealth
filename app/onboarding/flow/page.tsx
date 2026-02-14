@@ -216,15 +216,14 @@ export default function OnboardingFlowPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-white to-rose-50/30">
-      {/* Progress Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-b border-stone-200 z-50">
-        <div className="max-w-3xl mx-auto px-4 py-4">
+      <div className="max-w-3xl mx-auto px-4 pt-6">
+        <div className="rounded-2xl border border-stone-200 bg-white/70 backdrop-blur p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-stone-600">
               Step {currentStep} of {STEPS.length}
             </span>
-            <button 
-              onClick={() => router.push('/')}
+            <button
+              onClick={() => router.push("/")}
               className="text-sm text-stone-500 hover:text-stone-700"
             >
               Skip for now
@@ -232,9 +231,9 @@ export default function OnboardingFlowPage() {
           </div>
           <Progress value={progress} className="h-2" />
         </div>
-      </header>
+      </div>
 
-      <main className="pt-24 pb-32 px-4">
+      <main className="py-8 px-4">
         <div className="max-w-2xl mx-auto">
           {/* Step Title */}
           <div className={`text-center mb-8 transition-all duration-300 ${isAnimating ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
@@ -580,4 +579,3 @@ export default function OnboardingFlowPage() {
     </div>
   )
 }
-

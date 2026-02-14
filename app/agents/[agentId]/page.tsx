@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,17 +7,35 @@ import {
   OPENCLAW_AGENT_CATALOG,
   normalizeOpenClawAgent,
 } from "@/lib/openclaw-agent-catalog"
-import { ArrowRight, Bot, CreditCard, ReceiptText, Settings } from "lucide-react"
+import {
+  AlertTriangle,
+  ArrowRight,
+  Bot,
+  CreditCard,
+  DollarSign,
+  FileText,
+  Pill,
+  ReceiptText,
+  Settings,
+  Shield,
+  Users,
+} from "lucide-react"
 
 const ICONS = {
   "general-health": Bot,
   "screening-specialist": Bot,
-  "care-navigator": Bot,
+  "care-navigator": Users,
   "appointment-coordinator": Bot,
   "clinical-trial-matcher": Bot,
+  "records-specialist": FileText,
+  "medication-coach": Pill,
   "account-manager": Settings,
   "billing-guide": CreditCard,
   "claims-refunds": ReceiptText,
+  "provider-ops": Users,
+  "admin-ops": Shield,
+  "treasury-operator": DollarSign,
+  "emergency-triage": AlertTriangle,
 } as const
 
 export default function AgentDetailPage({
@@ -35,9 +52,7 @@ export default function AgentDetailPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
-      <MinimalNavigation />
-
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pt-24 pb-24 md:pb-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8">
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <Badge variant="secondary">{agent.functionArea}</Badge>

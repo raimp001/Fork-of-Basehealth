@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { SignInWithBase } from "@/components/auth/sign-in-with-base"
 import { FunctionAgentCTA } from "@/components/agents/function-agent-cta"
 import { 
@@ -36,9 +35,7 @@ export default function HealthWalletPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
-      <MinimalNavigation />
-
-      <main className="container mx-auto p-4 space-y-6 pt-24 pb-24 md:pb-8">
+      <main className="container mx-auto p-4 space-y-6">
         {/* Enhanced Header */}
         <div className="text-center space-y-4 mb-10">
           <div className="inline-flex items-center px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold shadow-md">

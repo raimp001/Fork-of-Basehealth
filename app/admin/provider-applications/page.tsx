@@ -15,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { LoadingSpinner } from "@/components/ui/loading"
 import { toastSuccess, toastError } from "@/lib/toast-helper"
 import {
@@ -145,9 +144,7 @@ export default function ProviderApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
-
-      <main className="pt-16">
+      <main>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           {/* Header */}
           <div className="mb-8">

@@ -21,7 +21,6 @@ import {
   Video,
   Building
 } from "lucide-react"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 
 function BookingContent() {
   const searchParams = useSearchParams()
@@ -78,9 +77,7 @@ function BookingContent() {
   if (!acceptingPatients) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <MinimalNavigation />
-        
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12 pt-28">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
           <div className="mb-8">
             <Link href="/providers/search" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
               <ArrowLeft className="h-4 w-4" />
@@ -106,9 +103,7 @@ function BookingContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
-      <MinimalNavigation />
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pt-24">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* Enhanced Header */}
         <div className="mb-8">
           <Link href="/providers/search" className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-900 transition-colors mb-6">

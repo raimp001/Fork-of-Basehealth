@@ -10,11 +10,16 @@ import {
 } from "@/lib/openclaw-agent-catalog"
 import {
   Bot,
+  AlertTriangle,
   CalendarCheck2,
   CreditCard,
+  DollarSign,
+  FileText,
   FlaskConical,
+  Pill,
   ReceiptText,
   Settings,
+  Shield,
   Stethoscope,
   Users,
 } from "lucide-react"
@@ -25,9 +30,15 @@ const AGENT_ICONS: Record<OpenClawAgentId, typeof Bot> = {
   "care-navigator": Users,
   "appointment-coordinator": CalendarCheck2,
   "clinical-trial-matcher": FlaskConical,
+  "records-specialist": FileText,
+  "medication-coach": Pill,
   "account-manager": Settings,
   "billing-guide": CreditCard,
   "claims-refunds": ReceiptText,
+  "provider-ops": Users,
+  "admin-ops": Shield,
+  "treasury-operator": DollarSign,
+  "emergency-triage": AlertTriangle,
 }
 
 export function FunctionAgentCTA({
@@ -72,4 +83,3 @@ export function FunctionAgentCTA({
     </Card>
   )
 }
-

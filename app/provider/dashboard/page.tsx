@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { User, Calendar, Pill, FileText, Stethoscope } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { PageLoading } from "@/components/ui/loading"
 import Link from "next/link"
 import { logger } from "@/lib/logger"
@@ -64,7 +63,6 @@ export default function ProviderDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <MinimalNavigation />
         <PageLoading 
           title="Loading Dashboard"
           description="Fetching your provider information..."
@@ -76,8 +74,7 @@ export default function ProviderDashboard() {
   if (error || !provider) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <MinimalNavigation />
-        <div className="container mx-auto px-4 py-16 max-w-2xl pt-24">
+        <div className="container mx-auto px-4 py-16 max-w-2xl">
           <Alert variant="destructive">
             <AlertDescription>{error || "Provider not found"}</AlertDescription>
           </Alert>
@@ -93,8 +90,7 @@ export default function ProviderDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
-      <div className="container mx-auto px-4 py-8 max-w-6xl pt-24">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-black mb-2">
           Welcome, {provider.fullName || provider.organizationName || "Provider"}!
@@ -237,4 +233,3 @@ export default function ProviderDashboard() {
     </div>
   )
 }
-

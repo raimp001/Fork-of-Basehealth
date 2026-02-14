@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { LoadingSpinner } from "@/components/ui/loading"
 import {
   ArrowLeft,
@@ -175,8 +174,7 @@ export default function ApplicationReviewPage() {
   if (error || !application) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <MinimalNavigation />
-        <main className="pt-20 px-4">
+        <main className="px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <Card className="p-8 text-center">
               <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -199,9 +197,7 @@ export default function ApplicationReviewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
-
-      <main className="pt-16">
+      <main>
         <div className="max-w-5xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-6">

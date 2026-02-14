@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { useChat } from "ai/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -10,20 +11,24 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
   AlertCircle,
+  AlertTriangle,
   Bot,
   CalendarCheck2,
   CreditCard,
+  DollarSign,
+  FileText,
   FlaskConical,
   Loader2,
+  Pill,
   ReceiptText,
   Send,
   Settings,
+  Shield,
   Sparkles,
   Stethoscope,
   User,
   Users,
 } from "lucide-react"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import {
   OPENCLAW_AGENT_CATALOG,
   OPENCLAW_AGENT_IDS,
@@ -37,9 +42,15 @@ const AGENT_ICONS: Record<OpenClawAgentId, typeof Bot> = {
   "care-navigator": Users,
   "appointment-coordinator": CalendarCheck2,
   "clinical-trial-matcher": FlaskConical,
+  "records-specialist": FileText,
+  "medication-coach": Pill,
   "account-manager": Settings,
   "billing-guide": CreditCard,
   "claims-refunds": ReceiptText,
+  "provider-ops": Users,
+  "admin-ops": Shield,
+  "treasury-operator": DollarSign,
+  "emergency-triage": AlertTriangle,
 }
 
 function getMessageContent(message: any): string {
@@ -62,19 +73,57 @@ function getMessageContent(message: any): string {
 
 export default function ChatPage() {
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
   const [selectedAgent, setSelectedAgent] = useState<OpenClawAgentId>("general-health")
   const [hasSentMessage, setHasSentMessage] = useState(false)
+  const [actingWallet, setActingWallet] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const appliedQueryState = useRef(false)
 
   const activeAgent = useMemo(() => OPENCLAW_AGENT_CATALOG[selectedAgent], [selectedAgent])
   const ActiveIcon = AGENT_ICONS[selectedAgent]
 
+  const sessionWallet = (session?.user as any)?.walletAddress as string | undefined
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("basehealth_acting_wallet") || ""
+      if (saved) {
+        setActingWallet(saved)
+        return
+      }
+      if (sessionWallet) {
+        setActingWallet(sessionWallet)
+      }
+    } catch {
+      if (sessionWallet) setActingWallet(sessionWallet)
+    }
+  }, [sessionWallet])
+
+  useEffect(() => {
+    try {
+      const value = actingWallet.trim()
+      if (!value) {
+        window.localStorage.removeItem("basehealth_acting_wallet")
+      } else {
+        window.localStorage.setItem("basehealth_acting_wallet", value)
+      }
+    } catch {
+      // ignore
+    }
+  }, [actingWallet])
+
+  const requestBody = useMemo(
+    () => ({
+      agent: selectedAgent,
+      walletAddress: (actingWallet || sessionWallet || "").trim() || undefined,
+    }),
+    [actingWallet, selectedAgent, sessionWallet],
+  )
+
   const { messages, input, handleInputChange, handleSubmit, isLoading, error, setInput } = useChat({
     api: "/api/chat",
-    body: {
-      agent: selectedAgent,
-    },
+    body: requestBody,
     initialMessages: [
       {
         id: "welcome",
@@ -126,9 +175,7 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
-      <MinimalNavigation />
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pt-24 pb-24 md:pb-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-5 shadow-md">
             <Sparkles className="h-4 w-4" />
@@ -142,6 +189,33 @@ export default function ChatPage() {
             Open the full agent hub
           </Link>
         </div>
+
+        <Card className="border-stone-200 bg-white p-4 mb-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-left">
+              <p className="text-sm font-semibold text-stone-900">Client Context (Optional)</p>
+              <p className="text-xs text-stone-600">
+                Used to load wallet context (receipts, balances) for agents. Great for operators acting for clients.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:items-center w-full sm:w-auto">
+              <Input
+                value={actingWallet}
+                onChange={(e) => setActingWallet(e.target.value)}
+                placeholder="0x… (wallet address)"
+                className="sm:w-[320px]"
+              />
+              {sessionWallet && (
+                <Button type="button" variant="outline" size="sm" onClick={() => setActingWallet(sessionWallet)}>
+                  Use my wallet
+                </Button>
+              )}
+              <Button type="button" variant="outline" size="sm" onClick={() => setActingWallet("")}>
+                Clear
+              </Button>
+            </div>
+          </div>
+        </Card>
 
         <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
           {OPENCLAW_AGENT_IDS.map((agentId) => {

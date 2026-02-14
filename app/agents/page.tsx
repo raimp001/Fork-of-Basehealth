@@ -1,16 +1,20 @@
 import Link from "next/link"
 import {
   ArrowRight,
+  AlertTriangle,
   Bot,
   CalendarCheck2,
   CreditCard,
+  DollarSign,
+  FileText,
   FlaskConical,
+  Pill,
   ReceiptText,
   Settings,
+  Shield,
   Stethoscope,
   Users,
 } from "lucide-react"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { OPENCLAW_AGENT_CATALOG, OPENCLAW_AGENT_IDS, type OpenClawAgentId } from "@/lib/openclaw-agent-catalog"
 
 const AGENT_ICONS: Record<OpenClawAgentId, typeof Bot> = {
@@ -19,9 +23,15 @@ const AGENT_ICONS: Record<OpenClawAgentId, typeof Bot> = {
   "care-navigator": Users,
   "appointment-coordinator": CalendarCheck2,
   "clinical-trial-matcher": FlaskConical,
+  "records-specialist": FileText,
+  "medication-coach": Pill,
   "account-manager": Settings,
   "billing-guide": CreditCard,
   "claims-refunds": ReceiptText,
+  "provider-ops": Users,
+  "admin-ops": Shield,
+  "treasury-operator": DollarSign,
+  "emergency-triage": AlertTriangle,
 }
 
 const AGENT_ACCENTS: Record<OpenClawAgentId, string> = {
@@ -30,17 +40,21 @@ const AGENT_ACCENTS: Record<OpenClawAgentId, string> = {
   "care-navigator": "#7c3aed",
   "appointment-coordinator": "#b45309",
   "clinical-trial-matcher": "#be123c",
+  "records-specialist": "#0284c7",
+  "medication-coach": "#16a34a",
   "account-manager": "#334155",
   "billing-guide": "#0369a1",
   "claims-refunds": "#9f1239",
+  "provider-ops": "#0f766e",
+  "admin-ops": "#111827",
+  "treasury-operator": "#065f46",
+  "emergency-triage": "#dc2626",
 }
 
 export default function AgentsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f5f7fa] via-white to-[#f8fafc]">
-      <MinimalNavigation />
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pt-24 pb-24 md:pb-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm mb-8">
           <p className="text-xs tracking-[0.2em] uppercase text-slate-500 mb-3">OpenClaw Agent Mesh</p>
           <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900 mb-3">Function-Specific Agent Hub</h1>

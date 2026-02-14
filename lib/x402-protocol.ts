@@ -231,66 +231,7 @@ export function createBasePaymentRequirement(
   }
 }
 
-/**
- * Verify Exact Scheme Payment (EVM)
- * Verifies that a payment payload matches the payment requirement
- */
-export async function verifyExactPayment(
-  payload: ExactSchemePayload,
-  requirement: PaymentRequirement
-): Promise<VerificationResponse> {
-  try {
-    // Verify network matches
-    if (payload.network !== requirement.network) {
-      return {
-        isValid: false,
-        invalidReason: `Network mismatch: ${payload.network} !== ${requirement.network}`,
-      }
-    }
-    
-    // Verify recipient matches
-    if (payload.to.toLowerCase() !== requirement.payTo.toLowerCase()) {
-      return {
-        isValid: false,
-        invalidReason: `Recipient mismatch: ${payload.to} !== ${requirement.payTo}`,
-      }
-    }
-    
-    // Verify amount matches (exact scheme requires exact amount)
-    const paidAmount = BigInt(payload.amount)
-    const requiredAmount = BigInt(requirement.maxAmountRequired)
-    
-    if (paidAmount < requiredAmount) {
-      return {
-        isValid: false,
-        invalidReason: `Insufficient payment: ${paidAmount.toString()} < ${requiredAmount.toString()}`,
-      }
-    }
-    
-    // Verify transaction hash format
-    if (!payload.txHash || !payload.txHash.startsWith('0x') || payload.txHash.length !== 66) {
-      return {
-        isValid: false,
-        invalidReason: 'Invalid transaction hash format',
-      }
-    }
-    
-    // In production, verify on-chain:
-    // 1. Transaction exists and is confirmed
-    // 2. Transaction details match payload
-    // 3. Transaction is recent (< maxTimeoutSeconds)
-    
-    return {
-      isValid: true,
-      invalidReason: null,
-    }
-  } catch (error) {
-    return {
-      isValid: false,
-      invalidReason: error instanceof Error ? error.message : 'Verification failed',
-    }
-  }
-}
+// Note: onchain x402 verification is implemented server-side in lib/x402-verify.ts.
 
 /**
  * Get supported schemes and networks
@@ -307,4 +248,3 @@ export function getSupportedSchemes(): SupportedSchemesResponse {
     ],
   }
 }
-

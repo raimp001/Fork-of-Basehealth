@@ -10,16 +10,7 @@ import { CheckCircle, Mail, Clock, ArrowRight, Shield } from "lucide-react"
 export default function OnboardingSuccessPage() {
   return (
     <div className="min-h-screen bg-[#101010] text-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#101010]/90 backdrop-blur-sm border-b border-white/[0.08]">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-medium tracking-tight">
-            BaseHealth
-          </Link>
-        </div>
-      </nav>
-
-      <main className="pt-28 pb-16 px-6">
+      <main className="py-8 px-6">
         <div className="max-w-lg mx-auto text-center">
           {/* Success Icon */}
           <div className="w-16 h-16 border border-white/20 rounded-full flex items-center justify-center mx-auto mb-8">

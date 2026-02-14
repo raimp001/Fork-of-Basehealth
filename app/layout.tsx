@@ -4,6 +4,8 @@ import "./globals.css"
 import { Providers } from "./providers"
 import { SkipToContent, Announcer } from "@/components/ui/accessibility"
 import { OfflineIndicator, UpdateBanner, InstallPrompt } from "@/hooks/use-pwa"
+import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import { AgentAssistFloating } from "@/components/agents/agent-assist-floating"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://basehealth.xyz'
 
@@ -80,7 +82,9 @@ export default function RootLayout({
         <Providers>
           <OfflineIndicator />
           <UpdateBanner />
-          <main id="main-content">
+          <MinimalNavigation />
+          <AgentAssistFloating />
+          <main id="main-content" className="pt-20 md:pt-24 pb-24 md:pb-8">
             {children}
           </main>
           <InstallPrompt />

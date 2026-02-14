@@ -21,7 +21,6 @@ import {
   Loader2,
   XCircle
 } from "lucide-react"
-import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { FunctionAgentCTA } from "@/components/agents/function-agent-cta"
 
 interface IntegrationCheck {
@@ -152,9 +151,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <MinimalNavigation />
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 pt-24 pb-24 md:pb-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <div className="mb-10">
           <h1 className="text-4xl md:text-5xl font-bold text-black mb-4 tracking-tight">Settings</h1>

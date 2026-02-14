@@ -186,7 +186,7 @@ body {
 
 /* Selection */
 ::selection {
-  background: hsl(hsl(var(--accent)));
+  background: hsl(var(--accent));
   color: hsl(var(--accent-foreground));
 }
 
