@@ -167,7 +167,7 @@ export default function ScreeningPage() {
                 borderColor: riskProfile.level === 'elevated' ? 'rgba(212, 165, 116, 0.2)' : 'rgba(107, 155, 107, 0.2)'
               }}>
                 <div className="flex items-center gap-3 mb-2">
-                  <Shield className="h-5 w-5" style={{ color: riskProfile.level === 'elevated' ? 'var(--accent)' : '#6b9b6b' }} />
+                  <Shield className="h-5 w-5" style={{ color: riskProfile.level === 'elevated' ? 'hsl(var(--accent))' : '#6b9b6b' }} />
                   <h3 className="font-medium">Risk Profile: <span className="capitalize">{riskProfile.level}</span></h3>
                 </div>
                 {riskProfile.factors.length > 0 && (
@@ -217,7 +217,7 @@ export default function ScreeningPage() {
                           <h3 className="text-lg font-medium">{rec.name}</h3>
                           <span className="px-2 py-0.5 text-xs font-medium rounded" style={{ 
                             backgroundColor: rec.grade === 'A' ? 'rgba(107, 155, 107, 0.15)' : 'rgba(212, 165, 116, 0.15)',
-                            color: rec.grade === 'A' ? '#6b9b6b' : 'var(--accent)'
+                            color: rec.grade === 'A' ? '#6b9b6b' : 'hsl(var(--accent))'
                           }}>
                             Grade {rec.grade}
                           </span>
@@ -334,7 +334,7 @@ export default function ScreeningPage() {
             <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
               <div 
                 className="h-full transition-all duration-300"
-                style={{ width: `${(step / totalSteps) * 100}%`, backgroundColor: 'var(--accent)' }}
+                style={{ width: `${(step / totalSteps) * 100}%`, backgroundColor: 'hsl(var(--accent))' }}
               />
             </div>
           </div>
@@ -352,7 +352,7 @@ export default function ScreeningPage() {
               <div className="p-6 rounded-xl border space-y-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)' }}>
-                    <User className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+                    <User className="h-5 w-5" style={{ color: 'hsl(var(--accent))' }} />
                   </div>
                   <div>
                     <h2 className="text-lg font-medium">Basic Information</h2>
@@ -386,7 +386,7 @@ export default function ScreeningPage() {
                         className="p-4 border rounded-lg text-center transition-all"
                         style={formData.gender === g ? { 
                           backgroundColor: 'rgba(212, 165, 116, 0.1)', 
-                          borderColor: 'var(--accent)',
+                          borderColor: 'hsl(var(--accent))',
                           color: 'var(--text-primary)'
                         } : { 
                           borderColor: 'var(--border-medium)',
@@ -443,7 +443,7 @@ export default function ScreeningPage() {
                         className="w-full p-4 border rounded-lg text-left transition-all"
                         style={formData.smokingStatus === option.value ? { 
                           backgroundColor: 'rgba(212, 165, 116, 0.1)', 
-                          borderColor: 'var(--accent)',
+                          borderColor: 'hsl(var(--accent))',
                           color: 'var(--text-primary)'
                         } : { 
                           borderColor: 'var(--border-medium)',
@@ -471,7 +471,7 @@ export default function ScreeningPage() {
                         className="w-full p-4 border rounded-lg text-left transition-all"
                         style={formData.bmiCategory === option.value ? { 
                           backgroundColor: 'rgba(212, 165, 116, 0.1)', 
-                          borderColor: 'var(--accent)',
+                          borderColor: 'hsl(var(--accent))',
                           color: 'var(--text-primary)'
                         } : { 
                           borderColor: 'var(--border-medium)',
@@ -518,7 +518,7 @@ export default function ScreeningPage() {
                       className="w-full p-4 border rounded-lg text-left transition-all flex items-center justify-between"
                       style={formData.medicalHistory.includes(condition.value) ? { 
                         backgroundColor: 'rgba(212, 165, 116, 0.1)', 
-                        borderColor: 'var(--accent)',
+                        borderColor: 'hsl(var(--accent))',
                         color: 'var(--text-primary)'
                       } : { 
                         borderColor: 'var(--border-medium)',
@@ -544,7 +544,7 @@ export default function ScreeningPage() {
               <div className="p-6 rounded-xl border space-y-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)' }}>
-                    <Shield className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+                    <Shield className="h-5 w-5" style={{ color: 'hsl(var(--accent))' }} />
                   </div>
                   <div>
                     <h2 className="text-lg font-medium">Family History</h2>
@@ -570,7 +570,7 @@ export default function ScreeningPage() {
                       className="w-full p-4 border rounded-lg text-left transition-all flex items-center justify-between"
                       style={formData.familyHistory.includes(condition.value) ? { 
                         backgroundColor: 'rgba(212, 165, 116, 0.1)', 
-                        borderColor: 'var(--accent)',
+                        borderColor: 'hsl(var(--accent))',
                         color: 'var(--text-primary)'
                       } : { 
                         borderColor: 'var(--border-medium)',

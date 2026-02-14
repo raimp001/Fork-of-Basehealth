@@ -43,7 +43,7 @@ export function SimplifiedWalletConnect() {
     const networks: Record<string, string> = {
       "0x1": "Ethereum Mainnet",
       "0x8453": "Base Mainnet",
-      "0x14a33": "Base Sepolia Testnet",
+      "0x14a34": "Base Sepolia Testnet",
     }
 
     setNetworkName(networks[chainId] || "Unknown Network")

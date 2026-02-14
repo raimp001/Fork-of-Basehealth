@@ -126,7 +126,7 @@ export default function AdminPortalPage() {
               <div className="grid grid-cols-4 gap-4 mb-10">
                 <div className="rounded-xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                   <div className="flex items-center gap-3 mb-3">
-                    <Clock className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    <Clock className="w-5 h-5" style={{ color: 'hsl(var(--accent))' }} />
                     <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Pending</span>
                   </div>
                   <p className="text-2xl font-normal">{totalPending}</p>
@@ -162,7 +162,7 @@ export default function AdminPortalPage() {
               {/* Pending Alert */}
               {totalPending > 0 && (
                 <div className="mb-6 p-4 rounded-xl" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)', border: '1px solid rgba(212, 165, 116, 0.2)' }}>
-                  <p className="text-sm" style={{ color: 'var(--accent)' }}>
+                  <p className="text-sm" style={{ color: 'hsl(var(--accent))' }}>
                     <span className="font-medium">{totalPending} application{totalPending > 1 ? 's' : ''}</span>
                     {' '}awaiting review
                   </p>
@@ -177,7 +177,7 @@ export default function AdminPortalPage() {
                   <div className="rounded-xl p-5 transition-all cursor-pointer group" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <Stethoscope className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                        <Stethoscope className="w-5 h-5" style={{ color: 'hsl(var(--accent))' }} />
                         <div>
                           <p className="font-medium">Provider Applications</p>
                           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -194,7 +194,7 @@ export default function AdminPortalPage() {
                   <div className="rounded-xl p-5 transition-all cursor-pointer group" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <Heart className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                        <Heart className="w-5 h-5" style={{ color: 'hsl(var(--accent))' }} />
                         <div>
                           <p className="font-medium">Caregiver Applications</p>
                           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -211,7 +211,7 @@ export default function AdminPortalPage() {
                   <div className="rounded-xl p-5 transition-all cursor-pointer group" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <Calendar className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                        <Calendar className="w-5 h-5" style={{ color: 'hsl(var(--accent))' }} />
                         <div>
                           <p className="font-medium">Bookings & Refunds</p>
                           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -235,7 +235,7 @@ export default function AdminPortalPage() {
                       {stats?.database ? (
                         <span style={{ color: '#6b9b6b' }}>●</span>
                       ) : (
-                        <span style={{ color: 'var(--accent)' }}>●</span>
+                        <span style={{ color: 'hsl(var(--accent))' }}>●</span>
                       )}
                     </div>
                   </div>

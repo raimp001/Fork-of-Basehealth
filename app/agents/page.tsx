@@ -40,7 +40,7 @@ export default function AgentsPage() {
     <div className="min-h-screen bg-gradient-to-b from-[#f5f7fa] via-white to-[#f8fafc]">
       <MinimalNavigation />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pt-24">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pt-24 pb-24 md:pb-8">
         <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm mb-8">
           <p className="text-xs tracking-[0.2em] uppercase text-slate-500 mb-3">OpenClaw Agent Mesh</p>
           <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900 mb-3">Function-Specific Agent Hub</h1>
@@ -56,6 +56,7 @@ export default function AgentsPage() {
             const Icon = AGENT_ICONS[agentId]
             const accent = AGENT_ACCENTS[agentId]
             const launchHref = `/chat?agent=${agentId}&q=${encodeURIComponent(agent.launchPrompt)}`
+            const detailsHref = `/agents/${agentId}`
 
             return (
               <article key={agentId} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -66,7 +67,11 @@ export default function AgentsPage() {
                   <span className="text-[10px] uppercase tracking-[0.16em] text-slate-500">{agent.functionArea}</span>
                 </div>
 
-                <h2 className="text-base font-semibold text-slate-900 mb-2">{agent.label}</h2>
+                <h2 className="text-base font-semibold text-slate-900 mb-2">
+                  <Link href={detailsHref} className="hover:underline">
+                    {agent.label}
+                  </Link>
+                </h2>
                 <p className="text-sm text-slate-600 leading-6 min-h-[72px]">{agent.description}</p>
 
                 <div className="mt-5 space-y-2">
@@ -83,6 +88,12 @@ export default function AgentsPage() {
                     className="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                   >
                     {agent.workflowLabel}
+                  </Link>
+                  <Link
+                    href={detailsHref}
+                    className="inline-flex w-full items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                  >
+                    View agent details
                   </Link>
                 </div>
               </article>

@@ -468,7 +468,7 @@ function SearchPageContent() {
 
                     <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
                       <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4" style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
+                        <Star className="h-4 w-4" style={{ color: 'hsl(var(--accent))', fill: 'hsl(var(--accent))' }} />
                         <span className="text-sm font-medium">{provider.rating.toFixed(1)}</span>
                         {provider.reviewCount > 0 && (
                           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>({provider.reviewCount})</span>

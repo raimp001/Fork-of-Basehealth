@@ -15,7 +15,7 @@ let WagmiProvider: any = null
 let QueryClientProvider: any = null
 let RainbowKitProvider: any = null
 let wagmiConfig: any = null
-let baseSepolia: any = null
+let initialChain: any = null
 let QueryClient: any = null
 
 // Track if we've attempted to load the providers
@@ -26,12 +26,11 @@ async function loadProviders() {
   if (providersLoaded) return !providersError
   
   try {
-    const [wagmiModule, queryModule, rainbowModule, configModule, chainsModule] = await Promise.all([
+    const [wagmiModule, queryModule, rainbowModule, configModule] = await Promise.all([
       import('wagmi'),
       import('@tanstack/react-query'),
       import('@rainbow-me/rainbowkit'),
       import('@/lib/coinbase-config'),
-      import('wagmi/chains'),
     ])
     
     WagmiProvider = wagmiModule.WagmiProvider
@@ -39,7 +38,7 @@ async function loadProviders() {
     QueryClient = queryModule.QueryClient
     RainbowKitProvider = rainbowModule.RainbowKitProvider
     wagmiConfig = configModule.wagmiConfig
-    baseSepolia = chainsModule.baseSepolia
+    initialChain = configModule.baseChain
     
     // Import styles
     await import('@rainbow-me/rainbowkit/styles.css')
@@ -77,7 +76,7 @@ function SafeWeb3Wrapper({ children, loaded }: { children: ReactNode; loaded: bo
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider
             modalSize="compact"
-            initialChain={baseSepolia}
+            initialChain={initialChain}
           >
             {children}
           </RainbowKitProvider>

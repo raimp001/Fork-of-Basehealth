@@ -274,7 +274,7 @@ export default function CaregiverSearchPage() {
                       checked={urgentOnly}
                       onChange={(e) => setUrgentOnly(e.target.checked)}
                       className="rounded"
-                      style={{ accentColor: 'var(--accent)' }}
+                      style={{ accentColor: 'hsl(var(--accent))' }}
                     />
                     <AlertTriangle className="h-4 w-4" style={{ color: '#f59e0b' }} />
                     <span className="text-sm">Urgent only</span>

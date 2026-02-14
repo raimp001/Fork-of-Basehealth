@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { MinimalNavigation } from '@/components/layout/minimal-navigation'
+import { FunctionAgentCTA } from "@/components/agents/function-agent-cta"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -114,7 +115,7 @@ export default function BasePaymentPage() {
   return (
     <div className="min-h-screen bg-white">
       <MinimalNavigation />
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
+      <div className="container mx-auto py-8 px-4 max-w-7xl pt-24 pb-24 md:pb-8">
       {/* Header */}
       <div className="mb-8 text-center space-y-4">
         <div className="flex items-center justify-center gap-2">
@@ -131,6 +132,14 @@ export default function BasePaymentPage() {
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
           Low fees, instant settlement, no chargebacks. Powered by Base blockchain.
         </p>
+      </div>
+
+      <div className="mb-10">
+        <FunctionAgentCTA
+          agentId="billing-guide"
+          title="Payments Agent"
+          prompt="Help me connect Coinbase Smart Wallet and pay with USDC on Base."
+        />
       </div>
 
       {/* Benefits Section */}
@@ -422,4 +431,3 @@ export default function BasePaymentPage() {
     </div>
   )
 }
-

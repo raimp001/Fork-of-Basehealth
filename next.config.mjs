@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+import path from 'path'
+
 const nextConfig = {
   reactStrictMode: true,
   eslint: {
@@ -19,6 +21,13 @@ const nextConfig = {
     },
   },
   webpack: (config) => {
+    // Stub React Native async storage dependency pulled in by @metamask/sdk.
+    // This avoids build-time "module not found" warnings in web bundles.
+    config.resolve.alias['@react-native-async-storage/async-storage'] = path.resolve(
+      process.cwd(),
+      'lib/shims/async-storage.ts'
+    )
+
     // Fix for pino-pretty not found
     config.resolve.alias['pino-pretty'] = false;
     

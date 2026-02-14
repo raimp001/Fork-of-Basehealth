@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
 
 const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || ''
-const isMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === 'true'
+const isMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === 'true' || process.env.NODE_ENV === 'production'
 
 // Validate Privy App ID format (should be alphanumeric string)
 function isValidPrivyAppId(id: string): boolean {
@@ -122,4 +122,3 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
 
   return <PrivyWrapper>{children}</PrivyWrapper>
 }
-

@@ -346,7 +346,7 @@ function OnboardingContent() {
               <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                 <div 
                   className="h-full rounded-full transition-all duration-500"
-                  style={{ width: `${progressPercentage}%`, backgroundColor: 'var(--accent)' }}
+                  style={{ width: `${progressPercentage}%`, backgroundColor: 'hsl(var(--accent))' }}
                 />
               </div>
               <p className="text-center mt-2" style={{ color: 'var(--text-secondary)' }}>{steps[step]?.title}</p>
@@ -374,13 +374,13 @@ function OnboardingContent() {
                       onClick={() => setRole("PROVIDER")}
                       className="p-5 rounded-lg border text-left transition-all"
                       style={role === "PROVIDER" ? { 
-                        borderColor: 'var(--accent)', 
+                        borderColor: 'hsl(var(--accent))', 
                         backgroundColor: 'rgba(212, 165, 116, 0.1)' 
                       } : { 
                         borderColor: 'var(--border-medium)' 
                       }}
                     >
-                      <Stethoscope className="w-6 h-6 mb-3" style={{ color: role === "PROVIDER" ? 'var(--accent)' : 'var(--text-muted)' }} />
+                      <Stethoscope className="w-6 h-6 mb-3" style={{ color: role === "PROVIDER" ? 'hsl(var(--accent))' : 'var(--text-muted)' }} />
                       <h3 className="font-medium">Provider</h3>
                       <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Licensed clinician</p>
                     </button>
@@ -388,13 +388,13 @@ function OnboardingContent() {
                       onClick={() => setRole("CAREGIVER")}
                       className="p-5 rounded-lg border text-left transition-all"
                       style={role === "CAREGIVER" ? { 
-                        borderColor: 'var(--accent)', 
+                        borderColor: 'hsl(var(--accent))', 
                         backgroundColor: 'rgba(212, 165, 116, 0.1)' 
                       } : { 
                         borderColor: 'var(--border-medium)' 
                       }}
                     >
-                      <Heart className="w-6 h-6 mb-3" style={{ color: role === "CAREGIVER" ? 'var(--accent)' : 'var(--text-muted)' }} />
+                      <Heart className="w-6 h-6 mb-3" style={{ color: role === "CAREGIVER" ? 'hsl(var(--accent))' : 'var(--text-muted)' }} />
                       <h3 className="font-medium">Caregiver</h3>
                       <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Home care services</p>
                     </button>

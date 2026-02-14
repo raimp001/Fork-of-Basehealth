@@ -20,7 +20,7 @@ import {
   Settings,
   ReceiptText,
 } from "lucide-react"
-import { SignInWithBase } from "@/components/auth/sign-in-with-base"
+import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { OPENCLAW_AGENT_CATALOG, OPENCLAW_AGENT_IDS, type OpenClawAgentId } from "@/lib/openclaw-agent-catalog"
 
 const features = [
@@ -67,41 +67,7 @@ const OPENCLAW_ICONS: Record<OpenClawAgentId, typeof Bot> = {
 export default function HomePage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      {/* Navigation */}
-      <nav className="border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--accent)' }}>
-                <span className="text-sm font-medium" style={{ color: 'var(--bg-primary)' }}>B</span>
-              </div>
-              <span className="text-lg font-medium">BaseHealth</span>
-            </Link>
-
-            <div className="hidden md:flex items-center gap-6">
-              <Link href="/screening" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
-                Screenings
-              </Link>
-              <Link href="/providers/search" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
-                Find Providers
-              </Link>
-              <Link href="/caregivers/search" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
-                Find Caregivers
-              </Link>
-              <Link href="/clinical-trials" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
-                Trials
-              </Link>
-              <Link href="/agents" className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
-                Agents
-              </Link>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <SignInWithBase />
-            </div>
-          </div>
-        </div>
-      </nav>
+      <MinimalNavigation />
 
       {/* Hero Section */}
       <section className="pt-24 pb-20">
@@ -159,7 +125,7 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-6">
               {benefits.map((benefit) => (
                 <div key={benefit} className="flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
-                  <Check className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+                  <Check className="h-4 w-4" style={{ color: 'hsl(var(--accent))' }} />
                   <span className="text-sm">{benefit}</span>
                 </div>
               ))}
@@ -190,7 +156,7 @@ export default function HomePage() {
                 </p>
                 <span 
                   className="inline-flex items-center gap-1 text-sm font-medium group-hover:gap-2 transition-all"
-                  style={{ color: 'var(--accent)' }}
+                  style={{ color: 'hsl(var(--accent))' }}
                 >
                   Learn more
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -215,7 +181,7 @@ export default function HomePage() {
             <Link
               href="/agents"
               className="inline-flex items-center gap-2 text-sm font-medium"
-              style={{ color: "var(--accent)" }}
+              style={{ color: "hsl(var(--accent))" }}
             >
               Open Agent Hub
               <ArrowRight className="h-4 w-4" />
@@ -241,13 +207,13 @@ export default function HomePage() {
                     className="w-10 h-10 rounded-lg mb-4 flex items-center justify-center"
                     style={{ backgroundColor: "var(--bg-tertiary)" }}
                   >
-                    <Icon className="h-5 w-5" style={{ color: "var(--accent)" }} />
+                    <Icon className="h-5 w-5" style={{ color: "hsl(var(--accent))" }} />
                   </div>
                   <h3 className="text-base font-medium mb-2">{agent.label}</h3>
                   <p className="text-sm" style={{ color: "var(--text-secondary)", lineHeight: "1.6" }}>
                     {agent.description}
                   </p>
-                  <p className="text-xs mt-3 font-medium" style={{ color: "var(--accent)" }}>
+                  <p className="text-xs mt-3 font-medium" style={{ color: "hsl(var(--accent))" }}>
                     Launch Agent
                   </p>
                 </Link>
@@ -340,7 +306,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-12">
             <div>
               <Link href="/" className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--accent)' }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'hsl(var(--accent))' }}>
                   <span className="text-sm font-medium" style={{ color: 'var(--bg-primary)' }}>B</span>
                 </div>
                 <span className="text-lg font-medium">BaseHealth</span>

@@ -7,53 +7,93 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Claude.ai Color Palette */
+/* BaseHealth palette + shadcn tokens
+   - Light mode is the default for patient usability.
+   - Dark mode is enabled via next-themes `.dark` class on <html>. */
 :root {
-  /* Warm dark background - like Claude */
+  /* Warm light background */
+  --bg-primary: #fbfaf7;
+  --bg-secondary: #f4f1ea;
+  --bg-tertiary: #ece8dd;
+  --bg-card: #ffffff;
+
+  /* Readable dark text */
+  --text-primary: #1a1915;
+  --text-secondary: #3f3d37;
+  --text-muted: #6b6963;
+
+  /* Borders */
+  --border-subtle: rgba(26, 25, 21, 0.08);
+  --border-medium: rgba(26, 25, 21, 0.12);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.10);
+
+  --radius: 0.75rem;
+
+  /* shadcn variables (HSL) */
+  --background: 36 33% 97%;
+  --foreground: 30 12% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 30 12% 9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 30 12% 9%;
+  --primary: 221 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 36 20% 92%;
+  --secondary-foreground: 30 12% 16%;
+  --muted: 36 20% 92%;
+  --muted-foreground: 30 6% 40%;
+  --accent: 221 100% 50%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 36 10% 85%;
+  --input: 36 10% 85%;
+  --ring: 221 100% 50%;
+}
+
+.dark {
+  /* Warm dark background */
   --bg-primary: #1a1915;
   --bg-secondary: #232019;
   --bg-tertiary: #2c2a23;
   --bg-card: #28261f;
-  
+
   /* Cream/off-white text */
   --text-primary: #f5f4ef;
   --text-secondary: #a8a69e;
   --text-muted: #6b6963;
-  
-  /* Warm accent - coral/terracotta */
-  --accent: #d4a574;
-  --accent-hover: #e0b588;
-  
+
   /* Borders */
   --border-subtle: rgba(245, 244, 239, 0.08);
   --border-medium: rgba(245, 244, 239, 0.12);
-  
+
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  
-  --radius: 0.75rem;
-  
-  /* shadcn variables */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 14px 40px rgba(0, 0, 0, 0.45);
+
+  /* shadcn variables (HSL) */
   --background: 30 12% 9%;
   --foreground: 40 20% 95%;
   --card: 30 14% 14%;
   --card-foreground: 40 20% 95%;
   --popover: 30 14% 14%;
   --popover-foreground: 40 20% 95%;
-  --primary: 32 45% 64%;
-  --primary-foreground: 30 12% 9%;
+  --primary: 221 100% 50%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 30 8% 18%;
   --secondary-foreground: 40 10% 70%;
   --muted: 30 8% 18%;
   --muted-foreground: 40 6% 45%;
-  --accent: 32 45% 64%;
-  --accent-foreground: 30 12% 9%;
+  --accent: 221 100% 50%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 40 20% 95%;
   --border: 30 8% 18%;
   --input: 30 8% 18%;
-  --ring: 32 45% 64%;
+  --ring: 221 100% 50%;
 }
 
 /* Animations */
@@ -84,14 +124,14 @@
     -moz-osx-font-smoothing: grayscale;
   }
   
-  body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
-    letter-spacing: -0.01em;
-    line-height: 1.6;
-  }
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  letter-spacing: -0.01em;
+  line-height: 1.6;
+}
 
   h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
@@ -146,8 +186,8 @@
 
 /* Selection */
 ::selection {
-  background: var(--accent);
-  color: var(--bg-primary);
+  background: hsl(hsl(var(--accent)));
+  color: hsl(var(--accent-foreground));
 }
 
 /* Scrollbar */
@@ -171,7 +211,7 @@
 
 /* Focus visible */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 

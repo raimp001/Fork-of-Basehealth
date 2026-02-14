@@ -284,7 +284,7 @@ export default function BookAppointmentPage() {
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{provider.specialty}</p>
             </div>
             <div className="flex items-center gap-1">
-              <Star className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+              <Star className="h-4 w-4" style={{ color: 'hsl(var(--accent))' }} />
               <span className="font-medium">{provider.rating}</span>
               <span className="text-sm" style={{ color: 'var(--text-muted)' }}>({provider.reviewCount})</span>
             </div>
@@ -322,7 +322,7 @@ export default function BookAppointmentPage() {
           <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
             <div 
               className="h-full rounded-full transition-all duration-300"
-              style={{ width: `${progress}%`, backgroundColor: 'var(--accent)' }}
+              style={{ width: `${progress}%`, backgroundColor: 'hsl(var(--accent))' }}
             />
           </div>
         </div>
@@ -399,13 +399,13 @@ export default function BookAppointmentPage() {
                   onClick={() => setVisitType('in-person')}
                   className="p-5 rounded-xl border text-left transition-all"
                   style={visitType === 'in-person' ? {
-                    borderColor: 'var(--accent)',
+                    borderColor: 'hsl(var(--accent))',
                     backgroundColor: 'rgba(212, 165, 116, 0.1)'
                   } : {
                     borderColor: 'var(--border-medium)'
                   }}
                 >
-                  <MapPin className="h-8 w-8 mb-3" style={{ color: visitType === 'in-person' ? 'var(--accent)' : 'var(--text-muted)' }} />
+                  <MapPin className="h-8 w-8 mb-3" style={{ color: visitType === 'in-person' ? 'hsl(var(--accent))' : 'var(--text-muted)' }} />
                   <h3 className="font-medium mb-1">In-Person Visit</h3>
                   <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                     Visit the provider's office
@@ -417,13 +417,13 @@ export default function BookAppointmentPage() {
                   onClick={() => setVisitType('video')}
                   className="p-5 rounded-xl border text-left transition-all"
                   style={visitType === 'video' ? {
-                    borderColor: 'var(--accent)',
+                    borderColor: 'hsl(var(--accent))',
                     backgroundColor: 'rgba(212, 165, 116, 0.1)'
                   } : {
                     borderColor: 'var(--border-medium)'
                   }}
                 >
-                  <Video className="h-8 w-8 mb-3" style={{ color: visitType === 'video' ? 'var(--accent)' : 'var(--text-muted)' }} />
+                  <Video className="h-8 w-8 mb-3" style={{ color: visitType === 'video' ? 'hsl(var(--accent))' : 'var(--text-muted)' }} />
                   <h3 className="font-medium mb-1">Video Visit</h3>
                   <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                     Meet from the comfort of home
@@ -533,7 +533,7 @@ export default function BookAppointmentPage() {
                   <h3 className="font-medium mb-3">Appointment Details</h3>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-3">
-                      <CalendarIcon className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+                      <CalendarIcon className="h-5 w-5" style={{ color: 'hsl(var(--accent))' }} />
                       <div>
                         <p className="font-medium">{selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}</p>
                         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{selectedTime}</p>
@@ -541,9 +541,9 @@ export default function BookAppointmentPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       {visitType === 'video' ? (
-                        <Video className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+                        <Video className="h-5 w-5" style={{ color: 'hsl(var(--accent))' }} />
                       ) : (
-                        <MapPin className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+                        <MapPin className="h-5 w-5" style={{ color: 'hsl(var(--accent))' }} />
                       )}
                       <div>
                         <p className="font-medium">{visitType === 'video' ? 'Video Visit' : 'In-Person Visit'}</p>
@@ -568,8 +568,8 @@ export default function BookAppointmentPage() {
                 </div>
                 
                 <div className="p-4 rounded-lg flex items-start gap-3" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)', border: '1px solid rgba(212, 165, 116, 0.2)' }}>
-                  <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: 'var(--accent)' }} />
-                  <div className="text-sm" style={{ color: 'var(--accent)' }}>
+                  <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: 'hsl(var(--accent))' }} />
+                  <div className="text-sm" style={{ color: 'hsl(var(--accent))' }}>
                     <p className="font-medium mb-1">Cancellation Policy</p>
                     <p>Free cancellation up to 24 hours before your appointment.</p>
                   </div>

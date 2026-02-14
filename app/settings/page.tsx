@@ -22,6 +22,7 @@ import {
   XCircle
 } from "lucide-react"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import { FunctionAgentCTA } from "@/components/agents/function-agent-cta"
 
 interface IntegrationCheck {
   id: string
@@ -153,12 +154,19 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-50">
       <MinimalNavigation />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 pt-24">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8 pt-24 pb-24 md:pb-8">
         {/* Header */}
         <div className="mb-10">
           <h1 className="text-4xl md:text-5xl font-bold text-black mb-4 tracking-tight">Settings</h1>
           <p className="text-lg text-gray-600 leading-relaxed">Manage your account and preferences</p>
         </div>
+
+        <FunctionAgentCTA
+          agentId="account-manager"
+          title="Account Manager Agent"
+          prompt="Help me with Base sign-in, account management, and wallet recognition."
+          className="mb-6"
+        />
 
         {/* Settings Tabs */}
         <Tabs defaultValue="account" className="space-y-6">

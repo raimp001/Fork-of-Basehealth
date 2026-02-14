@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { components } from "@/lib/design-system"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import { FunctionAgentCTA } from "@/components/agents/function-agent-cta"
 import Link from "next/link"
 import { 
   DollarSign, 
@@ -39,7 +40,7 @@ export default function BillingPage() {
     <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
       <MinimalNavigation />
       
-      <main className="pt-20 md:pt-24">
+      <main className="pt-20 md:pt-24 pb-24 md:pb-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {/* Header */}
           <div className="mb-10">
@@ -54,6 +55,13 @@ export default function BillingPage() {
               CMS-compliant billing management with smart insights
             </p>
           </div>
+
+          <FunctionAgentCTA
+            agentId="billing-guide"
+            title="Billing Guide Agent"
+            prompt="Help me pay with Base, find my receipts, and understand refunds."
+            className="mb-6"
+          />
 
           {/* Regulatory Alert */}
           <Alert className="border-amber-200 bg-amber-50 mb-6">

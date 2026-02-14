@@ -4,35 +4,38 @@ import { coinbaseWallet, walletConnect, injected } from 'wagmi/connectors'
 import { http } from 'viem'
 
 // Base chain configuration
-// TESTING MODE: Force Base Sepolia for testnet testing
-// TODO: Revert to `process.env.NODE_ENV === 'production' ? base : baseSepolia` after testing
-export const baseChain = baseSepolia // Force testnet for testing
+const useMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === 'true' || process.env.NODE_ENV === 'production'
+export const baseChain = useMainnet ? base : baseSepolia
 
 // WalletConnect Project ID - required for mobile wallet connections
 // Get one free at https://cloud.walletconnect.com/
-const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo-project-id'
+const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || ''
 
 // Wagmi configuration for Base
 // Supports: Base app (mobile), Coinbase Wallet, MetaMask, and other wallets
 export const wagmiConfig = createConfig({
-  chains: [baseSepolia, base], // Both chains available, Sepolia first for testing
+  chains: useMainnet ? [base, baseSepolia] : [baseSepolia, base],
   connectors: [
     // Coinbase Wallet - works with Base app on mobile
     coinbaseWallet({
       appName: 'BaseHealth',
-      preference: 'all', // Allow both smart wallet and regular wallet
+      preference: 'smartWalletOnly', // Prefer Coinbase Smart Wallet / Base Account
     }),
     // WalletConnect - for mobile wallet connections (Base app, Rainbow, etc.)
-    walletConnect({
-      projectId: walletConnectProjectId,
-      metadata: {
-        name: 'BaseHealth',
-        description: 'Healthcare payments on Base',
-        url: 'https://basehealth.xyz',
-        icons: ['https://basehealth.xyz/logo.png'],
-      },
-      showQrModal: true,
-    }),
+    ...(walletConnectProjectId
+      ? [
+          walletConnect({
+            projectId: walletConnectProjectId,
+            metadata: {
+              name: 'BaseHealth',
+              description: 'Healthcare payments on Base',
+              url: 'https://basehealth.xyz',
+              icons: ['https://basehealth.xyz/logo.png'],
+            },
+            showQrModal: true,
+          }),
+        ]
+      : []),
     // Injected wallets (MetaMask, etc.)
     injected({
       shimDisconnect: true,

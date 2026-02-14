@@ -74,7 +74,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className="font-sans antialiased bg-white dark:bg-stone-900">
+      <body className="font-sans antialiased bg-background text-foreground">
         <SkipToContent />
         <Announcer />
         <Providers>

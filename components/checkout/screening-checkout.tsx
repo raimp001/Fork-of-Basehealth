@@ -351,7 +351,7 @@ export function ScreeningCheckout({
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-base font-medium transition-colors"
-            style={{ color: 'var(--accent)' }}
+            style={{ color: 'hsl(var(--accent))' }}
           >
             View on BaseScan <ExternalLink className="h-4 w-4" />
           </a>
@@ -413,7 +413,7 @@ export function ScreeningCheckout({
         className="p-8 rounded-2xl text-center"
         style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
       >
-        <Loader2 className="h-12 w-12 mx-auto mb-5 animate-spin" style={{ color: 'var(--accent)' }} />
+        <Loader2 className="h-12 w-12 mx-auto mb-5 animate-spin" style={{ color: 'hsl(var(--accent))' }} />
         <h3 className="text-xl font-semibold mb-3">
           {is.awaitingConfirm ? 'Confirm Payment' : 'Processing...'}
         </h3>
@@ -444,7 +444,7 @@ export function ScreeningCheckout({
       {/* Benefits */}
       <div className="grid grid-cols-3 gap-3 text-center mb-6">
         <div className="p-3">
-          <Zap className="h-6 w-6 mx-auto mb-1.5" style={{ color: 'var(--accent)' }} />
+          <Zap className="h-6 w-6 mx-auto mb-1.5" style={{ color: 'hsl(var(--accent))' }} />
           <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>~2 sec</p>
         </div>
         <div className="p-3">

@@ -1,17 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { SimplifiedWalletConnect } from "@/components/blockchain/simplified-wallet-connect"
-import { EnhancedBillingDashboard } from "@/components/billing/enhanced-billing-dashboard"
-import { ImprovedPaymentFlow } from "@/components/billing/improved-payment-flow"
-import { SmartBillingInsights } from "@/components/billing/smart-billing-insights"
-import { CMSCompliantBilling } from "@/components/billing/cms-compliant-billing"
-import { InsuranceManagement } from "@/components/billing/insurance-management"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+import { SignInWithBase } from "@/components/auth/sign-in-with-base"
+import { FunctionAgentCTA } from "@/components/agents/function-agent-cta"
 import { 
   Wallet,
   CreditCard,
@@ -40,7 +36,9 @@ export default function HealthWalletPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
-      <div className="container mx-auto p-4 space-y-6 pt-24">
+      <MinimalNavigation />
+
+      <main className="container mx-auto p-4 space-y-6 pt-24 pb-24 md:pb-8">
         {/* Enhanced Header */}
         <div className="text-center space-y-4 mb-10">
           <div className="inline-flex items-center px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold shadow-md">
@@ -52,6 +50,28 @@ export default function HealthWalletPage() {
           <p className="text-lg md:text-xl text-stone-600 max-w-3xl mx-auto">
             Manage payments, insurance, and get insights all in one secure place
           </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <FunctionAgentCTA
+            agentId="account-manager"
+            title="Wallet & Account Agent"
+            prompt="Help me connect Coinbase Smart Wallet, manage my BaseHealth account, and set up payments."
+          />
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-2 border-stone-300 bg-white/70 backdrop-blur-sm rounded-2xl">
+            <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-stone-900">Coinbase Smart Wallet</p>
+                <p className="text-sm text-stone-600">
+                  Sign in with Base to unlock onchain receipts, refunds tracking, and USDC payments.
+                </p>
+              </div>
+              <SignInWithBase />
+            </CardContent>
+          </Card>
         </div>
 
         {/* Enhanced Action Cards with consistent styling */}
@@ -175,7 +195,7 @@ export default function HealthWalletPage() {
           </div>
           <p className="text-stone-600">Your health data is protected with enterprise-grade encryption</p>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

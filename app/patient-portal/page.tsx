@@ -263,7 +263,7 @@ export default function PatientPortalPage() {
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="p-2.5 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-                          <action.icon className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+                          <action.icon className="h-5 w-5" style={{ color: 'hsl(var(--accent))' }} />
                         </div>
                         <ArrowRight className="h-4 w-4" style={{ color: 'var(--text-muted)' }} />
                       </div>
@@ -291,7 +291,7 @@ export default function PatientPortalPage() {
                     </div>
                     <div className="flex items-center gap-4 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                       <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)' }}>
-                        <Calendar className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+                        <Calendar className="h-4 w-4" style={{ color: 'hsl(var(--accent))' }} />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium">Appointment scheduled</p>
@@ -342,7 +342,7 @@ export default function PatientPortalPage() {
                 <div className="p-4 rounded-xl border" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Watch className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+                      <Watch className="h-4 w-4" style={{ color: 'hsl(var(--accent))' }} />
                       <h2 className="font-medium text-sm">Device Connect</h2>
                     </div>
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>

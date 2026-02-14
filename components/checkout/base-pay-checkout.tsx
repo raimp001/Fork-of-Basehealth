@@ -91,15 +91,35 @@ export function BasePayCheckout({
       
       // Trigger Base Pay popup
       const payment = await pay(paymentConfig)
-      
-      // Payment initiated successfully
+
+      // Verify + record the payment server-side (receipts/refunds depend on this metadata).
+      const verifyResponse = await fetch("/api/payments/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentId: payment.id,
+          orderId,
+          expectedAmount: amount.toFixed(2),
+          providerId,
+          serviceType: serviceName,
+          patientEmail: payment.payerInfoResponses?.email,
+        }),
+      })
+
+      const verifyJson = await verifyResponse.json().catch(() => ({}))
+      if (!verifyResponse.ok || !verifyJson?.success) {
+        throw new Error(verifyJson?.error || "Payment verification failed")
+      }
+
       const paymentResult: PaymentResult = {
         paymentId: payment.id,
+        txHash: verifyJson?.payment?.id || payment.id,
+        sender: verifyJson?.payment?.sender,
         email: payment.payerInfoResponses?.email,
       }
-      
+
       setResult(paymentResult)
-      setStep('success')
+      setStep("success")
       onSuccess?.(paymentResult)
       
     } catch (err) {
@@ -126,11 +146,11 @@ export function BasePayCheckout({
           
           <div className="bg-white rounded-lg p-3 mb-4">
             <p className="text-xs text-muted-foreground mb-1">Transaction ID</p>
-            <p className="font-mono text-sm break-all">{result.paymentId}</p>
+            <p className="font-mono text-sm break-all">{result.txHash || result.paymentId}</p>
           </div>
           
           <a
-            href={`https://${basePayConfig.testnet ? 'sepolia.' : ''}basescan.org/tx/${result.paymentId}`}
+            href={`https://${basePayConfig.testnet ? 'sepolia.' : ''}basescan.org/tx/${result.txHash || result.paymentId}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"

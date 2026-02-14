@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import { NotificationCenter } from "@/components/notifications/notification-center"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { SignInWithBase } from "@/components/auth/sign-in-with-base"
 
 const navigationItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -50,6 +51,7 @@ const adminMenuItems = [
   { href: '/admin/applications', label: 'Application Reviews', icon: Bell, badge: 'Admin' },
   { href: '/admin/providers', label: 'Provider Management', icon: User },
   { href: '/admin/analytics', label: 'Analytics', icon: Activity },
+  { href: '/treasury', label: 'Treasury', icon: DollarSign, badge: 'Ops' },
 ]
 
 const quickActions = [
@@ -90,15 +92,17 @@ export function MinimalNavigation() {
   return (
     <>
       {/* Desktop Navigation */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white shadow-lg' : 'bg-white shadow-sm'
-      } border-b-2 border-stone-300`}>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-border backdrop-blur ${
+          scrolled ? "bg-background/95 shadow-md" : "bg-background/80 shadow-sm"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-18">
             <div className="flex items-center gap-8 lg:gap-12">
               <Link 
                 href="/" 
-                className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight hover:text-stone-700 transition-colors duration-200"
+                className="text-xl md:text-2xl font-bold text-foreground tracking-tight hover:opacity-80 transition-opacity duration-200"
               >
                 BaseHealth
               </Link>
@@ -110,13 +114,13 @@ export function MinimalNavigation() {
                     href={item.href}
                     className={`relative px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
                       pathname === item.href
-                        ? 'text-stone-900 bg-stone-100'
-                        : 'text-stone-700 hover:text-stone-900 hover:bg-stone-50'
+                        ? "text-foreground bg-muted"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                     }`}
                   >
                     {item.label}
                     {pathname === item.href && (
-                      <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-stone-800 rounded-full" />
+                      <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-foreground rounded-full" />
                     )}
                   </Link>
                 ))}
@@ -126,55 +130,41 @@ export function MinimalNavigation() {
             <div className="hidden md:flex items-center gap-2">
               <Link
                 href="/saved"
-                className="p-2 rounded-lg text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 aria-label="Saved items"
               >
                 <Bookmark className="h-5 w-5" />
               </Link>
               <NotificationCenter />
               <ThemeToggle />
-              <div className="w-px h-6 bg-stone-200 mx-1" />
+              <div className="w-px h-6 bg-border mx-1" />
               <Button 
                 asChild 
                 variant="ghost" 
                 size="sm" 
-                className="h-9 px-4 text-sm font-medium text-gray-700 hover:text-stone-900 hover:bg-stone-50 transition-all duration-200"
+                className="h-9 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-200"
               >
                 <Link href="/provider/signup">Become a Provider</Link>
               </Button>
-              <Button 
-                asChild 
-                variant="ghost" 
-                size="sm" 
-                className="h-9 px-4 text-sm font-medium text-gray-700 hover:text-stone-900 hover:bg-stone-50 transition-all duration-200"
-              >
-                <Link href="/login">Sign in</Link>
-              </Button>
-              <Button 
-                asChild 
-                size="sm" 
-                className="h-9 px-5 bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                <Link href="/register">Get started</Link>
-              </Button>
+              <SignInWithBase className="h-9" />
             </div>
 
             {/* Mobile Menu Button */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon" className="text-gray-700 hover:bg-stone-50 h-9 w-9">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted h-9 w-9">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[360px] p-0 bg-white">
+              <SheetContent side="right" className="w-[300px] sm:w-[360px] p-0 bg-background">
                 <div className="flex flex-col h-full">
-                  <div className="flex items-center justify-between p-5 border-b border-gray-100">
-                    <span className="text-lg font-bold text-stone-900">Menu</span>
+                  <div className="flex items-center justify-between p-5 border-b border-border">
+                    <span className="text-lg font-bold text-foreground">Menu</span>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setIsOpen(false)}
-                      className="text-gray-600 hover:text-stone-900 hover:bg-stone-50 h-9 w-9"
+                      className="text-muted-foreground hover:text-foreground hover:bg-muted h-9 w-9"
                     >
                       <X className="h-5 w-5" />
                     </Button>
@@ -189,17 +179,17 @@ export function MinimalNavigation() {
                           onClick={() => setIsOpen(false)}
                           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                             pathname === item.href
-                              ? 'bg-stone-100 text-stone-900 font-semibold shadow-sm'
-                              : 'text-gray-700 hover:bg-stone-50 hover:text-stone-900'
+                              ? "bg-muted text-foreground font-semibold shadow-sm"
+                              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                           }`}
                         >
-                          <item.icon className={`h-5 w-5 ${pathname === item.href ? 'text-stone-700' : 'text-gray-500'}`} />
+                          <item.icon className={`h-5 w-5 ${pathname === item.href ? "text-foreground" : "text-muted-foreground"}`} />
                           {item.label}
                         </Link>
                       ))}
                     </div>
                     
-                    <div className="mt-6 pt-6 border-t border-gray-100">
+                    <div className="mt-6 pt-6 border-t border-border">
                       <div className="px-4 mb-6">
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                           Quick Actions
@@ -210,11 +200,11 @@ export function MinimalNavigation() {
                               key={item.href}
                               href={item.href}
                               onClick={() => setIsOpen(false)}
-                              className="flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 hover:bg-stone-50 hover:text-stone-900 transition-all duration-200"
+                              className="flex items-center justify-between px-4 py-3 rounded-xl text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-all duration-200"
                             >
                               <div className="flex items-center gap-3">
-                                <item.icon className="h-5 w-5 text-gray-500" />
-                                <span className="font-medium">{item.label}</span>
+                                <item.icon className="h-5 w-5 text-muted-foreground" />
+                                <span className="font-medium text-foreground">{item.label}</span>
                               </div>
                               {item.badge && (
                                 <Badge variant="secondary" className="bg-rose-100 text-rose-700 text-xs font-semibold">
@@ -236,11 +226,11 @@ export function MinimalNavigation() {
                               key={item.href}
                               href={item.href}
                               onClick={() => setIsOpen(false)}
-                              className="flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 hover:bg-stone-50 hover:text-stone-900 transition-all duration-200"
+                              className="flex items-center justify-between px-4 py-3 rounded-xl text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-all duration-200"
                             >
                               <div className="flex items-center gap-3">
-                                <item.icon className="h-5 w-5 text-gray-500" />
-                                <span className="font-medium">{item.label}</span>
+                                <item.icon className="h-5 w-5 text-muted-foreground" />
+                                <span className="font-medium text-foreground">{item.label}</span>
                               </div>
                               {item.badge && (
                                 <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs font-semibold">
@@ -253,7 +243,7 @@ export function MinimalNavigation() {
                       </div>
 
                       {/* Admin Section */}
-                      <div className="px-4 pt-6 border-t border-gray-100">
+                      <div className="px-4 pt-6 border-t border-border">
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                           Administration
                         </p>
@@ -263,11 +253,11 @@ export function MinimalNavigation() {
                               key={item.href}
                               href={item.href}
                               onClick={() => setIsOpen(false)}
-                              className="flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 hover:bg-stone-50 hover:text-stone-900 transition-all duration-200"
+                              className="flex items-center justify-between px-4 py-3 rounded-xl text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-all duration-200"
                             >
                               <div className="flex items-center gap-3">
-                                <item.icon className="h-5 w-5 text-gray-500" />
-                                <span className="font-medium">{item.label}</span>
+                                <item.icon className="h-5 w-5 text-muted-foreground" />
+                                <span className="font-medium text-foreground">{item.label}</span>
                               </div>
                               {item.badge && (
                                 <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs font-semibold">
@@ -281,7 +271,7 @@ export function MinimalNavigation() {
                     </div>
                   </nav>
                   
-                  <div className="p-5 border-t border-gray-100 bg-stone-50/50 space-y-3">
+                  <div className="p-5 border-t border-border bg-muted/20 space-y-3">
                     <Button 
                       asChild 
                       variant="outline" 
@@ -290,21 +280,9 @@ export function MinimalNavigation() {
                     >
                       <Link href="/provider/signup">Become a Provider</Link>
                     </Button>
-                    <Button 
-                      asChild 
-                      variant="outline" 
-                      className="w-full h-11 border-2 border-gray-200 hover:border-gray-300 bg-white text-gray-900 font-semibold hover:bg-stone-50 transition-all duration-200" 
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <Link href="/login">Sign in</Link>
-                    </Button>
-                    <Button 
-                      asChild 
-                      className="w-full h-11 bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" 
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <Link href="/register">Get started</Link>
-                    </Button>
+                    <div className="flex justify-center" onClick={() => setIsOpen(false)}>
+                      <SignInWithBase className="w-full h-11" />
+                    </div>
                   </div>
                 </div>
               </SheetContent>
@@ -314,7 +292,7 @@ export function MinimalNavigation() {
       </header>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-stone-300 md:hidden z-50 shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border md:hidden z-50 shadow-lg">
         <div className="grid grid-cols-5 h-16">
           {mobileBottomItems.map((item) => (
             <Link
@@ -322,14 +300,14 @@ export function MinimalNavigation() {
               href={item.href}
               className={`flex flex-col items-center justify-center gap-1 transition-all duration-200 relative ${
                 pathname === item.href
-                  ? 'text-stone-900'
-                  : 'text-gray-500 hover:text-stone-700'
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <div className={`relative ${pathname === item.href ? 'scale-110' : ''} transition-transform duration-200`}>
-                <item.icon className={`h-5 w-5 ${pathname === item.href ? 'text-stone-900' : ''}`} />
+                <item.icon className={`h-5 w-5 ${pathname === item.href ? "text-foreground" : ""}`} />
                 {pathname === item.href && (
-                  <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-stone-900 rounded-full" />
+                  <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-primary rounded-full" />
                 )}
               </div>
               <span className={`text-xs font-medium ${pathname === item.href ? 'font-semibold' : ''}`}>

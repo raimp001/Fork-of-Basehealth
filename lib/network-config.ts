@@ -11,12 +11,11 @@
  */
 
 // ============================================================
-// MAINNET TOGGLE - SET TO TRUE FOR PRODUCTION
+// MAINNET TOGGLE
 // ============================================================
-export const USE_MAINNET = true // LIVE ON MAINNET
-
-// Alternative: Check NODE_ENV (uncomment when ready)
-// export const USE_MAINNET = process.env.NODE_ENV === 'production'
+// Prefer explicit env vars; otherwise default to mainnet in production.
+const useMainnetEnv = process.env.NEXT_PUBLIC_USE_MAINNET ?? process.env.USE_MAINNET
+export const USE_MAINNET = useMainnetEnv ? useMainnetEnv === "true" : process.env.NODE_ENV === "production"
 
 // ============================================================
 // CHAIN CONFIGURATION
