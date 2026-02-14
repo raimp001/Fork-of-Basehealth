@@ -1,0 +1,168 @@
+import { NextResponse } from "next/server"
+import { ACTIVE_CHAIN } from "@/lib/network-config"
+
+type Check = {
+  id: string
+  label: string
+  env?: string
+  required: boolean
+  passed: boolean
+  help: string
+}
+
+type Section = {
+  id: string
+  title: string
+  checks: Check[]
+}
+
+function sectionReady(section: Section): boolean {
+  return section.checks.every((check) => (check.required ? check.passed : true))
+}
+
+export async function GET() {
+  const sections: Section[] = [
+    {
+      id: "sign-in",
+      title: "Base Sign-In",
+      checks: [
+        {
+          id: "privy-app-id",
+          label: "Privy App ID configured",
+          env: "NEXT_PUBLIC_PRIVY_APP_ID",
+          required: true,
+          passed: Boolean(process.env.NEXT_PUBLIC_PRIVY_APP_ID),
+          help: "Required for wallet-as-login in the Base/Privy auth flow.",
+        },
+        {
+          id: "privy-secret",
+          label: "Privy App Secret configured",
+          env: "PRIVY_APP_SECRET",
+          required: true,
+          passed: Boolean(process.env.PRIVY_APP_SECRET),
+          help: "Required for server-side auth token verification.",
+        },
+      ],
+    },
+    {
+      id: "account-management",
+      title: "Account Management",
+      checks: [
+        {
+          id: "nextauth-secret",
+          label: "NextAuth secret set",
+          env: "NEXTAUTH_SECRET",
+          required: true,
+          passed: Boolean(process.env.NEXTAUTH_SECRET),
+          help: "Required for secure account/session handling.",
+        },
+        {
+          id: "database-url",
+          label: "Database URL set",
+          env: "DATABASE_URL",
+          required: true,
+          passed: Boolean(process.env.DATABASE_URL),
+          help: "Required to persist users, wallets, and account updates.",
+        },
+      ],
+    },
+    {
+      id: "billing",
+      title: "Billing & Receipts",
+      checks: [
+        {
+          id: "resend-key",
+          label: "Resend API key configured",
+          env: "RESEND_API_KEY",
+          required: false,
+          passed: Boolean(process.env.RESEND_API_KEY),
+          help: "Needed for email delivery of receipts and refund notifications.",
+        },
+        {
+          id: "from-email",
+          label: "From email configured",
+          env: "FROM_EMAIL",
+          required: false,
+          passed: Boolean(process.env.FROM_EMAIL),
+          help: "Recommended sender identity for billing communications.",
+        },
+      ],
+    },
+    {
+      id: "payments",
+      title: "Base Payments",
+      checks: [
+        {
+          id: "recipient",
+          label: "Base settlement recipient wallet configured",
+          env: "NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS",
+          required: true,
+          passed: Boolean(process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS),
+          help: "The wallet that receives USDC/ETH settlement.",
+        },
+        {
+          id: "walletconnect",
+          label: "WalletConnect project ID configured",
+          env: "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID",
+          required: true,
+          passed: Boolean(process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID),
+          help: "Needed for broad wallet compatibility and payment UX.",
+        },
+      ],
+    },
+    {
+      id: "refunds",
+      title: "Refund Operations",
+      checks: [
+        {
+          id: "admin-email",
+          label: "Admin notification email configured",
+          env: "ADMIN_EMAIL",
+          required: false,
+          passed: Boolean(process.env.ADMIN_EMAIL),
+          help: "Recommended to monitor refunds and booking exceptions.",
+        },
+        {
+          id: "attestation-key",
+          label: "Attestation private key configured",
+          env: "ATTESTATION_PRIVATE_KEY",
+          required: false,
+          passed: Boolean(process.env.ATTESTATION_PRIVATE_KEY),
+          help: "Optional for advanced onchain audit trails and attestations.",
+        },
+      ],
+    },
+  ]
+
+  const missingRequired = sections.flatMap((section) =>
+    section.checks
+      .filter((check) => check.required && !check.passed)
+      .map((check) => ({
+        sectionId: section.id,
+        sectionTitle: section.title,
+        checkId: check.id,
+        label: check.label,
+        env: check.env,
+        help: check.help,
+      })),
+  )
+
+  const readiness = sections.map((section) => ({
+    id: section.id,
+    title: section.title,
+    ready: sectionReady(section),
+    checks: section.checks,
+  }))
+
+  return NextResponse.json({
+    success: true,
+    generatedAt: new Date().toISOString(),
+    network: {
+      name: ACTIVE_CHAIN.name,
+      chainId: ACTIVE_CHAIN.id,
+    },
+    overallReady: missingRequired.length === 0,
+    sections: readiness,
+    missingRequired,
+  })
+}

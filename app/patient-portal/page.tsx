@@ -1,4 +1,4 @@
-x"use client"
+"use client"
 
 /**
  * Patient Portal Dashboard - Claude.ai Design

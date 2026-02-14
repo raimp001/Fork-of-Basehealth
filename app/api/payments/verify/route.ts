@@ -20,6 +20,9 @@ import {
   notifyProviderOfBooking, 
   notifyAdminOfBooking 
 } from '@/lib/booking-notifications'
+import { prisma } from '@/lib/prisma'
+import { ACTIVE_CHAIN } from '@/lib/network-config'
+import { createBillingReceipt } from '@/lib/base-billing'
 
 interface VerifyRequest {
   paymentId: string
@@ -100,25 +103,102 @@ export async function POST(request: NextRequest) {
       verification.sender || '',
       verification.amount || expectedAmount
     )
-    
+
+    const parsedExpectedAmount = Number.parseFloat(expectedAmount)
+    const normalizedAmount = Number.isFinite(parsedExpectedAmount) ? parsedExpectedAmount : 0
+
     // Record provider earning (credit to their pending balance)
     const providerId = body.providerId
     if (providerId) {
-      const amountUsd = parseFloat(expectedAmount)
+      const amountUsd = normalizedAmount
       await recordProviderEarning(providerId, amountUsd, paymentId)
+    }
+
+    let receipt: ReturnType<typeof createBillingReceipt> | null = null
+    let bookingFromDb: any = null
+
+    // Persist payment state on booking and create transaction record
+    if (orderId) {
+      const booking = await prisma.booking.findUnique({
+        where: { id: orderId },
+        include: {
+          caregiver: { select: { firstName: true, lastName: true, email: true } },
+          user: { select: { name: true, email: true } },
+        },
+      })
+
+      if (booking) {
+        const existingMetadata =
+          booking.paymentMetadata && typeof booking.paymentMetadata === 'object'
+            ? (booking.paymentMetadata as Record<string, any>)
+            : {}
+
+        const updatedBooking = await prisma.booking.update({
+          where: { id: orderId },
+          data: {
+            paymentStatus: 'PAID',
+            status: booking.status === 'COMPLETED' ? 'COMPLETED' : 'CONFIRMED',
+            paidAt: new Date(),
+            confirmedAt: booking.confirmedAt || new Date(),
+            paymentProvider: booking.paymentProvider || 'BASE_USDC',
+            paymentProviderId: paymentId,
+            paymentMetadata: {
+              ...existingMetadata,
+              payment: {
+                ...(existingMetadata.payment || {}),
+                txHash: paymentId,
+                network: ACTIVE_CHAIN.name,
+                verifiedAt: new Date().toISOString(),
+                sender: verification.sender,
+                recipient: verification.recipient,
+                amount: verification.amount || expectedAmount,
+              },
+            },
+          },
+          include: {
+            caregiver: { select: { firstName: true, lastName: true, email: true } },
+            user: { select: { name: true, email: true } },
+          },
+        })
+
+        bookingFromDb = updatedBooking
+        receipt = createBillingReceipt(updatedBooking)
+
+        await prisma.transaction.create({
+          data: {
+            bookingId: updatedBooking.id,
+            transactionHash: paymentId,
+            provider: updatedBooking.paymentProvider || 'BASE_USDC',
+            providerId: paymentId,
+            amount: normalizedAmount,
+            currency: updatedBooking.currency || 'USDC',
+            status: 'PAID',
+            completedAt: new Date(),
+            metadata: {
+              orderId,
+              sender: verification.sender,
+              recipient: verification.recipient,
+              network: ACTIVE_CHAIN.name,
+            },
+          },
+        }).catch(() => null)
+      }
     }
     
     // Send notifications (don't block on these)
     const bookingDetails = {
       bookingId: orderId,
-      patientName: body.patientName || 'Patient',
-      patientEmail: body.patientEmail || '',
-      providerName: body.providerName || 'Provider',
-      providerEmail: body.providerEmail,
+      patientName: bookingFromDb?.user?.name || body.patientName || 'Patient',
+      patientEmail: bookingFromDb?.user?.email || body.patientEmail || '',
+      providerName:
+        `${bookingFromDb?.caregiver?.firstName || ''} ${bookingFromDb?.caregiver?.lastName || ''}`.trim()
+        || body.providerName
+        || 'Provider',
+      providerEmail: bookingFromDb?.caregiver?.email || body.providerEmail,
       serviceType: body.serviceType || 'Healthcare Service',
       appointmentDate: body.appointmentDate || new Date().toLocaleDateString(),
-      amount: parseFloat(expectedAmount),
-      currency: 'USDC',
+      amount: normalizedAmount,
+      currency: bookingFromDb?.currency || 'USDC',
       txHash: paymentId,
     }
     
@@ -136,6 +216,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       verified: true,
+      receipt,
       payment: {
         id: paymentId,
         orderId,

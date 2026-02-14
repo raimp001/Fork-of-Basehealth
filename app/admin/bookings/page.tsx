@@ -27,8 +27,16 @@ interface Booking {
   endDate: string | null
   createdAt: string
   paymentProvider: string | null
+  paymentMetadata?: {
+    refund?: {
+      txHash?: string
+      explorerUrl?: string
+      amount?: number | string
+      reason?: string
+    }
+  } | null
   user?: { id: string; name: string | null; email: string | null }
-  caregiver?: { id: string; name: string | null }
+  caregiver?: { id: string; firstName: string; lastName: string }
   address?: string
   city?: string
   state?: string
@@ -222,6 +230,12 @@ export default function AdminBookingsPage() {
                         <DollarSign className="h-4 w-4" />
                         {booking.amount ? `$${booking.amount} ${booking.currency}` : 'No payment info'}
                       </div>
+                      {booking.caregiver ? (
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          Caregiver: {`${booking.caregiver.firstName} ${booking.caregiver.lastName}`.trim()}
+                        </div>
+                      ) : null}
                       {booking.city && (
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4" />
@@ -246,9 +260,21 @@ export default function AdminBookingsPage() {
                   )}
 
                   {booking.status === 'REFUNDED' && (
-                    <div className="flex items-center gap-2 text-green-600">
-                      <CheckCircle className="h-5 w-5" />
-                      Refunded
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center gap-2 text-green-600">
+                        <CheckCircle className="h-5 w-5" />
+                        Refunded
+                      </div>
+                      {booking.paymentMetadata?.refund?.explorerUrl && (
+                        <a
+                          href={booking.paymentMetadata.refund.explorerUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-blue-600 hover:underline"
+                        >
+                          View refund on BaseScan
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>

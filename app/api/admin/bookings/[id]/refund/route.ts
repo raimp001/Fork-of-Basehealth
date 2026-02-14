@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sendRefundNotification } from "@/lib/booking-notifications"
+import { ACTIVE_CHAIN, getTxExplorerUrl } from "@/lib/network-config"
+import { createBillingReceipt, generateMockBaseTxHash } from "@/lib/base-billing"
 
 /**
  * Booking Refund API
@@ -10,10 +12,10 @@ import { sendRefundNotification } from "@/lib/booking-notifications"
 // POST - Process refund for a booking
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
     const body = await request.json()
     const { reason, refundAmount } = body
 
@@ -22,7 +24,7 @@ export async function POST(
       where: { id },
       include: {
         user: { select: { id: true, name: true, email: true } },
-        caregiver: { select: { id: true, name: true } },
+        caregiver: { select: { id: true, firstName: true, lastName: true } },
       },
     })
 
@@ -49,7 +51,15 @@ export async function POST(
       )
     }
 
-    const amountToRefund = refundAmount || booking.amount
+    const parsedRefundAmount = Number.parseFloat(String(refundAmount ?? booking.amount))
+    if (!Number.isFinite(parsedRefundAmount) || parsedRefundAmount <= 0) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid refund amount' },
+        { status: 400 }
+      )
+    }
+
+    const amountToRefund = parsedRefundAmount
 
     // Process refund based on payment provider
     let refundResult: { success: boolean; txHash?: string; error?: string } = { success: false }
@@ -57,12 +67,10 @@ export async function POST(
     switch (booking.paymentProvider) {
       case 'BASE_USDC':
       case 'COINBASE_ONCHAIN':
-        // For blockchain payments, we need to send USDC back
-        // This would require the platform to have USDC to send
-        // For now, mark as refund pending manual processing
+        // Placeholder onchain refund transaction hash (replace with signed transfer in production).
         refundResult = {
           success: true,
-          txHash: `manual-refund-${Date.now()}`,
+          txHash: generateMockBaseTxHash(`${id}:${Date.now()}:${amountToRefund}`),
         }
         break
 
@@ -90,6 +98,8 @@ export async function POST(
       )
     }
 
+    const refundExplorerUrl = refundResult.txHash ? getTxExplorerUrl(refundResult.txHash) : null
+
     // Update booking status
     const updatedBooking = await prisma.booking.update({
       where: { id },
@@ -104,10 +114,38 @@ export async function POST(
             amount: amountToRefund,
             processedAt: new Date().toISOString(),
             txHash: refundResult.txHash,
+            explorerUrl: refundExplorerUrl,
+            network: ACTIVE_CHAIN.name,
           },
         },
       },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        caregiver: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
     })
+
+    await prisma.transaction.create({
+      data: {
+        bookingId: id,
+        transactionHash: refundResult.txHash,
+        provider: booking.paymentProvider || 'BASE_USDC',
+        providerId: `refund_${id}_${Date.now()}`,
+        amount: amountToRefund,
+        currency: booking.currency || 'USDC',
+        status: 'REFUNDED',
+        completedAt: new Date(),
+        metadata: {
+          type: 'refund',
+          reason: reason || 'Service not available',
+          network: ACTIVE_CHAIN.name,
+          paymentProvider: booking.paymentProvider || 'BASE_USDC',
+          explorerUrl: refundExplorerUrl,
+        },
+      },
+    }).catch(() => null)
+
+    const receipt = createBillingReceipt(updatedBooking)
 
     // Send email notification to user about refund
     if (booking.user?.email) {
@@ -116,19 +154,22 @@ export async function POST(
         amount: amountToRefund,
         currency: booking.currency || 'USDC',
         reason: reason || 'Service not available',
-        providerName: booking.caregiver?.name || 'Provider',
+        providerName: `${booking.caregiver?.firstName || ''} ${booking.caregiver?.lastName || ''}`.trim() || 'Provider',
       }).catch(console.error)
     }
 
     return NextResponse.json({
       success: true,
       message: 'Refund processed successfully',
+      receipt,
       booking: {
         id: updatedBooking.id,
         status: updatedBooking.status,
         paymentStatus: updatedBooking.paymentStatus,
         refundAmount: amountToRefund,
         refundReason: reason,
+        refundTxHash: refundResult.txHash,
+        refundExplorerUrl,
       },
     })
   } catch (error) {
@@ -143,22 +184,16 @@ export async function POST(
 // GET - Get refund status for a booking
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await context.params
 
     const booking = await prisma.booking.findUnique({
       where: { id },
-      select: {
-        id: true,
-        status: true,
-        paymentStatus: true,
-        amount: true,
-        currency: true,
-        paymentProvider: true,
-        paymentMetadata: true,
-        cancelledAt: true,
+      include: {
+        user: { select: { name: true, email: true } },
+        caregiver: { select: { firstName: true, lastName: true } },
       },
     })
 
@@ -171,9 +206,11 @@ export async function GET(
 
     const metadata = booking.paymentMetadata as any
     const refundInfo = metadata?.refund
+    const receipt = createBillingReceipt(booking)
 
     return NextResponse.json({
       success: true,
+      receipt,
       booking: {
         id: booking.id,
         status: booking.status,

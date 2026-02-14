@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,9 +18,57 @@ import {
   ChevronRight,
   ExternalLink,
   CheckCircle,
-  Clock
+  Loader2,
+  XCircle
 } from "lucide-react"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
+
+interface IntegrationCheck {
+  id: string
+  label: string
+  env?: string
+  required: boolean
+  passed: boolean
+  help: string
+}
+
+interface IntegrationSection {
+  id: string
+  title: string
+  ready: boolean
+  checks: IntegrationCheck[]
+}
+
+interface IntegrationStatusResponse {
+  success: boolean
+  overallReady: boolean
+  sections: IntegrationSection[]
+  missingRequired: Array<{
+    sectionId: string
+    sectionTitle: string
+    checkId: string
+    label: string
+    env?: string
+    help: string
+  }>
+}
+
+interface BillingReceipt {
+  receiptId: string
+  bookingId: string
+  amount: string
+  currency: string
+  network: string
+  paymentStatus: string
+  bookingStatus: string
+  issuedAt: string
+  paymentTxHash?: string
+  paymentExplorerUrl?: string
+  refundTxHash?: string
+  refundExplorerUrl?: string
+  refundAmount?: string
+  refundReason?: string
+}
 
 export default function SettingsPage() {
   const [notifications, setNotifications] = useState({
@@ -34,6 +81,73 @@ export default function SettingsPage() {
     shareData: false,
     location: true
   })
+
+  const [integrationStatus, setIntegrationStatus] = useState<IntegrationStatusResponse | null>(null)
+  const [integrationLoading, setIntegrationLoading] = useState(true)
+  const [integrationError, setIntegrationError] = useState<string | null>(null)
+
+  const [receiptLookup, setReceiptLookup] = useState({
+    email: "",
+    walletAddress: "",
+  })
+  const [receipts, setReceipts] = useState<BillingReceipt[]>([])
+  const [receiptsLoading, setReceiptsLoading] = useState(false)
+  const [receiptsError, setReceiptsError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadIntegrationStatus = async () => {
+      setIntegrationLoading(true)
+      setIntegrationError(null)
+
+      try {
+        const response = await fetch("/api/base/integration-status")
+        const data = await response.json()
+
+        if (!response.ok || !data?.success) {
+          throw new Error(data?.error || "Failed to load integration status")
+        }
+
+        setIntegrationStatus(data)
+      } catch (error) {
+        setIntegrationError(error instanceof Error ? error.message : "Failed to load integration status")
+      } finally {
+        setIntegrationLoading(false)
+      }
+    }
+
+    loadIntegrationStatus()
+  }, [])
+
+  const loadReceipts = async () => {
+    setReceiptsError(null)
+    setReceipts([])
+
+    if (!receiptLookup.email && !receiptLookup.walletAddress) {
+      setReceiptsError("Enter email or wallet address to load receipts.")
+      return
+    }
+
+    setReceiptsLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (receiptLookup.email) params.set("email", receiptLookup.email)
+      if (receiptLookup.walletAddress) params.set("walletAddress", receiptLookup.walletAddress)
+      params.set("limit", "20")
+
+      const response = await fetch(`/api/billing/receipts?${params.toString()}`)
+      const data = await response.json()
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to load receipts")
+      }
+
+      setReceipts(data.receipts || [])
+    } catch (error) {
+      setReceiptsError(error instanceof Error ? error.message : "Failed to load receipts")
+    } finally {
+      setReceiptsLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -287,15 +401,107 @@ export default function SettingsPage() {
           <TabsContent value="payments">
             <Card className="p-6 border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900 mb-6">Payment History</h2>
-              <div className="space-y-4">
-                {/* Empty state */}
-                <div className="text-center py-8">
-                  <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <h3 className="font-medium text-gray-900 mb-1">No payments yet</h3>
-                  <p className="text-sm text-gray-600">
-                    Your payment history will appear here after you book and pay for services.
-                  </p>
+              <div className="space-y-5">
+                <p className="text-sm text-gray-600">
+                  Load Base receipts and refund status using the same email or wallet used for checkout.
+                </p>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <Input
+                    placeholder="Email used for booking"
+                    value={receiptLookup.email}
+                    onChange={(event) => setReceiptLookup((prev) => ({ ...prev, email: event.target.value }))}
+                    className="border-gray-200"
+                  />
+                  <Input
+                    placeholder="Base wallet address (0x...)"
+                    value={receiptLookup.walletAddress}
+                    onChange={(event) => setReceiptLookup((prev) => ({ ...prev, walletAddress: event.target.value }))}
+                    className="border-gray-200"
+                  />
                 </div>
+
+                <Button
+                  type="button"
+                  onClick={loadReceipts}
+                  disabled={receiptsLoading}
+                  className="bg-gray-900 hover:bg-gray-800 text-white"
+                >
+                  {receiptsLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                  Load Receipts
+                </Button>
+
+                {receiptsError ? (
+                  <p className="text-sm text-red-600">{receiptsError}</p>
+                ) : null}
+
+                {!receiptsLoading && receipts.length === 0 && !receiptsError ? (
+                  <div className="text-center py-8 rounded-lg border border-dashed border-gray-200">
+                    <CreditCard className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                    <p className="text-sm text-gray-600">No receipts found for the provided lookup.</p>
+                  </div>
+                ) : null}
+
+                {receipts.length > 0 ? (
+                  <div className="space-y-3">
+                    {receipts.map((receipt) => (
+                      <div key={receipt.receiptId} className="rounded-lg border border-gray-200 p-4 bg-white">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">
+                              {receipt.amount} {receipt.currency}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Booking {receipt.bookingId} • {receipt.network}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700">
+                              {receipt.paymentStatus}
+                            </span>
+                            {receipt.refundTxHash ? (
+                              <span className="text-xs px-2 py-1 rounded bg-red-100 text-red-700">
+                                REFUNDED
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        <div className="mt-3 text-xs text-gray-600 space-y-1">
+                          <p>Issued: {new Date(receipt.issuedAt).toLocaleString()}</p>
+                          {receipt.paymentExplorerUrl ? (
+                            <a
+                              href={receipt.paymentExplorerUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-blue-600 hover:underline"
+                            >
+                              Payment tx
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : null}
+                          {receipt.refundExplorerUrl ? (
+                            <a
+                              href={receipt.refundExplorerUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-blue-600 hover:underline ml-4"
+                            >
+                              Refund tx
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : null}
+                          {receipt.refundReason ? (
+                            <p className="text-red-600">
+                              Refund reason: {receipt.refundReason}
+                              {receipt.refundAmount ? ` (${receipt.refundAmount} ${receipt.currency})` : ""}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </Card>
 
@@ -319,6 +525,71 @@ export default function SettingsPage() {
                   All payments settle securely on Base blockchain
                 </p>
               </div>
+            </Card>
+
+            <Card className="p-6 border-gray-100 mt-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Base Integration Checklist</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Verifies sign-in, account management, billing, payment, and refund readiness.
+              </p>
+
+              {integrationLoading ? (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Checking integration status...
+                </div>
+              ) : null}
+
+              {integrationError ? (
+                <p className="text-sm text-red-600">{integrationError}</p>
+              ) : null}
+
+              {!integrationLoading && integrationStatus ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    {integrationStatus.overallReady ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-red-600" />
+                    )}
+                    <p className="text-sm font-medium text-gray-900">
+                      {integrationStatus.overallReady
+                        ? "All required Base integration checks are complete."
+                        : `${integrationStatus.missingRequired.length} required check(s) still missing.`}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {integrationStatus.sections.map((section) => (
+                      <div key={section.id} className="rounded-lg border border-gray-200 p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          {section.ready ? (
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-600" />
+                          )}
+                          <p className="text-sm font-semibold text-gray-900">{section.title}</p>
+                        </div>
+                        <div className="space-y-1">
+                          {section.checks.map((check) => (
+                            <div key={check.id} className="text-xs text-gray-600 flex items-start gap-2">
+                              {check.passed ? (
+                                <CheckCircle className="h-3.5 w-3.5 text-green-600 mt-0.5" />
+                              ) : (
+                                <XCircle className="h-3.5 w-3.5 text-red-600 mt-0.5" />
+                              )}
+                              <span>
+                                {check.label}
+                                {check.env ? ` (${check.env})` : ""}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </Card>
           </TabsContent>
         </Tabs>
