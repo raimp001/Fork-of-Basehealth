@@ -88,6 +88,35 @@ export default function ChatPage() {
     return /^0x[a-fA-F0-9]{40}$/.test(candidate) ? candidate : null
   }, [connectedWallet, sessionWallet])
 
+  useEffect(() => {
+    const isWalletAddress = (value: unknown) => typeof value === "string" && /^0x[a-fA-F0-9]{40}$/.test(value.trim())
+
+    try {
+      const saved = window.localStorage.getItem("basehealth_wallet_address")
+      if (saved && isWalletAddress(saved)) {
+        setConnectedWallet((prev) => prev || saved)
+      }
+    } catch {
+      // ignore
+    }
+
+    const handler = (event: Event) => {
+      const custom = event as CustomEvent<{ address?: unknown }>
+      const next = custom?.detail?.address
+      if (next === null) {
+        setConnectedWallet(null)
+        return
+      }
+      if (isWalletAddress(next)) {
+        setConnectedWallet(next.trim())
+        setAuthError(null)
+      }
+    }
+
+    window.addEventListener("basehealth:wallet", handler as EventListener)
+    return () => window.removeEventListener("basehealth:wallet", handler as EventListener)
+  }, [])
+
   const userAvatarUrl = miniAppUser?.pfpUrl || null
   const userDisplayName =
     (miniAppUser?.displayName && miniAppUser.displayName.trim()) ||
@@ -428,10 +457,14 @@ export default function ChatPage() {
             <CardContent>
               <div className="space-y-2">
                 <SignInWithBase
+                  mode="connect"
+                  onWalletConnected={(address) => {
+                    setAuthError(null)
+                    setConnectedWallet(address)
+                  }}
                   onAuthSuccess={(address) => {
                     setAuthError(null)
                     setConnectedWallet(address)
-                    refreshPassStatus().catch(() => null)
                   }}
                   onAuthError={(message) => setAuthError(message)}
                 />
@@ -453,6 +486,11 @@ export default function ChatPage() {
             <CardContent>
               <div className="space-y-2">
                 <SignInWithBase
+                  mode="connect"
+                  onWalletConnected={(address) => {
+                    setAuthError(null)
+                    setConnectedWallet(address)
+                  }}
                   onAuthSuccess={(address) => {
                     setAuthError(null)
                     setConnectedWallet(address)

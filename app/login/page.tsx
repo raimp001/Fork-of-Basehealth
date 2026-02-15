@@ -95,6 +95,7 @@ export default function LoginPage() {
 
               <div className="space-y-3">
                 <SignInWithBase
+                  mode="signin"
                   className="w-full h-11"
                   onAuthSuccess={() => router.push(redirectTo)}
                   onAuthError={(message) => setError(message)}
@@ -165,4 +166,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

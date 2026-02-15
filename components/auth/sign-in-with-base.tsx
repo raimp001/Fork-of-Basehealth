@@ -9,7 +9,7 @@
  * - Any connected wallet
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Wallet, LogOut, ChevronDown, Copy, ExternalLink, Check } from 'lucide-react'
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -28,12 +28,16 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.basehealth.xyz"
 
 interface SignInWithBaseProps {
   className?: string
+  mode?: "connect" | "signin"
+  onWalletConnected?: (address: string) => void
   onAuthSuccess?: (address: string) => void
   onAuthError?: (error: string) => void
 }
 
 export function SignInWithBase({ 
   className = '',
+  mode = "connect",
+  onWalletConnected,
   onAuthSuccess,
   onAuthError,
 }: SignInWithBaseProps) {
@@ -46,15 +50,67 @@ export function SignInWithBase({
   const [copied, setCopied] = useState(false)
   const [sdk, setSdk] = useState<any>(null)
 
+  const WALLET_STORAGE_KEY = "basehealth_wallet_address"
+
+  const onWalletConnectedRef = useRef(onWalletConnected)
+  const lastNotifiedRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    onWalletConnectedRef.current = onWalletConnected
+  }, [onWalletConnected])
+
+  const isWalletAddress = (addr: string) => /^0x[a-fA-F0-9]{40}$/.test((addr || "").trim())
+
+  const notifyWalletConnected = useCallback((address: string) => {
+    const normalized = (address || "").trim()
+    if (!isWalletAddress(normalized)) return
+
+    try {
+      window.localStorage.setItem(WALLET_STORAGE_KEY, normalized)
+    } catch {
+      // ignore
+    }
+
+    try {
+      window.dispatchEvent(new CustomEvent("basehealth:wallet", { detail: { address: normalized } }))
+    } catch {
+      // ignore
+    }
+
+    try {
+      onWalletConnectedRef.current?.(normalized)
+    } catch {
+      // ignore
+    }
+  }, [])
+
   useEffect(() => {
     const sessionWallet = (session?.user as any)?.walletAddress
-    if (typeof sessionWallet === "string" && /^0x[a-fA-F0-9]{40}$/.test(sessionWallet)) {
+    if (typeof sessionWallet === "string" && isWalletAddress(sessionWallet)) {
       setWalletAddress((prev) => prev || sessionWallet)
     }
   }, [session])
 
   useEffect(() => {
+    if (!walletAddress) return
+    if (walletAddress === lastNotifiedRef.current) return
+    lastNotifiedRef.current = walletAddress
+    notifyWalletConnected(walletAddress)
+  }, [walletAddress, notifyWalletConnected])
+
+  useEffect(() => {
     setMounted(true)
+
+    // Restore last known wallet address so other parts of the app can stay in sync even if the provider
+    // won't answer eth_accounts without an explicit user gesture.
+    try {
+      const saved = window.localStorage.getItem(WALLET_STORAGE_KEY) || ""
+      if (saved && isWalletAddress(saved)) {
+        setWalletAddress((prev) => prev || saved)
+      }
+    } catch {
+      // ignore
+    }
     
     // Initialize Base Account SDK
     const initSDK = async () => {
@@ -66,19 +122,19 @@ export function SignInWithBase({
           appChainIds: [8453, 84532], // Base Mainnet + Base Sepolia
         })
         setSdk(baseSDK)
-        
-        // Check if already connected
-        try {
-          const provider = baseSDK.getProvider()
-          if (provider) {
-            const accounts = await provider.request({ method: 'eth_accounts' })
-            if (accounts && accounts.length > 0) {
-              setWalletAddress(accounts[0])
-            }
-          }
-        } catch {
-          // Not connected yet
-        }
+	        
+	        // Check if already connected
+	        try {
+	          const provider = baseSDK.getProvider()
+	          if (provider) {
+	            const accounts = await provider.request({ method: 'eth_accounts' })
+	            if (accounts && accounts.length > 0) {
+	              setWalletAddress(accounts[0])
+	            }
+	          }
+	        } catch {
+	          // Not connected yet
+	        }
       } catch (error) {
         console.warn('Base Account SDK not available, falling back to direct wallet')
         // Check for existing wallet connection
@@ -190,6 +246,14 @@ export function SignInWithBase({
         const provider = await getProvider()
         if (!provider) throw new Error("Wallet provider unavailable")
 
+        // Some providers (including mini app wrappers) require calling eth_requestAccounts before signing.
+        // Calling it here is safe and keeps the auth flow robust even if getProvider() returns a fresh instance.
+        try {
+          await provider.request({ method: "eth_requestAccounts" })
+        } catch {
+          // ignore
+        }
+
         const nonceResponse = await fetch("/api/auth/wallet/nonce", { cache: "no-store" })
         const nonceJson = await nonceResponse.json()
         if (!nonceResponse.ok || !nonceJson?.nonce) {
@@ -248,12 +312,24 @@ export function SignInWithBase({
   const handleSignIn = useCallback(async () => {
     const connectedAddress = walletAddress || (await connectWallet())
     if (!connectedAddress) return
-    await signInToBaseHealth(connectedAddress)
-  }, [walletAddress, connectWallet, signInToBaseHealth])
+    if (mode === "signin") {
+      await signInToBaseHealth(connectedAddress)
+    }
+  }, [walletAddress, connectWallet, signInToBaseHealth, mode])
 
   const handleSignOut = useCallback(() => {
     signOut({ redirect: false }).catch(() => null)
     setWalletAddress(null)
+    try {
+      window.localStorage.removeItem(WALLET_STORAGE_KEY)
+    } catch {
+      // ignore
+    }
+    try {
+      window.dispatchEvent(new CustomEvent("basehealth:wallet", { detail: { address: null } }))
+    } catch {
+      // ignore
+    }
   }, [])
 
   const formatAddress = (addr: string) => {
@@ -307,7 +383,13 @@ export function SignInWithBase({
           <circle cx="12" cy="12" r="10" fill="white" />
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="#0052FF" />
         </svg>
-        {isConnecting ? "Connecting..." : isSigning ? "Signing..." : "Sign in with Base"}
+        {isConnecting
+          ? "Connecting..."
+          : isSigning
+            ? "Signing..."
+            : mode === "signin"
+              ? "Sign in with Base"
+              : "Connect wallet"}
       </button>
     )
   }
