@@ -121,6 +121,8 @@ export async function POST(request: NextRequest) {
     const usdcEquivalent = Math.max(0, Math.round(usdNumber * 100) / 100).toFixed(2)
 
     const now = new Date()
+    const normalizedSender = tx.from.toLowerCase()
+    const normalizedRecipient = (tx.to || "").toLowerCase()
 
     // Record a standalone transaction (tip). This is used for auditability and receipts.
     try {
@@ -138,8 +140,8 @@ export async function POST(request: NextRequest) {
             kind: "tip",
             orderId: orderId || null,
             network: ACTIVE_CHAIN.name,
-            sender: tx.from,
-            recipient: tx.to,
+            sender: normalizedSender,
+            recipient: normalizedRecipient,
             paidAsset: "ETH",
             eth: {
               wei: tx.value.toString(),
@@ -169,8 +171,8 @@ export async function POST(request: NextRequest) {
         network: ACTIVE_CHAIN.name,
         payment: {
           txHash,
-          sender: tx.from,
-          recipient: tx.to,
+          sender: normalizedSender,
+          recipient: normalizedRecipient,
           amount: usdcEquivalent,
           paidAsset: "ETH",
           ethAmount,
@@ -208,4 +210,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

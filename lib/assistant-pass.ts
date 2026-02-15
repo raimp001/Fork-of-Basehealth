@@ -40,17 +40,20 @@ export async function getAssistantPassStatus(walletAddress: string): Promise<Ass
 
   const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-  const tx = await prisma.transaction.findFirst({
+  const candidates = await prisma.transaction.findMany({
     where: {
       status: "PAID",
       provider: "BASE_USDC",
       completedAt: { not: null, gte: cutoff },
-      AND: [
-        { metadata: { path: ["sender"], equals: wallet } as any },
-        { metadata: { path: ["serviceType"], equals: ASSISTANT_PASS.serviceType } as any },
-      ],
+      metadata: { path: ["serviceType"], equals: ASSISTANT_PASS.serviceType } as any,
     },
     orderBy: { completedAt: "desc" },
+    take: 100,
+  })
+
+  const tx = candidates.find((candidate) => {
+    const sender = (candidate.metadata as any)?.sender
+    return typeof sender === "string" && sender.trim().toLowerCase() === wallet
   })
 
   if (!tx?.completedAt) {
@@ -75,4 +78,3 @@ export async function getAssistantPassStatus(walletAddress: string): Promise<Ass
     },
   }
 }
-

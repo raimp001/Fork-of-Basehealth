@@ -95,6 +95,11 @@ export async function POST(request: NextRequest) {
         status: verification.status,
       }, { status: 400 })
     }
+
+    const normalizedSender =
+      typeof verification.sender === "string" ? verification.sender.toLowerCase() : verification.sender
+    const normalizedRecipient =
+      typeof verification.recipient === "string" ? verification.recipient.toLowerCase() : verification.recipient
     
     // Mark payment as processed to prevent replay
     markPaymentProcessed(
@@ -149,8 +154,8 @@ export async function POST(request: NextRequest) {
                 txHash: paymentId,
                 network: ACTIVE_CHAIN.name,
                 verifiedAt: new Date().toISOString(),
-                sender: verification.sender,
-                recipient: verification.recipient,
+                sender: normalizedSender,
+                recipient: normalizedRecipient,
                 amount: verification.amount || expectedAmount,
               },
             },
@@ -176,8 +181,8 @@ export async function POST(request: NextRequest) {
             completedAt: new Date(),
             metadata: {
               orderId,
-              sender: verification.sender,
-              recipient: verification.recipient,
+              sender: normalizedSender,
+              recipient: normalizedRecipient,
               network: ACTIVE_CHAIN.name,
             },
           },
@@ -203,8 +208,8 @@ export async function POST(request: NextRequest) {
             completedAt: now,
             metadata: {
               orderId,
-              sender: verification.sender,
-              recipient: verification.recipient,
+              sender: normalizedSender,
+              recipient: normalizedRecipient,
               network: ACTIVE_CHAIN.name,
               serviceType: body.serviceType,
               standalone: true,
@@ -227,8 +232,8 @@ export async function POST(request: NextRequest) {
             txHash: paymentId,
             network: ACTIVE_CHAIN.name,
             verifiedAt: now.toISOString(),
-            sender: verification.sender,
-            recipient: verification.recipient,
+            sender: normalizedSender,
+            recipient: normalizedRecipient,
             amount: verification.amount || expectedAmount,
           },
         },
@@ -280,8 +285,8 @@ export async function POST(request: NextRequest) {
       payment: {
         id: paymentId,
         orderId,
-        sender: verification.sender,
-        recipient: verification.recipient,
+        sender: normalizedSender,
+        recipient: normalizedRecipient,
         amount: verification.amount,
         status: verification.status,
       },
