@@ -15,6 +15,8 @@ import { PAYMENT_CONFIG } from "@/lib/network-config"
 
 type TokenSymbol = "USDC" | "ETH"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.basehealth.xyz"
+
 const USDC_ABI = [
   {
     name: "transfer",
@@ -66,7 +68,7 @@ export function TreasuryTransfer() {
       const { createBaseAccountSDK } = await import("@base-org/account")
       const sdk = createBaseAccountSDK({
         appName: "BaseHealth",
-        appLogoUrl: "https://basehealth.xyz/icon-192.png",
+        appLogoUrl: `${APP_URL}/icon-192.png`,
         appChainIds: [8453, 84532],
       })
 

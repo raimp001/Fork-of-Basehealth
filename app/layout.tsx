@@ -7,7 +7,7 @@ import { OfflineIndicator, UpdateBanner, InstallPrompt } from "@/hooks/use-pwa"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { AgentAssistFloating } from "@/components/agents/agent-assist-floating"
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://basehealth.xyz'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz'
 
 export const metadata: Metadata = {
   title: "BaseHealth - Healthcare Simplified",

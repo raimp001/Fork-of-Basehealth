@@ -15,10 +15,10 @@
       "has": [
         {
           "type": "host",
-          "value": "www.basehealth.xyz"
+          "value": "basehealth.xyz"
         }
       ],
-      "destination": "https://basehealth.xyz/$1",
+      "destination": "https://www.basehealth.xyz/$1",
       "permanent": true
     }
   ],

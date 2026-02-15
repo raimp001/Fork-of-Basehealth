@@ -79,6 +79,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json()
     const { applicationId, action, reviewNotes, adminEmail } = body
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.basehealth.xyz"
 
     if (!applicationId || !action) {
       return NextResponse.json(
@@ -109,7 +110,7 @@ export async function PATCH(req: NextRequest) {
         emailBody = `
           <p>Congratulations! Your application to join BaseHealth as a caregiver has been approved.</p>
           <p>You can now log in to your account and start accepting care requests.</p>
-          <p><a href="https://basehealth.xyz/login">Log in to BaseHealth</a></p>
+          <p><a href="${appUrl}/login">Log in to BaseHealth</a></p>
         `
         break
 
@@ -132,7 +133,7 @@ export async function PATCH(req: NextRequest) {
           <p>We need some additional information to complete your application review:</p>
           <p><strong>${reviewNotes || "Please provide any missing documentation or information."}</strong></p>
           <p>Please reply to this email or log in to your application to provide the requested information.</p>
-          <p><a href="https://basehealth.xyz/onboarding?role=caregiver">Update Your Application</a></p>
+          <p><a href="${appUrl}/onboarding?role=caregiver">Update Your Application</a></p>
         `
         break
 

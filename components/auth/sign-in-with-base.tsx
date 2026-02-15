@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { buildWalletSignInMessage } from "@/lib/wallet-signin-message"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.basehealth.xyz"
+
 interface SignInWithBaseProps {
   className?: string
   onAuthSuccess?: (address: string) => void
@@ -50,7 +52,7 @@ export function SignInWithBase({
         const { createBaseAccountSDK } = await import('@base-org/account')
         const baseSDK = createBaseAccountSDK({
           appName: 'BaseHealth',
-          appLogoUrl: 'https://basehealth.xyz/icon-192.png',
+          appLogoUrl: `${APP_URL}/icon-192.png`,
           appChainIds: [8453, 84532], // Base Mainnet + Base Sepolia
         })
         setSdk(baseSDK)

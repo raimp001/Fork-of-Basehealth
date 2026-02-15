@@ -186,8 +186,8 @@ export const WALLET_CONFIG = {
   appMetadata: {
     name: 'BaseHealth',
     description: 'Healthcare payments on Base',
-    url: 'https://basehealth.xyz',
-    icon: 'https://basehealth.xyz/icon.png',
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz',
+    icon: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz'}/icon-192.png`,
   },
 }
 

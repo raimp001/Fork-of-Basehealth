@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react'
 
 const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || ''
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz'
 const isMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === 'true' || process.env.NODE_ENV === 'production'
 
 // Validate Privy App ID format (should be alphanumeric string)
@@ -81,7 +82,8 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
             <PrivyProviderBase
               appId={privyAppId}
               config={{
-                loginMethods: ['wallet', 'email', 'sms'],
+                // Wallet-only sign in (no email/phone prompts)
+                loginMethods: ['wallet'],
                 appearance: {
                   theme: 'light',
                   accentColor: '#0052FF',
@@ -96,8 +98,8 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
                 supportedChains: [base, baseSepolia],
                 walletConnectCloudProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
                 legal: {
-                  termsAndConditionsUrl: 'https://basehealth.xyz/terms',
-                  privacyPolicyUrl: 'https://basehealth.xyz/privacy',
+                  termsAndConditionsUrl: `${appUrl}/terms`,
+                  privacyPolicyUrl: `${appUrl}/privacy`,
                 },
               }}
             >

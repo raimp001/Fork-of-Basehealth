@@ -7,6 +7,7 @@
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@basehealth.xyz'
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@basehealth.xyz'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz'
 
 // Dynamically import Resend to avoid build errors if not installed
 let resendClient: any = null
@@ -191,7 +192,7 @@ export async function notifyProviderOfBooking(booking: BookingDetails): Promise<
           </div>
           
           <div style="margin-top: 24px;">
-            <a href="https://basehealth.xyz/admin/bookings" 
+            <a href="${APP_URL}/admin/bookings" 
                style="display: inline-block; background: #1a1a1a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500;">
               View Booking Details
             </a>
@@ -271,7 +272,8 @@ export async function sendRefundNotification(
           </table>
           
           <p style="margin-top: 24px; color: #666; font-size: 14px;">
-            We apologize for any inconvenience. You can search for other providers in your area at basehealth.xyz
+            We apologize for any inconvenience. You can search for other providers in your area at
+            <a href="${APP_URL}/providers/search" style="color: #0052FF; text-decoration: none;">BaseHealth</a>.
           </p>
           
           <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
@@ -320,7 +322,7 @@ Date: ${booking.appointmentDate}
 Location: ${booking.location?.city || 'N/A'}, ${booking.location?.state || 'N/A'}
 TX Hash: ${booking.txHash || 'N/A'}
           </pre>
-          <p><a href="https://basehealth.xyz/admin/bookings">View in Admin</a></p>
+          <p><a href="${APP_URL}/admin/bookings">View in Admin</a></p>
         </div>
       `,
     })

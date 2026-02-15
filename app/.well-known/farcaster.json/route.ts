@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://basehealth.xyz'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz'
 
 export async function GET() {
   const manifest = {

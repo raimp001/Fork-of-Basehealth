@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { PAYMENT_CONFIG } from "@/lib/network-config"
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.basehealth.xyz"
+
 type PriceResponse =
   | { success: true; price: number; updatedAt: string; source: string }
   | { success: false; error: string }
@@ -132,7 +134,7 @@ export function EthTipCheckout({
         const { createBaseAccountSDK } = await import("@base-org/account")
         const sdk = createBaseAccountSDK({
           appName: "BaseHealth",
-          appLogoUrl: "https://basehealth.xyz/icon-192.png",
+          appLogoUrl: `${APP_URL}/icon-192.png`,
           appChainIds: [8453, 84532],
         })
         provider = sdk.getProvider()
@@ -315,4 +317,3 @@ export function EthTipCheckout({
 }
 
 export default EthTipCheckout
-

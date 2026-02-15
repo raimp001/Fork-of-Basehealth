@@ -26,49 +26,58 @@ export function RequireAuth({
   fallback,
   redirectTo 
 }: RequireAuthProps) {
-  const [privyState, setPrivyState] = useState<{
-    ready: boolean
-    authenticated: boolean
-    login: () => void
-  } | null>(null)
-  const [hasTriggeredLogin, setHasTriggeredLogin] = useState(false)
+  const [Guard, setGuard] = useState<React.ComponentType<RequireAuthProps> | null>(null)
 
   useEffect(() => {
-    // Dynamically load Privy
-    import('@privy-io/react-auth').then((mod) => {
-      try {
-        const { ready, authenticated, login } = mod.usePrivy()
-        setPrivyState({ ready, authenticated, login })
-      } catch {
-        // Not in Privy context, allow access
-        setPrivyState({ ready: true, authenticated: true, login: () => {} })
-      }
-    }).catch(() => {
-      // Privy not available, allow access
-      setPrivyState({ ready: true, authenticated: true, login: () => {} })
-    })
+    let cancelled = false
+
+    // Dynamically load Privy and build a guard that uses hooks correctly (during render).
+    import("@privy-io/react-auth")
+      .then((mod) => {
+        if (cancelled) return
+
+        const GuardImpl = ({ children, fallback }: RequireAuthProps) => {
+          // If Privy isn't configured / provider isn't mounted, fail open.
+          // (We prefer an accessible app over a runtime crash.)
+          let privy: { ready: boolean; authenticated: boolean; login: () => void }
+          try {
+            const { ready, authenticated, login } = mod.usePrivy()
+            privy = { ready, authenticated, login }
+          } catch {
+            privy = { ready: true, authenticated: true, login: () => {} }
+          }
+
+          const [hasTriggeredLogin, setHasTriggeredLogin] = useState(false)
+
+          useEffect(() => {
+            if (privy.ready && !privy.authenticated && !hasTriggeredLogin) {
+              setHasTriggeredLogin(true)
+              privy.login()
+            }
+          }, [privy.ready, privy.authenticated, privy.login, hasTriggeredLogin])
+
+          if (!privy.ready) return fallback || <AuthLoadingState />
+          if (!privy.authenticated) return fallback || <AuthRequiredState onLogin={privy.login} />
+          return <>{children}</>
+        }
+
+        setGuard(() => GuardImpl)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setGuard(() => ({ children }: RequireAuthProps) => <>{children}</>)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  useEffect(() => {
-    // Only trigger login once when ready and not authenticated
-    if (privyState?.ready && !privyState?.authenticated && !hasTriggeredLogin) {
-      setHasTriggeredLogin(true)
-      privyState.login()
-    }
-  }, [privyState, hasTriggeredLogin])
-
-  // Still loading Privy
-  if (!privyState || !privyState.ready) {
+  if (!Guard) {
     return fallback || <AuthLoadingState />
   }
 
-  // Not authenticated - show loading while login modal opens
-  if (!privyState.authenticated) {
-    return fallback || <AuthRequiredState onLogin={privyState.login} />
-  }
-
-  // Authenticated - render children
-  return <>{children}</>
+  return <Guard fallback={fallback} redirectTo={redirectTo}>{children}</Guard>
 }
 
 /**
@@ -102,7 +111,7 @@ function AuthRequiredState({ onLogin }: { onLogin: () => void }) {
           Login Required
         </h2>
         <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
-          Please login to access this page. You can use your wallet or email.
+          Please connect your wallet to access this page.
         </p>
         <button
           onClick={onLogin}

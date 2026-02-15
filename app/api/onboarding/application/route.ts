@@ -33,6 +33,7 @@ interface NotificationData {
 
 async function notifyAdminOfNewApplication(data: NotificationData): Promise<void> {
   const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.basehealth.xyz"
   
   // Log the notification (always)
   logger.info("New application submitted", {
@@ -101,14 +102,14 @@ async function notifyAdminOfNewApplication(data: NotificationData): Promise<void
                     </table>
                   </div>
 
-                  <a href="https://basehealth.xyz/admin/${data.role === 'PROVIDER' ? 'provider-applications' : 'caregiver-applications'}" 
+                  <a href="${appUrl}/admin/${data.role === 'PROVIDER' ? 'provider-applications' : 'caregiver-applications'}" 
                      style="display: inline-block; background: #0f172a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-right: 8px;">
                     Review Application →
                   </a>
                   
                   <p style="color: #94a3b8; font-size: 12px; margin-top: 24px;">
                     This notification was sent automatically by BaseHealth. 
-                    <a href="https://basehealth.xyz/admin" style="color: #0891b2;">Open Admin Portal</a>
+                    <a href="${appUrl}/admin" style="color: #0891b2;">Open Admin Portal</a>
                   </p>
                 </div>
               </div>

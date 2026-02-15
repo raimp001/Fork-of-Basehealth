@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { ACTIVE_CHAIN } from "@/lib/network-config"
+import { ACTIVE_CHAIN, PAYMENT_CONFIG } from "@/lib/network-config"
 
 type Check = {
   id: string
@@ -49,6 +49,44 @@ export async function GET() {
           required: false,
           passed: Boolean(process.env.NEXT_PUBLIC_APP_URL),
           help: "Recommended for correct metadata, receipts, and deep-links (e.g., Base mini app).",
+        },
+      ],
+    },
+    {
+      id: "miniapp",
+      title: "Base Mini App Ownership (farcaster.json)",
+      checks: [
+        {
+          id: "miniapp-header",
+          label: "Account association header set",
+          env: "MINIAPP_HEADER",
+          required: true,
+          passed: Boolean(process.env.MINIAPP_HEADER),
+          help: "Required for Base mini app ownership verification (served from /.well-known/farcaster.json).",
+        },
+        {
+          id: "miniapp-payload",
+          label: "Account association payload set",
+          env: "MINIAPP_PAYLOAD",
+          required: true,
+          passed: Boolean(process.env.MINIAPP_PAYLOAD),
+          help: "Required for Base mini app ownership verification (served from /.well-known/farcaster.json).",
+        },
+        {
+          id: "miniapp-signature",
+          label: "Account association signature set",
+          env: "MINIAPP_SIGNATURE",
+          required: true,
+          passed: Boolean(process.env.MINIAPP_SIGNATURE),
+          help: "Required for Base mini app ownership verification (served from /.well-known/farcaster.json).",
+        },
+        {
+          id: "miniapp-app-url",
+          label: "App URL configured (recommended)",
+          env: "NEXT_PUBLIC_APP_URL",
+          required: false,
+          passed: Boolean(process.env.NEXT_PUBLIC_APP_URL),
+          help: "Recommended so farcaster.json homeUrl/iconUrl and open-graph metadata match your canonical domain.",
         },
       ],
     },
@@ -130,8 +168,8 @@ export async function GET() {
           label: "Base settlement recipient wallet configured",
           env: "NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS",
           required: true,
-          passed: Boolean(process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS),
-          help: "The wallet that receives USDC/ETH settlement.",
+          passed: /^0x[a-fA-F0-9]{40}$/.test((PAYMENT_CONFIG.recipientAddress || "").trim()),
+          help: "The wallet that receives USDC/ETH settlement. Set NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS to override.",
         },
         {
           id: "walletconnect",

@@ -10,6 +10,7 @@ export const baseChain = useMainnet ? base : baseSepolia
 // WalletConnect Project ID - required for mobile wallet connections
 // Get one free at https://cloud.walletconnect.com/
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || ''
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz'
 
 // Wagmi configuration for Base
 // Supports: Base app (mobile), Coinbase Wallet, MetaMask, and other wallets
@@ -24,13 +25,13 @@ export const wagmiConfig = createConfig({
     // WalletConnect - for mobile wallet connections (Base app, Rainbow, etc.)
     ...(walletConnectProjectId
       ? [
-          walletConnect({
+        walletConnect({
             projectId: walletConnectProjectId,
             metadata: {
               name: 'BaseHealth',
               description: 'Healthcare payments on Base',
-              url: 'https://basehealth.xyz',
-              icons: ['https://basehealth.xyz/logo.png'],
+              url: appUrl,
+              icons: [`${appUrl}/logo.png`],
             },
             showQrModal: true,
           }),
@@ -69,7 +70,8 @@ export const paymentConfig = {
     'base-sepolia': '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
   },
   // Payment recipient addresses
-  recipientAddress: process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS || '0x0000000000000000000000000000000000000000',
+  recipientAddress:
+    process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS || '0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b',
   // Supported tokens
   supportedTokens: [
     {

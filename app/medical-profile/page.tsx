@@ -62,7 +62,7 @@ export default function MedicalProfilePage() {
       <header className="flex items-center justify-between px-8 py-6 border-b">
         <div className="flex items-center">
           <Link href="/" className="text-2xl font-bold text-indigo-600">
-            basehealth.xyz
+            BaseHealth
           </Link>
         </div>
         <nav className="flex items-center gap-8">
