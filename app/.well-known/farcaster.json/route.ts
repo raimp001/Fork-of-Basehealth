@@ -32,11 +32,12 @@ export async function GET(request: Request) {
     }
   })()
 
-  // Prefer explicitly configured canonical URL, otherwise fall back to the incoming request origin.
+  // Prefer the request origin so preview/staging domains self-describe correctly.
+  // Fall back to explicitly configured URLs for local tooling and non-standard proxies.
   const appUrl = normalizeAppUrl(
-    process.env.NEXT_PUBLIC_APP_URL ||
+    requestOrigin ||
+      process.env.NEXT_PUBLIC_APP_URL ||
       process.env.NEXT_PUBLIC_URL ||
-      requestOrigin ||
       'https://www.basehealth.xyz',
   )
 
@@ -50,8 +51,8 @@ export async function GET(request: Request) {
       version: '1',
       name: 'BaseHealth',
       homeUrl: appUrl,
-      iconUrl: `${appUrl}/icon-192.png`,
-      splashImageUrl: `${appUrl}/icon-512.png`,
+      iconUrl: `${appUrl}/icon-1024.png`,
+      splashImageUrl: `${appUrl}/splash.png`,
       splashBackgroundColor: '#1a1a1a',
       webhookUrl: `${appUrl}/api/miniapp/webhook`,
       

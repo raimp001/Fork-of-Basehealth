@@ -21,8 +21,8 @@ const MINIAPP_EMBED_METADATA = {
       // Base mini app clients expect launch_frame for mini app deep-links.
       type: "launch_frame",
       name: "BaseHealth",
-      url: APP_URL,
-      splashImageUrl: `${APP_URL}/icon-512.png`,
+      // url is optional; when omitted, clients default to the current page URL.
+      splashImageUrl: `${APP_URL}/splash.png`,
       splashBackgroundColor: "#1a1a1a",
     },
   },
