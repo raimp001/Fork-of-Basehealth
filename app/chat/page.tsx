@@ -380,8 +380,8 @@ export default function ChatPage() {
           <div className="max-w-3xl">
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">BaseHealth Assistant</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              One chat, many specialists. We route each request to the right internal agent automatically so the
-              experience stays simple.
+              One chat, many specialists. We leverage OpenClaw agents to break operational bottlenecks: billing + refunds,
+              prior auth checklists, lab and record summaries, and care navigation, with clear next steps so nothing gets missed.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
