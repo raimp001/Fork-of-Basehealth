@@ -1,27 +1,19 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getToken } from "next-auth/jwt"
 
 export async function middleware(request: NextRequest) {
   try {
-    // Check if environment variables are set
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase environment variables')
-      // Allow the request to continue if environment variables are missing
+    // NOTE: The app uses NextAuth (wallet / credentials), not Supabase auth.
+    // Previous Supabase-based middleware caused protected routes (including /chat) to always redirect.
+    const secret = process.env.NEXTAUTH_SECRET
+    if (!secret) {
+      // Don't lock users out if auth isn't configured yet.
       return NextResponse.next()
     }
 
-    // Create a Supabase client
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
-    // Get the auth cookie
-    const { data: { session } } = await supabase.auth.getSession()
-
-    // Check if the user is authenticated
-    const isAuthenticated = !!session
+    const token = await getToken({ req: request as any, secret })
+    const isAuthenticated = Boolean(token)
 
     // Define protected routes
     const protectedRoutes = [
@@ -32,7 +24,6 @@ export async function middleware(request: NextRequest) {
       "/providers/dashboard",
       "/medical-profile",
       "/medical-records",
-      "/chat",
       "/appointment"
     ]
 
@@ -44,7 +35,7 @@ export async function middleware(request: NextRequest) {
     // If the route is protected and the user is not authenticated, redirect to login
     if (isProtectedRoute && !isAuthenticated) {
       const redirectUrl = new URL("/login", request.url)
-      redirectUrl.searchParams.set("redirect", request.nextUrl.pathname)
+      redirectUrl.searchParams.set("redirect", `${request.nextUrl.pathname}${request.nextUrl.search}`)
       return NextResponse.redirect(redirectUrl)
     }
 
@@ -66,7 +57,6 @@ export const config = {
     "/providers/dashboard/:path*",
     "/medical-profile/:path*",
     "/medical-records/:path*",
-    "/chat/:path*",
     "/appointment/:path*"
   ],
 }

@@ -11,14 +11,14 @@
   ],
   "redirects": [
     {
-      "source": "/",
+      "source": "/(.*)",
       "has": [
         {
           "type": "host",
-          "value": "basehealth.xyz"
+          "value": "www.basehealth.xyz"
         }
       ],
-      "destination": "https://www.basehealth.xyz",
+      "destination": "https://basehealth.xyz/$1",
       "permanent": true
     }
   ],

@@ -1,4 +1,4 @@
-const DEFAULT_BASE_BUILDER_CODE = "bc_rj6pm82w"
+const DEFAULT_BASE_BUILDER_CODE = "bc_rwsuwcq3"
 
 // ERC-8021 marker used to detect/parse attribution suffixes.
 // 0x8021 repeated to 16 bytes.
