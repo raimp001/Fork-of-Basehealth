@@ -31,6 +31,49 @@ async function writeIconPng({ size, outFile }) {
     .toFile(outFile)
 }
 
+async function writeFaviconIco({ outFile }) {
+  // Minimal ICO writer: embeds PNG images (16x16 and 32x32).
+  const sizes = [16, 32]
+  const images = await Promise.all(
+    sizes.map(async (size) => {
+      const buffer = await sharp(LOGO_SVG_PATH, { density: 512 })
+        .resize(size, size, { fit: 'cover' })
+        .png({ compressionLevel: 9 })
+        .toBuffer()
+
+      return { size, buffer }
+    }),
+  )
+
+  const count = images.length
+  const header = Buffer.alloc(6)
+  header.writeUInt16LE(0, 0) // reserved
+  header.writeUInt16LE(1, 2) // type (1 = icon)
+  header.writeUInt16LE(count, 4)
+
+  const entries = Buffer.alloc(16 * count)
+  let offset = header.length + entries.length
+
+  images.forEach((img, i) => {
+    const entryOffset = i * 16
+    const dim = img.size === 256 ? 0 : img.size
+
+    entries.writeUInt8(dim, entryOffset + 0) // width
+    entries.writeUInt8(dim, entryOffset + 1) // height
+    entries.writeUInt8(0, entryOffset + 2) // color count
+    entries.writeUInt8(0, entryOffset + 3) // reserved
+    entries.writeUInt16LE(1, entryOffset + 4) // planes
+    entries.writeUInt16LE(32, entryOffset + 6) // bit count
+    entries.writeUInt32LE(img.buffer.length, entryOffset + 8) // bytes in res
+    entries.writeUInt32LE(offset, entryOffset + 12) // image offset
+
+    offset += img.buffer.length
+  })
+
+  const out = Buffer.concat([header, entries, ...images.map((img) => img.buffer)])
+  await fs.writeFile(outFile, out)
+}
+
 async function writeOgImagePng({ outFile }) {
   const w = 1200
   const h = 630
@@ -153,6 +196,10 @@ async function main() {
   await writeIconPng({ size: 192, outFile: path.join(PUBLIC_DIR, 'icon-192.png') })
   await writeIconPng({ size: 512, outFile: path.join(PUBLIC_DIR, 'icon.png') })
   await writeIconPng({ size: 200, outFile: path.join(PUBLIC_DIR, 'splash.png') })
+  await writeIconPng({ size: 180, outFile: path.join(PUBLIC_DIR, 'apple-touch-icon.png') })
+  await writeIconPng({ size: 32, outFile: path.join(PUBLIC_DIR, 'favicon-32x32.png') })
+  await writeIconPng({ size: 16, outFile: path.join(PUBLIC_DIR, 'favicon-16x16.png') })
+  await writeFaviconIco({ outFile: path.join(PUBLIC_DIR, 'favicon.ico') })
 
   // OG image
   await writeOgImagePng({ outFile: path.join(PUBLIC_DIR, 'og-image.png') })

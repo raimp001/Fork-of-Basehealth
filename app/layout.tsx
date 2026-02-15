@@ -33,6 +33,14 @@ export const metadata: Metadata = {
   description:
     "Evidence-based health screenings, clinical trial matching, and expert care—all in one seamless platform.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
+  },
   other: {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
@@ -84,7 +92,10 @@ export default function RootLayout({
         {/* Base app / base.dev URL verification */}
         <meta name="base:app_id" content="6990ef50e0d5d2cf831b5c38" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
       </head>
       <body className="font-sans antialiased bg-background text-foreground">
         <SkipToContent />
