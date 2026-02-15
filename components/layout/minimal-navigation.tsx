@@ -28,7 +28,6 @@ import {
   MessageSquare
 } from "lucide-react"
 import { NotificationCenter } from "@/components/notifications/notification-center"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { SignInWithBase } from "@/components/auth/sign-in-with-base"
 
 const navigationItems = [
@@ -57,6 +56,7 @@ const userMenuItems = [
 const adminMenuItems = [
   { href: '/admin/applications', label: 'Application Reviews', icon: Bell, badge: 'Admin', opsOnly: true },
   { href: '/admin/providers', label: 'Provider Management', icon: User, opsOnly: true },
+  { href: '/admin/integrations', label: 'Integrations', icon: Settings, opsOnly: true },
   { href: '/admin/analytics', label: 'Analytics', icon: Activity, opsOnly: true },
   { href: '/treasury', label: 'Treasury', icon: DollarSign, badge: 'Ops', opsOnly: true },
 ]
@@ -170,7 +170,6 @@ export function MinimalNavigation() {
                 <Bookmark className="h-5 w-5" />
               </Link>
               <NotificationCenter />
-              <ThemeToggle />
               <div className="w-px h-6 bg-border mx-1" />
               <Button 
                 asChild 

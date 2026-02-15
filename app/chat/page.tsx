@@ -246,13 +246,13 @@ export default function ChatPage() {
   const canChat = Boolean(sessionWallet) && passState.hasAccess
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}>
+    <div className="min-h-screen bg-background text-foreground">
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-3xl">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">Assistant</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">BaseHealth Assistant</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Ask in plain language. BaseHealth routes your request to the right internal specialist automatically so the
+              One chat, many specialists. We route each request to the right internal agent automatically so the
               experience stays simple.
             </p>
           </div>

@@ -26,15 +26,15 @@ export default function SupportPage() {
   }, [amount, customAmount])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-stone-50 to-white">
+    <div className="min-h-screen bg-background text-foreground">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-stone-900 text-white text-sm font-semibold">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-sm font-semibold">
             <HeartHandshake className="h-4 w-4" />
             Support BaseHealth
           </div>
-          <h1 className="mt-5 text-3xl sm:text-4xl font-semibold text-stone-900">Tip or support growth</h1>
-          <p className="mt-3 text-stone-600 max-w-2xl mx-auto leading-7">
+          <h1 className="mt-5 text-3xl sm:text-4xl font-semibold tracking-tight">Tip or support growth</h1>
+          <p className="mt-3 text-muted-foreground max-w-2xl mx-auto leading-7">
             Tips help fund agent improvements, faster billing automation, and better patient UX. Payments use Base Pay
             (USDC on Base) with Coinbase Smart Wallet. You can also tip with native ETH on Base.
           </p>
@@ -48,16 +48,16 @@ export default function SupportPage() {
               No chargebacks
             </Badge>
           </div>
-          <p className="mt-4 text-sm text-stone-600">
+          <p className="mt-4 text-sm text-muted-foreground">
             Want to suggest improvements instead?{" "}
-            <Link href="/feedback" className="text-blue-700 hover:underline">
+            <Link href="/feedback" className="text-primary hover:underline underline-offset-4">
               Leave feedback
             </Link>
             .
           </p>
         </div>
 
-        <Card className="border-stone-200 bg-white shadow-sm">
+        <Card className="border-border bg-card shadow-sm">
           <CardHeader>
             <CardTitle>Choose an amount</CardTitle>
             <CardDescription>Tips are optional. Do not include personal health information in the description.</CardDescription>
@@ -80,14 +80,14 @@ export default function SupportPage() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-semibold text-stone-900">Custom amount (USD)</label>
+              <label className="text-sm font-semibold text-foreground">Custom amount (USD)</label>
               <Input
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
                 placeholder="e.g. 3.00"
                 inputMode="decimal"
               />
-              <p className="text-xs text-stone-600">
+              <p className="text-xs text-muted-foreground">
                 Destination treasury wallet: <span className="font-mono">{basePayConfig.recipientAddress}</span>
               </p>
             </div>

@@ -70,15 +70,15 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-stone-50 to-white">
+    <div className="min-h-screen bg-background text-foreground">
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-stone-900 text-white text-sm font-semibold">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-sm font-semibold">
             <MessageSquare className="h-4 w-4" />
             Feedback
           </div>
-          <h1 className="mt-5 text-3xl sm:text-4xl font-semibold text-stone-900">Help improve BaseHealth</h1>
-          <p className="mt-3 text-stone-600 max-w-2xl mx-auto leading-7">
+          <h1 className="mt-5 text-3xl sm:text-4xl font-semibold tracking-tight">Help improve BaseHealth</h1>
+          <p className="mt-3 text-muted-foreground max-w-2xl mx-auto leading-7">
             Tell us what is confusing, broken, or missing. We review feedback and prioritize changes that show clear
             consensus.
           </p>
@@ -88,23 +88,23 @@ export default function FeedbackPage() {
               Please do not include personal health information (PHI).
             </Badge>
           </div>
-          <p className="mt-4 text-sm text-stone-600">
+          <p className="mt-4 text-sm text-muted-foreground">
             Want to support development?{" "}
-            <Link href="/support" className="text-blue-700 hover:underline">
+            <Link href="/support" className="text-primary hover:underline underline-offset-4">
               Tip here
             </Link>
             .
           </p>
         </div>
 
-        <Card className="border-stone-200 bg-white shadow-sm">
+        <Card className="border-border bg-card shadow-sm">
           <CardHeader>
             <CardTitle>Submit feedback</CardTitle>
             <CardDescription>Short, specific feedback is easiest to act on.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
-              <label className="text-sm font-semibold text-stone-900">Category</label>
+              <label className="text-sm font-semibold text-foreground">Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -119,7 +119,7 @@ export default function FeedbackPage() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-semibold text-stone-900">Rating (1-5)</label>
+              <label className="text-sm font-semibold text-foreground">Rating (1-5)</label>
               <select
                 value={rating}
                 onChange={(e) => setRating(e.target.value)}
@@ -134,7 +134,7 @@ export default function FeedbackPage() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-semibold text-stone-900">Page (optional)</label>
+              <label className="text-sm font-semibold text-foreground">Page (optional)</label>
               <Input
                 value={page}
                 onChange={(e) => setPage(e.target.value)}
@@ -143,7 +143,7 @@ export default function FeedbackPage() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-semibold text-stone-900">Message</label>
+              <label className="text-sm font-semibold text-foreground">Message</label>
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -166,4 +166,3 @@ export default function FeedbackPage() {
     </div>
   )
 }
-

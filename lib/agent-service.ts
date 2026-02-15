@@ -61,7 +61,7 @@ export function getAgentDefinition(agent: OpenClawAgentId): AgentDefinition {
 }
 
 export function isOpenClawConfigured(): boolean {
-  return Boolean(process.env.OPENCLAW_API_KEY)
+  return Boolean(process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN)
 }
 
 function resolveOpenClawModel(agent: OpenClawAgentId): string {
@@ -73,7 +73,7 @@ function resolveOpenClawModel(agent: OpenClawAgentId): string {
 }
 
 export function getOpenClawModel(agent: OpenClawAgentId) {
-  const apiKey = process.env.OPENCLAW_API_KEY
+  const apiKey = process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN
   if (!apiKey) return null
 
   const openclaw = createOpenAI({

@@ -1,4 +1,4 @@
-/* BaseHealth - Claude-Inspired Warm Design System */
+/* BaseHealth - Minimal high-contrast design system */
 
 /* Typography: Clean, elegant serif + sans-serif */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -11,20 +11,20 @@
    - Light mode is the default for patient usability.
    - Dark mode is enabled via next-themes `.dark` class on <html>. */
 :root {
-  /* Warm light background */
-  --bg-primary: #fbfaf7;
-  --bg-secondary: #f4f1ea;
-  --bg-tertiary: #ece8dd;
+  /* Neutral light background */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f6f6f7;
+  --bg-tertiary: #efeff1;
   --bg-card: #ffffff;
 
-  /* Readable dark text */
-  --text-primary: #1a1915;
-  --text-secondary: #3f3d37;
-  --text-muted: #6b6963;
+  /* High-contrast text */
+  --text-primary: #0b0b0c;
+  --text-secondary: #2b2b2f;
+  --text-muted: #66666d;
 
   /* Borders */
-  --border-subtle: rgba(26, 25, 21, 0.08);
-  --border-medium: rgba(26, 25, 21, 0.12);
+  --border-subtle: rgba(11, 11, 12, 0.08);
+  --border-medium: rgba(11, 11, 12, 0.14);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -33,67 +33,63 @@
   --radius: 0.75rem;
 
   /* shadcn variables (HSL) */
-  --background: 36 33% 97%;
-  --foreground: 30 12% 9%;
+  --background: 0 0% 100%;
+  --foreground: 240 10% 4%;
   --card: 0 0% 100%;
-  --card-foreground: 30 12% 9%;
+  --card-foreground: 240 10% 4%;
   --popover: 0 0% 100%;
-  --popover-foreground: 30 12% 9%;
+  --popover-foreground: 240 10% 4%;
   --primary: 221 100% 50%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 36 20% 92%;
-  --secondary-foreground: 30 12% 16%;
-  --muted: 36 20% 92%;
-  --muted-foreground: 30 6% 40%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 240 5% 15%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 240 4% 44%;
   --accent: 221 100% 50%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --border: 36 10% 85%;
-  --input: 36 10% 85%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
   --ring: 221 100% 50%;
 }
 
 .dark {
-  /* Warm dark background */
-  --bg-primary: #1a1915;
-  --bg-secondary: #232019;
-  --bg-tertiary: #2c2a23;
-  --bg-card: #28261f;
+  /* Neutral dark theme (not used when forcedTheme=light, but kept for future) */
+  --bg-primary: #0b0b0c;
+  --bg-secondary: #121214;
+  --bg-tertiary: #1a1a1d;
+  --bg-card: #101012;
 
-  /* Cream/off-white text */
-  --text-primary: #f5f4ef;
-  --text-secondary: #a8a69e;
-  --text-muted: #6b6963;
+  --text-primary: #f4f4f5;
+  --text-secondary: #c7c7cc;
+  --text-muted: #8a8a93;
 
-  /* Borders */
-  --border-subtle: rgba(245, 244, 239, 0.08);
-  --border-medium: rgba(245, 244, 239, 0.12);
+  --border-subtle: rgba(244, 244, 245, 0.08);
+  --border-medium: rgba(244, 244, 245, 0.14);
 
-  /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 14px 40px rgba(0, 0, 0, 0.45);
 
-  /* shadcn variables (HSL) */
-  --background: 30 12% 9%;
-  --foreground: 40 20% 95%;
-  --card: 30 14% 14%;
-  --card-foreground: 40 20% 95%;
-  --popover: 30 14% 14%;
-  --popover-foreground: 40 20% 95%;
-  --primary: 221 100% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 30 8% 18%;
-  --secondary-foreground: 40 10% 70%;
-  --muted: 30 8% 18%;
-  --muted-foreground: 40 6% 45%;
-  --accent: 221 100% 50%;
-  --accent-foreground: 0 0% 100%;
+  --background: 240 10% 4%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 7%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 7%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 221 100% 60%;
+  --primary-foreground: 240 10% 4%;
+  --secondary: 240 6% 16%;
+  --secondary-foreground: 0 0% 92%;
+  --muted: 240 6% 16%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 221 100% 60%;
+  --accent-foreground: 240 10% 4%;
   --destructive: 0 72% 51%;
-  --destructive-foreground: 40 20% 95%;
-  --border: 30 8% 18%;
-  --input: 30 8% 18%;
-  --ring: 221 100% 50%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 6% 16%;
+  --input: 240 6% 16%;
+  --ring: 221 100% 60%;
 }
 
 /* Animations */

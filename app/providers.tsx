@@ -18,8 +18,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <AuthProvider>
             <ThemeProvider
               attribute="class"
-              defaultTheme="system"
-              enableSystem
+              forcedTheme="light"
+              defaultTheme="light"
+              enableSystem={false}
               disableTransitionOnChange
             >
               <PrivyProvider>
