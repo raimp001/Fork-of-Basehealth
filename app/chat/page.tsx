@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useChat } from "ai/react"
-import { AlertCircle, Bot, Loader2, Send, Sparkles, User } from "lucide-react"
+import { AlertCircle, Bot, Loader2, Send, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -183,16 +183,15 @@ export default function ChatPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}>
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-foreground text-background text-sm font-semibold mb-5 shadow-md">
-            <Sparkles className="h-4 w-4" />
-            BaseHealth Assistant
+        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-3xl">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">Assistant</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Ask in plain language. BaseHealth routes your request to the right internal specialist automatically so the
+              experience stays simple.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2">One chat, many specialists</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            We route each request to the appropriate internal agent automatically so patients get a simple experience.
-          </p>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center gap-3 text-sm">
             <Link href="/support" className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
               Tip or support growth
             </Link>
@@ -204,7 +203,7 @@ export default function ChatPage() {
               <>
                 <span className="text-muted-foreground/40">•</span>
                 <Link href="/agents" className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
-                  Operator agent hub
+                  Operator hub
                 </Link>
               </>
             )}

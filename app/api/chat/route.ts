@@ -114,8 +114,7 @@ export async function POST(req: Request) {
           dataStream.write(
             formatDataStreamPart(
               "text",
-              "The BaseHealth assistant is temporarily offline because no AI provider is configured. " +
-                "Admin: set OPENCLAW_API_KEY (recommended) or OPENAI_API_KEY or GROQ_API_KEY in your deployment environment, then redeploy.",
+              "The BaseHealth assistant is temporarily offline. Please try again later.",
             ),
           )
           dataStream.write(formatDataStreamPart("finish_message", { finishReason: "stop" }))
@@ -125,6 +124,10 @@ export async function POST(req: Request) {
       response.headers.set("x-basehealth-agent", selectedAgent)
       response.headers.set("x-basehealth-llm-provider", provider)
       response.headers.set("x-basehealth-agent-mesh", "none")
+      response.headers.set(
+        "x-basehealth-ai-help",
+        "Admin: set OPENCLAW_API_KEY (recommended) or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
+      )
       return response
     }
 

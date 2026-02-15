@@ -10,10 +10,10 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { basePayConfig } from "@/lib/base-pay-service"
 
-const PRESET_TIPS = [1, 5, 10, 25]
+const PRESET_TIPS = [0.25, 1, 5, 10, 25]
 
 export default function SupportPage() {
-  const [amount, setAmount] = useState<number>(5)
+  const [amount, setAmount] = useState<number>(1)
   const [customAmount, setCustomAmount] = useState<string>("")
   const [orderId, setOrderId] = useState(() => `tip-${Date.now()}`)
 
@@ -112,4 +112,3 @@ export default function SupportPage() {
     </div>
   )
 }
-

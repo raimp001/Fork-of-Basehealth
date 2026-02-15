@@ -1,12 +1,27 @@
 "use client"
 
 /**
- * Clinical Trials - Claude.ai Design
+ * Clinical Trials (minimal)
+ * Source: ClinicalTrials.gov (via /api/clinical-trials)
  */
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
-import { Search, MapPin, FlaskConical, ExternalLink, Loader2, Users, CheckCircle, AlertCircle, Building2 } from "lucide-react"
+import {
+  AlertCircle,
+  Building2,
+  ExternalLink,
+  FlaskConical,
+  Loader2,
+  MapPin,
+  Search,
+  Users,
+} from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 
 interface ClinicalTrial {
   nctId: string
@@ -21,35 +36,51 @@ interface ClinicalTrial {
   recommendationLevel?: string
 }
 
-// Major Cancer Centers for filtering
 const CANCER_CENTERS = [
-  { name: 'MD Anderson', city: 'Houston, TX' },
-  { name: 'Memorial Sloan Kettering', city: 'New York, NY' },
-  { name: 'Mayo Clinic', city: 'Rochester, MN' },
-  { name: 'Dana-Farber', city: 'Boston, MA' },
-  { name: 'Fred Hutch', city: 'Seattle, WA' },
-  { name: 'UCSF', city: 'San Francisco, CA' },
-  { name: 'UCLA', city: 'Los Angeles, CA' },
-  { name: 'Stanford', city: 'Palo Alto, CA' },
-  { name: 'OHSU', city: 'Portland, OR' },
-  { name: 'Johns Hopkins', city: 'Baltimore, MD' },
-  { name: 'Cleveland Clinic', city: 'Cleveland, OH' },
-  { name: 'Duke', city: 'Durham, NC' },
+  { name: "MD Anderson", city: "Houston, TX" },
+  { name: "Memorial Sloan Kettering", city: "New York, NY" },
+  { name: "Mayo Clinic", city: "Rochester, MN" },
+  { name: "Dana-Farber", city: "Boston, MA" },
+  { name: "Fred Hutch", city: "Seattle, WA" },
+  { name: "UCSF", city: "San Francisco, CA" },
+  { name: "UCLA", city: "Los Angeles, CA" },
+  { name: "Stanford", city: "Palo Alto, CA" },
+  { name: "OHSU", city: "Portland, OR" },
+  { name: "Johns Hopkins", city: "Baltimore, MD" },
+  { name: "Cleveland Clinic", city: "Cleveland, OH" },
+  { name: "Duke", city: "Durham, NC" },
+]
+
+const QUICK_SEARCHES = [
+  { label: "Lung cancer (CA)", condition: "lung cancer", location: "California" },
+  { label: "Breast cancer (NY)", condition: "breast cancer", location: "New York" },
+  { label: "Type 2 diabetes (TX)", condition: "type 2 diabetes", location: "Texas" },
+  { label: "Hypertension (FL)", condition: "hypertension", location: "Florida" },
+]
+
+const CATEGORY_GROUPS = [
+  {
+    name: "Oncology",
+    conditions: ["Lung Cancer", "Breast Cancer", "Prostate Cancer", "Leukemia", "Lymphoma", "Colon Cancer", "Melanoma"],
+  },
+  {
+    name: "Cardiovascular",
+    conditions: ["Hypertension", "Heart Failure", "Coronary Artery Disease", "Atrial Fibrillation"],
+  },
+  {
+    name: "Metabolic",
+    conditions: ["Type 2 Diabetes", "Type 1 Diabetes", "Obesity", "Metabolic Syndrome"],
+  },
 ]
 
 export default function ClinicalTrialsPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [location, setLocation] = useState('')
-  const [institution, setInstitution] = useState('')
+  const [searchQuery, setSearchQuery] = useState("")
+  const [location, setLocation] = useState("")
+  const [institution, setInstitution] = useState("")
   const [trials, setTrials] = useState<ClinicalTrial[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const searchTrials = async (conditionOverride?: string, locationOverride?: string, institutionOverride?: string) => {
     const searchCondition = conditionOverride ?? searchQuery
@@ -57,7 +88,7 @@ export default function ClinicalTrialsPage() {
     const searchInstitution = institutionOverride ?? institution
 
     if (!searchCondition.trim() && !searchLocation.trim() && !searchInstitution.trim()) {
-      setError('Please enter a condition, location, or institution to search')
+      setError("Enter a condition, location, or institution to search.")
       return
     }
 
@@ -67,39 +98,32 @@ export default function ClinicalTrialsPage() {
 
     try {
       const params = new URLSearchParams()
-      
-      if (searchCondition.trim()) {
-        params.append('query', searchCondition.trim())
-      }
-      if (searchLocation.trim()) {
-        params.append('location', searchLocation.trim())
-      }
-      if (searchInstitution.trim()) {
-        params.append('institution', searchInstitution.trim())
-      }
-      params.append('pageSize', '25')
 
-      const response = await fetch(`/api/clinical-trials?${params}`)
-      
+      if (searchCondition.trim()) params.append("query", searchCondition.trim())
+      if (searchLocation.trim()) params.append("location", searchLocation.trim())
+      if (searchInstitution.trim()) params.append("institution", searchInstitution.trim())
+      params.append("pageSize", "25")
+
+      const response = await fetch(`/api/clinical-trials?${params.toString()}`)
+      const data = await response.json().catch(() => ({}))
+
       if (!response.ok) {
-        throw new Error(`Search failed: ${response.status}`)
+        throw new Error(data?.error || `Search failed: ${response.status}`)
       }
 
-      const data = await response.json()
-      
-      if (data.error) {
+      if (data?.error) {
         setError(data.error)
         setTrials([])
-      } else if (data.studies && data.studies.length > 0) {
+      } else if (data?.studies && data.studies.length > 0) {
         setTrials(data.studies)
         setTotalCount(data.totalCount || data.studies.length)
       } else {
-        setError('No actively recruiting trials found. Try different search terms or check back later.')
+        setError("No actively recruiting trials found. Try different search terms or check back later.")
         setTrials([])
       }
     } catch (err) {
-      console.error('Clinical trials search error:', err)
-      setError('Failed to search clinical trials. Please try again.')
+      console.error("Clinical trials search error:", err)
+      setError("Failed to search clinical trials. Please try again.")
       setTrials([])
     } finally {
       setIsLoading(false)
@@ -111,349 +135,300 @@ export default function ClinicalTrialsPage() {
     searchTrials()
   }
 
-  const searchByCenter = (centerName: string, centerCity: string) => {
-    setSearchQuery('')
-    setLocation(centerCity)
-    setInstitution(centerName)
-    searchTrials('', centerCity, centerName)
-  }
-
-  // Focus on common conditions with high trial volume
-  const exampleSearches = [
-    { condition: 'lung cancer', location: 'California' },
-    { condition: 'breast cancer', location: 'New York' },
-    { condition: 'type 2 diabetes', location: 'Texas' },
-    { condition: 'hypertension', location: 'Florida' },
-    { condition: 'prostate cancer', location: '' },
-    { condition: 'leukemia', location: '' },
-  ]
-
-  // Common condition categories for quick access
-  const conditionCategories = [
-    { 
-      name: 'Oncology', 
-      icon: '🎗️',
-      conditions: ['Lung Cancer', 'Breast Cancer', 'Prostate Cancer', 'Leukemia', 'Lymphoma', 'Colon Cancer', 'Melanoma']
-    },
-    { 
-      name: 'Cardiovascular', 
-      icon: '❤️',
-      conditions: ['Hypertension', 'Heart Failure', 'Coronary Artery Disease', 'Atrial Fibrillation']
-    },
-    { 
-      name: 'Metabolic', 
-      icon: '🩺',
-      conditions: ['Type 2 Diabetes', 'Type 1 Diabetes', 'Obesity', 'Metabolic Syndrome']
-    },
-  ]
-
-  const runExampleSearch = (condition: string, loc: string) => {
+  const runQuickSearch = (condition: string, loc: string) => {
     setSearchQuery(condition)
     setLocation(loc)
-    setInstitution('')
-    searchTrials(condition, loc, '')
+    setInstitution("")
+    searchTrials(condition, loc, "")
+  }
+
+  const searchByCenter = (centerName: string, centerCity: string) => {
+    setSearchQuery("")
+    setLocation(centerCity)
+    setInstitution(centerName)
+    searchTrials("", centerCity, centerName)
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      <main className="py-8">
-        <div className="max-w-5xl mx-auto px-6">
-          {/* Header */}
-          <div className={`max-w-3xl mb-8 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <h1 className="text-4xl md:text-5xl font-normal tracking-tight mb-4" style={{ lineHeight: '1.1' }}>
-              Clinical Trials
-              <br />
-              <span style={{ color: 'var(--text-secondary)' }}>Research Network</span>
-            </h1>
-            <p className="text-lg mb-4" style={{ color: 'var(--text-secondary)' }}>
-              Search 400,000+ clinical trials from ClinicalTrials.gov.
-            </p>
-          </div>
-
-          {/* Important Disclaimer */}
-          <div 
-            className={`mb-8 p-4 rounded-xl ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
-            style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)' }}
-          >
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: '#f59e0b' }} />
-              <div>
-                <p className="font-medium mb-1" style={{ color: '#f59e0b' }}>Important Notice</p>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  Trial availability shown here may not reflect real-time status. Some institutions may not have updated whether a trial is still enrolling. 
-                  <strong> Always contact the clinical trial team directly</strong> to confirm current enrollment status and eligibility before making any decisions.
-                </p>
-              </div>
+    <div className="min-h-screen bg-background text-foreground">
+      <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 py-10">
+        <header className="mb-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Clinical trials</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Search ClinicalTrials.gov (400,000+ studies). Use the trial team as the source of truth.
+              </p>
             </div>
+            <Link
+              href="/chat?q=Help%20me%20search%20for%20clinical%20trials"
+              className="text-sm text-primary hover:underline underline-offset-4"
+            >
+              Ask assistant
+            </Link>
           </div>
+        </header>
 
-          {/* Condition Categories */}
-          <div className={`mb-8 ${mounted ? 'animate-fade-in-up delay-100' : 'opacity-0'}`}>
-            <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>Popular Categories</p>
-            <div className="grid md:grid-cols-3 gap-4">
-              {conditionCategories.map((category) => (
-                <div 
-                  key={category.name}
-                  className="p-4 rounded-xl"
-                  style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg">{category.icon}</span>
-                    <h3 className="font-medium">{category.name}</h3>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {category.conditions.map((condition) => (
-                      <button
-                        key={condition}
-                        onClick={() => runExampleSearch(condition, '')}
-                        className="px-2 py-1 text-xs rounded transition-colors"
-                        style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
-                      >
-                        {condition}
-                      </button>
-                    ))}
+        <Alert className="mb-6 border-border bg-muted/20">
+          <AlertCircle className="h-4 w-4" />
+          <div>
+            <AlertTitle>Important notice</AlertTitle>
+            <AlertDescription>
+              Trial availability shown here may not reflect real-time status. Some institutions may not have updated
+              whether a trial is still enrolling. Always contact the clinical trial team directly to confirm current
+              enrollment status and eligibility before making any decisions.
+            </AlertDescription>
+          </div>
+        </Alert>
+
+        <Card className="mb-6 border-border shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Search</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="sm:col-span-2">
+                  <div className="relative">
+                    <FlaskConical className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Condition, disease, or keyword (e.g., lung cancer)"
+                      className="h-11 pl-9"
+                    />
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+                <Button type="submit" disabled={isLoading} className="h-11">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Searching
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4 mr-2" />
+                      Search
+                    </>
+                  )}
+                </Button>
+              </div>
 
-          {/* Major Cancer Centers */}
-          <div className={`mb-8 ${mounted ? 'animate-fade-in-up delay-150' : 'opacity-0'}`}>
-            <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
-              🏥 Major Cancer & Research Centers
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {CANCER_CENTERS.map((center) => (
-                <button
-                  key={center.name}
-                  onClick={() => searchByCenter(center.name, center.city)}
-                  className="px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-1"
-                  style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
-                >
-                  {center.name}
-                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>({center.city.split(',')[0]})</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Search */}
-          <form onSubmit={handleSubmit} className={`mb-10 ${mounted ? 'animate-fade-in-up delay-200' : 'opacity-0'}`}>
-            <div className="grid md:grid-cols-4 gap-4">
-              <div className="md:col-span-2 relative">
-                <FlaskConical className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: 'var(--text-muted)' }} />
-                <input
-                  type="text"
-                  placeholder="Condition (e.g., lung cancer, diabetes)..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 rounded-lg text-base focus:outline-none transition-colors"
-                  style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
-                />
-              </div>
-              <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: 'var(--text-muted)' }} />
-                <input
-                  type="text"
-                  placeholder="City, State"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 rounded-lg focus:outline-none transition-colors"
-                  style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
-                />
-              </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Institution (optional)"
-                  value={institution}
-                  onChange={(e) => setInstitution(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-lg focus:outline-none transition-colors"
-                  style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-4">
-              <div className="flex flex-wrap gap-2">
-                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Quick:</span>
-                {exampleSearches.slice(0, 4).map((ex, i) => (
+              <details className="rounded-lg border border-border bg-muted/20 p-4">
+                <summary className="cursor-pointer select-none text-sm font-medium text-foreground">
+                  Filters (optional)
+                </summary>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="Location (city, state)"
+                      className="h-11 pl-9"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={institution}
+                      onChange={(e) => setInstitution(e.target.value)}
+                      placeholder="Institution (optional)"
+                      className="h-11 pl-9"
+                    />
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                   <button
-                    key={i}
                     type="button"
-                    onClick={() => runExampleSearch(ex.condition, ex.location)}
-                    className="px-3 py-1 text-sm rounded-lg transition-colors"
-                    style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                    className="hover:text-foreground hover:underline underline-offset-4"
+                    onClick={() => {
+                      setLocation("")
+                      setInstitution("")
+                    }}
                   >
-                    {ex.condition}{ex.location ? ` (${ex.location.split(',')[0]})` : ''}
+                    Clear filters
                   </button>
+                </div>
+              </details>
+            </form>
+
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Quick</p>
+              <div className="flex flex-wrap gap-2">
+                {QUICK_SEARCHES.map((q) => (
+                  <Button key={q.label} type="button" variant="outline" size="sm" onClick={() => runQuickSearch(q.condition, q.location)}>
+                    {q.label}
+                  </Button>
                 ))}
               </div>
-              <button 
-                type="submit" 
-                disabled={isLoading}
-                className="px-6 py-3 font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-                style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Searching...
-                  </>
-                ) : (
-                  <>
-                    <Search className="h-5 w-5" />
-                    Search Trials
-                  </>
-                )}
-              </button>
             </div>
-          </form>
 
-          {/* Error */}
-          {error && (
-            <div className="mb-8 p-4 rounded-lg flex items-center gap-3" style={{ backgroundColor: 'rgba(220, 100, 100, 0.1)', color: '#dc6464', border: '1px solid rgba(220, 100, 100, 0.2)' }}>
-              <AlertCircle className="h-5 w-5 flex-shrink-0" />
-              {error}
-            </div>
-          )}
-
-          {/* Loading */}
-          {isLoading && (
-            <div className="space-y-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="p-5 rounded-xl border animate-pulse" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
-                  <div className="h-5 w-3/4 rounded mb-3" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
-                  <div className="h-4 w-1/2 rounded mb-4" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
-                  <div className="h-4 w-full rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Results */}
-          {!isLoading && trials.length > 0 && (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                  Showing {trials.length} of {totalCount.toLocaleString()} trials
-                </p>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Data from ClinicalTrials.gov
-                </p>
-              </div>
-              
-              {/* Reminder banner */}
-              <div 
-                className="mb-6 p-3 rounded-lg flex items-center gap-2 text-sm"
-                style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
-              >
-                <AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-                <span style={{ color: 'var(--text-secondary)' }}>
-                  Remember: Contact the trial team directly to verify current enrollment status.
-                </span>
-              </div>
-              <div className="space-y-4">
-                {trials.map((trial, index) => (
-                  <div 
-                    key={trial.nctId} 
-                    className={`p-5 rounded-xl border transition-all ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}
-                    style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}
-                  >
-                    <div className="flex items-start justify-between gap-6">
-                      <div className="flex-1">
-                        <div className="flex items-center flex-wrap gap-2 mb-3">
-                          <span 
-                            className="px-2 py-0.5 text-xs font-medium rounded flex items-center gap-1" 
-                            style={{ backgroundColor: 'rgba(107, 155, 107, 0.15)', color: '#6b9b6b' }}
-                            title="Status may be outdated - verify with trial team"
-                          >
-                            <CheckCircle className="h-3 w-3" />
-                            Listed as Active
-                          </span>
-                          {trial.phase && (
-                            <span className="px-2 py-0.5 text-xs font-medium rounded" style={{ backgroundColor: 'rgba(150, 120, 180, 0.15)', color: '#9678b4' }}>
-                              Phase {trial.phase.replace('PHASE', '').trim()}
-                            </span>
-                          )}
-                          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{trial.nctId}</span>
-                        </div>
-
-                        <h3 className="text-lg font-medium mb-3 leading-snug">
-                          {trial.briefTitle}
-                        </h3>
-
-                        {trial.briefSummary && (
-                          <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
-                            {trial.briefSummary.slice(0, 300)}...
-                          </p>
-                        )}
-
-                        <div className="flex flex-wrap gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-                          {trial.condition && (
-                            <span className="flex items-center gap-2">
-                              <FlaskConical className="h-4 w-4" />
-                              {trial.condition.split(',').slice(0, 2).join(', ')}
-                            </span>
-                          )}
-                          {trial.enrollment > 0 && (
-                            <span className="flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              {trial.enrollment.toLocaleString()} participants
-                            </span>
-                          )}
-                          {trial.locationString && (
-                            <span className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4" />
-                              {trial.locationString}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <a
-                        href={`https://clinicaltrials.gov/study/${trial.nctId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 font-medium rounded-lg text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
-                        style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
-                      >
-                        View Details
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
+            <details className="rounded-lg border border-border bg-muted/20 p-4">
+              <summary className="cursor-pointer select-none text-sm font-medium text-foreground">Popular categories</summary>
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                {CATEGORY_GROUPS.map((group) => (
+                  <div key={group.name} className="rounded-lg border border-border bg-background p-3">
+                    <p className="text-sm font-semibold text-foreground">{group.name}</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {group.conditions.map((condition) => (
+                        <Button
+                          key={condition}
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => runQuickSearch(condition, "")}
+                        >
+                          {condition}
+                        </Button>
+                      ))}
                     </div>
                   </div>
                 ))}
               </div>
-            </>
-          )}
+            </details>
 
-          {/* Empty State */}
-          {!isLoading && trials.length === 0 && !error && (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                <FlaskConical className="h-8 w-8" style={{ color: 'var(--text-muted)' }} />
-              </div>
-              <h3 className="text-xl font-medium mb-2">Search Clinical Trials</h3>
-              <p className="max-w-md mx-auto mb-8" style={{ color: 'var(--text-secondary)' }}>
-                Enter a health condition and optionally a location to find active clinical trials.
-              </p>
-              <div className="flex flex-wrap justify-center gap-3">
-                {exampleSearches.map((ex, i) => (
-                  <button
-                    key={i}
-                    onClick={() => runExampleSearch(ex.condition, ex.location)}
-                    className="px-4 py-2 rounded-lg transition-colors"
-                    style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+            <details className="rounded-lg border border-border bg-muted/20 p-4">
+              <summary className="cursor-pointer select-none text-sm font-medium text-foreground">
+                Major cancer & research centers
+              </summary>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {CANCER_CENTERS.map((center) => (
+                  <Button
+                    key={center.name}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => searchByCenter(center.name, center.city)}
                   >
-                    {ex.condition}{ex.location ? ` in ${ex.location}` : ''}
-                  </button>
+                    {center.name}
+                    <span className="ml-1 text-muted-foreground">({center.city.split(",")[0]})</span>
+                  </Button>
                 ))}
               </div>
+            </details>
+          </CardContent>
+        </Card>
+
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <div>
+              <AlertTitle>Search error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
             </div>
-          )}
-        </div>
+          </Alert>
+        )}
+
+        {isLoading && (
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="border-border">
+                <CardContent className="p-5">
+                  <div className="h-4 w-2/3 rounded bg-muted" />
+                  <div className="mt-3 h-3 w-1/2 rounded bg-muted" />
+                  <div className="mt-4 h-3 w-full rounded bg-muted" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {!isLoading && trials.length > 0 && (
+          <>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Showing {trials.length} of {totalCount.toLocaleString()} trials
+              </p>
+              <Badge variant="outline">ClinicalTrials.gov</Badge>
+            </div>
+
+            <div className="space-y-3">
+              {trials.map((trial) => {
+                const phase = (trial.phase || "").replace("PHASE", "").trim()
+                const summary = (trial.briefSummary || "").trim()
+                return (
+                  <Card key={trial.nctId} className="border-border">
+                    <CardContent className="p-5">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {phase && <Badge variant="secondary">Phase {phase}</Badge>}
+                            <span className="text-xs font-mono text-muted-foreground">{trial.nctId}</span>
+                          </div>
+
+                          <h3 className="text-base sm:text-lg font-semibold leading-snug">{trial.briefTitle}</h3>
+
+                          {summary && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {summary.length > 320 ? `${summary.slice(0, 320)}…` : summary}
+                            </p>
+                          )}
+
+                          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                            {trial.condition && (
+                              <span className="inline-flex items-center gap-2">
+                                <FlaskConical className="h-3.5 w-3.5" />
+                                {trial.condition.split(",").slice(0, 2).join(", ")}
+                              </span>
+                            )}
+                            {trial.enrollment > 0 && (
+                              <span className="inline-flex items-center gap-2">
+                                <Users className="h-3.5 w-3.5" />
+                                {trial.enrollment.toLocaleString()} participants
+                              </span>
+                            )}
+                            {trial.locationString && (
+                              <span className="inline-flex items-center gap-2">
+                                <MapPin className="h-3.5 w-3.5" />
+                                {trial.locationString}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <Button asChild variant="outline" className="sm:mt-1">
+                          <a
+                            href={`https://clinicaltrials.gov/study/${trial.nctId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            View details
+                            <ExternalLink className="h-4 w-4 ml-2" />
+                          </a>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </>
+        )}
+
+        {!isLoading && trials.length === 0 && !error && (
+          <Card className="border-border">
+            <CardContent className="p-10 text-center">
+              <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted/30">
+                <FlaskConical className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <h2 className="text-lg font-semibold text-foreground">Search clinical trials</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Enter a condition and (optionally) a location or institution. You can also ask the assistant for help
+                refining your query.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                {QUICK_SEARCHES.map((q) => (
+                  <Button key={q.label} type="button" variant="outline" size="sm" onClick={() => runQuickSearch(q.condition, q.location)}>
+                    {q.label}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   )
 }
+

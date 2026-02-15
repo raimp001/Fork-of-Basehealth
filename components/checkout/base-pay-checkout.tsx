@@ -14,6 +14,7 @@
  */
 
 import { useState, useCallback } from 'react'
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -157,6 +158,16 @@ export function BasePayCheckout({
           >
             View on BaseScan <ExternalLink className="h-3 w-3" />
           </a>
+
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground">
+            <Link href="/support" className="hover:text-foreground hover:underline underline-offset-4">
+              Tip or support growth
+            </Link>
+            <span className="text-muted-foreground/40">•</span>
+            <Link href="/feedback" className="hover:text-foreground hover:underline underline-offset-4">
+              Send feedback
+            </Link>
+          </div>
         </CardContent>
       </Card>
     )
@@ -251,6 +262,16 @@ export function BasePayCheckout({
           <br />
           Confirm with Face ID, fingerprint, or passkey.
         </p>
+
+        <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground">
+          <Link href="/support" className="hover:text-foreground hover:underline underline-offset-4">
+            Tip or support growth
+          </Link>
+          <span className="text-muted-foreground/40">•</span>
+          <Link href="/feedback" className="hover:text-foreground hover:underline underline-offset-4">
+            Send feedback
+          </Link>
+        </div>
       </CardContent>
     </Card>
   )

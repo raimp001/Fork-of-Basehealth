@@ -3,7 +3,7 @@
 /**
  * Health Screening Assessment - Claude.ai Design
  * 
- * Flow: Form (4 steps) → Pay $5 → Get USPSTF Recommendations
+ * Flow: Form (4 steps) → Pay $0.25 → Get USPSTF Recommendations
  */
 
 import { useState, useEffect } from "react"
@@ -13,6 +13,8 @@ import {
   AlertCircle, Shield, Heart, Brain, User, CreditCard, X, Lock
 } from "lucide-react"
 import { BasePayCheckout } from "@/components/checkout/base-pay-checkout"
+
+const ASSESSMENT_FEE_USD = 0.25
 
 interface ScreeningRecommendation {
   id: string
@@ -61,7 +63,7 @@ export default function ScreeningPage() {
     familyHistory: [] as string[],
   })
   
-  // Payment state - $1 required before showing recommendations
+  // Payment state - fee required before showing recommendations
   const [hasPaid, setHasPaid] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [screeningOrderId, setScreeningOrderId] = useState(() => `screening-assessment-${Date.now()}`)
@@ -289,21 +291,17 @@ export default function ScreeningPage() {
         <div className="max-w-xl mx-auto px-6">
           {/* Header */}
           <div className={`text-center mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-            <h1 className="text-3xl md:text-4xl font-normal tracking-tight mb-3">
-              Health Screening
-              <br />
-              <span style={{ color: 'var(--text-secondary)' }}>Assessment</span>
-            </h1>
-            <p style={{ color: 'var(--text-secondary)' }}>
-              Get personalized USPSTF Grade A & B recommendations
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">Health screening assessment</h1>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Personalized USPSTF Grade A & B recommendations.
             </p>
           </div>
 
           {/* Progress */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Step {step} of {totalSteps}</span>
-              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{Math.round((step / totalSteps) * 100)}%</span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Step {step} of {totalSteps}</span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{Math.round((step / totalSteps) * 100)}%</span>
             </div>
             <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
               <div 
@@ -323,10 +321,10 @@ export default function ScreeningPage() {
           <div className={`${mounted ? 'animate-fade-in-up delay-200' : 'opacity-0'}`}>
             {/* Step 1: Basic Info */}
             {step === 1 && (
-              <div className="p-6 rounded-xl border space-y-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+              <div className="p-5 rounded-xl border space-y-4" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)' }}>
-                    <User className="h-5 w-5" style={{ color: 'hsl(var(--accent))' }} />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                    <User className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                   </div>
                   <div>
                     <h2 className="text-lg font-medium">Basic Information</h2>
@@ -343,7 +341,7 @@ export default function ScreeningPage() {
                     value={formData.age}
                     onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
                     placeholder="Enter your age"
-                    className="w-full px-4 py-3 rounded-lg focus:outline-none transition-colors"
+                    className="w-full px-4 py-2.5 rounded-lg focus:outline-none transition-colors"
                     style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-medium)', color: 'var(--text-primary)' }}
                     required
                   />
@@ -357,7 +355,7 @@ export default function ScreeningPage() {
                         key={g}
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, gender: g }))}
-                        className="p-4 border rounded-lg text-center transition-all"
+                        className="px-3 py-2.5 border rounded-lg text-center transition-all"
                         style={formData.gender === g ? { 
                           backgroundColor: 'rgba(212, 165, 116, 0.1)', 
                           borderColor: 'hsl(var(--accent))',
@@ -375,7 +373,7 @@ export default function ScreeningPage() {
 
                 {formData.gender === 'female' && (
                   <div>
-                    <label className="flex items-center gap-3 cursor-pointer p-4 border rounded-lg transition-colors" style={{ borderColor: 'var(--border-medium)' }}>
+                    <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-lg transition-colors" style={{ borderColor: 'var(--border-medium)' }}>
                       <input
                         type="checkbox"
                         checked={formData.isPregnant}
@@ -391,10 +389,10 @@ export default function ScreeningPage() {
 
             {/* Step 2: Lifestyle */}
             {step === 2 && (
-              <div className="p-6 rounded-xl border space-y-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+              <div className="p-5 rounded-xl border space-y-4" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(107, 155, 107, 0.1)' }}>
-                    <Heart className="h-5 w-5" style={{ color: '#6b9b6b' }} />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                    <Heart className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                   </div>
                   <div>
                     <h2 className="text-lg font-medium">Lifestyle Factors</h2>
@@ -414,7 +412,7 @@ export default function ScreeningPage() {
                         key={option.value}
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, smokingStatus: option.value }))}
-                        className="w-full p-4 border rounded-lg text-left transition-all"
+                        className="w-full p-3 border rounded-lg text-left transition-all"
                         style={formData.smokingStatus === option.value ? { 
                           backgroundColor: 'rgba(212, 165, 116, 0.1)', 
                           borderColor: 'hsl(var(--accent))',
@@ -442,7 +440,7 @@ export default function ScreeningPage() {
                         key={option.value}
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, bmiCategory: option.value }))}
-                        className="w-full p-4 border rounded-lg text-left transition-all"
+                        className="w-full p-3 border rounded-lg text-left transition-all"
                         style={formData.bmiCategory === option.value ? { 
                           backgroundColor: 'rgba(212, 165, 116, 0.1)', 
                           borderColor: 'hsl(var(--accent))',
@@ -462,10 +460,10 @@ export default function ScreeningPage() {
 
             {/* Step 3: Medical History */}
             {step === 3 && (
-              <div className="p-6 rounded-xl border space-y-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+              <div className="p-5 rounded-xl border space-y-4" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(150, 120, 180, 0.1)' }}>
-                    <Brain className="h-5 w-5" style={{ color: '#9678b4' }} />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                    <Brain className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                   </div>
                   <div>
                     <h2 className="text-lg font-medium">Medical History</h2>
@@ -489,7 +487,7 @@ export default function ScreeningPage() {
                         ...prev,
                         medicalHistory: toggleArrayItem(prev.medicalHistory, condition.value)
                       }))}
-                      className="w-full p-4 border rounded-lg text-left transition-all flex items-center justify-between"
+                      className="w-full p-3 border rounded-lg text-left transition-all flex items-center justify-between"
                       style={formData.medicalHistory.includes(condition.value) ? { 
                         backgroundColor: 'rgba(212, 165, 116, 0.1)', 
                         borderColor: 'hsl(var(--accent))',
@@ -515,10 +513,10 @@ export default function ScreeningPage() {
 
             {/* Step 4: Family History */}
             {step === 4 && (
-              <div className="p-6 rounded-xl border space-y-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+              <div className="p-5 rounded-xl border space-y-4" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)' }}>
-                    <Shield className="h-5 w-5" style={{ color: 'hsl(var(--accent))' }} />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                    <Shield className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
                   </div>
                   <div>
                     <h2 className="text-lg font-medium">Family History</h2>
@@ -541,7 +539,7 @@ export default function ScreeningPage() {
                         ...prev,
                         familyHistory: toggleArrayItem(prev.familyHistory, condition.value)
                       }))}
-                      className="w-full p-4 border rounded-lg text-left transition-all flex items-center justify-between"
+                      className="w-full p-3 border rounded-lg text-left transition-all flex items-center justify-between"
                       style={formData.familyHistory.includes(condition.value) ? { 
                         backgroundColor: 'rgba(212, 165, 116, 0.1)', 
                         borderColor: 'hsl(var(--accent))',
@@ -564,11 +562,13 @@ export default function ScreeningPage() {
                 </p>
 
                 {/* Payment notice */}
-                <div className="p-4 rounded-lg border" style={{ backgroundColor: 'rgba(0, 82, 255, 0.05)', borderColor: 'rgba(0, 82, 255, 0.2)' }}>
+                <div className="p-3 rounded-lg border" style={{ backgroundColor: 'rgba(0, 82, 255, 0.05)', borderColor: 'rgba(0, 82, 255, 0.2)' }}>
                   <div className="flex items-center gap-3">
                     <Lock className="h-5 w-5" style={{ color: '#0052FF' }} />
                     <div>
-                      <p className="font-medium" style={{ color: 'var(--text-primary)' }}>$5 Assessment Fee</p>
+                      <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                        ${ASSESSMENT_FEE_USD.toFixed(2)} Assessment Fee
+                      </p>
                       <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                         One-time payment to unlock your personalized USPSTF screening recommendations
                       </p>
@@ -616,7 +616,7 @@ export default function ScreeningPage() {
                   ) : (
                     <>
                       <Lock className="h-4 w-4" />
-                      Pay $1 & Get Recommendations
+                      Pay ${ASSESSMENT_FEE_USD.toFixed(2)} & Get Recommendations
                     </>
                   )}
                 </button>
@@ -643,7 +643,7 @@ export default function ScreeningPage() {
               <X className="h-6 w-6" />
             </button>
             <BasePayCheckout
-              amount={1}
+              amount={ASSESSMENT_FEE_USD}
               serviceName="Screening Assessment"
               serviceDescription="USPSTF Grade A & B personalized recommendations based on your health profile"
               providerName="BaseHealth"

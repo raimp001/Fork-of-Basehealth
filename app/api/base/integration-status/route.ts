@@ -53,6 +53,35 @@ export async function GET() {
       ],
     },
     {
+      id: "assistant",
+      title: "Assistant (AI)",
+      checks: [
+        {
+          id: "ai-provider",
+          label: "AI provider configured",
+          required: true,
+          passed: Boolean(process.env.OPENCLAW_API_KEY || process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY),
+          help: "Required for /chat. Set OPENCLAW_API_KEY (recommended) or OPENAI_API_KEY or GROQ_API_KEY in your deployment environment, then redeploy.",
+        },
+        {
+          id: "openclaw",
+          label: "OpenClaw key configured (recommended)",
+          env: "OPENCLAW_API_KEY",
+          required: false,
+          passed: Boolean(process.env.OPENCLAW_API_KEY),
+          help: "Enables multi-agent routing with provider-managed models.",
+        },
+        {
+          id: "openai",
+          label: "OpenAI key configured (optional fallback)",
+          env: "OPENAI_API_KEY",
+          required: false,
+          passed: Boolean(process.env.OPENAI_API_KEY),
+          help: "Fallback provider if OpenClaw is not configured.",
+        },
+      ],
+    },
+    {
       id: "account-management",
       title: "Account Management",
       checks: [
