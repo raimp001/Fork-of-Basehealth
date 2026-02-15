@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai"
 import { groq } from "@ai-sdk/groq"
-import { generateText, streamText } from "ai"
+import { createDataStreamResponse, formatDataStreamPart, generateText, streamText } from "ai"
 import { NextResponse } from "next/server"
 import { sanitizeInput } from "@/lib/phiScrubber"
 import { logger } from "@/lib/logger"
@@ -103,14 +103,29 @@ export async function POST(req: Request) {
     const provider = openClawModel ? "openclaw" : openAiKey ? "openai" : groqKey ? "groq" : "none"
 
     if (!model) {
-      return NextResponse.json(
-        {
-          error:
-            "AI is not configured. Set OPENCLAW_API_KEY (recommended) or OPENAI_API_KEY or GROQ_API_KEY in your deployment environment.",
-          missingEnv: ["OPENCLAW_API_KEY", "OPENAI_API_KEY", "GROQ_API_KEY"],
+      logger.warn("Chat request blocked: AI not configured", {
+        agent: selectedAgent,
+        missingEnv: ["OPENCLAW_API_KEY", "OPENAI_API_KEY", "GROQ_API_KEY"],
+      })
+
+      const response = createDataStreamResponse({
+        status: 200,
+        execute: (dataStream) => {
+          dataStream.write(
+            formatDataStreamPart(
+              "text",
+              "The BaseHealth assistant is temporarily offline because no AI provider is configured. " +
+                "Admin: set OPENCLAW_API_KEY (recommended) or OPENAI_API_KEY or GROQ_API_KEY in your deployment environment, then redeploy.",
+            ),
+          )
+          dataStream.write(formatDataStreamPart("finish_message", { finishReason: "stop" }))
+          dataStream.write(formatDataStreamPart("finish_step", { isContinued: false, finishReason: "stop" }))
         },
-        { status: 503 },
-      )
+      })
+      response.headers.set("x-basehealth-agent", selectedAgent)
+      response.headers.set("x-basehealth-llm-provider", provider)
+      response.headers.set("x-basehealth-agent-mesh", "none")
+      return response
     }
 
     const meshEnabled = (process.env.BASEHEALTH_AGENT_MESH || "true").toLowerCase() !== "false"
