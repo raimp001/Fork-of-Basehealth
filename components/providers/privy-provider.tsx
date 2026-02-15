@@ -83,7 +83,7 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
               config={{
                 loginMethods: ['wallet', 'email', 'sms'],
                 appearance: {
-                  theme: 'dark',
+                  theme: 'light',
                   accentColor: '#0052FF',
                   logo: '/icon-192.png',
                   showWalletLoginFirst: true,

@@ -60,16 +60,21 @@ export async function GET() {
           id: "ai-provider",
           label: "AI provider configured",
           required: true,
-          passed: Boolean(process.env.OPENCLAW_API_KEY || process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY),
-          help: "Required for /chat. Set OPENCLAW_API_KEY (recommended) or OPENAI_API_KEY or GROQ_API_KEY in your deployment environment, then redeploy.",
+          passed: Boolean(
+            process.env.OPENCLAW_API_KEY ||
+              process.env.OPENCLAW_GATEWAY_TOKEN ||
+              process.env.OPENAI_API_KEY ||
+              process.env.GROQ_API_KEY,
+          ),
+          help: "Required for /chat. Set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENAI_API_KEY or GROQ_API_KEY in your deployment environment, then redeploy.",
         },
         {
           id: "openclaw",
           label: "OpenClaw key configured (recommended)",
           env: "OPENCLAW_API_KEY",
           required: false,
-          passed: Boolean(process.env.OPENCLAW_API_KEY),
-          help: "Enables multi-agent routing with provider-managed models.",
+          passed: Boolean(process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN),
+          help: "Enables multi-agent routing with provider-managed models (supports OPENCLAW_API_KEY or OPENCLAW_GATEWAY_TOKEN).",
         },
         {
           id: "openai",

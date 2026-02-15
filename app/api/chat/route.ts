@@ -55,6 +55,40 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "messages must be a non-empty array" }, { status: 400 })
     }
 
+    // If the assistant backend isn't configured, don't gate behind payments.
+    // (Users shouldn't pay for an offline feature.)
+    const aiConfigured = Boolean(
+      process.env.OPENCLAW_API_KEY ||
+        process.env.OPENCLAW_GATEWAY_TOKEN ||
+        process.env.OPENAI_API_KEY ||
+        process.env.GROQ_API_KEY,
+    )
+
+    if (!aiConfigured) {
+      logger.warn("Chat request blocked: AI not configured", {
+        missingEnv: ["OPENCLAW_API_KEY", "OPENAI_API_KEY", "GROQ_API_KEY"],
+      })
+
+      const response = createDataStreamResponse({
+        status: 200,
+        execute: (dataStream) => {
+          dataStream.write(
+            formatDataStreamPart("text", "The BaseHealth assistant is temporarily offline. Please try again later."),
+          )
+          dataStream.write(formatDataStreamPart("finish_message", { finishReason: "stop" }))
+          dataStream.write(formatDataStreamPart("finish_step", { isContinued: false, finishReason: "stop" }))
+        },
+      })
+      response.headers.set("x-basehealth-agent", "general-health")
+      response.headers.set("x-basehealth-llm-provider", "none")
+      response.headers.set("x-basehealth-agent-mesh", "none")
+      response.headers.set(
+        "x-basehealth-ai-help",
+        "Admin: set OPENCLAW_API_KEY (recommended) or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
+      )
+      return response
+    }
+
     const paywallEnabled = (process.env.BASEHEALTH_CHAT_PAYWALL || "true").toLowerCase() !== "false"
     if (paywallEnabled) {
       const accessWallet =

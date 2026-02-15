@@ -9,11 +9,9 @@ export const ASSISTANT_PASS = {
     const parsed = raw ? Number.parseFloat(raw) : Number.NaN
     return Number.isFinite(parsed) && parsed > 0 ? parsed : 24
   })(),
-  usd: (() => {
-    const raw = process.env.BASEHEALTH_ASSISTANT_PASS_USD || process.env.ASSISTANT_PASS_USD
-    const parsed = raw ? Number.parseFloat(raw) : Number.NaN
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0.25
-  })(),
+  // Keep pricing hard-coded for now so we don't accidentally charge users $5+ due to a stale env var.
+  // If you need to change this later, update it here and redeploy.
+  usd: 0.25,
 }
 
 export function isWalletAddress(value: string): boolean {

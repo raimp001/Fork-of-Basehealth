@@ -47,16 +47,14 @@ const DEFAULT_EXAMPLES = [
 ]
 
 const ASSISTANT_PASS_SERVICE_TYPE = "assistant-pass-chat"
-const ASSISTANT_PASS_USD = (() => {
-  const raw = process.env.NEXT_PUBLIC_ASSISTANT_PASS_USD
-  const parsed = raw ? Number.parseFloat(raw) : Number.NaN
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0.25
-})()
+const ASSISTANT_PASS_USD = 0.25
 
 export default function ChatPage() {
   const searchParams = useSearchParams()
   const { data: session } = useSession()
 
+  const [assistantReady, setAssistantReady] = useState<boolean | null>(null)
+  const [assistantReadyError, setAssistantReadyError] = useState<string | null>(null)
   const [pinnedAgent, setPinnedAgent] = useState<OpenClawAgentId | null>(null)
   const [hasSentMessage, setHasSentMessage] = useState(false)
   const [actingWallet, setActingWallet] = useState("")
@@ -72,6 +70,32 @@ export default function ChatPage() {
   const appliedQueryState = useRef(false)
 
   const sessionWallet = (session?.user as any)?.walletAddress as string | undefined
+
+  useEffect(() => {
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        setAssistantReady(null)
+        setAssistantReadyError(null)
+        const res = await fetch("/api/base/integration-status", { cache: "no-store" })
+        const json = await res.json().catch(() => null)
+        const assistantSection = Array.isArray(json?.sections)
+          ? json.sections.find((section: any) => section?.id === "assistant")
+          : null
+        const ready = Boolean(assistantSection?.ready)
+        if (!cancelled) setAssistantReady(ready)
+      } catch (err) {
+        if (cancelled) return
+        setAssistantReady(false)
+        setAssistantReadyError(err instanceof Error ? err.message : "Failed to check assistant status")
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const refreshPassStatus = useCallback(async () => {
     if (!sessionWallet || !/^0x[a-fA-F0-9]{40}$/.test(sessionWallet)) {
@@ -222,28 +246,33 @@ export default function ChatPage() {
     appliedQueryState.current = true
   }, [searchParams, setInput])
 
-  const placeholder = effectivePinnedAgent
-    ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].placeholder
-    : !sessionWallet
-      ? "Sign in with Base to start chatting…"
-      : passState.loading
-        ? "Checking access…"
-        : passState.hasAccess
-          ? "Ask about screenings, care navigation, appointments, billing, refunds, or Base payments…"
-          : "Unlock Assistant Pass to start chatting…"
+  const placeholder =
+    assistantReady === null
+      ? "Checking assistant status…"
+      : assistantReady === false
+        ? "Assistant is temporarily offline…"
+        : effectivePinnedAgent
+          ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].placeholder
+          : !sessionWallet
+            ? "Sign in with Base to start chatting…"
+            : passState.loading
+              ? "Checking access…"
+              : passState.hasAccess
+                ? "Ask about screenings, care navigation, appointments, billing, refunds, or Base payments…"
+                : "Unlock Assistant Pass to start chatting…"
 
   const examples = effectivePinnedAgent ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].examples : DEFAULT_EXAMPLES
 
+  const canChat = assistantReady === true && Boolean(sessionWallet) && passState.hasAccess
+
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    if (!passState.hasAccess) {
+    if (!canChat) {
       e.preventDefault()
       return
     }
     if (input.trim()) setHasSentMessage(true)
     handleSubmit(e)
   }
-
-  const canChat = Boolean(sessionWallet) && passState.hasAccess
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -275,7 +304,44 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {!sessionWallet && (
+        {assistantReady !== true && (
+          <Card className="mb-6 border-border shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">
+                {assistantReady === null ? "Checking assistant status" : "Assistant offline"}
+              </CardTitle>
+              <CardDescription>
+                {assistantReady === null
+                  ? "We verify backend configuration before enabling checkout."
+                  : "Chat and checkout are disabled until an AI provider is configured."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {assistantReady === null ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading…
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Admin: open{" "}
+                    <Link href="/admin/integrations" className="text-foreground hover:underline underline-offset-4">
+                      Integrations
+                    </Link>{" "}
+                    and set <code className="font-mono">OPENCLAW_API_KEY</code> (recommended) or{" "}
+                    <code className="font-mono">OPENAI_API_KEY</code>, then redeploy.
+                  </p>
+                  {assistantReadyError && (
+                    <p className="text-xs text-destructive">Status check error: {assistantReadyError}</p>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {assistantReady === true && !sessionWallet && (
           <Card className="mb-6 border-border shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Sign in</CardTitle>
@@ -287,7 +353,7 @@ export default function ChatPage() {
           </Card>
         )}
 
-        {sessionWallet && (
+        {assistantReady === true && sessionWallet && (
           <Card className="mb-6 border-border shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-3">
@@ -504,7 +570,13 @@ export default function ChatPage() {
 
             {!canChat && (
               <p className="mt-2 text-xs text-muted-foreground">
-                Unlock Assistant Pass above to start chatting.
+                {assistantReady !== true
+                  ? assistantReady === null
+                    ? "Checking assistant status…"
+                    : "Assistant is offline right now."
+                  : !sessionWallet
+                    ? "Sign in above to start chatting."
+                    : "Unlock Assistant Pass above to start chatting."}
               </p>
             )}
 
