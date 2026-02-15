@@ -10,6 +10,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 type IntegrationStatusResponse = {
   success: boolean
   generatedAt?: string
+  aiProvider?: string
+  environment?: {
+    nodeEnv?: string | null
+    vercelEnv?: string | null
+    vercelRegion?: string | null
+    vercelUrl?: string | null
+    gitCommitSha?: string | null
+    gitCommitRef?: string | null
+  }
   overallReady?: boolean
   network?: { name: string; chainId: number }
   sections?: Array<{
@@ -74,8 +83,19 @@ export default function IntegrationsAdminPage() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Verify sign-in, AI, Base payments, and attestations are configured in production.
               </p>
+              {data?.generatedAt ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Last checked: {new Date(data.generatedAt).toLocaleString()}
+                </p>
+              ) : null}
             </div>
             <div className="flex items-center gap-2">
+              {data?.environment?.vercelEnv ? (
+                <Badge variant="outline">Vercel: {data.environment.vercelEnv}</Badge>
+              ) : null}
+              {data?.aiProvider && data.aiProvider !== "none" ? (
+                <Badge variant="secondary">AI: {data.aiProvider}</Badge>
+              ) : null}
               {data?.network ? (
                 <Badge variant="outline">
                   {data.network.name} ({data.network.chainId})
@@ -159,4 +179,3 @@ export default function IntegrationsAdminPage() {
     </div>
   )
 }
-

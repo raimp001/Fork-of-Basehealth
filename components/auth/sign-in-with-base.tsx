@@ -104,9 +104,17 @@ export function SignInWithBase({
   }
 
   const getProvider = async () => {
-    if (sdk) {
-      return sdk.getProvider()
+    // Prefer the host wallet provider when running inside a mini app.
+    if (isMiniApp) {
+      const miniAppProvider = await getEthereumProvider()
+      if (miniAppProvider) return miniAppProvider
     }
+
+    if (sdk) {
+      const baseAccountProvider = sdk.getProvider()
+      if (baseAccountProvider) return baseAccountProvider
+    }
+
     const ethereum = (window as any).ethereum
     return ethereum || null
   }
@@ -118,8 +126,11 @@ export function SignInWithBase({
     try {
       const provider = await getProvider()
       if (!provider) {
-        onAuthError?.("No wallet detected")
-        window.open("https://wallet.coinbase.com/", "_blank")
+        onAuthError?.(
+          isMiniApp
+            ? "Wallet provider unavailable in the Base app. Please try again."
+            : "No wallet detected. Open this in the Base app or install a wallet extension.",
+        )
         return null
       }
 
@@ -168,7 +179,7 @@ export function SignInWithBase({
     } finally {
       setIsConnecting(false)
     }
-  }, [sdk, onAuthSuccess, onAuthError])
+  }, [sdk, isMiniApp, getEthereumProvider, onAuthError])
 
   const signInToBaseHealth = useCallback(
     async (address: string) => {
@@ -231,7 +242,7 @@ export function SignInWithBase({
         setIsSigning(false)
       }
     },
-    [sdk, onAuthSuccess, onAuthError],
+    [sdk, isMiniApp, getEthereumProvider, onAuthSuccess, onAuthError],
   )
 
   const handleSignIn = useCallback(async () => {
@@ -255,12 +266,25 @@ export function SignInWithBase({
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const profileName =
+    (miniAppUser?.displayName && miniAppUser.displayName.trim()) ||
+    (miniAppUser?.username && `@${miniAppUser.username}`) ||
+    session?.user?.name ||
+    "Wallet"
+
+  const profileHandle = miniAppUser?.username ? `@${miniAppUser.username}` : null
+  const avatarUrl = miniAppUser?.pfpUrl || (session?.user as any)?.image || null
+  const avatarFallback =
+    (miniAppUser?.displayName || miniAppUser?.username || session?.user?.name || "U")
+      .trim()
+      .slice(0, 1)
+      .toUpperCase()
+
   // Prevent hydration errors
   if (!mounted) {
     return (
       <button 
-        className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all ${className}`}
-        style={{ backgroundColor: '#0052FF', color: 'white' }}
+        className={`inline-flex items-center justify-center gap-2 rounded-full h-10 px-4 bg-accent text-accent-foreground font-semibold shadow-glow-subtle transition-colors hover:bg-accent/90 ${className}`}
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="12" r="10" fill="white" />
@@ -277,8 +301,7 @@ export function SignInWithBase({
       <button
         onClick={handleSignIn}
         disabled={isConnecting || isSigning}
-        className={`inline-flex items-center justify-center gap-2.5 px-5 py-2.5 rounded-xl font-semibold transition-all hover:opacity-90 active:scale-[0.98] ${className} ${isConnecting ? 'opacity-70' : ''}`}
-        style={{ backgroundColor: '#0052FF', color: 'white' }}
+        className={`inline-flex items-center justify-center gap-2.5 rounded-full h-10 px-5 font-semibold shadow-glow-subtle transition-colors hover:bg-accent/90 active:scale-[0.98] disabled:opacity-60 bg-accent text-accent-foreground ${className}`}
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="12" r="10" fill="white" />
@@ -294,41 +317,52 @@ export function SignInWithBase({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium transition-all hover:opacity-90 ${className}`}
-          style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-medium)' }}
+          className={`inline-flex items-center gap-2 rounded-full h-10 px-3 border border-border/60 bg-card/25 backdrop-blur-md shadow-glow-subtle hover:bg-card/35 transition-colors ${className}`}
         >
-          <div className="w-2 h-2 rounded-full bg-green-500" />
-          <span className="font-mono text-sm">
-            {formatAddress(walletAddress)}
+          <span className="relative">
+            <Avatar className="h-6 w-6 ring-1 ring-border/60">
+              {avatarUrl ? <AvatarImage src={avatarUrl} alt={profileName} /> : null}
+              <AvatarFallback className="text-[11px] font-semibold">{avatarFallback}</AvatarFallback>
+            </Avatar>
+            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-background" />
           </span>
-          <ChevronDown className="h-4 w-4 opacity-60" />
+          <span className="text-sm font-medium max-w-[10rem] truncate">{profileName}</span>
+          <ChevronDown className="h-4 w-4 opacity-70" />
         </button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="end" className="w-64" style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-medium)' }}>
-        <DropdownMenuLabel>
-          <div className="flex items-center justify-between">
-            <span>{sessionStatus === "authenticated" ? "Signed in" : "Wallet connected"}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'rgba(0, 82, 255, 0.1)', color: '#0052FF' }}>
+      <DropdownMenuContent align="end" className="w-72 border-border/60 bg-popover/90 backdrop-blur-xl shadow-glow-subtle">
+        <DropdownMenuLabel className="py-2">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9 ring-1 ring-border/60">
+              {avatarUrl ? <AvatarImage src={avatarUrl} alt={profileName} /> : null}
+              <AvatarFallback className="text-sm font-semibold">{avatarFallback}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold leading-tight truncate">{profileName}</div>
+              <div className="text-xs text-muted-foreground leading-tight truncate">
+                {profileHandle ?? (sessionStatus === "authenticated" ? "Signed in" : "Wallet connected")}
+              </div>
+            </div>
+            <span className="ml-auto text-[11px] px-2 py-0.5 rounded-full border border-accent/20 bg-accent/10 text-accent">
               Base
             </span>
           </div>
         </DropdownMenuLabel>
         
-        <DropdownMenuSeparator style={{ backgroundColor: 'var(--border-subtle)' }} />
+        <DropdownMenuSeparator className="bg-muted/60" />
         
         {/* Wallet address */}
         <DropdownMenuItem 
-          className="flex items-center justify-between cursor-pointer"
+          className="cursor-pointer"
           onClick={() => copyAddress(walletAddress)}
         >
-          <span className="text-sm font-mono">
-            {formatAddress(walletAddress)}
-          </span>
-          {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+          {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+          <span>Copy address</span>
+          <span className="ml-auto text-xs font-mono text-muted-foreground">{formatAddress(walletAddress)}</span>
         </DropdownMenuItem>
         
-        <DropdownMenuSeparator style={{ backgroundColor: 'var(--border-subtle)' }} />
+        <DropdownMenuSeparator className="bg-muted/60" />
         
         {/* View on explorer */}
         <DropdownMenuItem 
@@ -336,7 +370,7 @@ export function SignInWithBase({
           onClick={() => {
             const useMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === "true" || process.env.NODE_ENV === "production"
             const explorerBase = useMainnet ? "https://basescan.org" : "https://sepolia.basescan.org"
-            window.open(`${explorerBase}/address/${walletAddress}`, "_blank")
+            openUrl(`${explorerBase}/address/${walletAddress}`)
           }}
         >
           <ExternalLink className="h-4 w-4 mr-2" />

@@ -21,6 +21,15 @@ function sectionReady(section: Section): boolean {
 }
 
 export async function GET() {
+  const aiProvider =
+    process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN
+      ? "openclaw"
+      : process.env.OPENAI_API_KEY
+        ? "openai"
+        : process.env.GROQ_API_KEY
+          ? "groq"
+          : "none"
+
   const sections: Section[] = [
     {
       id: "sign-in",
@@ -250,11 +259,20 @@ export async function GET() {
   return NextResponse.json({
     success: true,
     generatedAt: new Date().toISOString(),
+    environment: {
+      nodeEnv: process.env.NODE_ENV || null,
+      vercelEnv: process.env.VERCEL_ENV || null,
+      vercelRegion: process.env.VERCEL_REGION || null,
+      vercelUrl: process.env.VERCEL_URL || null,
+      gitCommitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
+      gitCommitRef: process.env.VERCEL_GIT_COMMIT_REF || null,
+    },
     network: {
       name: ACTIVE_CHAIN.name,
       chainId: ACTIVE_CHAIN.id,
     },
     overallReady: missingRequired.length === 0,
+    aiProvider,
     sections: readiness,
     missingRequired,
   })

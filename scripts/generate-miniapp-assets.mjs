@@ -119,6 +119,65 @@ async function writeOgImagePng({ outFile }) {
     .toFile(outFile)
 }
 
+async function writePromoImagePng({ outFile }) {
+  // Base mini app submission promo image (exactly 1002 x 548).
+  const w = 1002
+  const h = 548
+  const logoSvg = await readLogoSvg()
+  const logoUri = svgDataUri(logoSvg)
+
+  const promoSvg = `
+    <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#070A13"/>
+          <stop offset="60%" stop-color="#0B1020"/>
+          <stop offset="100%" stop-color="#1E3A8A"/>
+        </linearGradient>
+        <radialGradient id="glow" cx="50%" cy="35%" r="60%">
+          <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.24"/>
+          <stop offset="55%" stop-color="#2563EB" stop-opacity="0.10"/>
+          <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000000" flood-opacity="0.42"/>
+        </filter>
+      </defs>
+
+      <rect width="${w}" height="${h}" fill="url(#bg)"/>
+      <rect width="${w}" height="${h}" fill="url(#glow)"/>
+
+      <circle cx="${w - 120}" cy="110" r="220" fill="#22D3EE" opacity="0.10"/>
+      <circle cx="${w - 40}" cy="${h - 60}" r="180" fill="#60A5FA" opacity="0.08"/>
+      <circle cx="120" cy="${h - 80}" r="220" fill="#2563EB" opacity="0.08"/>
+
+      <g filter="url(#shadow)">
+        <rect x="106" y="96" width="${w - 212}" height="${h - 192}" rx="48" fill="#0B1020" opacity="0.78" stroke="rgba(226,232,240,0.12)"/>
+
+        <image href="${logoUri}" x="${Math.floor(w / 2) - 64}" y="140" width="128" height="128"/>
+
+        <text x="${Math.floor(w / 2)}" y="312" fill="#FFFFFF" font-size="64" font-weight="900" text-anchor="middle"
+          font-family="ui-sans-serif, -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial">
+          BaseHealth
+        </text>
+        <text x="${Math.floor(w / 2)}" y="362" fill="#DBEAFE" font-size="26" font-weight="650" text-anchor="middle"
+          font-family="ui-sans-serif, -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial">
+          Screenings · Verified providers · USDC payments
+        </text>
+        <text x="${Math.floor(w / 2)}" y="404" fill="#93C5FD" font-size="20" font-weight="600" text-anchor="middle"
+          font-family="ui-sans-serif, -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial">
+          Healthcare on Base, inside the Base app
+        </text>
+      </g>
+    </svg>
+  `
+
+  await sharp(Buffer.from(promoSvg), { density: 240 })
+    .resize(w, h, { fit: 'fill' })
+    .png({ compressionLevel: 9 })
+    .toFile(outFile)
+}
+
 async function writeScreenshotPng({ title, subtitle, outFile, accent = '#2563EB' }) {
   const w = 1284
   const h = 2778
@@ -203,6 +262,9 @@ async function main() {
 
   // OG image
   await writeOgImagePng({ outFile: path.join(PUBLIC_DIR, 'og-image.png') })
+
+  // Base app submission promo image
+  await writePromoImagePng({ outFile: path.join(PUBLIC_DIR, 'promo-1002x548.png') })
 
   // Mini app screenshots
   await writeScreenshotPng({

@@ -4,10 +4,12 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle, ExternalLink } from "lucide-react"
+import { Loader2, AlertCircle } from "lucide-react"
 import { getBlockchainService } from "@/services/blockchain-service"
+import { useMiniApp } from "@/components/providers/miniapp-provider"
 
 export function WalletConnect() {
+  const { isMiniApp, user: miniAppUser } = useMiniApp()
   const [isConnecting, setIsConnecting] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
@@ -45,6 +47,11 @@ export function WalletConnect() {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`
   }
 
+  const profileName =
+    (miniAppUser?.displayName && miniAppUser.displayName.trim()) ||
+    (miniAppUser?.username && `@${miniAppUser.username}`) ||
+    null
+
   return (
     <div className="space-y-4">
       <Card>
@@ -57,7 +64,11 @@ export function WalletConnect() {
             <div className="space-y-4">
               <div className="p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Connected Wallet:</span>
+                  <span className="text-sm text-muted-foreground">Connected as:</span>
+                  <span className="text-sm font-medium">{profileName || "Wallet"}</span>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-sm text-muted-foreground">Wallet:</span>
                   <span className="font-mono text-sm">{formatAddress(walletAddress)}</span>
                 </div>
 
@@ -138,16 +149,9 @@ export function WalletConnect() {
 
       <div className="text-center text-sm text-muted-foreground">
         <p>
-          Don't have a wallet?{" "}
-          <a
-            href="https://coinbase.com/wallet"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline inline-flex items-center"
-          >
-            Get Coinbase Wallet
-            <ExternalLink className="ml-1 h-3 w-3" />
-          </a>
+          {isMiniApp
+            ? "You can connect using the Base app wallet."
+            : "Open this page in the Base app or install a compatible Ethereum wallet to connect."}
         </p>
       </div>
     </div>

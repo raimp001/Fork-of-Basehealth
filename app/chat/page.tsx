@@ -5,14 +5,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useChat } from "ai/react"
-import { AlertCircle, Bot, Loader2, Send, User } from "lucide-react"
+import { AlertCircle, Bot, Loader2, Send } from "lucide-react"
 import { SignInWithBase } from "@/components/auth/sign-in-with-base"
 import { BasePayCheckout } from "@/components/checkout/base-pay-checkout"
+import { useMiniApp } from "@/components/providers/miniapp-provider"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   OPENCLAW_AGENT_CATALOG,
   OPENCLAW_AGENT_IDS,
@@ -52,13 +54,22 @@ const ASSISTANT_PASS_USD = 0.25
 export default function ChatPage() {
   const searchParams = useSearchParams()
   const { data: session } = useSession()
+  const { user: miniAppUser, getEthereumProvider } = useMiniApp()
 
   const [assistantReady, setAssistantReady] = useState<boolean | null>(null)
   const [assistantReadyError, setAssistantReadyError] = useState<string | null>(null)
+  const [assistantMeta, setAssistantMeta] = useState<{
+    generatedAt?: string
+    aiProvider?: string
+    vercelEnv?: string | null
+    commit?: string | null
+  } | null>(null)
   const [pinnedAgent, setPinnedAgent] = useState<OpenClawAgentId | null>(null)
   const [hasSentMessage, setHasSentMessage] = useState(false)
   const [actingWallet, setActingWallet] = useState("")
   const [opsMode, setOpsMode] = useState(false)
+  const [connectedWallet, setConnectedWallet] = useState<string | null>(null)
+  const [authError, setAuthError] = useState<string | null>(null)
   const [passOrderId, setPassOrderId] = useState(() => `assistant-pass-chat-${Date.now()}`)
   const [passState, setPassState] = useState<{
     loading: boolean
@@ -70,6 +81,45 @@ export default function ChatPage() {
   const appliedQueryState = useRef(false)
 
   const sessionWallet = (session?.user as any)?.walletAddress as string | undefined
+
+  const accessWallet = useMemo(() => {
+    const candidate = (sessionWallet || connectedWallet || "").trim()
+    return /^0x[a-fA-F0-9]{40}$/.test(candidate) ? candidate : null
+  }, [connectedWallet, sessionWallet])
+
+  const userAvatarUrl = miniAppUser?.pfpUrl || null
+  const userDisplayName =
+    (miniAppUser?.displayName && miniAppUser.displayName.trim()) ||
+    (miniAppUser?.username ? `@${miniAppUser.username}` : null) ||
+    null
+  const userFallback = (miniAppUser?.displayName || miniAppUser?.username || "U")
+    .trim()
+    .slice(0, 1)
+    .toUpperCase()
+
+  useEffect(() => {
+    let cancelled = false
+
+    ;(async () => {
+      // If we already have a wallet (session or previous probe), no need to probe providers.
+      if (accessWallet) return
+      try {
+        const provider = await getEthereumProvider()
+        if (!provider) return
+        const accounts = await provider.request({ method: "eth_accounts" })
+        const address = accounts?.[0]
+        if (!cancelled && typeof address === "string" && /^0x[a-fA-F0-9]{40}$/.test(address)) {
+          setConnectedWallet(address)
+        }
+      } catch {
+        // ignore
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [accessWallet, getEthereumProvider])
 
   useEffect(() => {
     let cancelled = false
@@ -84,7 +134,15 @@ export default function ChatPage() {
           ? json.sections.find((section: any) => section?.id === "assistant")
           : null
         const ready = Boolean(assistantSection?.ready)
-        if (!cancelled) setAssistantReady(ready)
+        if (!cancelled) {
+          setAssistantReady(ready)
+          setAssistantMeta({
+            generatedAt: typeof json?.generatedAt === "string" ? json.generatedAt : undefined,
+            aiProvider: typeof json?.aiProvider === "string" ? json.aiProvider : undefined,
+            vercelEnv: json?.environment?.vercelEnv ?? null,
+            commit: json?.environment?.gitCommitSha ?? null,
+          })
+        }
       } catch (err) {
         if (cancelled) return
         setAssistantReady(false)
@@ -98,14 +156,14 @@ export default function ChatPage() {
   }, [])
 
   const refreshPassStatus = useCallback(async () => {
-    if (!sessionWallet || !/^0x[a-fA-F0-9]{40}$/.test(sessionWallet)) {
+    if (!accessWallet) {
       setPassState({ loading: false, hasAccess: false, validUntil: null, error: null })
       return
     }
 
     setPassState((prev) => ({ ...prev, loading: true, error: null }))
     try {
-      const res = await fetch(`/api/access/chat/status?walletAddress=${encodeURIComponent(sessionWallet)}`, {
+      const res = await fetch(`/api/access/chat/status?walletAddress=${encodeURIComponent(accessWallet)}`, {
         cache: "no-store",
       })
       const json = await res.json().catch(() => null)
@@ -126,7 +184,7 @@ export default function ChatPage() {
         error: err instanceof Error ? err.message : "Failed to check access",
       })
     }
-  }, [sessionWallet])
+  }, [accessWallet])
 
   useEffect(() => {
     refreshPassStatus().catch(() => null)
@@ -139,13 +197,13 @@ export default function ChatPage() {
         setActingWallet(saved)
         return
       }
-      if (sessionWallet) {
-        setActingWallet(sessionWallet)
+      if (accessWallet) {
+        setActingWallet(accessWallet)
       }
     } catch {
-      if (sessionWallet) setActingWallet(sessionWallet)
+      if (accessWallet) setActingWallet(accessWallet)
     }
-  }, [sessionWallet])
+  }, [accessWallet])
 
   useEffect(() => {
     try {
@@ -187,12 +245,12 @@ export default function ChatPage() {
 
   const requestBody = useMemo(() => {
     const body: Record<string, unknown> = {
-      walletAddress: (actingWallet || sessionWallet || "").trim() || undefined,
-      accessWalletAddress: (sessionWallet || "").trim() || undefined,
+      walletAddress: (actingWallet || accessWallet || "").trim() || undefined,
+      accessWalletAddress: (accessWallet || "").trim() || undefined,
     }
     if (effectivePinnedAgent) body.agent = effectivePinnedAgent
     return body
-  }, [actingWallet, effectivePinnedAgent, sessionWallet])
+  }, [actingWallet, effectivePinnedAgent, accessWallet])
 
   const {
     messages,
@@ -253,8 +311,8 @@ export default function ChatPage() {
         ? "Assistant is temporarily offline…"
         : effectivePinnedAgent
           ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].placeholder
-          : !sessionWallet
-            ? "Sign in with Base to start chatting…"
+          : !accessWallet
+            ? "Connect wallet to start chatting…"
             : passState.loading
               ? "Checking access…"
               : passState.hasAccess
@@ -263,7 +321,7 @@ export default function ChatPage() {
 
   const examples = effectivePinnedAgent ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].examples : DEFAULT_EXAMPLES
 
-  const canChat = assistantReady === true && Boolean(sessionWallet) && passState.hasAccess
+  const canChat = assistantReady === true && Boolean(accessWallet) && passState.hasAccess
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (!canChat) {
@@ -332,6 +390,14 @@ export default function ChatPage() {
                     and set <code className="font-mono">OPENCLAW_API_KEY</code> (recommended) or{" "}
                     <code className="font-mono">OPENAI_API_KEY</code>, then redeploy.
                   </p>
+                  {assistantMeta?.generatedAt ? (
+                    <p className="text-xs text-muted-foreground">
+                      Status as of {new Date(assistantMeta.generatedAt).toLocaleString()}
+                      {assistantMeta.aiProvider ? ` · AI: ${assistantMeta.aiProvider}` : ""}
+                      {assistantMeta.vercelEnv ? ` · ${assistantMeta.vercelEnv}` : ""}
+                      {assistantMeta.commit ? ` · ${assistantMeta.commit.slice(0, 7)}` : ""}
+                    </p>
+                  ) : null}
                   {assistantReadyError && (
                     <p className="text-xs text-destructive">Status check error: {assistantReadyError}</p>
                   )}
@@ -341,19 +407,29 @@ export default function ChatPage() {
           </Card>
         )}
 
-        {assistantReady === true && !sessionWallet && (
+        {assistantReady === true && !accessWallet && (
           <Card className="mb-6 border-border shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Sign in</CardTitle>
-              <CardDescription>Connect Coinbase Smart Wallet (Base Account) to use the assistant.</CardDescription>
+              <CardDescription>Connect your Base wallet to use the assistant.</CardDescription>
             </CardHeader>
             <CardContent>
-              <SignInWithBase />
+              <div className="space-y-2">
+                <SignInWithBase
+                  onAuthSuccess={(address) => {
+                    setAuthError(null)
+                    setConnectedWallet(address)
+                    refreshPassStatus().catch(() => null)
+                  }}
+                  onAuthError={(message) => setAuthError(message)}
+                />
+                {authError ? <p className="text-xs text-destructive">{authError}</p> : null}
+              </div>
             </CardContent>
           </Card>
         )}
 
-        {assistantReady === true && sessionWallet && (
+        {assistantReady === true && accessWallet && (
           <Card className="mb-6 border-border shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-3">
@@ -427,8 +503,8 @@ export default function ChatPage() {
                     placeholder="0x… (wallet address)"
                     className="sm:w-[360px]"
                   />
-                  {sessionWallet && (
-                    <Button type="button" variant="outline" size="sm" onClick={() => setActingWallet(sessionWallet)}>
+                  {accessWallet && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => setActingWallet(accessWallet)}>
                       Use my wallet
                     </Button>
                   )}
@@ -494,9 +570,10 @@ export default function ChatPage() {
                   </div>
 
                   {!isAssistant && (
-                    <div className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="h-4 w-4 text-background" />
-                    </div>
+                    <Avatar className="h-8 w-8 ring-1 ring-border/60 flex-shrink-0">
+                      {userAvatarUrl ? <AvatarImage src={userAvatarUrl} alt={userDisplayName || "You"} /> : null}
+                      <AvatarFallback className="text-xs font-semibold">{userFallback}</AvatarFallback>
+                    </Avatar>
                   )}
                 </div>
               )
@@ -574,7 +651,7 @@ export default function ChatPage() {
                   ? assistantReady === null
                     ? "Checking assistant status…"
                     : "Assistant is offline right now."
-                  : !sessionWallet
+                  : !accessWallet
                     ? "Sign in above to start chatting."
                     : "Unlock Assistant Pass above to start chatting."}
               </p>

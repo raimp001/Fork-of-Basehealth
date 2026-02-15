@@ -9,6 +9,7 @@
 
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react'
 import type { MiniAppContext as FarcasterMiniAppContext } from '@farcaster/miniapp-core'
+import { useCallback } from 'react'
 
 interface MiniAppProviderContext {
   isMiniApp: boolean
@@ -95,7 +96,7 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
     initMiniApp()
   }, [])
 
-  const openUrl = (url: string) => {
+  const openUrl = useCallback((url: string) => {
     const trimmed = (url || '').trim()
     if (!trimmed) return
 
@@ -112,9 +113,9 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       window.open(trimmed, '_blank', 'noopener,noreferrer')
     }
-  }
+  }, [sdk])
 
-  const getEthereumProvider = async () => {
+  const getEthereumProvider = useCallback(async () => {
     try {
       const getter = sdk?.wallet?.getEthereumProvider
       if (typeof getter === 'function') {
@@ -126,7 +127,7 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
 
     if (typeof window !== 'undefined') return (window as any).ethereum || null
     return null
-  }
+  }, [sdk])
 
   return (
     <MiniAppContext.Provider value={{ isMiniApp, isReady, sdk, context, user, openUrl, getEthereumProvider }}>
