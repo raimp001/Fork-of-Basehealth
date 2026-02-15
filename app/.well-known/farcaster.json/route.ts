@@ -34,15 +34,18 @@ export async function GET() {
         `${APP_URL}/screenshots/providers.png`,
         `${APP_URL}/screenshots/payment.png`,
       ],
-      primaryCategory: 'health',
-      tags: ['health', 'healthcare', 'screenings', 'telemedicine', 'usdc', 'base'],
+      // Base manifest schema expects one of the documented categories (e.g. "health-fitness").
+      primaryCategory: 'health-fitness',
+      // Up to 5 tags; lowercase; no spaces/emojis/special chars.
+      tags: ['health', 'healthcare', 'screenings', 'telemedicine', 'usdc'],
       
       // Hero content
       heroImageUrl: `${APP_URL}/og-image.png`,
       tagline: 'Healthcare, simplified',
       
       // Open Graph
-      ogTitle: 'BaseHealth - Healthcare on Base',
+      // Max 30 chars per Base manifest schema.
+      ogTitle: 'BaseHealth: Healthcare on Base',
       ogDescription: 'Get personalized health screenings, find verified providers, and pay with USDC on Base.',
       ogImageUrl: `${APP_URL}/og-image.png`,
       
