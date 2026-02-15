@@ -32,12 +32,10 @@ import { SignInWithBase } from "@/components/auth/sign-in-with-base"
 
 const navigationItems = [
   { href: '/', label: 'Home', icon: Home },
+  { href: '/chat', label: 'Assistant', icon: Bot },
   { href: '/screening', label: 'Screenings', icon: Activity },
   { href: '/providers/search', label: 'Find care', icon: Search },
   { href: '/clinical-trials', label: 'Clinical trials', icon: FlaskConical },
-  { href: '/chat', label: 'Assistant', icon: Bot },
-  { href: '/providers/search?bounty=true', label: 'Caregivers', icon: Heart },
-  { href: '/provider/signup', label: 'Join as provider', icon: User, badge: 'New' },
   { href: '/support', label: 'Support', icon: LifeBuoy },
   { href: '/feedback', label: 'Feedback', icon: MessageSquare },
   { href: '/agents', label: 'Ops', icon: Brain, badge: 'Ops', opsOnly: true },
@@ -63,8 +61,7 @@ const adminMenuItems = [
 
 const quickActions = [
   { href: '/chat', label: 'Assistant', icon: Bot, badge: null },
-  { href: '/agents', label: 'Agent hub', icon: Brain, badge: 'Ops', opsOnly: true },
-  { href: '/second-opinion', label: 'Expert review', icon: Activity, badge: 'New' },
+  { href: '/support', label: 'Support', icon: LifeBuoy, badge: null },
 ]
 
 const desktopNavigationItems = [
@@ -177,7 +174,7 @@ export function MinimalNavigation() {
                 size="sm" 
                 className="h-9 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all duration-200"
               >
-                <Link href="/provider/signup">Become a Provider</Link>
+                <Link href="/join">Join</Link>
               </Button>
               <SignInWithBase className="h-9" />
             </div>
@@ -224,7 +221,7 @@ export function MinimalNavigation() {
                     
                     <div className="mt-6 pt-6 border-t border-border">
                       <div className="px-4 mb-6">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                           Quick Actions
                         </p>
                         <div className="space-y-1">
@@ -309,11 +306,10 @@ export function MinimalNavigation() {
                   <div className="p-5 border-t border-border bg-muted/20 space-y-3">
                     <Button 
                       asChild 
-                      variant="outline" 
-                      className="w-full h-11 border-2 border-blue-200 hover:border-blue-300 bg-blue-50 text-blue-900 font-semibold hover:bg-blue-100 transition-all duration-200" 
+                      className="w-full h-11 bg-foreground text-background hover:bg-foreground/90 font-semibold transition-all duration-200" 
                       onClick={() => setIsOpen(false)}
                     >
-                      <Link href="/provider/signup">Become a Provider</Link>
+                      <Link href="/join">Join network</Link>
                     </Button>
                     <div className="flex justify-center" onClick={() => setIsOpen(false)}>
                       <SignInWithBase className="w-full h-11" />

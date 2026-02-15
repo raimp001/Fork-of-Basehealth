@@ -311,7 +311,7 @@ function SearchPageContent() {
 
             {/* Detected Location Indicator */}
             {detectedLocation && (
-              <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2 text-green-400 text-sm">
+              <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2 text-green-700 text-sm">
                 <Navigation className="h-4 w-4" />
                 Location detected: {detectedLocation}
               </div>
@@ -368,7 +368,7 @@ function SearchPageContent() {
 
           {/* Error */}
           {error && (
-            <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 flex items-center gap-3">
+            <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-700 flex items-center gap-3">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
               {error}
             </div>
