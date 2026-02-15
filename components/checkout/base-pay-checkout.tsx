@@ -36,6 +36,11 @@ import {
 interface BasePayCheckoutProps {
   amount: number
   serviceName: string
+  /**
+   * Stable identifier stored in payment metadata (useful for access passes, subscriptions, etc).
+   * Defaults to serviceName for backwards compatibility.
+   */
+  serviceType?: string
   serviceDescription?: string
   providerName?: string
   providerWallet?: string
@@ -58,6 +63,7 @@ type CheckoutStep = 'ready' | 'processing' | 'success' | 'error'
 export function BasePayCheckout({
   amount,
   serviceName,
+  serviceType,
   serviceDescription,
   providerName,
   providerWallet,
@@ -102,7 +108,7 @@ export function BasePayCheckout({
           orderId,
           expectedAmount: amount.toFixed(2),
           providerId,
-          serviceType: serviceName,
+          serviceType: serviceType || serviceName,
           patientEmail: payment.payerInfoResponses?.email,
         }),
       })

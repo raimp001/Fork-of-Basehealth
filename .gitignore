@@ -18,6 +18,8 @@ yarn-error.log*
 
 # env files
 .env*
+!.env.example
+!.env.hipaa.example
 
 # wallet backup (sensitive!)
 .wallet-backup.json

@@ -4,10 +4,12 @@ import { useMemo, useState } from "react"
 import Link from "next/link"
 import { HeartHandshake, Shield, Zap } from "lucide-react"
 import { BasePayCheckout } from "@/components/checkout/base-pay-checkout"
+import { EthTipCheckout } from "@/components/tips/eth-tip-checkout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { basePayConfig } from "@/lib/base-pay-service"
 
 const PRESET_TIPS = [0.25, 1, 5, 10, 25]
@@ -34,7 +36,7 @@ export default function SupportPage() {
           <h1 className="mt-5 text-3xl sm:text-4xl font-semibold text-stone-900">Tip or support growth</h1>
           <p className="mt-3 text-stone-600 max-w-2xl mx-auto leading-7">
             Tips help fund agent improvements, faster billing automation, and better patient UX. Payments use Base Pay
-            (USDC on Base) with Coinbase Smart Wallet.
+            (USDC on Base) with Coinbase Smart Wallet. You can also tip with native ETH on Base.
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
             <Badge variant="outline" className="flex items-center gap-1">
@@ -91,20 +93,40 @@ export default function SupportPage() {
             </div>
 
             <div className="pt-2">
-              <BasePayCheckout
-                amount={resolvedAmount}
-                serviceName="Support tip"
-                serviceDescription="Tip to support BaseHealth development"
-                providerName="BaseHealth"
-                providerWallet={basePayConfig.recipientAddress}
-                orderId={orderId}
-                providerId="basehealth"
-                collectEmail={false}
-                onSuccess={() => {
-                  // Allow a second tip without refresh.
-                  setOrderId(`tip-${Date.now()}`)
-                }}
-              />
+              <Tabs defaultValue="usdc" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="usdc">USDC (Base Pay)</TabsTrigger>
+                  <TabsTrigger value="eth">ETH</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="usdc">
+                  <BasePayCheckout
+                    amount={resolvedAmount}
+                    serviceName="Support tip"
+                    serviceDescription="Tip to support BaseHealth development"
+                    providerName="BaseHealth"
+                    providerWallet={basePayConfig.recipientAddress}
+                    orderId={orderId}
+                    providerId="basehealth"
+                    collectEmail={false}
+                    onSuccess={() => {
+                      // Allow a second tip without refresh.
+                      setOrderId(`tip-${Date.now()}`)
+                    }}
+                  />
+                </TabsContent>
+
+                <TabsContent value="eth">
+                  <EthTipCheckout
+                    usdAmount={resolvedAmount}
+                    orderId={orderId}
+                    onSuccess={() => {
+                      // Allow a second tip without refresh.
+                      setOrderId(`tip-${Date.now()}`)
+                    }}
+                  />
+                </TabsContent>
+              </Tabs>
             </div>
           </CardContent>
         </Card>

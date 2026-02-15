@@ -1,13 +1,15 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useChat } from "ai/react"
 import { AlertCircle, Bot, Loader2, Send, User } from "lucide-react"
+import { SignInWithBase } from "@/components/auth/sign-in-with-base"
+import { BasePayCheckout } from "@/components/checkout/base-pay-checkout"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
@@ -17,6 +19,7 @@ import {
   normalizeOpenClawAgent,
   type OpenClawAgentId,
 } from "@/lib/openclaw-agent-catalog"
+import { basePayConfig } from "@/lib/base-pay-service"
 
 function getMessageContent(message: any): string {
   if (typeof message?.content === "string") {
@@ -43,6 +46,13 @@ const DEFAULT_EXAMPLES = [
   "How do I connect Coinbase Smart Wallet for payments?",
 ]
 
+const ASSISTANT_PASS_SERVICE_TYPE = "assistant-pass-chat"
+const ASSISTANT_PASS_USD = (() => {
+  const raw = process.env.NEXT_PUBLIC_ASSISTANT_PASS_USD
+  const parsed = raw ? Number.parseFloat(raw) : Number.NaN
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0.25
+})()
+
 export default function ChatPage() {
   const searchParams = useSearchParams()
   const { data: session } = useSession()
@@ -51,10 +61,52 @@ export default function ChatPage() {
   const [hasSentMessage, setHasSentMessage] = useState(false)
   const [actingWallet, setActingWallet] = useState("")
   const [opsMode, setOpsMode] = useState(false)
+  const [passOrderId, setPassOrderId] = useState(() => `assistant-pass-chat-${Date.now()}`)
+  const [passState, setPassState] = useState<{
+    loading: boolean
+    hasAccess: boolean
+    validUntil: string | null
+    error: string | null
+  }>({ loading: false, hasAccess: false, validUntil: null, error: null })
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const appliedQueryState = useRef(false)
 
   const sessionWallet = (session?.user as any)?.walletAddress as string | undefined
+
+  const refreshPassStatus = useCallback(async () => {
+    if (!sessionWallet || !/^0x[a-fA-F0-9]{40}$/.test(sessionWallet)) {
+      setPassState({ loading: false, hasAccess: false, validUntil: null, error: null })
+      return
+    }
+
+    setPassState((prev) => ({ ...prev, loading: true, error: null }))
+    try {
+      const res = await fetch(`/api/access/chat/status?walletAddress=${encodeURIComponent(sessionWallet)}`, {
+        cache: "no-store",
+      })
+      const json = await res.json().catch(() => null)
+      if (!res.ok || !json?.success) {
+        throw new Error(json?.error || "Failed to check access")
+      }
+      setPassState({
+        loading: false,
+        hasAccess: Boolean(json?.hasAccess),
+        validUntil: typeof json?.validUntil === "string" ? json.validUntil : null,
+        error: null,
+      })
+    } catch (err) {
+      setPassState({
+        loading: false,
+        hasAccess: false,
+        validUntil: null,
+        error: err instanceof Error ? err.message : "Failed to check access",
+      })
+    }
+  }, [sessionWallet])
+
+  useEffect(() => {
+    refreshPassStatus().catch(() => null)
+  }, [refreshPassStatus])
 
   useEffect(() => {
     try {
@@ -112,6 +164,7 @@ export default function ChatPage() {
   const requestBody = useMemo(() => {
     const body: Record<string, unknown> = {
       walletAddress: (actingWallet || sessionWallet || "").trim() || undefined,
+      accessWalletAddress: (sessionWallet || "").trim() || undefined,
     }
     if (effectivePinnedAgent) body.agent = effectivePinnedAgent
     return body
@@ -171,14 +224,26 @@ export default function ChatPage() {
 
   const placeholder = effectivePinnedAgent
     ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].placeholder
-    : "Ask about screenings, care navigation, appointments, billing, refunds, or Base payments…"
+    : !sessionWallet
+      ? "Sign in with Base to start chatting…"
+      : passState.loading
+        ? "Checking access…"
+        : passState.hasAccess
+          ? "Ask about screenings, care navigation, appointments, billing, refunds, or Base payments…"
+          : "Unlock Assistant Pass to start chatting…"
 
   const examples = effectivePinnedAgent ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].examples : DEFAULT_EXAMPLES
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (!passState.hasAccess) {
+      e.preventDefault()
+      return
+    }
     if (input.trim()) setHasSentMessage(true)
     handleSubmit(e)
   }
+
+  const canChat = Boolean(sessionWallet) && passState.hasAccess
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}>
@@ -209,6 +274,73 @@ export default function ChatPage() {
             )}
           </div>
         </div>
+
+        {!sessionWallet && (
+          <Card className="mb-6 border-border shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Sign in</CardTitle>
+              <CardDescription>Connect Coinbase Smart Wallet (Base Account) to use the assistant.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SignInWithBase />
+            </CardContent>
+          </Card>
+        )}
+
+        {sessionWallet && (
+          <Card className="mb-6 border-border shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base">Assistant Pass</CardTitle>
+                  <CardDescription>
+                    Unlock chat to cover inference + compliance costs. Valid for 24 hours per purchase.
+                  </CardDescription>
+                </div>
+                {passState.hasAccess && passState.validUntil ? (
+                  <Badge variant="secondary">Active until {new Date(passState.validUntil).toLocaleString()}</Badge>
+                ) : (
+                  <Badge variant="outline">Required</Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {passState.loading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Checking access…
+                </div>
+              ) : passState.hasAccess ? (
+                <p className="text-sm text-muted-foreground">
+                  Pass active. Tips are optional:{" "}
+                  <Link href="/support" className="text-foreground hover:underline underline-offset-4">
+                    Tip or support growth
+                  </Link>
+                  .
+                </p>
+              ) : (
+                <>
+                  {passState.error && <p className="text-sm text-destructive">{passState.error}</p>}
+                  <BasePayCheckout
+                    amount={ASSISTANT_PASS_USD}
+                    serviceName="Assistant Pass"
+                    serviceType={ASSISTANT_PASS_SERVICE_TYPE}
+                    serviceDescription="24h access to BaseHealth Assistant"
+                    providerName="BaseHealth"
+                    providerWallet={basePayConfig.recipientAddress}
+                    orderId={passOrderId}
+                    providerId="basehealth"
+                    collectEmail={false}
+                    onSuccess={() => {
+                      setPassOrderId(`assistant-pass-chat-${Date.now()}`)
+                      refreshPassStatus().catch(() => null)
+                    }}
+                  />
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {opsMode && (
           <details className="mb-6 rounded-2xl border border-border bg-background p-5 shadow-sm">
@@ -308,15 +440,25 @@ export default function ChatPage() {
               <div className="bg-background border border-dashed border-border rounded-lg p-4">
                 <p className="text-xs text-muted-foreground mb-2">Try asking:</p>
                 <div className="flex flex-wrap gap-2">
-                  {examples.map((question) => (
-                    <button
-                      key={question}
-                      onClick={() => setInput(question)}
-                      className="text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 text-foreground transition-colors"
-                    >
-                      {question}
-                    </button>
-                  ))}
+                  {examples.map((question) => {
+                    const disabled = !canChat
+                    return (
+                      <button
+                        key={question}
+                        onClick={() => {
+                          if (!disabled) setInput(question)
+                        }}
+                        className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
+                          disabled
+                            ? "bg-muted/40 text-muted-foreground cursor-not-allowed"
+                            : "bg-muted hover:bg-muted/80 text-foreground"
+                        }`}
+                        disabled={disabled}
+                      >
+                        {question}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -348,17 +490,23 @@ export default function ChatPage() {
                 value={input}
                 onChange={handleInputChange}
                 placeholder={placeholder}
-                disabled={isLoading}
+                disabled={isLoading || !canChat}
                 className="flex-1 min-h-[44px] max-h-[120px]"
               />
               <Button
                 type="submit"
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || !canChat}
                 className="bg-foreground hover:bg-foreground/90 text-background disabled:bg-muted disabled:text-muted-foreground"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </form>
+
+            {!canChat && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Unlock Assistant Pass above to start chatting.
+              </p>
+            )}
 
             <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
               <AlertCircle className="h-3 w-3" />

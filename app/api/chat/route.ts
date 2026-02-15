@@ -4,6 +4,7 @@ import { createDataStreamResponse, formatDataStreamPart, generateText, streamTex
 import { NextResponse } from "next/server"
 import { sanitizeInput } from "@/lib/phiScrubber"
 import { logger } from "@/lib/logger"
+import { ASSISTANT_PASS, getAssistantPassStatus, isWalletAddress } from "@/lib/assistant-pass"
 import {
   agentKit,
   buildAgentSystemPrompt,
@@ -48,10 +49,56 @@ export const maxDuration = 30
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { messages, agent: requestedAgent, walletAddress, appointmentId } = body || {}
+    const { messages, agent: requestedAgent, walletAddress, accessWalletAddress, appointmentId } = body || {}
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: "messages must be a non-empty array" }, { status: 400 })
+    }
+
+    const paywallEnabled = (process.env.BASEHEALTH_CHAT_PAYWALL || "true").toLowerCase() !== "false"
+    if (paywallEnabled) {
+      const accessWallet =
+        (typeof accessWalletAddress === "string" && accessWalletAddress.trim()) ||
+        (typeof walletAddress === "string" && walletAddress.trim()) ||
+        ""
+
+      if (!accessWallet || !isWalletAddress(accessWallet)) {
+        const response = createDataStreamResponse({
+          status: 200,
+          execute: (dataStream) => {
+            dataStream.write(
+              formatDataStreamPart(
+                "text",
+                "Please sign in with Base, then unlock the Assistant Pass to use chat.",
+              ),
+            )
+            dataStream.write(formatDataStreamPart("finish_message", { finishReason: "stop" }))
+            dataStream.write(formatDataStreamPart("finish_step", { isContinued: false, finishReason: "stop" }))
+          },
+        })
+        response.headers.set("x-basehealth-paywall", "required")
+        return response
+      }
+
+      const pass = await getAssistantPassStatus(accessWallet)
+      if (!pass.active) {
+        const response = createDataStreamResponse({
+          status: 200,
+          execute: (dataStream) => {
+            dataStream.write(
+              formatDataStreamPart(
+                "text",
+                `Assistant Pass required. Unlock chat for $${ASSISTANT_PASS.usd.toFixed(2)} USDC (24h) and try again.`,
+              ),
+            )
+            dataStream.write(formatDataStreamPart("finish_message", { finishReason: "stop" }))
+            dataStream.write(formatDataStreamPart("finish_step", { isContinued: false, finishReason: "stop" }))
+          },
+        })
+        response.headers.set("x-basehealth-paywall", "required")
+        response.headers.set("x-basehealth-paywall-service", ASSISTANT_PASS.serviceType)
+        return response
+      }
     }
 
     // IMPORTANT: Scrub PHI from user messages before sending to LLM
