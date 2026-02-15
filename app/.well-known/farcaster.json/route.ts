@@ -7,8 +7,11 @@
 
 import { NextResponse } from 'next/server'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz'
 const DEFAULT_OWNER_ADDRESS = "0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b"
+
+function normalizeAppUrl(raw: string): string {
+  return raw.replace(/\/$/, '')
+}
 
 function resolveOwnerAddress(): string {
   const candidate = (
@@ -20,14 +23,25 @@ function resolveOwnerAddress(): string {
   return /^0x[a-fA-F0-9]{40}$/.test(candidate) ? candidate : DEFAULT_OWNER_ADDRESS
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const requestOrigin = (() => {
+    try {
+      return new URL(request.url).origin
+    } catch {
+      return ''
+    }
+  })()
+
+  // Prefer explicitly configured canonical URL, otherwise fall back to the incoming request origin.
+  const appUrl = normalizeAppUrl(
+    process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_URL ||
+      requestOrigin ||
+      'https://www.basehealth.xyz',
+  )
+
   const manifest = {
-    accountAssociation: {
-      // These will be filled in after signing via Base Build
-      header: process.env.MINIAPP_HEADER || '',
-      payload: process.env.MINIAPP_PAYLOAD || '',
-      signature: process.env.MINIAPP_SIGNATURE || '',
-    },
+    accountAssociation: resolveAccountAssociation(),
     baseBuilder: {
       // Wallet used to import the mini app in Base Build (unlock analytics + builder rewards).
       ownerAddress: resolveOwnerAddress(),
@@ -35,19 +49,19 @@ export async function GET() {
     miniapp: {
       version: '1',
       name: 'BaseHealth',
-      homeUrl: APP_URL,
-      iconUrl: `${APP_URL}/icon-192.png`,
-      splashImageUrl: `${APP_URL}/icon-512.png`,
+      homeUrl: appUrl,
+      iconUrl: `${appUrl}/icon-192.png`,
+      splashImageUrl: `${appUrl}/icon-512.png`,
       splashBackgroundColor: '#1a1a1a',
-      webhookUrl: `${APP_URL}/api/miniapp/webhook`,
+      webhookUrl: `${appUrl}/api/miniapp/webhook`,
       
       // App store listing
       subtitle: 'Healthcare on Base',
       description: 'Evidence-based health screenings, verified providers with on-chain attestations, and USDC payments. Your health, intelligently managed.',
       screenshotUrls: [
-        `${APP_URL}/screenshots/screening.png`,
-        `${APP_URL}/screenshots/providers.png`,
-        `${APP_URL}/screenshots/payment.png`,
+        `${appUrl}/screenshots/screening.png`,
+        `${appUrl}/screenshots/providers.png`,
+        `${appUrl}/screenshots/payment.png`,
       ],
       // Base manifest schema expects one of the documented categories (e.g. "health-fitness").
       primaryCategory: 'health-fitness',
@@ -55,14 +69,14 @@ export async function GET() {
       tags: ['health', 'healthcare', 'screenings', 'telemedicine', 'usdc'],
       
       // Hero content
-      heroImageUrl: `${APP_URL}/og-image.png`,
+      heroImageUrl: `${appUrl}/og-image.png`,
       tagline: 'Healthcare, simplified',
       
       // Open Graph
       // Max 30 chars per Base manifest schema.
       ogTitle: 'BaseHealth: Healthcare on Base',
       ogDescription: 'Get personalized health screenings, find verified providers, and pay with USDC on Base.',
-      ogImageUrl: `${APP_URL}/og-image.png`,
+      ogImageUrl: `${appUrl}/og-image.png`,
       
       // Don't index until fully set up
       noindex: false,
@@ -70,4 +84,13 @@ export async function GET() {
   }
 
   return NextResponse.json(manifest)
+}
+
+function resolveAccountAssociation() {
+  return {
+    // Support both the repo's original MINIAPP_* naming and the Base docs' FARCASTER_* naming.
+    header: process.env.MINIAPP_HEADER || process.env.FARCASTER_HEADER || '',
+    payload: process.env.MINIAPP_PAYLOAD || process.env.FARCASTER_PAYLOAD || '',
+    signature: process.env.MINIAPP_SIGNATURE || process.env.FARCASTER_SIGNATURE || '',
+  }
 }

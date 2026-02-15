@@ -7,7 +7,26 @@ import { OfflineIndicator, UpdateBanner, InstallPrompt } from "@/hooks/use-pwa"
 import { MinimalNavigation } from "@/components/layout/minimal-navigation"
 import { AgentAssistFloating } from "@/components/agents/agent-assist-floating"
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz'
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXT_PUBLIC_URL ||
+  'https://www.basehealth.xyz'
+
+const MINIAPP_EMBED_METADATA = {
+  version: "next",
+  imageUrl: `${APP_URL}/og-image.png`,
+  button: {
+    title: "Open BaseHealth",
+    action: {
+      // Base mini app clients expect launch_frame for mini app deep-links.
+      type: "launch_frame",
+      name: "BaseHealth",
+      url: APP_URL,
+      splashImageUrl: `${APP_URL}/icon-512.png`,
+      splashBackgroundColor: "#1a1a1a",
+    },
+  },
+} as const
 
 export const metadata: Metadata = {
   title: "BaseHealth - Healthcare Simplified",
@@ -19,20 +38,9 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-status-bar-style": "default",
     "apple-mobile-web-app-capable": "yes",
     // Base Mini App embed metadata
-    "fc:miniapp": JSON.stringify({
-      version: "next",
-      imageUrl: `${APP_URL}/og-image.png`,
-      button: {
-        title: "Open BaseHealth",
-        action: {
-          type: "launch_miniapp",
-          name: "BaseHealth",
-          url: APP_URL,
-          splashImageUrl: `${APP_URL}/icon-512.png`,
-          splashBackgroundColor: "#1a1a1a",
-        },
-      },
-    }),
+    "fc:miniapp": JSON.stringify(MINIAPP_EMBED_METADATA),
+    // Some clients/documentation still reference fc:frame for the same embed payload.
+    "fc:frame": JSON.stringify(MINIAPP_EMBED_METADATA),
   },
   openGraph: {
     title: "BaseHealth - Healthcare on Base",

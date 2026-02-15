@@ -32,31 +32,27 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const initMiniApp = async () => {
+      const READY_TIMEOUT_MS = 1500
+
       try {
-        // Check if we're in a mini app context (Base app iframe)
-        const isInMiniApp = window.self !== window.top || 
-                           window.location.search.includes('miniapp=true') ||
-                           navigator.userAgent.includes('Farcaster') ||
-                           navigator.userAgent.includes('Base')
-        
-        if (isInMiniApp) {
-          setIsMiniApp(true)
-          
-          // Import and initialize SDK
-          const { sdk: miniAppSdk } = await import('@farcaster/miniapp-sdk')
-          setSdk(miniAppSdk)
-          
-          // Signal that the app is ready
-          await miniAppSdk.actions.ready()
-          setIsReady(true)
-          
-          console.log('Mini app initialized successfully')
-        } else {
-          // Not in mini app, mark as ready anyway
-          setIsReady(true)
+        const { sdk: miniAppSdk } = await import('@farcaster/miniapp-sdk')
+        setSdk(miniAppSdk)
+
+        const inMiniApp =
+          typeof miniAppSdk?.isInMiniApp === 'function' ? await miniAppSdk.isInMiniApp() : false
+
+        setIsMiniApp(Boolean(inMiniApp))
+
+        if (inMiniApp && typeof miniAppSdk?.actions?.ready === 'function') {
+          // Some preview environments may not respond; don't hang the app.
+          await Promise.race([
+            miniAppSdk.actions.ready(),
+            new Promise((resolve) => setTimeout(resolve, READY_TIMEOUT_MS)),
+          ])
         }
       } catch (error) {
         console.warn('Mini app SDK not available:', error)
+      } finally {
         setIsReady(true)
       }
     }
