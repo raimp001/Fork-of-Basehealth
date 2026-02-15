@@ -41,6 +41,14 @@ function getMessageContent(message: any): string {
   return ""
 }
 
+function getToolInvocations(message: any): any[] {
+  const parts = message?.parts
+  if (!Array.isArray(parts)) return []
+  return parts
+    .filter((part: any) => part?.type === "tool-invocation" && part?.toolInvocation)
+    .map((part: any) => part.toolInvocation)
+}
+
 const DEFAULT_EXAMPLES = [
   "What screenings should I consider this year?",
   "Help me find a provider for my issue.",
@@ -302,6 +310,7 @@ export default function ChatPage() {
   } = useChat({
     api: "/api/chat",
     body: requestBody,
+    maxSteps: 6,
     initialMessages: [
       {
         id: "welcome",
@@ -381,7 +390,8 @@ export default function ChatPage() {
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">BaseHealth Assistant</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               One chat, many specialists. We leverage OpenClaw agents to break operational bottlenecks: billing + refunds,
-              prior auth checklists, lab and record summaries, and care navigation, with clear next steps so nothing gets missed.
+              prior auth checklists, lab and record summaries, care navigation, and workflow orchestration (provider search,
+              order status, and one-tap checkout) so nothing gets missed.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -429,7 +439,9 @@ export default function ChatPage() {
                       Integrations
                     </Link>{" "}
                     and set <code className="font-mono">OPENCLAW_API_KEY</code> (recommended) or{" "}
-                    <code className="font-mono">OPENCLAW_GATEWAY_TOKEN</code> or <code className="font-mono">OPENAI_API_KEY</code>, then redeploy.
+                    <code className="font-mono">OPENCLAW_GATEWAY_TOKEN</code> or{" "}
+                    <code className="font-mono">OPENCLAW_GATEWAY_PASSWORD</code> or{" "}
+                    <code className="font-mono">OPENAI_API_KEY</code>, then redeploy.
                   </p>
                   {assistantMeta?.generatedAt ? (
                     <p className="text-xs text-muted-foreground">
@@ -626,6 +638,7 @@ export default function ChatPage() {
             {messages.map((message: any) => {
               const content = getMessageContent(message)
               const isAssistant = message.role === "assistant"
+              const toolInvocations = getToolInvocations(message)
 
               return (
                 <div key={message.id} className={`flex gap-3 ${isAssistant ? "justify-start" : "justify-end"}`}>
@@ -635,13 +648,173 @@ export default function ChatPage() {
                     </div>
                   )}
 
-                  <div
-                    className={`max-w-[78%] p-3 rounded-lg ${
-                      isAssistant ? "bg-background border border-border text-foreground" : "bg-foreground text-background"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{content}</p>
-                  </div>
+                  {isAssistant ? (
+                    <div className="max-w-[78%] space-y-2">
+                      <div className="p-3 rounded-lg bg-background border border-border text-foreground">
+                        <p className="text-sm whitespace-pre-wrap">{content}</p>
+                      </div>
+
+                      {toolInvocations.length > 0 && (
+                        <div className="space-y-2">
+                          {toolInvocations.map((invocation: any, idx: number) => {
+                            const toolName = invocation?.toolName || invocation?.name || "tool"
+                            const state = invocation?.state
+                            const key = invocation?.toolCallId || `${message.id}-${toolName}-${idx}`
+
+                            if (state !== "result") {
+                              return (
+                                <div
+                                  key={key}
+                                  className="rounded-xl border border-border bg-background p-3 text-xs text-muted-foreground flex items-center gap-2"
+                                >
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  <span>{toolName.replaceAll("_", " ")}…</span>
+                                </div>
+                              )
+                            }
+
+                            const result = invocation?.result
+
+                            if (toolName === "create_checkout" && result?.kind === "checkout" && result?.checkout) {
+                              const checkout = result.checkout
+                              return (
+                                <div key={key} className="pt-1">
+                                  <BasePayCheckout
+                                    amount={Number(checkout.amountUsd) || 0}
+                                    serviceName={checkout.serviceName || "Checkout"}
+                                    serviceType={checkout.serviceType}
+                                    serviceDescription={checkout.serviceDescription}
+                                    providerName={checkout.providerName}
+                                    providerWallet={checkout.providerWallet}
+                                    orderId={checkout.orderId}
+                                    providerId={checkout.providerId}
+                                    collectEmail={Boolean(checkout.collectEmail)}
+                                  />
+                                </div>
+                              )
+                            }
+
+                            if (toolName === "search_providers" && result?.kind === "providers") {
+                              const providers = Array.isArray(result.providers) ? result.providers : []
+                              return (
+                                <div key={key} className="rounded-xl border border-border bg-background p-3">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                      <p className="text-sm font-semibold text-foreground">Provider matches</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {typeof result.location === "string" && result.location.trim()
+                                          ? result.location
+                                          : "Based on your query"}
+                                      </p>
+                                    </div>
+                                    <Badge variant="secondary" className="text-xs">
+                                      {typeof result.total === "number" ? result.total : providers.length}
+                                    </Badge>
+                                  </div>
+
+                                  <div className="mt-3 space-y-2">
+                                    {providers.length === 0 ? (
+                                      <p className="text-xs text-muted-foreground">No providers found.</p>
+                                    ) : (
+                                      providers.map((provider: any, providerIdx: number) => (
+                                        <div
+                                          key={provider?.id || provider?.name || `${message.id}-provider-${providerIdx}`}
+                                          className="rounded-lg border border-border/60 bg-muted/10 p-3"
+                                        >
+                                          <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                              <p className="text-sm font-semibold text-foreground truncate">
+                                                {provider?.name || "Provider"}
+                                              </p>
+                                              <p className="text-xs text-muted-foreground truncate">
+                                                {provider?.specialty || "Healthcare Provider"}
+                                              </p>
+                                            </div>
+                                            {typeof provider?.distance === "number" ? (
+                                              <Badge variant="outline" className="text-[11px]">
+                                                {provider.distance.toFixed(1)} mi
+                                              </Badge>
+                                            ) : null}
+                                          </div>
+                                          <p className="mt-1 text-xs text-muted-foreground">
+                                            {[provider?.city, provider?.state].filter(Boolean).join(", ")}
+                                          </p>
+                                          {provider?.phone ? (
+                                            <p className="mt-1 text-xs text-muted-foreground">{provider.phone}</p>
+                                          ) : null}
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                </div>
+                              )
+                            }
+
+                            if (toolName === "get_order_status" && result?.kind === "order_status") {
+                              const booking = result?.booking
+                              const payment = result?.payment
+                              return (
+                                <div key={key} className="rounded-xl border border-border bg-background p-3">
+                                  <p className="text-sm font-semibold text-foreground">Order status</p>
+                                  <p className="mt-1 text-xs text-muted-foreground font-mono break-all">
+                                    {result?.orderId}
+                                  </p>
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    {booking?.status ? (
+                                      <Badge variant="secondary" className="text-xs">
+                                        Booking: {booking.status}
+                                      </Badge>
+                                    ) : null}
+                                    {booking?.paymentStatus ? (
+                                      <Badge variant="outline" className="text-xs">
+                                        Payment: {booking.paymentStatus}
+                                      </Badge>
+                                    ) : null}
+                                    {payment?.status ? (
+                                      <Badge variant="outline" className="text-xs">
+                                        Payment: {payment.status}
+                                      </Badge>
+                                    ) : null}
+                                    {(booking?.amount || payment?.amount) && (
+                                      <Badge variant="outline" className="text-xs">
+                                        ${(booking?.amount || payment?.amount) ?? "0.00"} {booking?.currency || payment?.currency || "USDC"}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              )
+                            }
+
+                            if (result?.kind === "error") {
+                              return (
+                                <div
+                                  key={key}
+                                  className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive"
+                                >
+                                  {result?.error || "Tool failed."}
+                                </div>
+                              )
+                            }
+
+                            return (
+                              <div
+                                key={key}
+                                className="rounded-xl border border-border bg-background p-3 text-xs text-muted-foreground"
+                              >
+                                Tool result received.
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className={`max-w-[78%] p-3 rounded-lg bg-foreground text-background`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{content}</p>
+                    </div>
+                  )}
 
                   {!isAssistant && (
                     <Avatar className="h-8 w-8 ring-1 ring-border/60 flex-shrink-0">

@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     if (!model) {
       logger.warn("Blockchain-aware chat request blocked: AI not configured", {
         agent: selectedAgent,
-        missingEnv: ["OPENCLAW_API_KEY", "OPENCLAW_GATEWAY_TOKEN", "OPENAI_API_KEY", "GROQ_API_KEY"],
+        missingEnv: ["OPENCLAW_API_KEY", "OPENCLAW_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_PASSWORD", "OPENAI_API_KEY", "GROQ_API_KEY"],
       })
 
       const response = createDataStreamResponse({
@@ -113,7 +113,7 @@ export async function POST(req: Request) {
       response.headers.set("x-basehealth-agent-mesh", "none")
       response.headers.set(
         "x-basehealth-ai-help",
-        "Admin: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
+        "Admin: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
       )
       return response
     }

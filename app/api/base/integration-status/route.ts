@@ -27,7 +27,7 @@ export async function GET() {
   const chatPaywallEnabled = (process.env.BASEHEALTH_CHAT_PAYWALL || "false").toLowerCase() === "true"
 
   const aiProvider =
-    process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN
+    process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_PASSWORD
       ? "openclaw"
       : process.env.OPENAI_API_KEY
         ? "openai"
@@ -115,18 +115,19 @@ export async function GET() {
           passed: Boolean(
             process.env.OPENCLAW_API_KEY ||
               process.env.OPENCLAW_GATEWAY_TOKEN ||
+              process.env.OPENCLAW_GATEWAY_PASSWORD ||
               process.env.OPENAI_API_KEY ||
               process.env.GROQ_API_KEY,
           ),
-          help: "Required for /chat. Set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENAI_API_KEY or GROQ_API_KEY in your deployment environment, then redeploy.",
+          help: "Required for /chat. Set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD or OPENAI_API_KEY or GROQ_API_KEY in your deployment environment, then redeploy.",
         },
         {
           id: "openclaw",
           label: "OpenClaw key configured (recommended)",
-          env: "OPENCLAW_API_KEY",
+          env: "OPENCLAW_API_KEY / OPENCLAW_GATEWAY_TOKEN / OPENCLAW_GATEWAY_PASSWORD",
           required: false,
-          passed: Boolean(process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN),
-          help: "Enables multi-agent routing with provider-managed models (supports OPENCLAW_API_KEY or OPENCLAW_GATEWAY_TOKEN).",
+          passed: Boolean(process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_PASSWORD),
+          help: "Enables multi-agent routing with provider-managed models (supports OPENCLAW_API_KEY or OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD).",
         },
         {
           id: "openai",

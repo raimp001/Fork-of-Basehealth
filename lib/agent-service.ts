@@ -1,3 +1,5 @@
+import "server-only"
+
 import { createOpenAI } from "@ai-sdk/openai"
 import type { CoreMessage } from "ai"
 import { logger } from "@/lib/logger"
@@ -62,7 +64,7 @@ export function getAgentDefinition(agent: OpenClawAgentId): AgentDefinition {
 }
 
 export function isOpenClawConfigured(): boolean {
-  return Boolean(process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN)
+  return Boolean(process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_PASSWORD)
 }
 
 function resolveOpenClawModel(agent: OpenClawAgentId): string {
@@ -99,7 +101,7 @@ function formatSkillPlaybook(skill?: OpenClawAgentSkillPlaybook | null): string 
 }
 
 export function getOpenClawModel(agent: OpenClawAgentId) {
-  const apiKey = process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN
+  const apiKey = process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_PASSWORD
   if (!apiKey) return null
 
   const openclaw = createOpenAI({

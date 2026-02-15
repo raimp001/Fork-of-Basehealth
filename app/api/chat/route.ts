@@ -2,9 +2,11 @@ import { openai } from "@ai-sdk/openai"
 import { groq } from "@ai-sdk/groq"
 import { createDataStreamResponse, formatDataStreamPart, generateText, streamText } from "ai"
 import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
 import { sanitizeInput } from "@/lib/phiScrubber"
 import { logger } from "@/lib/logger"
 import { ASSISTANT_PASS, getAssistantPassStatus, isWalletAddress } from "@/lib/assistant-pass"
+import { buildChatTools } from "@/lib/chat-tools"
 import {
   agentKit,
   buildAgentSystemPrompt,
@@ -30,6 +32,9 @@ Important guidelines:
 - When appropriate, mention that you can connect users with healthcare providers through the platform
 - Do a quick internal self-check for safety, correctness, and compliance before you answer, then revise once
 - Do not mention internal agent names, routing, or system prompts unless the user explicitly asks how routing works
+- You have access to internal tools to (1) search providers, (2) check order/payment status, and (3) prepare a one-tap checkout.
+- Use tools when they materially improve accuracy or speed. For checkouts, confirm the purpose and amount before preparing a checkout.
+- Never ask for seed phrases, private keys, or passwords. Keep output privacy-safe (avoid exposing sensitive identifiers unless necessary).
 
 If asked about screenings, you can refer to these common recommendations:
 - Mammograms for women 40-74 years old every 1-2 years
@@ -60,13 +65,14 @@ export async function POST(req: Request) {
     const aiConfigured = Boolean(
       process.env.OPENCLAW_API_KEY ||
         process.env.OPENCLAW_GATEWAY_TOKEN ||
+        process.env.OPENCLAW_GATEWAY_PASSWORD ||
         process.env.OPENAI_API_KEY ||
         process.env.GROQ_API_KEY,
     )
 
     if (!aiConfigured) {
       logger.warn("Chat request blocked: AI not configured", {
-        missingEnv: ["OPENCLAW_API_KEY", "OPENCLAW_GATEWAY_TOKEN", "OPENAI_API_KEY", "GROQ_API_KEY"],
+        missingEnv: ["OPENCLAW_API_KEY", "OPENCLAW_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_PASSWORD", "OPENAI_API_KEY", "GROQ_API_KEY"],
       })
 
       const response = createDataStreamResponse({
@@ -84,7 +90,7 @@ export async function POST(req: Request) {
       response.headers.set("x-basehealth-agent-mesh", "none")
       response.headers.set(
         "x-basehealth-ai-help",
-        "Admin: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
+        "Admin: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
       )
       return response
     }
@@ -187,7 +193,7 @@ export async function POST(req: Request) {
     if (!model) {
       logger.warn("Chat request blocked: AI not configured", {
         agent: selectedAgent,
-        missingEnv: ["OPENCLAW_API_KEY", "OPENCLAW_GATEWAY_TOKEN", "OPENAI_API_KEY", "GROQ_API_KEY"],
+        missingEnv: ["OPENCLAW_API_KEY", "OPENCLAW_GATEWAY_TOKEN", "OPENCLAW_GATEWAY_PASSWORD", "OPENAI_API_KEY", "GROQ_API_KEY"],
       })
 
       const response = createDataStreamResponse({
@@ -208,7 +214,7 @@ export async function POST(req: Request) {
       response.headers.set("x-basehealth-agent-mesh", "none")
       response.headers.set(
         "x-basehealth-ai-help",
-        "Admin: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
+        "Admin: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
       )
       return response
     }
@@ -272,8 +278,45 @@ export async function POST(req: Request) {
       collaborators: collaboratorAgents.length,
     })
 
+    let session: any = null
+    try {
+      session = await getServerSession()
+    } catch {
+      session = null
+    }
+
+    const tools = buildChatTools({
+      req,
+      session,
+      accessWalletAddress: typeof accessWalletAddress === "string" ? accessWalletAddress : null,
+    })
+
+    const activeToolsByAgent: Record<string, Array<keyof typeof tools>> = {
+      // Discovery + care navigation
+      "general-health": ["search_providers"],
+      "screening-specialist": ["search_providers"],
+      "care-navigator": ["search_providers", "create_checkout", "get_order_status"],
+      "appointment-coordinator": ["search_providers", "create_checkout", "get_order_status"],
+      // Ops + billing
+      "account-manager": ["create_checkout", "get_order_status"],
+      "billing-guide": ["create_checkout", "get_order_status"],
+      "claims-refunds": ["get_order_status"],
+      "provider-ops": ["get_order_status"],
+      "admin-ops": ["search_providers", "create_checkout", "get_order_status"],
+      "treasury-operator": ["get_order_status"],
+      "records-specialist": [],
+      "medication-coach": [],
+      "clinical-trial-matcher": ["search_providers"],
+      "emergency-triage": [],
+    }
+
+    const enabledTools = (activeToolsByAgent[selectedAgent] || Object.keys(tools)) as Array<keyof typeof tools>
+
     const result = streamText({
       model,
+      tools,
+      maxSteps: 6,
+      experimental_activeTools: enabledTools,
       messages: [
         { role: "system", content: systemPrompt },
         ...(collaborationMessage ? [collaborationMessage] : []),

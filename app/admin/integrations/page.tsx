@@ -179,8 +179,10 @@ export default function IntegrationsAdminPage() {
                   ))}
                   <p className="text-xs text-muted-foreground">
                     Set missing environment variables in Vercel (Production) and redeploy. For AI, set one of{" "}
-                    <span className="font-mono">OPENCLAW_API_KEY</span> or <span className="font-mono">OPENCLAW_GATEWAY_TOKEN</span>{" "}
-                    or <span className="font-mono">OPENAI_API_KEY</span> or <span className="font-mono">GROQ_API_KEY</span>.
+                    <span className="font-mono">OPENCLAW_API_KEY</span> or{" "}
+                    <span className="font-mono">OPENCLAW_GATEWAY_TOKEN</span> or{" "}
+                    <span className="font-mono">OPENCLAW_GATEWAY_PASSWORD</span> or{" "}
+                    <span className="font-mono">OPENAI_API_KEY</span> or <span className="font-mono">GROQ_API_KEY</span>.
                   </p>
                 </CardContent>
               </Card>
