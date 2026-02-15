@@ -10,18 +10,18 @@ const badgeVariants = cva(
         default:
           "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-transparent bg-secondary/70 text-secondary-foreground hover:bg-secondary/85",
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
         healthcare:
-          "border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100",
+          "border-sky-500/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/15",
         success:
-          "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+          "border-emerald-500/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/15",
         warning:
-          "border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100",
+          "border-amber-500/30 bg-amber-500/10 text-amber-200 hover:bg-amber-500/15",
         error:
-          "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+          "border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/15",
       },
     },
     defaultVariants: {

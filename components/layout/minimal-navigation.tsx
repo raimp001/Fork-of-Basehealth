@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -124,8 +125,8 @@ export function MinimalNavigation() {
     <>
       {/* Desktop Navigation */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-border backdrop-blur ${
-          scrolled ? "bg-background/95 shadow-md" : "bg-background/80 shadow-sm"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-border/60 backdrop-blur-xl relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/40 after:to-transparent ${
+          scrolled ? "bg-background/70 shadow-enterprise" : "bg-background/40"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -133,9 +134,26 @@ export function MinimalNavigation() {
             <div className="flex items-center gap-8 lg:gap-12">
               <Link 
                 href="/" 
-                className="text-xl md:text-2xl font-bold text-foreground tracking-tight hover:opacity-80 transition-opacity duration-200"
+                className="group flex items-center gap-3 hover:opacity-90 transition-opacity duration-200"
               >
-                BaseHealth
+                <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary/25 via-accent/10 to-transparent ring-1 ring-border/60 shadow-glow-subtle">
+                  <Image
+                    src="/icon-192.png"
+                    alt="BaseHealth"
+                    width={22}
+                    height={22}
+                    priority
+                    className="rounded-md opacity-95"
+                  />
+                </span>
+                <span className="leading-none">
+                  <span className="block font-display text-base md:text-lg font-semibold tracking-tight text-foreground">
+                    BaseHealth
+                  </span>
+                  <span className="block mt-0.5 text-[11px] text-muted-foreground">
+                    Healthcare on Base
+                  </span>
+                </span>
               </Link>
               
               <nav className="hidden md:flex items-center gap-1 lg:gap-2">
@@ -143,15 +161,15 @@ export function MinimalNavigation() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`relative px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                    className={`relative px-4 py-2 text-sm font-medium rounded-full border transition-all duration-200 ${
                       pathname === item.href
-                        ? "text-foreground bg-muted"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                        ? "text-foreground bg-card/45 border-border/60 shadow-glow-subtle"
+                        : "text-muted-foreground border-transparent hover:text-foreground hover:border-border/40 hover:bg-card/25"
                     }`}
                   >
                     {item.label}
                     {pathname === item.href && (
-                      <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-foreground rounded-full" />
+                      <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
                     )}
                   </Link>
                 ))}
@@ -182,11 +200,11 @@ export function MinimalNavigation() {
             {/* Mobile Menu Button */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted h-9 w-9">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-card/30 h-9 w-9">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[360px] p-0 bg-background">
+              <SheetContent side="right" className="w-[300px] sm:w-[360px] p-0 bg-background/80 backdrop-blur-xl">
                 <div className="flex flex-col h-full">
                   <div className="flex items-center justify-between p-5 border-b border-border">
                     <span className="text-lg font-bold text-foreground">Menu</span>
@@ -194,7 +212,7 @@ export function MinimalNavigation() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setIsOpen(false)}
-                      className="text-muted-foreground hover:text-foreground hover:bg-muted h-9 w-9"
+                      className="text-muted-foreground hover:text-foreground hover:bg-card/30 h-9 w-9"
                     >
                       <X className="h-5 w-5" />
                     </Button>
@@ -237,7 +255,7 @@ export function MinimalNavigation() {
                                 <span className="font-medium text-foreground">{item.label}</span>
                               </div>
                               {item.badge && (
-                                <Badge variant="secondary" className="bg-rose-100 text-rose-700 text-xs font-semibold">
+                                <Badge variant="secondary" className="bg-card/60 text-foreground border border-border/60 text-xs font-semibold">
                                   {item.badge}
                                 </Badge>
                               )}
@@ -247,7 +265,7 @@ export function MinimalNavigation() {
                       </div>
                       
                       <div className="px-4 mb-6">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                           Account
                         </p>
                         <div className="space-y-1">
@@ -263,7 +281,7 @@ export function MinimalNavigation() {
                                 <span className="font-medium text-foreground">{item.label}</span>
                               </div>
                               {item.badge && (
-                                <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs font-semibold">
+                                <Badge variant="secondary" className="bg-card/60 text-foreground border border-border/60 text-xs font-semibold">
                                   {item.badge}
                                 </Badge>
                               )}
@@ -275,7 +293,7 @@ export function MinimalNavigation() {
                       {/* Admin Section */}
                       {visibleAdminMenuItems.length > 0 && (
                         <div className="px-4 pt-6 border-t border-border">
-                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                             Administration
                           </p>
                           <div className="space-y-1">
@@ -291,7 +309,7 @@ export function MinimalNavigation() {
                                   <span className="font-medium text-foreground">{item.label}</span>
                                 </div>
                                 {item.badge && (
-                                  <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs font-semibold">
+                                  <Badge variant="secondary" className="bg-card/60 text-foreground border border-border/60 text-xs font-semibold">
                                     {item.badge}
                                   </Badge>
                                 )}
@@ -303,10 +321,10 @@ export function MinimalNavigation() {
                     </div>
                   </nav>
                   
-                  <div className="p-5 border-t border-border bg-muted/20 space-y-3">
+                  <div className="p-5 border-t border-border bg-card/20 space-y-3">
                     <Button 
                       asChild 
-                      className="w-full h-11 bg-foreground text-background hover:bg-foreground/90 font-semibold transition-all duration-200" 
+                      className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold transition-all duration-200 shadow-glow-cyan" 
                       onClick={() => setIsOpen(false)}
                     >
                       <Link href="/join">Join network</Link>
@@ -323,7 +341,7 @@ export function MinimalNavigation() {
       </header>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border md:hidden z-50 shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 bg-background/70 backdrop-blur-xl border-t border-border/60 md:hidden z-50 shadow-enterprise">
         <div className="grid grid-cols-5 h-16">
           {mobileBottomItems.map((item) => (
             <Link

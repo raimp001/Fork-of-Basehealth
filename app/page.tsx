@@ -1,311 +1,326 @@
-"use client"
-
-/**
- * BaseHealth Homepage - Claude.ai Inspired Design
- * Clean, warm, elegant aesthetic
- */
-
 import Link from "next/link"
-import { ArrowRight, Shield, Check, Heart } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+import {
+  Activity,
+  ArrowRight,
+  Check,
+  FlaskConical,
+  HeartHandshake,
+  Search,
+  Shield,
+} from "lucide-react"
 
-const features = [
+type Feature = {
+  title: string
+  description: string
+  href: string
+  icon: LucideIcon
+}
+
+const features: Feature[] = [
   {
     title: "Health Screenings",
-    description: "USPSTF Grade A & B evidence-based recommendations personalized to your risk profile.",
+    description: "USPSTF Grade A & B recommendations tuned to your risk profile, fast.",
     href: "/screening",
+    icon: Activity,
   },
   {
     title: "Provider Network",
-    description: "Access 1M+ NPI-verified healthcare providers with real-time availability.",
+    description: "Search NPI-verified clinicians and book care without guesswork.",
     href: "/providers/search",
+    icon: Search,
   },
   {
-    title: "Find Caregivers",
-    description: "Connect with verified caregivers for elder care, post-surgery support, and more.",
+    title: "Caregivers",
+    description: "Find trusted support for elder care, post-surgery, and daily life.",
     href: "/caregivers/search",
+    icon: HeartHandshake,
   },
   {
     title: "Clinical Trials",
-    description: "AI-powered matching from ClinicalTrials.gov with eligibility scoring.",
+    description: "AI matching from ClinicalTrials.gov with eligibility signals.",
     href: "/clinical-trials",
+    icon: FlaskConical,
   },
 ]
 
 const benefits = [
-  "HIPAA Compliant",
+  "HIPAA-minded by default",
   "Evidence-based recommendations",
-  "Real provider data from NPI",
-  "Secure USDC payments on Base",
+  "Real provider data (NPI)",
+  "USDC payments on Base",
 ]
+
+function FeatureCard({ title, description, href, icon: Icon }: Feature) {
+  return (
+    <Link
+      href={href}
+      className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/35 backdrop-blur-md p-6 shadow-glow-subtle transition-all hover:border-border/80 hover:bg-card/45"
+    >
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        <div className="absolute -top-16 -right-24 h-56 w-56 rounded-full bg-gradient-radial from-primary/22 via-accent/10 to-transparent blur-2xl" />
+      </div>
+
+      <div className="relative flex items-start gap-4">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border/60 bg-background/30 shadow-glow-cyan">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-display text-lg font-semibold tracking-tight text-foreground">{title}</h3>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
+          <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground/90 transition-all group-hover:gap-2">
+            Open
+            <ArrowRight className="h-4 w-4 text-primary" />
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      {/* Hero Section */}
-      <section className="pt-8 md:pt-12 pb-20">
-        <div className="max-w-5xl mx-auto px-6">
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Hero */}
+      <section className="relative overflow-hidden pb-16 pt-4 md:pt-8">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-0 bg-grid-pattern bg-grid opacity-[0.55] [mask-image:radial-gradient(60%_60%_at_50%_18%,white,transparent)]" />
+          <div className="absolute -top-56 left-1/2 h-[520px] w-[720px] -translate-x-1/2 rounded-full bg-gradient-radial from-primary/25 via-accent/10 to-transparent blur-3xl" />
+          <div className="absolute -bottom-72 right-[-260px] h-[640px] w-[640px] rounded-full bg-gradient-radial from-accent/20 via-primary/10 to-transparent blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto w-full max-w-6xl px-6">
           <div className="max-w-3xl">
-            <h1 className="text-5xl md:text-6xl font-normal tracking-tight mb-6" style={{ lineHeight: '1.1' }}>
-              Your Health,
-              <br />
-              <span style={{ color: 'var(--text-secondary)' }}>Intelligently Managed.</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/30 px-3 py-1 text-xs text-muted-foreground backdrop-blur animate-fade-in">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-glow-cyan" />
+              Mini app-ready on Base
+            </div>
+
+            <h1 className="mt-6 text-balance font-display text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.02] animate-fade-in-up">
+              Your health,{" "}
+              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                intelligently managed
+              </span>
+              .
             </h1>
 
-            <p className="text-xl mb-10 max-w-xl" style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-              Evidence-based screenings, verified providers, and clinical trial matching—all in one place.
+            <p className="mt-6 max-w-2xl text-lg md:text-xl leading-relaxed text-muted-foreground animate-fade-in-up delay-100">
+              Evidence-based screening plans, verified providers, and secure checkout with USDC, packaged as a fast mini
+              app.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-16 flex-wrap">
+            <div className="mt-10 flex flex-col sm:flex-row gap-3 flex-wrap animate-fade-in-up delay-200">
               <Link
                 href="/screening"
-                className="group inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg transition-all"
-                style={{ 
-                  backgroundColor: 'var(--text-primary)', 
-                  color: 'var(--bg-primary)' 
-                }}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm sm:text-base font-semibold text-primary-foreground shadow-glow-cyan transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                Start Health Assessment
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                Start screening
+                <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/providers/search"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg border transition-all"
-                style={{ 
-                  borderColor: 'var(--border-medium)',
-                  color: 'var(--text-primary)',
-                  backgroundColor: 'transparent'
-                }}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-border/60 bg-card/25 backdrop-blur px-6 py-3 text-sm sm:text-base font-semibold text-foreground transition-colors hover:bg-card/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                Find a Provider
+                Find a provider
               </Link>
               <Link
-                href="/caregivers/search"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg border transition-all"
-                style={{ 
-                  borderColor: 'var(--border-medium)',
-                  color: 'var(--text-primary)',
-                  backgroundColor: 'transparent'
-                }}
+                href="/chat"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-border/60 bg-card/25 backdrop-blur px-6 py-3 text-sm sm:text-base font-semibold text-foreground transition-colors hover:bg-card/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <Heart className="h-4 w-4" />
-                Find a Caregiver
+                Open assistant
               </Link>
             </div>
 
-            {/* Benefits */}
-            <div className="flex flex-wrap gap-6">
+            <div className="mt-10 flex flex-wrap gap-2 animate-fade-in-up delay-300">
               {benefits.map((benefit) => (
-                <div key={benefit} className="flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
-                  <Check className="h-4 w-4" style={{ color: 'hsl(var(--accent))' }} />
-                  <span className="text-sm">{benefit}</span>
+                <div
+                  key={benefit}
+                  className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-card/20 px-3 py-1 text-xs text-muted-foreground backdrop-blur"
+                >
+                  <Check className="h-3.5 w-3.5 text-primary" />
+                  <span>{benefit}</span>
                 </div>
+              ))}
+            </div>
+
+            <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-fade-in-up delay-400">
+              {features.map((feature) => (
+                <FeatureCard key={feature.title} {...feature} />
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-2xl font-normal mb-12">What we offer</h2>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature) => (
-              <Link
-                key={feature.title}
-                href={feature.href}
-                className="group p-6 rounded-xl border transition-all hover:border-opacity-20"
-                style={{ 
-                  backgroundColor: 'var(--bg-secondary)',
-                  borderColor: 'var(--border-subtle)'
-                }}
-              >
-                <h3 className="text-lg font-medium mb-3">{feature.title}</h3>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                  {feature.description}
-                </p>
-                <span 
-                  className="inline-flex items-center gap-1 text-sm font-medium group-hover:gap-2 transition-all"
-                  style={{ color: 'hsl(var(--accent))' }}
-                >
-                  Learn more
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Assistant */}
-      <section className="py-20 border-t" style={{ borderColor: "var(--border-subtle)" }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="max-w-3xl">
-            <h2 className="text-2xl font-normal mb-3">Assistant</h2>
-            <p className="text-sm" style={{ color: "var(--text-secondary)", lineHeight: "1.7" }}>
-              Ask in plain language. BaseHealth routes your request to the right internal specialist automatically so the
-              experience stays simple.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/chat"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-medium transition-colors"
-                style={{ backgroundColor: "var(--text-primary)", color: "var(--bg-primary)" }}
-              >
-                Open Assistant
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/support"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-medium border transition-colors hover:bg-muted/30"
-                style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
-              >
-                Tip or support growth
-              </Link>
-              <Link
-                href="/feedback"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-medium border transition-colors hover:bg-muted/30"
-                style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
-              >
-                Send feedback
-              </Link>
+      {/* How it works */}
+      <section className="py-16 border-t border-border/60">
+        <div className="mx-auto w-full max-w-6xl px-6">
+          <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">How it works</h2>
+              <p className="mt-3 text-sm md:text-base text-muted-foreground leading-relaxed">
+                A compact flow that feels like a product, not a portal. Fast on mobile. Built for clarity.
+              </p>
             </div>
+            <Link
+              href="/onboarding"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-foreground/90 hover:text-foreground transition-colors"
+            >
+              Start onboarding <ArrowRight className="h-4 w-4 text-primary" />
+            </Link>
           </div>
-        </div>
-      </section>
 
-      {/* How It Works */}
-      <section className="py-20 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-2xl font-normal mb-12">How it works</h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
             {[
-              { step: "1", title: "Complete your profile", desc: "Answer a few questions about your health history and risk factors." },
-              { step: "2", title: "Get recommendations", desc: "Receive USPSTF-based screening recommendations tailored to you." },
-              { step: "3", title: "Find providers", desc: "Connect with verified healthcare providers in your area." },
+              { step: "01", title: "Profile", desc: "Answer a few questions about history, risk, and goals." },
+              { step: "02", title: "Plan", desc: "Get screening recommendations and next steps you can act on." },
+              { step: "03", title: "Care", desc: "Find verified providers and complete payment when needed." },
             ].map((item) => (
-              <div key={item.step}>
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mb-4"
-                  style={{ 
-                    backgroundColor: 'var(--bg-tertiary)',
-                    color: 'var(--text-secondary)'
-                  }}
-                >
-                  {item.step}
+              <div
+                key={item.step}
+                className="rounded-2xl border border-border/60 bg-card/25 backdrop-blur-md p-6 shadow-glow-subtle"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs text-muted-foreground">{item.step}</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/80" />
                 </div>
-                <h3 className="text-lg font-medium mb-2">{item.title}</h3>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{item.desc}</p>
+                <h3 className="mt-6 font-display text-lg font-semibold tracking-tight">{item.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="max-w-2xl">
-            <h2 className="text-3xl font-normal mb-4">
-              Take control of your health today
-            </h2>
-            <p className="text-lg mb-8" style={{ color: 'var(--text-secondary)' }}>
-              Join thousands of users making informed healthcare decisions.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg transition-all"
-                style={{ 
-                  backgroundColor: 'var(--text-primary)', 
-                  color: 'var(--bg-primary)' 
-                }}
-              >
-                Create Free Account
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/onboarding?role=provider"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg border transition-all"
-                style={{ 
-                  borderColor: 'var(--border-medium)',
-                  color: 'var(--text-primary)'
-                }}
-              >
-                Join as Provider
-              </Link>
-              <Link
-                href="/onboarding?role=caregiver"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-lg border transition-all"
-                style={{ 
-                  borderColor: 'var(--border-medium)',
-                  color: 'var(--text-primary)'
-                }}
-              >
-                <Heart className="h-4 w-4" />
-                Join as Caregiver
-              </Link>
+      {/* CTA */}
+      <section className="py-16 border-t border-border/60">
+        <div className="mx-auto w-full max-w-6xl px-6">
+          <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card/30 backdrop-blur-md p-8 md:p-10 shadow-enterprise">
+            <div aria-hidden className="pointer-events-none absolute inset-0">
+              <div className="absolute -top-24 left-1/2 h-[420px] w-[640px] -translate-x-1/2 rounded-full bg-gradient-radial from-primary/18 via-accent/10 to-transparent blur-3xl" />
+            </div>
+
+            <div className="relative grid gap-8 md:grid-cols-[1fr_auto] md:items-center">
+              <div className="max-w-2xl">
+                <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">
+                  Ready to run your health like a system?
+                </h2>
+                <p className="mt-3 text-sm md:text-base text-muted-foreground leading-relaxed">
+                  Start with screenings, then move into providers, bookings, and payments when you need them.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow-cyan transition-colors hover:bg-primary/90"
+                >
+                  Create account <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/onboarding?role=provider"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border/60 bg-card/20 px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-card/35"
+                >
+                  Join as provider
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-16 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-12">
-            <div>
-              <Link href="/" className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'hsl(var(--accent))' }}>
-                  <span className="text-sm font-medium" style={{ color: 'var(--bg-primary)' }}>B</span>
+      <footer className="border-t border-border/60 py-14">
+        <div className="mx-auto w-full max-w-6xl px-6">
+          <div className="grid gap-10 md:grid-cols-4">
+            <div className="md:col-span-1">
+              <Link href="/" className="inline-flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/25 via-accent/10 to-transparent ring-1 ring-border/60 shadow-glow-subtle" />
+                <div className="leading-none">
+                  <p className="font-display text-base font-semibold tracking-tight">BaseHealth</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Healthcare intelligence for everyone.</p>
                 </div>
-                <span className="text-lg font-medium">BaseHealth</span>
               </Link>
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                Healthcare intelligence for everyone.
-              </p>
             </div>
 
             <div>
-              <h4 className="font-medium mb-4 text-sm">For Patients</h4>
-              <ul className="space-y-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                <li><Link href="/screening" className="hover:underline">Health Screenings</Link></li>
-                <li><Link href="/providers/search" className="hover:underline">Find Providers</Link></li>
-                <li><Link href="/clinical-trials" className="hover:underline">Clinical Trials</Link></li>
-                <li><Link href="/patient-portal" className="hover:underline">Patient Portal</Link></li>
+              <h4 className="text-sm font-semibold text-foreground">Patients</h4>
+              <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link href="/screening" className="hover:text-foreground transition-colors">
+                    Health screenings
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/providers/search" className="hover:text-foreground transition-colors">
+                    Find providers
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/clinical-trials" className="hover:text-foreground transition-colors">
+                    Clinical trials
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/patient-portal" className="hover:text-foreground transition-colors">
+                    Patient portal
+                  </Link>
+                </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-medium mb-4 text-sm">For Providers</h4>
-              <ul className="space-y-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                <li><Link href="/onboarding?role=provider" className="hover:underline">Provider Signup</Link></li>
-                <li><Link href="/onboarding?role=caregiver" className="hover:underline">Caregiver Signup</Link></li>
-                <li><Link href="/provider/dashboard" className="hover:underline">Dashboard</Link></li>
-                <li><Link href="/admin" className="hover:underline">Admin Portal</Link></li>
+              <h4 className="text-sm font-semibold text-foreground">Providers</h4>
+              <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link href="/onboarding?role=provider" className="hover:text-foreground transition-colors">
+                    Provider signup
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/onboarding?role=caregiver" className="hover:text-foreground transition-colors">
+                    Caregiver signup
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/provider/dashboard" className="hover:text-foreground transition-colors">
+                    Dashboard
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/admin" className="hover:text-foreground transition-colors">
+                    Admin
+                  </Link>
+                </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-medium mb-4 text-sm">Company</h4>
-              <ul className="space-y-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                <li><Link href="/privacy" className="hover:underline">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:underline">Terms of Service</Link></li>
-                <li><Link href="/security" className="hover:underline">Security</Link></li>
+              <h4 className="text-sm font-semibold text-foreground">Company</h4>
+              <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link href="/privacy" className="hover:text-foreground transition-colors">
+                    Privacy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="hover:text-foreground transition-colors">
+                    Terms
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/security" className="hover:text-foreground transition-colors">
+                    Security
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4" style={{ borderColor: 'var(--border-subtle)' }}>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>© 2026 BaseHealth. All rights reserved.</p>
-            <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-              <div className="flex items-center gap-1.5">
-                <Shield className="h-3.5 w-3.5" />
-                <span>HIPAA Compliant</span>
-              </div>
+          <div className="mt-10 flex flex-col gap-4 border-t border-border/60 pt-8 md:flex-row md:items-center md:justify-between">
+            <p className="text-sm text-muted-foreground">© 2026 BaseHealth. All rights reserved.</p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Shield className="h-4 w-4 text-primary" />
+              <span>HIPAA mindful</span>
             </div>
           </div>
         </div>
@@ -313,3 +328,4 @@ export default function HomePage() {
     </div>
   )
 }
+
