@@ -8,6 +8,17 @@
 import { NextResponse } from 'next/server'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz'
+const DEFAULT_OWNER_ADDRESS = "0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b"
+
+function resolveOwnerAddress(): string {
+  const candidate = (
+    process.env.BASE_BUILDER_OWNER_ADDRESS ||
+    process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS ||
+    DEFAULT_OWNER_ADDRESS
+  ).trim()
+
+  return /^0x[a-fA-F0-9]{40}$/.test(candidate) ? candidate : DEFAULT_OWNER_ADDRESS
+}
 
 export async function GET() {
   const manifest = {
@@ -16,6 +27,10 @@ export async function GET() {
       header: process.env.MINIAPP_HEADER || '',
       payload: process.env.MINIAPP_PAYLOAD || '',
       signature: process.env.MINIAPP_SIGNATURE || '',
+    },
+    baseBuilder: {
+      // Wallet used to import the mini app in Base Build (unlock analytics + builder rewards).
+      ownerAddress: resolveOwnerAddress(),
     },
     miniapp: {
       version: '1',
