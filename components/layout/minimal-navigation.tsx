@@ -41,7 +41,7 @@ const navigationItems = [
   { href: '/provider/signup', label: 'Join as provider', icon: User, badge: 'New' },
   { href: '/support', label: 'Support', icon: LifeBuoy },
   { href: '/feedback', label: 'Feedback', icon: MessageSquare },
-  { href: '/agents', label: 'Ops', icon: Brain, badge: 'Ops' },
+  { href: '/agents', label: 'Ops', icon: Brain, badge: 'Ops', opsOnly: true },
 ]
 
 const userMenuItems = [
@@ -55,15 +55,15 @@ const userMenuItems = [
 ]
 
 const adminMenuItems = [
-  { href: '/admin/applications', label: 'Application Reviews', icon: Bell, badge: 'Admin' },
-  { href: '/admin/providers', label: 'Provider Management', icon: User },
-  { href: '/admin/analytics', label: 'Analytics', icon: Activity },
-  { href: '/treasury', label: 'Treasury', icon: DollarSign, badge: 'Ops' },
+  { href: '/admin/applications', label: 'Application Reviews', icon: Bell, badge: 'Admin', opsOnly: true },
+  { href: '/admin/providers', label: 'Provider Management', icon: User, opsOnly: true },
+  { href: '/admin/analytics', label: 'Analytics', icon: Activity, opsOnly: true },
+  { href: '/treasury', label: 'Treasury', icon: DollarSign, badge: 'Ops', opsOnly: true },
 ]
 
 const quickActions = [
   { href: '/chat', label: 'Assistant', icon: Bot, badge: null },
-  { href: '/agents', label: 'Agent hub', icon: Brain, badge: 'Ops' },
+  { href: '/agents', label: 'Agent hub', icon: Brain, badge: 'Ops', opsOnly: true },
   { href: '/second-opinion', label: 'Expert review', icon: Activity, badge: 'New' },
 ]
 
@@ -72,7 +72,7 @@ const desktopNavigationItems = [
   { href: '/providers/search', label: 'Find care' },
   { href: '/clinical-trials', label: 'Clinical trials' },
   { href: '/chat', label: 'Assistant' },
-  { href: '/agents', label: 'Ops' },
+  { href: '/agents', label: 'Ops', opsOnly: true },
 ]
 
 const mobileBottomItems = [
@@ -87,6 +87,7 @@ export function MinimalNavigation() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [opsMode, setOpsMode] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -96,6 +97,31 @@ export function MinimalNavigation() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  useEffect(() => {
+    try {
+      const opsParam = new URLSearchParams(window.location.search).get("ops")
+      if (opsParam === "1") {
+        window.localStorage.setItem("basehealth_ops", "1")
+        setOpsMode(true)
+        return
+      }
+      if (opsParam === "0") {
+        window.localStorage.removeItem("basehealth_ops")
+        setOpsMode(false)
+        return
+      }
+
+      setOpsMode(window.localStorage.getItem("basehealth_ops") === "1")
+    } catch {
+      // ignore
+    }
+  }, [pathname])
+
+  const visibleNavigationItems = navigationItems.filter((item) => !item.opsOnly || opsMode)
+  const visibleQuickActions = quickActions.filter((item) => !item.opsOnly || opsMode)
+  const visibleDesktopNavigationItems = desktopNavigationItems.filter((item) => !item.opsOnly || opsMode)
+  const visibleAdminMenuItems = adminMenuItems.filter((item) => !item.opsOnly || opsMode)
 
   return (
     <>
@@ -116,7 +142,7 @@ export function MinimalNavigation() {
               </Link>
               
               <nav className="hidden md:flex items-center gap-1 lg:gap-2">
-                {desktopNavigationItems.map((item) => (
+                {visibleDesktopNavigationItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -180,7 +206,7 @@ export function MinimalNavigation() {
                   
                   <nav className="flex-1 py-6 overflow-y-auto">
                     <div className="px-4 space-y-1">
-                      {navigationItems.map((item) => (
+                      {visibleNavigationItems.map((item) => (
                         <Link
                           key={item.href}
                           href={item.href}
@@ -203,7 +229,7 @@ export function MinimalNavigation() {
                           Quick Actions
                         </p>
                         <div className="space-y-1">
-                          {quickActions.map((item) => (
+                          {visibleQuickActions.map((item) => (
                             <Link
                               key={item.href}
                               href={item.href}
@@ -251,31 +277,33 @@ export function MinimalNavigation() {
                       </div>
 
                       {/* Admin Section */}
-                      <div className="px-4 pt-6 border-t border-border">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                          Administration
-                        </p>
-                        <div className="space-y-1">
-                          {adminMenuItems.map((item) => (
-                            <Link
-                              key={item.href}
-                              href={item.href}
-                              onClick={() => setIsOpen(false)}
-                              className="flex items-center justify-between px-4 py-3 rounded-xl text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-all duration-200"
-                            >
-                              <div className="flex items-center gap-3">
-                                <item.icon className="h-5 w-5 text-muted-foreground" />
-                                <span className="font-medium text-foreground">{item.label}</span>
-                              </div>
-                              {item.badge && (
-                                <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs font-semibold">
-                                  {item.badge}
-                                </Badge>
-                              )}
-                            </Link>
-                          ))}
+                      {visibleAdminMenuItems.length > 0 && (
+                        <div className="px-4 pt-6 border-t border-border">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                            Administration
+                          </p>
+                          <div className="space-y-1">
+                            {visibleAdminMenuItems.map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-center justify-between px-4 py-3 rounded-xl text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-all duration-200"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <item.icon className="h-5 w-5 text-muted-foreground" />
+                                  <span className="font-medium text-foreground">{item.label}</span>
+                                </div>
+                                {item.badge && (
+                                  <Badge variant="secondary" className="bg-red-100 text-red-700 text-xs font-semibold">
+                                    {item.badge}
+                                  </Badge>
+                                )}
+                              </Link>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </nav>
                   

@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -55,6 +56,15 @@ export function FunctionAgentCTA({
   const agent = OPENCLAW_AGENT_CATALOG[agentId]
   const Icon = AGENT_ICONS[agentId]
   const q = encodeURIComponent(prompt || agent.launchPrompt)
+  const [opsMode, setOpsMode] = useState(false)
+
+  useEffect(() => {
+    try {
+      setOpsMode(window.localStorage.getItem("basehealth_ops") === "1")
+    } catch {
+      // ignore
+    }
+  }, [])
 
   return (
     <Card className={className}>
@@ -65,19 +75,23 @@ export function FunctionAgentCTA({
               <Icon className="h-5 w-5 text-foreground" />
             </div>
             <div>
-              <CardTitle className="text-lg">{title || agent.label}</CardTitle>
-              <CardDescription>{agent.description}</CardDescription>
+              <CardTitle className="text-lg">{title || (opsMode ? agent.label : "Get help")}</CardTitle>
+              <CardDescription>
+                {opsMode ? agent.description : "Ask the BaseHealth assistant about this page. We route internally."}
+              </CardDescription>
             </div>
           </div>
-          <Badge variant="secondary">{agent.functionArea}</Badge>
+          {opsMode && <Badge variant="secondary">{agent.functionArea}</Badge>}
         </div>
       </CardHeader>
       <CardContent className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Prefer a guided workflow? This page has a dedicated OpenClaw specialist for it.
+          {opsMode
+            ? "Prefer a guided workflow? This page has a dedicated OpenClaw specialist for it."
+            : "Keep it simple: ask normally and we will do the routing."}
         </p>
         <Button asChild>
-          <Link href={`/chat?agent=${agentId}&q=${q}`}>Ask this agent</Link>
+          <Link href={opsMode ? `/chat?ops=1&agent=${agentId}&q=${q}` : `/chat?q=${q}`}>{opsMode ? "Ask this agent" : "Ask assistant"}</Link>
         </Button>
       </CardContent>
     </Card>

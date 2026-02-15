@@ -6,25 +6,7 @@
  */
 
 import Link from "next/link"
-import {
-  ArrowRight,
-  Shield,
-  Check,
-  Heart,
-  Bot,
-  Stethoscope,
-  Users,
-  CreditCard,
-  CalendarCheck2,
-  FlaskConical,
-  Settings,
-  ReceiptText,
-  FileText,
-  Pill,
-  DollarSign,
-  AlertTriangle,
-} from "lucide-react"
-import { OPENCLAW_AGENT_CATALOG, OPENCLAW_AGENT_IDS, type OpenClawAgentId } from "@/lib/openclaw-agent-catalog"
+import { ArrowRight, Shield, Check, Heart } from "lucide-react"
 
 const features = [
   {
@@ -55,23 +37,6 @@ const benefits = [
   "Real provider data from NPI",
   "Secure USDC payments on Base",
 ]
-
-const OPENCLAW_ICONS: Record<OpenClawAgentId, typeof Bot> = {
-  "general-health": Bot,
-  "screening-specialist": Stethoscope,
-  "care-navigator": Users,
-  "appointment-coordinator": CalendarCheck2,
-  "clinical-trial-matcher": FlaskConical,
-  "records-specialist": FileText,
-  "medication-coach": Pill,
-  "account-manager": Settings,
-  "billing-guide": CreditCard,
-  "claims-refunds": ReceiptText,
-  "provider-ops": Users,
-  "admin-ops": Shield,
-  "treasury-operator": DollarSign,
-  "emergency-triage": AlertTriangle,
-}
 
 export default function HomePage() {
   return (
@@ -174,58 +139,39 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* OpenClaw Agents */}
-      <section className="py-20 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+      {/* Assistant */}
+      <section className="py-20 border-t" style={{ borderColor: "var(--border-subtle)" }}>
         <div className="max-w-5xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
-            <div>
-              <h2 className="text-2xl font-normal mb-3">OpenClaw Agents</h2>
-              <p className="text-sm max-w-2xl" style={{ color: "var(--text-secondary)", lineHeight: "1.7" }}>
-                Run separate OpenClaw specialists for screening, care navigation, appointments, account support, billing,
-                and refunds.
-              </p>
+          <div className="max-w-3xl">
+            <h2 className="text-2xl font-normal mb-3">Assistant</h2>
+            <p className="text-sm" style={{ color: "var(--text-secondary)", lineHeight: "1.7" }}>
+              Ask in plain language. BaseHealth routes your request to the right internal specialist automatically so the
+              experience stays simple.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/chat"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-medium transition-colors"
+                style={{ backgroundColor: "var(--text-primary)", color: "var(--bg-primary)" }}
+              >
+                Open Assistant
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/support"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-medium border transition-colors hover:bg-muted/30"
+                style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
+              >
+                Tip or support growth
+              </Link>
+              <Link
+                href="/feedback"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-medium border transition-colors hover:bg-muted/30"
+                style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
+              >
+                Send feedback
+              </Link>
             </div>
-            <Link
-              href="/agents"
-              className="inline-flex items-center gap-2 text-sm font-medium"
-              style={{ color: "hsl(var(--accent))" }}
-            >
-              Open Agent Hub
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {OPENCLAW_AGENT_IDS.map((agentId) => {
-              const agent = OPENCLAW_AGENT_CATALOG[agentId]
-              const Icon = OPENCLAW_ICONS[agentId]
-              const launchHref = `/chat?agent=${agentId}&q=${encodeURIComponent(agent.launchPrompt)}`
-              return (
-                <Link
-                  key={agentId}
-                  href={launchHref}
-                  className="p-6 rounded-xl border"
-                  style={{
-                    backgroundColor: "var(--bg-secondary)",
-                    borderColor: "var(--border-subtle)",
-                  }}
-                >
-                  <div
-                    className="w-10 h-10 rounded-lg mb-4 flex items-center justify-center"
-                    style={{ backgroundColor: "var(--bg-tertiary)" }}
-                  >
-                    <Icon className="h-5 w-5" style={{ color: "hsl(var(--accent))" }} />
-                  </div>
-                  <h3 className="text-base font-medium mb-2">{agent.label}</h3>
-                  <p className="text-sm" style={{ color: "var(--text-secondary)", lineHeight: "1.6" }}>
-                    {agent.description}
-                  </p>
-                  <p className="text-xs mt-3 font-medium" style={{ color: "hsl(var(--accent))" }}>
-                    Launch Agent
-                  </p>
-                </Link>
-              )
-            })}
           </div>
         </div>
       </section>

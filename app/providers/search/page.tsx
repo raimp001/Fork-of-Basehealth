@@ -378,11 +378,11 @@ function SearchPageContent() {
           {isLoading && (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="p-6 bg-neutral-950 border border-white/5 rounded-2xl animate-pulse">
-                  <div className="h-6 w-3/4 bg-neutral-800 rounded mb-3" />
-                  <div className="h-4 w-1/2 bg-neutral-900 rounded mb-4" />
-                  <div className="h-4 w-full bg-neutral-900 rounded mb-2" />
-                  <div className="h-4 w-2/3 bg-neutral-900 rounded" />
+                <div key={i} className="p-6 bg-muted/20 border border-border rounded-2xl animate-pulse">
+                  <div className="h-6 w-3/4 bg-muted/70 rounded mb-3" />
+                  <div className="h-4 w-1/2 bg-muted/60 rounded mb-4" />
+                  <div className="h-4 w-full bg-muted/60 rounded mb-2" />
+                  <div className="h-4 w-2/3 bg-muted/60 rounded" />
                 </div>
               ))}
             </div>

@@ -378,12 +378,12 @@ function OnboardingContent() {
                 {role && (
                   <>
                     <div>
-                      <Label className="text-white/60 text-sm mb-2 block">Country</Label>
+                      <Label className="text-sm mb-2 block text-muted-foreground">Country</Label>
                       <Select value={country} onValueChange={setCountry}>
-                        <SelectTrigger className="bg-transparent border-white/10 text-white h-12">
+                        <SelectTrigger className="h-12">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-[#1a1a1a] border-white/10">
+                        <SelectContent>
                           <SelectItem value="US">United States</SelectItem>
                           <SelectItem value="CA">Canada</SelectItem>
                           <SelectItem value="GB">United Kingdom</SelectItem>
@@ -393,10 +393,10 @@ function OnboardingContent() {
 
                     {country === "US" && (
                       <div>
-                        <Label className="text-white/60 text-sm mb-2 block">
+                        <Label className="text-sm mb-2 block text-muted-foreground">
                           {role === "PROVIDER" ? "Licensed states" : "Service area"}
                         </Label>
-                        <div className="grid grid-cols-5 gap-2 max-h-40 overflow-y-auto p-3 border border-white/10 rounded-lg">
+                        <div className="grid grid-cols-5 gap-2 max-h-40 overflow-y-auto p-3 border border-border rounded-lg bg-background/40">
                           {['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'].map((state) => (
                             <button
                               key={state}
@@ -408,10 +408,10 @@ function OnboardingContent() {
                                     : [...prev.regions, state]
                                 }))
                               }}
-                              className={`py-2 px-3 text-sm rounded transition-all ${
+                              className={`py-2 px-3 text-sm rounded-md border transition-colors ${
                                 formData.regions.includes(state)
-                                  ? 'bg-white text-black font-medium'
-                                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+                                  ? 'bg-foreground text-background border-foreground font-medium'
+                                  : 'bg-background text-muted-foreground border-border hover:bg-muted/60'
                               }`}
                             >
                               {state}
@@ -419,7 +419,7 @@ function OnboardingContent() {
                           ))}
                         </div>
                         {formData.regions.length > 0 && (
-                          <p className="text-sm text-white/40 mt-2">
+                          <p className="text-sm text-muted-foreground mt-2">
                             {formData.regions.length} selected
                           </p>
                         )}
@@ -436,19 +436,19 @@ function OnboardingContent() {
                 {role === "CAREGIVER" && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-white/60 text-sm mb-2 block">First Name</Label>
+                      <Label className="text-sm mb-2 block text-muted-foreground">First Name</Label>
                       <Input
                         value={formData.firstName}
                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        className="bg-transparent border-white/10 h-12 text-white"
+                        className="h-12"
                       />
                     </div>
                     <div>
-                      <Label className="text-white/60 text-sm mb-2 block">Last Name</Label>
+                      <Label className="text-sm mb-2 block text-muted-foreground">Last Name</Label>
                       <Input
                         value={formData.lastName}
                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        className="bg-transparent border-white/10 h-12 text-white"
+                        className="h-12"
                       />
                     </div>
                   </div>
@@ -456,44 +456,44 @@ function OnboardingContent() {
 
                 {role === "PROVIDER" && (
                   <div>
-                    <Label className="text-white/60 text-sm mb-2 block">Full Name</Label>
+                    <Label className="text-sm mb-2 block text-muted-foreground">Full Name</Label>
                     <Input
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       placeholder="Dr. Jane Smith"
-                      className="bg-transparent border-white/10 h-12 text-white placeholder:text-white/30"
+                      className="h-12 placeholder:text-muted-foreground/70"
                     />
                   </div>
                 )}
 
                 <div>
-                  <Label className="text-white/60 text-sm mb-2 block">Email</Label>
+                  <Label className="text-sm mb-2 block text-muted-foreground">Email</Label>
                   <Input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="bg-transparent border-white/10 h-12 text-white"
+                    className="h-12"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-white/60 text-sm mb-2 block">Password</Label>
+                  <Label className="text-sm mb-2 block text-muted-foreground">Password</Label>
                   <Input
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     placeholder="8+ characters"
-                    className="bg-transparent border-white/10 h-12 text-white placeholder:text-white/30"
+                    className="h-12 placeholder:text-muted-foreground/70"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-white/60 text-sm mb-2 block">Phone (optional)</Label>
+                  <Label className="text-sm mb-2 block text-muted-foreground">Phone (optional)</Label>
                   <Input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="bg-transparent border-white/10 h-12 text-white"
+                    className="h-12"
                   />
                 </div>
               </div>
@@ -503,15 +503,15 @@ function OnboardingContent() {
             {step === 2 && role === "PROVIDER" && (
               <div className="space-y-5">
                 <div>
-                  <Label className="text-white/60 text-sm mb-2 block">Profession</Label>
+                  <Label className="text-sm mb-2 block text-muted-foreground">Profession</Label>
                   <Select 
                     value={formData.professionType} 
                     onValueChange={(v) => setFormData({ ...formData, professionType: v })}
                   >
-                    <SelectTrigger className="bg-transparent border-white/10 h-12 text-white">
+                    <SelectTrigger className="h-12">
                       <SelectValue placeholder="Select profession" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#1a1a1a] border-white/10">
+                    <SelectContent>
                       <SelectItem value="MD">Physician (MD)</SelectItem>
                       <SelectItem value="DO">Physician (DO)</SelectItem>
                       <SelectItem value="NP">Nurse Practitioner</SelectItem>
@@ -523,21 +523,21 @@ function OnboardingContent() {
                 </div>
 
                 <div>
-                  <Label className="text-white/60 text-sm mb-2 block">Specialty</Label>
+                  <Label className="text-sm mb-2 block text-muted-foreground">Specialty</Label>
                   <Input
                     value={formData.specialty}
                     onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
                     placeholder="e.g., Internal Medicine"
-                    className="bg-transparent border-white/10 h-12 text-white placeholder:text-white/30"
+                    className="h-12 placeholder:text-muted-foreground/70"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-white/60 text-sm mb-2 block">Organization (optional)</Label>
+                  <Label className="text-sm mb-2 block text-muted-foreground">Organization (optional)</Label>
                   <Input
                     value={formData.organizationName}
                     onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
-                    className="bg-transparent border-white/10 h-12 text-white"
+                    className="h-12"
                   />
                 </div>
               </div>
@@ -547,7 +547,7 @@ function OnboardingContent() {
             {step === 2 && role === "CAREGIVER" && (
               <div className="space-y-5">
                 <div>
-                  <Label className="text-white/60 text-sm mb-3 block">Services</Label>
+                  <Label className="text-sm mb-3 block text-muted-foreground">Services</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { code: 'COMPANION', name: 'Companion Care' },
@@ -569,8 +569,8 @@ function OnboardingContent() {
                         }}
                         className={`p-3 text-sm text-left rounded-lg border transition-all ${
                           formData.servicesOffered.includes(s.code)
-                            ? 'border-white bg-white/[0.05]'
-                            : 'border-white/10 hover:border-white/20'
+                            ? 'border-foreground/30 bg-muted text-foreground'
+                            : 'border-border bg-background text-foreground hover:bg-muted/60'
                         }`}
                       >
                         {s.name}
@@ -580,23 +580,23 @@ function OnboardingContent() {
                 </div>
 
                 <div>
-                  <Label className="text-white/60 text-sm mb-2 block">Years of Experience</Label>
+                  <Label className="text-sm mb-2 block text-muted-foreground">Years of Experience</Label>
                   <Input
                     type="number"
                     value={formData.experienceYears}
                     onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value })}
-                    className="bg-transparent border-white/10 h-12 text-white"
+                    className="h-12"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-white/60 text-sm mb-2 block">About You</Label>
+                  <Label className="text-sm mb-2 block text-muted-foreground">About You</Label>
                   <Textarea
                     value={formData.bio}
                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                     placeholder="Brief introduction..."
                     rows={3}
-                    className="bg-transparent border-white/10 text-white placeholder:text-white/30"
+                    className="placeholder:text-muted-foreground/70"
                   />
                 </div>
               </div>
@@ -606,27 +606,27 @@ function OnboardingContent() {
             {step === 3 && role === "PROVIDER" && (
               <div className="space-y-5">
                 {country === "US" && (
-                  <div className="p-4 bg-white/[0.02] border border-white/10 rounded-lg">
-                    <Label className="text-white/60 text-sm mb-2 block">NPI Number</Label>
+                  <div className="p-4 bg-muted/20 border border-border rounded-lg">
+                    <Label className="text-sm mb-2 block text-muted-foreground">NPI Number</Label>
                     <div className="flex gap-2">
                       <Input
                         value={formData.npiNumber}
                         onChange={(e) => setFormData({ ...formData, npiNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })}
                         placeholder="10 digits"
                         maxLength={10}
-                        className="bg-transparent border-white/10 h-12 text-white placeholder:text-white/30"
+                        className="h-12 placeholder:text-muted-foreground/70"
                       />
                       <Button
                         type="button"
                         onClick={handleNPILookup}
                         disabled={npiSearching || formData.npiNumber.length !== 10}
-                        className="bg-white text-black hover:bg-white/90 h-12 px-6"
+                        className="bg-foreground text-background hover:bg-foreground/90 h-12 px-6"
                       >
                         {npiSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lookup"}
                       </Button>
                     </div>
                     {npiResult && (
-                      <p className="mt-2 text-sm text-green-400">
+                      <p className="mt-2 text-sm text-emerald-700">
                         ✓ Found: {npiResult.fullName}
                       </p>
                     )}
@@ -634,25 +634,25 @@ function OnboardingContent() {
                 )}
 
                 <div>
-                  <Label className="text-white/60 text-sm mb-2 block">License Number</Label>
+                  <Label className="text-sm mb-2 block text-muted-foreground">License Number</Label>
                   <Input
                     value={formData.licenseNumber}
                     onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
-                    className="bg-transparent border-white/10 h-12 text-white"
+                    className="h-12"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-white/60 text-sm mb-2 block">State</Label>
+                    <Label className="text-sm mb-2 block text-muted-foreground">State</Label>
                     <Select
                       value={formData.licenseState}
                       onValueChange={(v) => setFormData({ ...formData, licenseState: v })}
                     >
-                      <SelectTrigger className="bg-transparent border-white/10 h-12 text-white">
+                      <SelectTrigger className="h-12">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#1a1a1a] border-white/10 max-h-60">
+                      <SelectContent className="max-h-60">
                         {['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'].map(s => (
                           <SelectItem key={s} value={s}>{s}</SelectItem>
                         ))}
@@ -660,12 +660,12 @@ function OnboardingContent() {
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-white/60 text-sm mb-2 block">Expires</Label>
+                    <Label className="text-sm mb-2 block text-muted-foreground">Expires</Label>
                     <Input
                       type="date"
                       value={formData.licenseExpiry}
                       onChange={(e) => setFormData({ ...formData, licenseExpiry: e.target.value })}
-                      className="bg-transparent border-white/10 h-12 text-white"
+                      className="h-12"
                     />
                   </div>
                 </div>
@@ -675,83 +675,83 @@ function OnboardingContent() {
             {/* Final Step: Review */}
             {((role === "PROVIDER" && step === 4) || (role === "CAREGIVER" && step === 3)) && (
               <div className="space-y-6">
-                <div className="p-4 bg-white/[0.02] border border-white/10 rounded-lg space-y-2 text-sm">
+                <div className="p-4 bg-muted/20 border border-border rounded-lg space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-white/50">Role</span>
+                    <span className="text-muted-foreground">Role</span>
                     <span>{role}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/50">Name</span>
+                    <span className="text-muted-foreground">Name</span>
                     <span>{formData.fullName || `${formData.firstName} ${formData.lastName}`}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/50">Email</span>
+                    <span className="text-muted-foreground">Email</span>
                     <span>{formData.email}</span>
                   </div>
                   {role === "PROVIDER" && formData.licenseNumber && (
                     <div className="flex justify-between">
-                      <span className="text-white/50">License</span>
+                      <span className="text-muted-foreground">License</span>
                       <span>{formData.licenseNumber} ({formData.licenseState})</span>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-3">
-                  <label className="flex items-start gap-3 p-4 rounded-lg border border-white/10 cursor-pointer hover:bg-white/[0.02] transition-all">
+                  <label className="flex items-start gap-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-muted/20 transition-colors">
                     <Checkbox
                       checked={formData.attestedAccuracy}
                       onCheckedChange={(c) => setFormData({ ...formData, attestedAccuracy: !!c })}
                       className="mt-0.5"
                     />
-                    <span className="text-sm text-white/70">
+                    <span className="text-sm text-foreground">
                       I confirm all information is accurate
                     </span>
                   </label>
 
-                  <label className="flex items-start gap-3 p-4 rounded-lg border border-white/10 cursor-pointer hover:bg-white/[0.02] transition-all">
+                  <label className="flex items-start gap-3 p-4 rounded-lg border border-border cursor-pointer hover:bg-muted/20 transition-colors">
                     <Checkbox
                       checked={formData.consentToVerification}
                       onCheckedChange={(c) => setFormData({ ...formData, consentToVerification: !!c })}
                       className="mt-0.5"
                     />
-                    <span className="text-sm text-white/70">
+                    <span className="text-sm text-foreground">
                       I consent to credential verification
                     </span>
                   </label>
                 </div>
 
                 {/* Payment Settings - USDC Payout */}
-                <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+                <div className="p-4 bg-muted/20 border border-border rounded-lg">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                      <span className="text-blue-400 font-bold text-sm">$</span>
+                    <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center border border-border">
+                      <span className="text-foreground font-bold text-sm">$</span>
                     </div>
                     <div>
-                      <p className="font-medium text-white/90 mb-1">Payment Settings</p>
-                      <p className="text-sm text-white/50">Receive payments in USDC on Base blockchain</p>
+                      <p className="font-medium text-foreground mb-1">Payment Settings</p>
+                      <p className="text-sm text-muted-foreground">Receive payments in USDC on Base blockchain</p>
                     </div>
                   </div>
                   
                   <div className="space-y-4">
                     <div>
-                      <Label className="text-white/70 text-sm">Base Wallet Address (optional)</Label>
+                      <Label className="text-sm text-muted-foreground">Base Wallet Address (optional)</Label>
                       <Input
                         type="text"
                         placeholder="0x..."
                         value={formData.walletAddress}
                         onChange={(e) => setFormData({ ...formData, walletAddress: e.target.value })}
-                        className="mt-1 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                        className="mt-1 placeholder:text-muted-foreground/70"
                       />
-                      <p className="text-xs text-white/40 mt-1">Enter your Base wallet address to receive USDC payouts. You can add this later.</p>
+                      <p className="text-xs text-muted-foreground mt-1">Enter your Base wallet address to receive USDC payouts. You can add this later.</p>
                     </div>
                     
                     <div>
-                      <Label className="text-white/70 text-sm">Payout Preference</Label>
+                      <Label className="text-sm text-muted-foreground">Payout Preference</Label>
                       <Select
                         value={formData.payoutPreference}
                         onValueChange={(v) => setFormData({ ...formData, payoutPreference: v })}
                       >
-                        <SelectTrigger className="mt-1 bg-white/5 border-white/10 text-white">
+                        <SelectTrigger className="mt-1">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -764,11 +764,11 @@ function OnboardingContent() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-white/[0.02] border border-white/10 rounded-lg">
+                <div className="p-4 bg-muted/20 border border-border rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Shield className="w-5 h-5 text-white/40 mt-0.5" />
-                    <div className="text-sm text-white/50">
-                      <p className="font-medium text-white/70 mb-1">Next Steps</p>
+                    <Shield className="w-5 h-5 text-muted-foreground mt-0.5" />
+                    <div className="text-sm text-muted-foreground">
+                      <p className="font-medium text-foreground mb-1">Next Steps</p>
                       <p>Review takes 1-2 business days. You'll receive an email when approved.</p>
                     </div>
                   </div>
@@ -777,12 +777,12 @@ function OnboardingContent() {
             )}
 
             {/* Navigation */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-white/[0.08]">
+            <div className="flex justify-between mt-8 pt-6 border-t border-border">
               <Button
                 variant="ghost"
                 onClick={handleBack}
                 disabled={step === 0 || isSaving}
-                className="text-white/60 hover:text-white hover:bg-white/5"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
@@ -792,7 +792,7 @@ function OnboardingContent() {
                 <Button 
                   onClick={handleNext} 
                   disabled={isSaving}
-                  className="bg-white text-black hover:bg-white/90 px-8"
+                  className="bg-foreground text-background hover:bg-foreground/90 px-8"
                 >
                   {isSaving ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -807,7 +807,7 @@ function OnboardingContent() {
                 <Button 
                   onClick={handleSubmit} 
                   disabled={isSaving || !formData.attestedAccuracy || !formData.consentToVerification}
-                  className="bg-white text-black hover:bg-white/90 px-8"
+                  className="bg-foreground text-background hover:bg-foreground/90 px-8"
                 >
                   {isSaving ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -827,7 +827,7 @@ function OnboardingContent() {
             <div className="mt-6 text-center">
               <button 
                 onClick={() => saveApplication()}
-                className="text-sm text-white/40 hover:text-white/60 transition-colors"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Save and continue later
               </button>

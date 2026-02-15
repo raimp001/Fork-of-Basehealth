@@ -50,6 +50,7 @@ export default function ChatPage() {
   const [pinnedAgent, setPinnedAgent] = useState<OpenClawAgentId | null>(null)
   const [hasSentMessage, setHasSentMessage] = useState(false)
   const [actingWallet, setActingWallet] = useState("")
+  const [opsMode, setOpsMode] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const appliedQueryState = useRef(false)
 
@@ -83,13 +84,38 @@ export default function ChatPage() {
     }
   }, [actingWallet])
 
+  useEffect(() => {
+    const opsParam = searchParams.get("ops")
+    const agentParam = searchParams.get("agent")
+
+    try {
+      if (opsParam === "1" || agentParam) {
+        window.localStorage.setItem("basehealth_ops", "1")
+        setOpsMode(true)
+        return
+      }
+
+      if (opsParam === "0") {
+        window.localStorage.removeItem("basehealth_ops")
+        setOpsMode(false)
+        return
+      }
+
+      setOpsMode(window.localStorage.getItem("basehealth_ops") === "1")
+    } catch {
+      setOpsMode(opsParam === "1" || !!agentParam)
+    }
+  }, [searchParams])
+
+  const effectivePinnedAgent = opsMode ? pinnedAgent : null
+
   const requestBody = useMemo(() => {
     const body: Record<string, unknown> = {
       walletAddress: (actingWallet || sessionWallet || "").trim() || undefined,
     }
-    if (pinnedAgent) body.agent = pinnedAgent
+    if (effectivePinnedAgent) body.agent = effectivePinnedAgent
     return body
-  }, [actingWallet, pinnedAgent, sessionWallet])
+  }, [actingWallet, effectivePinnedAgent, sessionWallet])
 
   const {
     messages,
@@ -121,8 +147,18 @@ export default function ChatPage() {
 
     const requestedAgent = normalizeOpenClawAgent(searchParams.get("agent"))
     const starterQuestion = searchParams.get("q")
+    const allowOps =
+      searchParams.get("ops") === "1" ||
+      !!searchParams.get("agent") ||
+      (() => {
+        try {
+          return window.localStorage.getItem("basehealth_ops") === "1"
+        } catch {
+          return false
+        }
+      })()
 
-    if (requestedAgent) {
+    if (requestedAgent && allowOps) {
       setPinnedAgent(requestedAgent)
     }
 
@@ -133,11 +169,11 @@ export default function ChatPage() {
     appliedQueryState.current = true
   }, [searchParams, setInput])
 
-  const placeholder = pinnedAgent
-    ? OPENCLAW_AGENT_CATALOG[pinnedAgent].placeholder
+  const placeholder = effectivePinnedAgent
+    ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].placeholder
     : "Ask about screenings, care navigation, appointments, billing, refunds, or Base payments…"
 
-  const examples = pinnedAgent ? OPENCLAW_AGENT_CATALOG[pinnedAgent].examples : DEFAULT_EXAMPLES
+  const examples = effectivePinnedAgent ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].examples : DEFAULT_EXAMPLES
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (input.trim()) setHasSentMessage(true)
@@ -145,95 +181,101 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}>
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-5 shadow-md">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-foreground text-background text-sm font-semibold mb-5 shadow-md">
             <Sparkles className="h-4 w-4" />
             BaseHealth Assistant
           </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-2">One chat, many specialists</h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2">One chat, many specialists</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             We route each request to the appropriate internal agent automatically so patients get a simple experience.
           </p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-sm">
-            <Link href="/support" className="text-blue-700 hover:underline">
+            <Link href="/support" className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
               Tip or support growth
             </Link>
-            <span className="text-gray-300">•</span>
-            <Link href="/feedback" className="text-blue-700 hover:underline">
+            <span className="text-muted-foreground/40">•</span>
+            <Link href="/feedback" className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
               Send feedback
             </Link>
-            <span className="text-gray-300">•</span>
-            <Link href="/agents" className="text-blue-700 hover:underline">
-              Operator agent hub
-            </Link>
+            {opsMode && (
+              <>
+                <span className="text-muted-foreground/40">•</span>
+                <Link href="/agents" className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
+                  Operator agent hub
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
-        <details className="mb-6 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <summary className="cursor-pointer select-none text-sm font-semibold text-stone-900">
-            Operator tools (optional)
-          </summary>
-          <div className="mt-4 space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-stone-900">Wallet context (optional)</p>
-              <p className="text-xs text-stone-600">
-                Used to load wallet context (receipts, balances). Helpful for operators acting for clients. This does not
-                change your sign-in.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-                <Input
-                  value={actingWallet}
-                  onChange={(e) => setActingWallet(e.target.value)}
-                  placeholder="0x… (wallet address)"
-                  className="sm:w-[360px]"
-                />
-                {sessionWallet && (
-                  <Button type="button" variant="outline" size="sm" onClick={() => setActingWallet(sessionWallet)}>
-                    Use my wallet
+        {opsMode && (
+          <details className="mb-6 rounded-2xl border border-border bg-background p-5 shadow-sm">
+            <summary className="cursor-pointer select-none text-sm font-semibold text-foreground">
+              Operator tools (optional)
+            </summary>
+            <div className="mt-4 space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground">Wallet context (optional)</p>
+                <p className="text-xs text-muted-foreground">
+                  Used to load wallet context (receipts, balances). Helpful for operators acting for clients. This does
+                  not change your sign-in.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                  <Input
+                    value={actingWallet}
+                    onChange={(e) => setActingWallet(e.target.value)}
+                    placeholder="0x… (wallet address)"
+                    className="sm:w-[360px]"
+                  />
+                  {sessionWallet && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => setActingWallet(sessionWallet)}>
+                      Use my wallet
+                    </Button>
+                  )}
+                  <Button type="button" variant="outline" size="sm" onClick={() => setActingWallet("")}>
+                    Clear
                   </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground">Pin a specialist (optional)</p>
+                <p className="text-xs text-muted-foreground">
+                  Leave this on Auto for patients. Pinning is useful when running a focused ops workflow.
+                </p>
+                <select
+                  value={pinnedAgent || ""}
+                  onChange={(e) => setPinnedAgent((normalizeOpenClawAgent(e.target.value) as OpenClawAgentId) || null)}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">Auto route (recommended)</option>
+                  {OPENCLAW_AGENT_IDS.map((agentId) => (
+                    <option key={agentId} value={agentId}>
+                      {OPENCLAW_AGENT_CATALOG[agentId].label}
+                    </option>
+                  ))}
+                </select>
+                {pinnedAgent && (
+                  <div className="flex items-start gap-2 rounded-xl border border-border bg-muted/20 p-3">
+                    <Badge variant="secondary">
+                      Pinned
+                    </Badge>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{OPENCLAW_AGENT_CATALOG[pinnedAgent].label}</p>
+                      <p className="text-xs text-muted-foreground">{OPENCLAW_AGENT_CATALOG[pinnedAgent].description}</p>
+                    </div>
+                  </div>
                 )}
-                <Button type="button" variant="outline" size="sm" onClick={() => setActingWallet("")}>
-                  Clear
-                </Button>
               </div>
             </div>
+          </details>
+        )}
 
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-stone-900">Pin a specialist (optional)</p>
-              <p className="text-xs text-stone-600">
-                Leave this on Auto for patients. Pinning is useful when running a focused ops workflow.
-              </p>
-              <select
-                value={pinnedAgent || ""}
-                onChange={(e) => setPinnedAgent((normalizeOpenClawAgent(e.target.value) as OpenClawAgentId) || null)}
-                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="">Auto route (recommended)</option>
-                {OPENCLAW_AGENT_IDS.map((agentId) => (
-                  <option key={agentId} value={agentId}>
-                    {OPENCLAW_AGENT_CATALOG[agentId].label}
-                  </option>
-                ))}
-              </select>
-              {pinnedAgent && (
-                <div className="flex items-start gap-2 rounded-xl border border-stone-200 bg-stone-50 p-3">
-                  <Badge variant="secondary" className="bg-stone-200 text-stone-800">
-                    Pinned
-                  </Badge>
-                  <div>
-                    <p className="text-sm font-semibold text-stone-900">{OPENCLAW_AGENT_CATALOG[pinnedAgent].label}</p>
-                    <p className="text-xs text-stone-600">{OPENCLAW_AGENT_CATALOG[pinnedAgent].description}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </details>
-
-        <Card className="border-gray-100 shadow-sm overflow-hidden">
-          <div className="h-[560px] overflow-y-auto p-4 space-y-4 bg-gray-50">
+        <Card className="border-border shadow-sm overflow-hidden bg-background">
+          <div className="h-[560px] overflow-y-auto p-4 space-y-4 bg-muted/20">
             {messages.map((message: any) => {
               const content = getMessageContent(message)
               const isAssistant = message.role === "assistant"
@@ -241,22 +283,22 @@ export default function ChatPage() {
               return (
                 <div key={message.id} className={`flex gap-3 ${isAssistant ? "justify-start" : "justify-end"}`}>
                   {isAssistant && (
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Bot className="h-4 w-4 text-gray-600" />
+                    <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
+                      <Bot className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
 
                   <div
                     className={`max-w-[78%] p-3 rounded-lg ${
-                      isAssistant ? "bg-white border border-gray-200" : "bg-gray-900 text-white"
+                      isAssistant ? "bg-background border border-border text-foreground" : "bg-foreground text-background"
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{content}</p>
                   </div>
 
                   {!isAssistant && (
-                    <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="h-4 w-4 text-white" />
+                    <div className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="h-4 w-4 text-background" />
                     </div>
                   )}
                 </div>
@@ -264,14 +306,14 @@ export default function ChatPage() {
             })}
 
             {!hasSentMessage && messages.length <= 1 && (
-              <div className="bg-white border border-dashed border-gray-300 rounded-lg p-4">
-                <p className="text-xs text-gray-500 mb-2">Try asking:</p>
+              <div className="bg-background border border-dashed border-border rounded-lg p-4">
+                <p className="text-xs text-muted-foreground mb-2">Try asking:</p>
                 <div className="flex flex-wrap gap-2">
                   {examples.map((question) => (
                     <button
                       key={question}
                       onClick={() => setInput(question)}
-                      className="text-xs px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+                      className="text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 text-foreground transition-colors"
                     >
                       {question}
                     </button>
@@ -282,17 +324,17 @@ export default function ChatPage() {
 
             {isLoading && (
               <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-gray-600" />
+                <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <div className="bg-white border border-gray-200 p-3 rounded-lg">
-                  <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
+                <div className="bg-background border border-border p-3 rounded-lg">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 </div>
               </div>
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm flex items-center gap-2">
+              <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-lg p-3 text-sm flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" />
                 <span>Could not get a response. If you are the admin, verify your AI keys and retry.</span>
               </div>
@@ -301,7 +343,7 @@ export default function ChatPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 bg-white border-t border-gray-100">
+          <div className="p-4 bg-background border-t border-border">
             <form onSubmit={onSubmit} className="flex gap-2">
               <Textarea
                 value={input}
@@ -313,13 +355,13 @@ export default function ChatPage() {
               <Button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="bg-gray-900 hover:bg-gray-800 text-white disabled:bg-gray-300"
+                className="bg-foreground hover:bg-foreground/90 text-background disabled:bg-muted disabled:text-muted-foreground"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </form>
 
-            <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
               <AlertCircle className="h-3 w-3" />
               <span>
                 Informational support only. Not a diagnosis tool. Contact licensed clinicians for medical decisions.
@@ -331,4 +373,3 @@ export default function ChatPage() {
     </div>
   )
 }
-
