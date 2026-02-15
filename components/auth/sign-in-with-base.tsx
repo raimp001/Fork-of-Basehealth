@@ -12,6 +12,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Wallet, LogOut, ChevronDown, Copy, ExternalLink, Check } from 'lucide-react'
 import { signIn, signOut, useSession } from "next-auth/react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { buildWalletSignInMessage } from "@/lib/wallet-signin-message"
+import { useMiniApp } from "@/components/providers/miniapp-provider"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.basehealth.xyz"
 
@@ -35,13 +37,21 @@ export function SignInWithBase({
   onAuthSuccess,
   onAuthError,
 }: SignInWithBaseProps) {
-  const { status: sessionStatus } = useSession()
+  const { data: session, status: sessionStatus } = useSession()
+  const { isMiniApp, user: miniAppUser, openUrl, getEthereumProvider } = useMiniApp()
   const [mounted, setMounted] = useState(false)
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
   const [isSigning, setIsSigning] = useState(false)
   const [copied, setCopied] = useState(false)
   const [sdk, setSdk] = useState<any>(null)
+
+  useEffect(() => {
+    const sessionWallet = (session?.user as any)?.walletAddress
+    if (typeof sessionWallet === "string" && /^0x[a-fA-F0-9]{40}$/.test(sessionWallet)) {
+      setWalletAddress((prev) => prev || sessionWallet)
+    }
+  }, [session])
 
   useEffect(() => {
     setMounted(true)

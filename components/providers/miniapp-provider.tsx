@@ -8,17 +8,33 @@
  */
 
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react'
+import type { MiniAppContext as FarcasterMiniAppContext } from '@farcaster/miniapp-core'
 
-interface MiniAppContext {
+interface MiniAppProviderContext {
   isMiniApp: boolean
   isReady: boolean
   sdk: any | null
+  context: FarcasterMiniAppContext | null
+  user: FarcasterMiniAppContext['user'] | null
+  openUrl: (url: string) => void
+  getEthereumProvider: () => Promise<any | null>
 }
 
-const MiniAppContext = createContext<MiniAppContext>({
+const MiniAppContext = createContext<MiniAppProviderContext>({
   isMiniApp: false,
   isReady: false,
   sdk: null,
+  context: null,
+  user: null,
+  openUrl: (url: string) => {
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
+  },
+  getEthereumProvider: async () => {
+    if (typeof window !== 'undefined') return (window as any).ethereum || null
+    return null
+  },
 })
 
 export function useMiniApp() {
@@ -29,10 +45,13 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
   const [isMiniApp, setIsMiniApp] = useState(false)
   const [isReady, setIsReady] = useState(false)
   const [sdk, setSdk] = useState<any>(null)
+  const [context, setContext] = useState<FarcasterMiniAppContext | null>(null)
+  const [user, setUser] = useState<FarcasterMiniAppContext['user'] | null>(null)
 
   useEffect(() => {
     const initMiniApp = async () => {
       const READY_TIMEOUT_MS = 1500
+      const CONTEXT_TIMEOUT_MS = 1500
 
       try {
         const { sdk: miniAppSdk } = await import('@farcaster/miniapp-sdk')
@@ -50,6 +69,22 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
             new Promise((resolve) => setTimeout(resolve, READY_TIMEOUT_MS)),
           ])
         }
+
+        if (inMiniApp) {
+          try {
+            const resolvedContext = await Promise.race([
+              miniAppSdk.context,
+              new Promise<null>((resolve) => setTimeout(() => resolve(null), CONTEXT_TIMEOUT_MS)),
+            ])
+
+            if (resolvedContext) {
+              setContext(resolvedContext as FarcasterMiniAppContext)
+              setUser((resolvedContext as FarcasterMiniAppContext)?.user ?? null)
+            }
+          } catch (error) {
+            console.warn('Failed to load mini app context:', error)
+          }
+        }
       } catch (error) {
         console.warn('Mini app SDK not available:', error)
       } finally {
@@ -60,8 +95,41 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
     initMiniApp()
   }, [])
 
+  const openUrl = (url: string) => {
+    const trimmed = (url || '').trim()
+    if (!trimmed) return
+
+    const open = sdk?.actions?.openUrl
+    if (typeof open === 'function') {
+      try {
+        open(trimmed)
+        return
+      } catch {
+        // Fall through to window.open.
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.open(trimmed, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  const getEthereumProvider = async () => {
+    try {
+      const getter = sdk?.wallet?.getEthereumProvider
+      if (typeof getter === 'function') {
+        return await getter()
+      }
+    } catch (error) {
+      console.warn('Failed to load mini app wallet provider:', error)
+    }
+
+    if (typeof window !== 'undefined') return (window as any).ethereum || null
+    return null
+  }
+
   return (
-    <MiniAppContext.Provider value={{ isMiniApp, isReady, sdk }}>
+    <MiniAppContext.Provider value={{ isMiniApp, isReady, sdk, context, user, openUrl, getEthereumProvider }}>
       {children}
     </MiniAppContext.Provider>
   )
