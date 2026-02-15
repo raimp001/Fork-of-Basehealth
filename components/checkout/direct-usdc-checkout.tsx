@@ -20,6 +20,7 @@ import {
   Copy,
   Check,
 } from 'lucide-react'
+import { appendBaseBuilderCode } from "@/lib/base-builder-code"
 
 interface DirectUsdcCheckoutProps {
   amount: number
@@ -31,7 +32,8 @@ interface DirectUsdcCheckoutProps {
 
 // Base Sepolia USDC contract
 const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
-const RECIPIENT = process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS || '0x742d35Cc6634C0532925a3b844Bc9e7595f5bE21'
+const RECIPIENT =
+  process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS || "0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b"
 
 // Base Sepolia chain config
 const BASE_SEPOLIA = {
@@ -112,10 +114,11 @@ export function DirectUsdcCheckout({
       const amountInUnits = BigInt(Math.floor(amount * 1_000_000))
       
       // ERC20 transfer function signature
-      const transferData = 
+      const transferData =
         '0xa9059cbb' + // transfer(address,uint256)
         RECIPIENT.slice(2).padStart(64, '0') + // recipient address
         amountInUnits.toString(16).padStart(64, '0') // amount
+      const data = appendBaseBuilderCode(transferData) || transferData
 
       // Send transaction
       const txHash = await window.ethereum.request({
@@ -123,7 +126,7 @@ export function DirectUsdcCheckout({
         params: [{
           from: walletAddress,
           to: USDC_ADDRESS,
-          data: transferData,
+          data,
         }],
       })
 

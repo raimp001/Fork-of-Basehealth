@@ -12,7 +12,7 @@ import {
   ArrowRight, ArrowLeft, Loader2, CheckCircle, 
   AlertCircle, Shield, Heart, Brain, User, CreditCard, X, Lock
 } from "lucide-react"
-import { ScreeningCheckout } from "@/components/checkout/screening-checkout"
+import { BasePayCheckout } from "@/components/checkout/base-pay-checkout"
 
 interface ScreeningRecommendation {
   id: string
@@ -61,9 +61,10 @@ export default function ScreeningPage() {
     familyHistory: [] as string[],
   })
   
-  // Payment state - $5 required before showing recommendations
+  // Payment state - $1 required before showing recommendations
   const [hasPaid, setHasPaid] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [screeningOrderId, setScreeningOrderId] = useState(() => `screening-assessment-${Date.now()}`)
 
   useEffect(() => {
     setMounted(true)
@@ -80,6 +81,7 @@ export default function ScreeningPage() {
 
   // After form is complete, show payment modal
   const handleFormComplete = () => {
+    setScreeningOrderId(`screening-assessment-${Date.now()}`)
     setShowPaymentModal(true)
   }
 
@@ -614,7 +616,7 @@ export default function ScreeningPage() {
                   ) : (
                     <>
                       <Lock className="h-4 w-4" />
-                      Pay $5 & Get Recommendations
+                      Pay $1 & Get Recommendations
                     </>
                   )}
                 </button>
@@ -640,14 +642,16 @@ export default function ScreeningPage() {
             >
               <X className="h-6 w-6" />
             </button>
-            <ScreeningCheckout
-              screeningName="Health Screening Assessment"
-              screeningDescription="USPSTF Grade A & B personalized recommendations based on your health profile"
+            <BasePayCheckout
+              amount={1}
+              serviceName="Screening Assessment"
+              serviceDescription="USPSTF Grade A & B personalized recommendations based on your health profile"
               providerName="BaseHealth"
+              orderId={screeningOrderId}
               providerId="screening-assessment"
-              amount={5}
+              collectEmail={false}
               onSuccess={handlePaymentSuccess}
-              onCancel={() => setShowPaymentModal(false)}
+              onError={(_error) => {}}
             />
           </div>
         </div>

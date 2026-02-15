@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { appendBaseBuilderCode } from "@/lib/base-builder-code"
+import { PAYMENT_CONFIG } from "@/lib/network-config"
 
 type TokenSymbol = "USDC" | "ETH"
 
@@ -32,7 +34,7 @@ function shortAddress(address?: string | null) {
 }
 
 export function TreasuryTransfer() {
-  const treasuryAddress = (process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS || "").trim()
+  const treasuryAddress = (PAYMENT_CONFIG.recipientAddress || "").trim()
   const useMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === "true" || process.env.NODE_ENV === "production"
   const chainId = useMainnet ? 8453 : 84532
   const explorer = useMainnet ? "https://basescan.org" : "https://sepolia.basescan.org"
@@ -183,6 +185,7 @@ export function TreasuryTransfer() {
         functionName: "transfer",
         args: [to as `0x${string}`, value],
       })
+      const enrichedData = appendBaseBuilderCode(data) || data
 
       const hash = await provider.request({
         method: "eth_sendTransaction",
@@ -190,7 +193,7 @@ export function TreasuryTransfer() {
           {
             from: treasuryAddress,
             to: usdcAddress,
-            data,
+            data: enrichedData,
             value: "0x0",
           },
         ],

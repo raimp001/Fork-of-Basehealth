@@ -75,7 +75,8 @@ export const ACTIVE_CHAIN = USE_MAINNET ? CHAINS.mainnet : CHAINS.sepolia
 // ============================================================
 
 // Default treasury wallet address (used if env var not set)
-const DEFAULT_TREASURY_ADDRESS = '0xEf352b65503b01997b0d91e9c24621FB1f141726'
+// NOTE: Set NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS in production.
+const DEFAULT_TREASURY_ADDRESS = '0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b'
 
 export const PAYMENT_CONFIG = {
   // Platform treasury wallet - receives payments
@@ -109,7 +110,7 @@ export const ATTESTATION_CONFIG = {
   schemaRegistryAddress: ACTIVE_CHAIN.contracts.schemaRegistry,
   
   // BaseHealth provider schema UID
-  // Registered on Base Mainnet by 0xEf352b65503b01997b0d91e9c24621FB1f141726
+  // Registered on Base Mainnet by the BaseHealth builder wallet.
   schemaUid: USE_MAINNET
     ? process.env.EAS_SCHEMA_UID_MAINNET || MAINNET_SCHEMA_UID
     : process.env.EAS_SCHEMA_UID_SEPOLIA || '0x0000000000000000000000000000000000000000000000000000000000000000',

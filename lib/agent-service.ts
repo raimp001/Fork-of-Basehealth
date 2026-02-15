@@ -23,24 +23,36 @@ function scoreMessageForAgent(content: string, agent: OpenClawAgentId): number {
   return keywords.reduce((score, keyword) => (lower.includes(keyword) ? score + 1 : score), 0)
 }
 
-export function resolveAgent(
+export function rankAgentsForMessages(
   messages: Array<{ role?: string; content?: unknown }>,
   requestedAgent?: string | null,
   fallback: OpenClawAgentId = "general-health",
-): OpenClawAgentId {
+): Array<{ agent: OpenClawAgentId; score: number }> {
   const explicitlySelected = normalizeOpenClawAgent(requestedAgent)
-  if (explicitlySelected) return explicitlySelected
+  if (explicitlySelected) {
+    return [{ agent: explicitlySelected, score: Number.MAX_SAFE_INTEGER }]
+  }
 
   const lastUserMessage = [...messages]
     .reverse()
     .find((message) => message?.role === "user" && typeof message?.content === "string")
 
-  if (!lastUserMessage || typeof lastUserMessage.content !== "string") return fallback
+  if (!lastUserMessage || typeof lastUserMessage.content !== "string") {
+    return [{ agent: fallback, score: 0 }]
+  }
 
-  const ranking = OPENCLAW_AGENT_IDS
+  return OPENCLAW_AGENT_IDS
     .map((agent) => ({ agent, score: scoreMessageForAgent(lastUserMessage.content as string, agent) }))
     .sort((a, b) => b.score - a.score)
+}
 
+export function resolveAgent(
+  messages: Array<{ role?: string; content?: unknown }>,
+  requestedAgent?: string | null,
+  fallback: OpenClawAgentId = "general-health",
+): OpenClawAgentId {
+  const ranking = rankAgentsForMessages(messages, requestedAgent, fallback)
+  if (ranking.length === 0) return fallback
   return ranking[0].score > 0 ? ranking[0].agent : fallback
 }
 

@@ -73,6 +73,8 @@ export default function RootLayout({
         <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        {/* Base app / base.dev URL verification */}
+        <meta name="base:app_id" content="6990ef50e0d5d2cf831b5c38" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>

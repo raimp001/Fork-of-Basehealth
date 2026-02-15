@@ -184,34 +184,94 @@ export async function POST(request: NextRequest) {
         }).catch(() => null)
       }
     }
-    
-    // Send notifications (don't block on these)
-    const bookingDetails = {
-      bookingId: orderId,
-      patientName: bookingFromDb?.user?.name || body.patientName || 'Patient',
-      patientEmail: bookingFromDb?.user?.email || body.patientEmail || '',
-      providerName:
-        `${bookingFromDb?.caregiver?.firstName || ''} ${bookingFromDb?.caregiver?.lastName || ''}`.trim()
-        || body.providerName
-        || 'Provider',
-      providerEmail: bookingFromDb?.caregiver?.email || body.providerEmail,
-      serviceType: body.serviceType || 'Healthcare Service',
-      appointmentDate: body.appointmentDate || new Date().toLocaleDateString(),
-      amount: normalizedAmount,
-      currency: bookingFromDb?.currency || 'USDC',
-      txHash: paymentId,
+
+    // Standalone payments (tips, platform fees, non-booking purchases)
+    if (!bookingFromDb) {
+      const now = new Date()
+
+      // Best-effort transaction record for auditability
+      await prisma.transaction
+        .create({
+          data: {
+            bookingId: null,
+            transactionHash: paymentId,
+            provider: 'BASE_USDC',
+            providerId: paymentId,
+            amount: normalizedAmount,
+            currency: 'USDC',
+            status: 'PAID',
+            completedAt: now,
+            metadata: {
+              orderId,
+              sender: verification.sender,
+              recipient: verification.recipient,
+              network: ACTIVE_CHAIN.name,
+              serviceType: body.serviceType,
+              standalone: true,
+            },
+          },
+        })
+        .catch(() => null)
+
+      // Lightweight receipt shape (not tied to a booking)
+      receipt = createBillingReceipt({
+        id: orderId,
+        amount: normalizedAmount,
+        currency: 'USDC',
+        status: 'COMPLETED',
+        paymentStatus: 'PAID',
+        paymentProvider: 'BASE_USDC',
+        paymentProviderId: paymentId,
+        paymentMetadata: {
+          payment: {
+            txHash: paymentId,
+            network: ACTIVE_CHAIN.name,
+            verifiedAt: now.toISOString(),
+            sender: verification.sender,
+            recipient: verification.recipient,
+            amount: verification.amount || expectedAmount,
+          },
+        },
+        createdAt: now,
+        paidAt: now,
+        user: {
+          name: body.patientName || undefined,
+          email: body.patientEmail || undefined,
+        },
+        caregiver: body.providerName ? { name: body.providerName } : null,
+      })
     }
     
-    // Send receipt to patient
-    if (body.patientEmail) {
-      sendPatientReceipt(bookingDetails).catch(console.error)
+    // Send notifications only for real bookings (tips/support should not trigger booking emails).
+    if (bookingFromDb) {
+      // Send notifications (don't block on these)
+      const bookingDetails = {
+        bookingId: orderId,
+        patientName: bookingFromDb?.user?.name || body.patientName || 'Patient',
+        patientEmail: bookingFromDb?.user?.email || body.patientEmail || '',
+        providerName:
+          `${bookingFromDb?.caregiver?.firstName || ''} ${bookingFromDb?.caregiver?.lastName || ''}`.trim()
+          || body.providerName
+          || 'Provider',
+        providerEmail: bookingFromDb?.caregiver?.email || body.providerEmail,
+        serviceType: body.serviceType || 'Healthcare Service',
+        appointmentDate: body.appointmentDate || new Date().toLocaleDateString(),
+        amount: normalizedAmount,
+        currency: bookingFromDb?.currency || 'USDC',
+        txHash: paymentId,
+      }
+      
+      // Send receipt to patient
+      if (body.patientEmail) {
+        sendPatientReceipt(bookingDetails).catch(console.error)
+      }
+      
+      // Notify provider of new booking
+      notifyProviderOfBooking(bookingDetails).catch(console.error)
+      
+      // Notify admin
+      notifyAdminOfBooking(bookingDetails).catch(console.error)
     }
-    
-    // Notify provider of new booking
-    notifyProviderOfBooking(bookingDetails).catch(console.error)
-    
-    // Notify admin
-    notifyAdminOfBooking(bookingDetails).catch(console.error)
     
     return NextResponse.json({
       success: true,

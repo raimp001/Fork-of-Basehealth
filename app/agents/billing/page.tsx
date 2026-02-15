@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Copy, ExternalLink, Zap } from "lucide-react"
 import { toast } from "sonner"
+import { PAYMENT_CONFIG } from "@/lib/network-config"
 
 function formatAddress(address?: string | null) {
   if (!address) return "—"
@@ -13,7 +14,7 @@ function formatAddress(address?: string | null) {
 }
 
 export default function AgentBillingPage() {
-  const recipient = process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS || ""
+  const recipient = (PAYMENT_CONFIG.recipientAddress || "").trim()
   const useMainnet = process.env.NEXT_PUBLIC_USE_MAINNET === "true" || process.env.NODE_ENV === "production"
   const explorer = useMainnet ? "https://basescan.org" : "https://sepolia.basescan.org"
 

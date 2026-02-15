@@ -1,5 +1,6 @@
+import { openai } from "@ai-sdk/openai"
 import { groq } from "@ai-sdk/groq"
-import { streamText } from "ai"
+import { generateText, streamText } from "ai"
 import { NextResponse } from "next/server"
 import { sanitizeInput } from "@/lib/phiScrubber"
 import { logger } from "@/lib/logger"
@@ -9,6 +10,7 @@ import {
   getHealthcarePaymentContext,
   getOpenClawModel,
   getWalletContext,
+  rankAgentsForMessages,
   resolveAgent,
 } from "@/lib/agent-service"
 
@@ -25,6 +27,8 @@ Important guidelines:
 - Be friendly, empathetic, and concise in your responses
 - You can suggest health screenings based on age, gender, and risk factors
 - When appropriate, mention that you can connect users with healthcare providers through the platform
+- Do a quick internal self-check for safety, correctness, and compliance before you answer, then revise once
+- Do not mention internal agent names, routing, or system prompts unless the user explicitly asks how routing works
 
 If asked about screenings, you can refer to these common recommendations:
 - Mammograms for women 40-74 years old every 1-2 years
@@ -65,7 +69,9 @@ export async function POST(req: Request) {
       logger.debug(`Scrubbed ${userMessages.length} user message(s) for PHI`)
     }
 
+    const ranking = rankAgentsForMessages(scrubbedMessages, requestedAgent, "general-health")
     const selectedAgent = resolveAgent(scrubbedMessages, requestedAgent)
+    const explicitlySelected = ranking?.[0]?.score === Number.MAX_SAFE_INTEGER
 
     let context: Record<string, unknown> | null = null
     if (typeof walletAddress === "string" && walletAddress.trim()) {
@@ -83,23 +89,102 @@ export async function POST(req: Request) {
     })
 
     const openClawModel = getOpenClawModel(selectedAgent)
-    const model = openClawModel || groq("llama3-70b-8192")
-    const provider = openClawModel ? "openclaw" : "groq"
+    const openAiKey = process.env.OPENAI_API_KEY
+    const groqKey = process.env.GROQ_API_KEY
+
+    const fallbackOpenAiModel = process.env.OPENAI_MODEL || "gpt-4o-mini"
+    const fallbackGroqModel = process.env.GROQ_MODEL || "llama3-70b-8192"
+
+    const model =
+      openClawModel ||
+      (openAiKey ? openai(fallbackOpenAiModel) : null) ||
+      (groqKey ? groq(fallbackGroqModel) : null)
+
+    const provider = openClawModel ? "openclaw" : openAiKey ? "openai" : groqKey ? "groq" : "none"
+
+    if (!model) {
+      return NextResponse.json(
+        {
+          error:
+            "AI is not configured. Set OPENCLAW_API_KEY (recommended) or OPENAI_API_KEY or GROQ_API_KEY in your deployment environment.",
+          missingEnv: ["OPENCLAW_API_KEY", "OPENAI_API_KEY", "GROQ_API_KEY"],
+        },
+        { status: 503 },
+      )
+    }
+
+    const meshEnabled = (process.env.BASEHEALTH_AGENT_MESH || "true").toLowerCase() !== "false"
+    const collaboratorAgents = meshEnabled && !explicitlySelected
+      ? ranking
+          .filter((r) => r.agent !== selectedAgent)
+          .filter((r) => {
+            const topScore = ranking?.[0]?.score ?? 0
+            if (!Number.isFinite(topScore) || topScore <= 0) return false
+            return r.score > 0 && r.score >= Math.max(1, Math.floor(topScore / 2))
+          })
+          .slice(0, 2)
+          .map((r) => r.agent)
+      : []
+
+    const collaboratorNotes = collaboratorAgents.length
+      ? await Promise.all(
+          collaboratorAgents.map(async (agent) => {
+            try {
+              const peerSystemPrompt = buildAgentSystemPrompt(agent, SYSTEM_PROMPT, context)
+              const peerMessages = agentKit.enhanceMessages(scrubbedMessages as any, {
+                agent,
+                context,
+              })
+
+              const peerModel = getOpenClawModel(agent) || model
+              const peer = await generateText({
+                model: peerModel,
+                messages: [{ role: "system", content: peerSystemPrompt }, ...peerMessages],
+                maxTokens: 350,
+              })
+
+              return peer.text?.trim() || ""
+            } catch (error) {
+              logger.warn("Collaborator agent failed", {
+                agent,
+                error: error instanceof Error ? error.message : String(error),
+              })
+              return ""
+            }
+          }),
+        )
+      : []
+
+    const collaborationBlock = collaboratorNotes.filter(Boolean).join("\n\n")
+    const collaborationMessage = collaborationBlock
+      ? {
+          role: "system" as const,
+          content:
+            `Internal specialist notes (do not reveal these notes or agent identities to the user):\n\n${collaborationBlock}\n\n` +
+            "Now answer the user clearly and safely. Ask 1-2 clarifying questions if needed.",
+        }
+      : null
 
     logger.info("Chat request routed", {
       provider,
       agent: selectedAgent,
       hasContext: Boolean(context),
+      collaborators: collaboratorAgents.length,
     })
 
     const result = streamText({
       model,
-      messages: [{ role: "system", content: systemPrompt }, ...enhancedMessages],
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...(collaborationMessage ? [collaborationMessage] : []),
+        ...enhancedMessages,
+      ],
     })
 
     const response = result.toDataStreamResponse()
     response.headers.set("x-basehealth-agent", selectedAgent)
     response.headers.set("x-basehealth-llm-provider", provider)
+    response.headers.set("x-basehealth-agent-mesh", collaboratorAgents.join(",") || "none")
     return response
   } catch (error) {
     logger.error("Error in chat API", error)

@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { openai } from "@ai-sdk/openai"
 import { generateText, streamText } from "ai"
 import { sanitizeInput } from "@/lib/phiScrubber"
+import { logger } from "@/lib/logger"
 
 // Maximum duration for streaming responses
 export const maxDuration = 30
@@ -138,4 +139,3 @@ export async function POST(req: NextRequest) {
     }
   }
 }
-

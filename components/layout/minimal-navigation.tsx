@@ -23,7 +23,9 @@ import {
   Bell,
   Wallet,
   Bookmark,
-  Bot
+  Bot,
+  LifeBuoy,
+  MessageSquare
 } from "lucide-react"
 import { NotificationCenter } from "@/components/notifications/notification-center"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -34,9 +36,12 @@ const navigationItems = [
   { href: '/screening', label: 'Screenings', icon: Activity },
   { href: '/providers/search', label: 'Find care', icon: Search },
   { href: '/clinical-trials', label: 'Clinical trials', icon: FlaskConical },
-  { href: '/agents', label: 'Agents', icon: Brain },
+  { href: '/chat', label: 'Assistant', icon: Bot },
   { href: '/providers/search?bounty=true', label: 'Caregivers', icon: Heart },
   { href: '/provider/signup', label: 'Join as provider', icon: User, badge: 'New' },
+  { href: '/support', label: 'Support', icon: LifeBuoy },
+  { href: '/feedback', label: 'Feedback', icon: MessageSquare },
+  { href: '/agents', label: 'Ops', icon: Brain, badge: 'Ops' },
 ]
 
 const userMenuItems = [
@@ -44,6 +49,8 @@ const userMenuItems = [
   { href: '/billing', label: 'Billing', icon: CreditCard },
   { href: '/wallet', label: 'Wallet', icon: DollarSign },
   { href: '/payment/base', label: 'Payments', icon: Wallet, badge: 'New' },
+  { href: '/support', label: 'Support', icon: LifeBuoy },
+  { href: '/feedback', label: 'Feedback', icon: MessageSquare },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -55,8 +62,8 @@ const adminMenuItems = [
 ]
 
 const quickActions = [
-  { href: '/agents', label: 'OpenClaw agents', icon: Brain, badge: 'New' },
-  { href: '/chat', label: 'Agent console', icon: Bot, badge: null },
+  { href: '/chat', label: 'Assistant', icon: Bot, badge: null },
+  { href: '/agents', label: 'Agent hub', icon: Brain, badge: 'Ops' },
   { href: '/second-opinion', label: 'Expert review', icon: Activity, badge: 'New' },
 ]
 
@@ -64,14 +71,15 @@ const desktopNavigationItems = [
   { href: '/screening', label: 'Screenings' },
   { href: '/providers/search', label: 'Find care' },
   { href: '/clinical-trials', label: 'Clinical trials' },
-  { href: '/agents', label: 'Agents' },
+  { href: '/chat', label: 'Assistant' },
+  { href: '/agents', label: 'Ops' },
 ]
 
 const mobileBottomItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/screening', label: 'Screenings', icon: Activity },
-  { href: '/agents', label: 'Agents', icon: Brain },
-  { href: '/chat', label: 'Chat', icon: Bot },
+  { href: '/chat', label: 'Assistant', icon: Bot },
+  { href: '/patient-portal', label: 'Portal', icon: User },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 

@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react'
 import { CheckCircle, AlertCircle, Loader2, ExternalLink, Copy, Shield } from 'lucide-react'
+import { appendBaseBuilderCode } from "@/lib/base-builder-code"
 
 const SCHEMA = 'string npi,string name,string specialty,bool npiVerified,bool oigCleared,bool samCleared,bool licenseVerified,uint64 verificationDate'
 
@@ -110,6 +111,7 @@ export default function AttestationsAdminPage() {
         '0x0000000000000000000000000000000000000000', // No resolver
         true, // Revocable
       ])
+      const enrichedData = appendBaseBuilderCode(data) || data
       
       // Send transaction
       const txHash = await ethereum.request({
@@ -117,7 +119,7 @@ export default function AttestationsAdminPage() {
         params: [{
           from: walletAddress,
           to: EAS_CONFIG.schemaRegistry,
-          data: data,
+          data: enrichedData,
         }],
       })
       

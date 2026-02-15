@@ -29,6 +29,7 @@ import {
   Clock,
   Zap,
 } from 'lucide-react'
+import { appendBaseBuilderCode } from "@/lib/base-builder-code"
 
 // Format wallet address for display (0x1234...5678)
 function formatAddress(address: string | null): string {
@@ -129,7 +130,7 @@ export function ScreeningCheckout({
   }
 
   // Default treasury wallet (fallback if env var not set)
-  const DEFAULT_TREASURY = '0xEf352b65503b01997b0d91e9c24621FB1f141726'
+  const DEFAULT_TREASURY = '0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b'
   
   // Get valid recipient address
   const getRecipientAddress = () => {
@@ -271,7 +272,7 @@ export function ScreeningCheckout({
       const transferSelector = '0xa9059cbb'
       const paddedRecipient = recipientAddress.slice(2).padStart(64, '0')
       const paddedAmount = amountInUnits.toString(16).padStart(64, '0')
-      const data = transferSelector + paddedRecipient + paddedAmount
+      const data = appendBaseBuilderCode(transferSelector + paddedRecipient + paddedAmount)
       
       actions.confirm()
       
@@ -281,7 +282,7 @@ export function ScreeningCheckout({
         params: [{
           from: context.wallet.address,
           to: USDC_ADDRESS,
-          data: data,
+          data,
           // Gas will be estimated by the wallet
         }],
       })
