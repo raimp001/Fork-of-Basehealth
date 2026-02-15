@@ -74,6 +74,24 @@ export const ACTIVE_CHAIN = USE_MAINNET ? CHAINS.mainnet : CHAINS.sepolia
 // PAYMENT CONFIGURATION
 // ============================================================
 
+function sanitizeEnvValue(value: string | undefined | null): string | undefined {
+  if (!value) return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    const unquoted = trimmed.slice(1, -1).trim()
+    return unquoted || undefined
+  }
+  return trimmed
+}
+
+function looksLikeAddress(value: string): boolean {
+  return /^0x[a-fA-F0-9]{40}$/.test(value)
+}
+
 // Default treasury wallet address (used if env var not set)
 // NOTE: Set NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS in production.
 const DEFAULT_TREASURY_ADDRESS = '0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b'
@@ -81,8 +99,11 @@ const DEFAULT_TREASURY_ADDRESS = '0xcB335bb4a2d2151F4E17eD525b7874343B77Ba8b'
 export const PAYMENT_CONFIG = {
   // Platform treasury wallet - receives payments
   // Can be overridden with NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS env var
-  recipientAddress: process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS 
-    || DEFAULT_TREASURY_ADDRESS,
+  recipientAddress: (() => {
+    const env = sanitizeEnvValue(process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS)
+    if (env && looksLikeAddress(env)) return env
+    return DEFAULT_TREASURY_ADDRESS
+  })(),
   
   // Platform fee percentage (2.5%)
   platformFeePercent: 2.5,
