@@ -66,7 +66,7 @@ export async function POST(req: Request) {
 
     if (!aiConfigured) {
       logger.warn("Chat request blocked: AI not configured", {
-        missingEnv: ["OPENCLAW_API_KEY", "OPENAI_API_KEY", "GROQ_API_KEY"],
+        missingEnv: ["OPENCLAW_API_KEY", "OPENCLAW_GATEWAY_TOKEN", "OPENAI_API_KEY", "GROQ_API_KEY"],
       })
 
       const response = createDataStreamResponse({
@@ -84,12 +84,13 @@ export async function POST(req: Request) {
       response.headers.set("x-basehealth-agent-mesh", "none")
       response.headers.set(
         "x-basehealth-ai-help",
-        "Admin: set OPENCLAW_API_KEY (recommended) or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
+        "Admin: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
       )
       return response
     }
 
-    const paywallEnabled = (process.env.BASEHEALTH_CHAT_PAYWALL || "true").toLowerCase() !== "false"
+    // Default to letting users explore without a paywall unless explicitly enabled.
+    const paywallEnabled = (process.env.BASEHEALTH_CHAT_PAYWALL || "false").toLowerCase() === "true"
     if (paywallEnabled) {
       const accessWallet =
         (typeof accessWalletAddress === "string" && accessWalletAddress.trim()) ||
@@ -186,7 +187,7 @@ export async function POST(req: Request) {
     if (!model) {
       logger.warn("Chat request blocked: AI not configured", {
         agent: selectedAgent,
-        missingEnv: ["OPENCLAW_API_KEY", "OPENAI_API_KEY", "GROQ_API_KEY"],
+        missingEnv: ["OPENCLAW_API_KEY", "OPENCLAW_GATEWAY_TOKEN", "OPENAI_API_KEY", "GROQ_API_KEY"],
       })
 
       const response = createDataStreamResponse({
@@ -207,7 +208,7 @@ export async function POST(req: Request) {
       response.headers.set("x-basehealth-agent-mesh", "none")
       response.headers.set(
         "x-basehealth-ai-help",
-        "Admin: set OPENCLAW_API_KEY (recommended) or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
+        "Admin: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
       )
       return response
     }

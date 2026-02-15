@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { ACTIVE_CHAIN, PAYMENT_CONFIG } from "@/lib/network-config"
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
 type Check = {
   id: string
   label: string
@@ -21,6 +24,8 @@ function sectionReady(section: Section): boolean {
 }
 
 export async function GET() {
+  const chatPaywallEnabled = (process.env.BASEHEALTH_CHAT_PAYWALL || "false").toLowerCase() === "true"
+
   const aiProvider =
     process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN
       ? "openclaw"
@@ -256,7 +261,7 @@ export async function GET() {
     checks: section.checks,
   }))
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     success: true,
     generatedAt: new Date().toISOString(),
     environment: {
@@ -267,6 +272,9 @@ export async function GET() {
       gitCommitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
       gitCommitRef: process.env.VERCEL_GIT_COMMIT_REF || null,
     },
+    features: {
+      chatPaywallEnabled,
+    },
     network: {
       name: ACTIVE_CHAIN.name,
       chainId: ACTIVE_CHAIN.id,
@@ -276,4 +284,6 @@ export async function GET() {
     sections: readiness,
     missingRequired,
   })
+  response.headers.set("Cache-Control", "no-store, max-age=0")
+  return response
 }

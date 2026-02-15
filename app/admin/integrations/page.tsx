@@ -11,6 +11,9 @@ type IntegrationStatusResponse = {
   success: boolean
   generatedAt?: string
   aiProvider?: string
+  features?: {
+    chatPaywallEnabled?: boolean
+  }
   environment?: {
     nodeEnv?: string | null
     vercelEnv?: string | null
@@ -88,10 +91,19 @@ export default function IntegrationsAdminPage() {
                   Last checked: {new Date(data.generatedAt).toLocaleString()}
                 </p>
               ) : null}
+              {data?.environment?.vercelUrl || data?.environment?.gitCommitSha ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Deployment: {data?.environment?.vercelUrl || "unknown"}
+                  {data?.environment?.gitCommitSha ? ` · ${data.environment.gitCommitSha.slice(0, 7)}` : ""}
+                </p>
+              ) : null}
             </div>
             <div className="flex items-center gap-2">
               {data?.environment?.vercelEnv ? (
                 <Badge variant="outline">Vercel: {data.environment.vercelEnv}</Badge>
+              ) : null}
+              {typeof data?.features?.chatPaywallEnabled === "boolean" ? (
+                <Badge variant="outline">Paywall: {data.features.chatPaywallEnabled ? "on" : "off"}</Badge>
               ) : null}
               {data?.aiProvider && data.aiProvider !== "none" ? (
                 <Badge variant="secondary">AI: {data.aiProvider}</Badge>
@@ -167,8 +179,8 @@ export default function IntegrationsAdminPage() {
                   ))}
                   <p className="text-xs text-muted-foreground">
                     Set missing environment variables in Vercel (Production) and redeploy. For AI, set one of{" "}
-                    <span className="font-mono">OPENCLAW_API_KEY</span> or <span className="font-mono">OPENAI_API_KEY</span>{" "}
-                    or <span className="font-mono">GROQ_API_KEY</span>.
+                    <span className="font-mono">OPENCLAW_API_KEY</span> or <span className="font-mono">OPENCLAW_GATEWAY_TOKEN</span>{" "}
+                    or <span className="font-mono">OPENAI_API_KEY</span> or <span className="font-mono">GROQ_API_KEY</span>.
                   </p>
                 </CardContent>
               </Card>

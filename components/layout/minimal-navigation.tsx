@@ -143,6 +143,7 @@ export function MinimalNavigation() {
                     width={22}
                     height={22}
                     priority
+                    unoptimized
                     className="rounded-md opacity-95"
                   />
                 </span>

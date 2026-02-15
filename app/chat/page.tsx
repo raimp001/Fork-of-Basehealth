@@ -63,6 +63,7 @@ export default function ChatPage() {
     aiProvider?: string
     vercelEnv?: string | null
     commit?: string | null
+    chatPaywallEnabled?: boolean
   } | null>(null)
   const [pinnedAgent, setPinnedAgent] = useState<OpenClawAgentId | null>(null)
   const [hasSentMessage, setHasSentMessage] = useState(false)
@@ -141,6 +142,8 @@ export default function ChatPage() {
             aiProvider: typeof json?.aiProvider === "string" ? json.aiProvider : undefined,
             vercelEnv: json?.environment?.vercelEnv ?? null,
             commit: json?.environment?.gitCommitSha ?? null,
+            chatPaywallEnabled:
+              typeof json?.features?.chatPaywallEnabled === "boolean" ? json.features.chatPaywallEnabled : undefined,
           })
         }
       } catch (err) {
@@ -155,7 +158,14 @@ export default function ChatPage() {
     }
   }, [])
 
+  const chatPaywallEnabled = assistantMeta?.chatPaywallEnabled ?? false
+
   const refreshPassStatus = useCallback(async () => {
+    if (!chatPaywallEnabled) {
+      setPassState({ loading: false, hasAccess: true, validUntil: null, error: null })
+      return
+    }
+
     if (!accessWallet) {
       setPassState({ loading: false, hasAccess: false, validUntil: null, error: null })
       return
@@ -184,7 +194,7 @@ export default function ChatPage() {
         error: err instanceof Error ? err.message : "Failed to check access",
       })
     }
-  }, [accessWallet])
+  }, [accessWallet, chatPaywallEnabled])
 
   useEffect(() => {
     refreshPassStatus().catch(() => null)
@@ -311,17 +321,19 @@ export default function ChatPage() {
         ? "Assistant is temporarily offline…"
         : effectivePinnedAgent
           ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].placeholder
-          : !accessWallet
-            ? "Connect wallet to start chatting…"
-            : passState.loading
-              ? "Checking access…"
-              : passState.hasAccess
-                ? "Ask about screenings, care navigation, appointments, billing, refunds, or Base payments…"
-                : "Unlock Assistant Pass to start chatting…"
+          : chatPaywallEnabled
+            ? !accessWallet
+              ? "Connect wallet to start chatting…"
+              : passState.loading
+                ? "Checking access…"
+                : passState.hasAccess
+                  ? "Ask about screenings, care navigation, appointments, billing, refunds, or Base payments…"
+                  : "Unlock Assistant Pass to start chatting…"
+            : "Ask about screenings, care navigation, appointments, billing, refunds, or Base payments…"
 
   const examples = effectivePinnedAgent ? OPENCLAW_AGENT_CATALOG[effectivePinnedAgent].examples : DEFAULT_EXAMPLES
 
-  const canChat = assistantReady === true && Boolean(accessWallet) && passState.hasAccess
+  const canChat = assistantReady === true && (chatPaywallEnabled ? Boolean(accessWallet) && passState.hasAccess : true)
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (!canChat) {
@@ -388,7 +400,7 @@ export default function ChatPage() {
                       Integrations
                     </Link>{" "}
                     and set <code className="font-mono">OPENCLAW_API_KEY</code> (recommended) or{" "}
-                    <code className="font-mono">OPENAI_API_KEY</code>, then redeploy.
+                    <code className="font-mono">OPENCLAW_GATEWAY_TOKEN</code> or <code className="font-mono">OPENAI_API_KEY</code>, then redeploy.
                   </p>
                   {assistantMeta?.generatedAt ? (
                     <p className="text-xs text-muted-foreground">
@@ -407,7 +419,7 @@ export default function ChatPage() {
           </Card>
         )}
 
-        {assistantReady === true && !accessWallet && (
+        {assistantReady === true && chatPaywallEnabled && !accessWallet && (
           <Card className="mb-6 border-border shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Sign in</CardTitle>
@@ -429,7 +441,31 @@ export default function ChatPage() {
           </Card>
         )}
 
-        {assistantReady === true && accessWallet && (
+        {assistantReady === true && !chatPaywallEnabled && !accessWallet && (
+          <Card className="mb-6 border-border shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Connect wallet (optional)</CardTitle>
+              <CardDescription>
+                You can chat without signing in. Connect your Base wallet to personalize your experience and enable
+                checkout.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <SignInWithBase
+                  onAuthSuccess={(address) => {
+                    setAuthError(null)
+                    setConnectedWallet(address)
+                  }}
+                  onAuthError={(message) => setAuthError(message)}
+                />
+                {authError ? <p className="text-xs text-destructive">{authError}</p> : null}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {assistantReady === true && chatPaywallEnabled && accessWallet && (
           <Card className="mb-6 border-border shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-3">
@@ -651,9 +687,11 @@ export default function ChatPage() {
                   ? assistantReady === null
                     ? "Checking assistant status…"
                     : "Assistant is offline right now."
-                  : !accessWallet
-                    ? "Sign in above to start chatting."
-                    : "Unlock Assistant Pass above to start chatting."}
+                  : chatPaywallEnabled
+                    ? !accessWallet
+                      ? "Sign in above to start chatting."
+                      : "Unlock Assistant Pass above to start chatting."
+                    : "Chat is available."}
               </p>
             )}
 
