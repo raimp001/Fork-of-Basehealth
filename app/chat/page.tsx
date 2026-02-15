@@ -44,8 +44,8 @@ function getMessageContent(message: any): string {
 const DEFAULT_EXAMPLES = [
   "What screenings should I consider this year?",
   "Help me find a provider for my issue.",
-  "How do refunds and receipts work on Base?",
-  "How do I connect Coinbase Smart Wallet for payments?",
+  "Should this be telehealth or in-person?",
+  "What should I track before I see a doctor about this?",
 ]
 
 const ASSISTANT_PASS_SERVICE_TYPE = "assistant-pass-chat"
