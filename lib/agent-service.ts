@@ -6,6 +6,7 @@ import {
   OPENCLAW_AGENT_IDS,
   normalizeOpenClawAgent,
   type OpenClawAgentId,
+  type OpenClawAgentSkillPlaybook,
 } from "@/lib/openclaw-agent-catalog"
 
 type AgentDefinition = (typeof OPENCLAW_AGENT_CATALOG)[OpenClawAgentId]
@@ -72,6 +73,31 @@ function resolveOpenClawModel(agent: OpenClawAgentId): string {
   )
 }
 
+function formatSkillPlaybook(skill?: OpenClawAgentSkillPlaybook | null): string {
+  if (!skill) return ""
+
+  const section = (title: string, lines: string[], ordered = false) => {
+    if (!Array.isArray(lines) || lines.length === 0) return ""
+    const body = ordered
+      ? lines.map((line, idx) => `${idx + 1}. ${line}`).join("\n")
+      : lines.map((line) => `- ${line}`).join("\n")
+    return `### ${title}\n${body}`
+  }
+
+  const blocks = [
+    section("Use Cases", skill.useCases),
+    section("Intake (Ask If Missing)", skill.intake),
+    section("Workflow", skill.workflow, true),
+    section("Output Format", skill.outputFormat),
+    section("Quality Checklist", skill.qualityChecklist),
+    section("Safety & Privacy", skill.safety),
+    section("Troubleshooting", skill.troubleshooting || []),
+  ].filter(Boolean)
+
+  if (blocks.length === 0) return ""
+  return `\n\n## Skill Playbook\n${blocks.join("\n\n")}`
+}
+
 export function getOpenClawModel(agent: OpenClawAgentId) {
   const apiKey = process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN
   if (!apiKey) return null
@@ -101,6 +127,7 @@ export function buildAgentSystemPrompt(
   context?: Record<string, unknown> | null,
 ): string {
   const agentDef = OPENCLAW_AGENTS[agent]
+  const skillBlock = formatSkillPlaybook(agentDef.skill)
   const contextBlock = context
     ? `\n\nContext you can use when relevant:\n${serializeContext(context)}`
     : ""
@@ -109,7 +136,7 @@ export function buildAgentSystemPrompt(
 
 Active OpenClaw agent: ${agentDef.label}
 Agent purpose: ${agentDef.description}
-Agent directive: ${agentDef.prompt}${contextBlock}`
+Agent directive: ${agentDef.prompt}${skillBlock}${contextBlock}`
 }
 
 type AgentEnhanceOptions = {

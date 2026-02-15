@@ -38,6 +38,28 @@ const ICONS = {
   "emergency-triage": AlertTriangle,
 } as const
 
+function PlaybookSection({ title, items, ordered }: { title: string; items: string[]; ordered?: boolean }) {
+  if (!Array.isArray(items) || items.length === 0) return null
+  return (
+    <div>
+      <p className="text-xs font-semibold text-stone-500 mb-2">{title}</p>
+      {ordered ? (
+        <ol className="list-decimal list-inside space-y-1 text-sm text-stone-700">
+          {items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ol>
+      ) : (
+        <ul className="list-disc list-inside space-y-1 text-sm text-stone-700">
+          {items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 export default function AgentDetailPage({
   params,
 }: {
@@ -62,26 +84,44 @@ export default function AgentDetailPage({
           <p className="text-stone-600 max-w-3xl">{agent.description}</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="border-stone-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon className="h-5 w-5 text-stone-700" />
-                What This Agent Does
-              </CardTitle>
-              <CardDescription>Purpose-built prompts and guardrails</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="rounded-lg border border-stone-200 bg-white p-4">
-                <p className="text-xs font-semibold text-stone-500 mb-2">Directive</p>
-                <p className="text-sm text-stone-700 whitespace-pre-wrap">{agent.prompt}</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button asChild>
-                  <Link href={`/chat?agent=${agentId}&q=${encodeURIComponent(agent.launchPrompt)}`}>
-                    Open Console <ArrowRight className="h-4 w-4 ml-2" />
-                  </Link>
-                </Button>
+	        <div className="grid gap-6 md:grid-cols-2">
+	          <Card className="border-stone-200">
+	            <CardHeader>
+	              <CardTitle className="flex items-center gap-2">
+	                <Icon className="h-5 w-5 text-stone-700" />
+	                What This Agent Does
+	              </CardTitle>
+	              <CardDescription>Purpose-built prompts and guardrails</CardDescription>
+	            </CardHeader>
+	            <CardContent className="space-y-3">
+	              <div className="rounded-lg border border-stone-200 bg-white p-4">
+	                <p className="text-xs font-semibold text-stone-500 mb-2">Directive</p>
+	                <p className="text-sm text-stone-700 whitespace-pre-wrap">{agent.prompt}</p>
+	              </div>
+	              {agent.skill ? (
+	                <details className="rounded-lg border border-stone-200 bg-white p-4">
+	                  <summary className="cursor-pointer select-none text-xs font-semibold text-stone-500">
+	                    Skill playbook
+	                  </summary>
+	                  <div className="mt-4 space-y-4">
+	                    <PlaybookSection title="Use cases" items={agent.skill.useCases} />
+	                    <PlaybookSection title="Intake (ask if missing)" items={agent.skill.intake} />
+	                    <PlaybookSection title="Workflow" items={agent.skill.workflow} ordered />
+	                    <PlaybookSection title="Output format" items={agent.skill.outputFormat} />
+	                    <PlaybookSection title="Quality checklist" items={agent.skill.qualityChecklist} />
+	                    <PlaybookSection title="Safety & privacy" items={agent.skill.safety} />
+	                    {agent.skill.troubleshooting?.length ? (
+	                      <PlaybookSection title="Troubleshooting" items={agent.skill.troubleshooting} />
+	                    ) : null}
+	                  </div>
+	                </details>
+	              ) : null}
+	              <div className="flex flex-col sm:flex-row gap-3">
+	                <Button asChild>
+	                  <Link href={`/chat?agent=${agentId}&q=${encodeURIComponent(agent.launchPrompt)}`}>
+	                    Open Console <ArrowRight className="h-4 w-4 ml-2" />
+	                  </Link>
+	                </Button>
                 <Button asChild variant="outline">
                   <Link href="/agents/billing">Agent billing</Link>
                 </Button>
