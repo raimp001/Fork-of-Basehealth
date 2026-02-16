@@ -1,0 +1,90 @@
+<svg width="1002" height="548" viewBox="0 0 1002 548" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1002" y2="548" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#F0F9FF"/>
+      <stop offset="1" stop-color="#ECFDF5"/>
+    </linearGradient>
+
+    <radialGradient id="blobBlue" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(210 170) rotate(90) scale(240 240)">
+      <stop offset="0" stop-color="#2563EB" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#2563EB" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="blobTeal" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(820 420) rotate(90) scale(260 260)">
+      <stop offset="0" stop-color="#06B6D4" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#06B6D4" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="accent" x1="0" y1="0" x2="1002" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0EA5E9"/>
+      <stop offset="0.55" stop-color="#06B6D4"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+
+    <filter id="cardShadow" x="0" y="0" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#0F172A" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1002" height="548" fill="url(#bg)"/>
+  <circle cx="210" cy="170" r="240" fill="url(#blobBlue)"/>
+  <circle cx="820" cy="420" r="260" fill="url(#blobTeal)"/>
+
+  <!-- Center card -->
+  <g filter="url(#cardShadow)">
+    <rect x="246" y="118" width="510" height="312" rx="28" fill="#FFFFFF" fill-opacity="0.86"/>
+    <rect x="246" y="118" width="510" height="312" rx="28" stroke="#0F172A" stroke-opacity="0.08"/>
+  </g>
+
+  <!-- Top accent bar -->
+  <rect x="246" y="118" width="510" height="4" rx="2" fill="url(#accent)" fill-opacity="0.9"/>
+
+  <!-- Content -->
+  <g transform="translate(501 274)">
+    <!-- Logo (BaseHealth mark) -->
+    <g transform="translate(-46 -150)">
+      <rect x="0" y="0" width="92" height="92" rx="22" fill="#2563EB"/>
+      <path d="M34.04 23.92V68.08H57.04C63.32 68.08 68 63.4 68 57.12C68 52.96 65.92 49.92 62.92 48.64C65.92 47.32 68 44.36 68 40.2C68 33.92 63.32 29.24 57.04 29.24H34.04V23.92ZM42 36.2H55.2C57.64 36.2 59.4 37.92 59.4 40.4C59.4 42.88 57.64 44.6 55.2 44.6H42V36.2ZM42 52.2H56C58.92 52.2 60.4 53.72 60.4 56.6C60.4 59.48 58.92 61 56 61H42V52.2Z" fill="#FFFFFF"/>
+    </g>
+
+    <text
+      x="0"
+      y="-34"
+      text-anchor="middle"
+      font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial"
+      font-size="56"
+      font-weight="650"
+      letter-spacing="-0.02em"
+      fill="#0F172A"
+    >
+      BaseHealth
+    </text>
+
+    <text
+      x="0"
+      y="2"
+      text-anchor="middle"
+      font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial"
+      font-size="22"
+      font-weight="500"
+      fill="#334155"
+    >
+      One stop for healthcare.
+    </text>
+
+    <text
+      x="0"
+      y="46"
+      text-anchor="middle"
+      font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial"
+      font-size="16"
+      font-weight="500"
+      fill="#475569"
+    >
+      Assistant &#8226; Screenings &#8226; Providers &#8226; Billing
+    </text>
+  </g>
+</svg>
+
