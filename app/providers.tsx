@@ -7,6 +7,7 @@ import { CDSProvider } from "@/providers/cds-provider"
 import { Web3Provider } from "./web3-provider"
 import { PrivyProvider } from "@/components/providers/privy-provider"
 import { MiniAppProvider } from "@/components/providers/miniapp-provider"
+import { MiniAppOnboarding } from "@/components/onboarding/miniapp-onboarding"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { Toaster } from "@/components/ui/toaster"
 
@@ -27,6 +28,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 <CDSProvider>
                   <Web3Provider>
                     {children}
+                    <MiniAppOnboarding />
                     <Toaster />
                   </Web3Provider>
                 </CDSProvider>
