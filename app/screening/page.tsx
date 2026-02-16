@@ -8,9 +8,10 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import { 
   ArrowRight, ArrowLeft, Loader2, CheckCircle, 
-  AlertCircle, Shield, Heart, Brain, User, CreditCard, X, Lock
+  AlertCircle, Shield, Heart, Brain, User, CreditCard, X, Lock, Calendar
 } from "lucide-react"
 import { BasePayCheckout } from "@/components/checkout/base-pay-checkout"
 
@@ -27,11 +28,24 @@ interface ScreeningRecommendation {
   alternativeProviders: string[]
   canBeDoneBy: 'primary' | 'specialist' | 'either'
   providerNote: string
+  sources?: RecommendationSource[]
+  nextDueDate?: string
+  lastCompleted?: string
 }
 
 interface RiskProfile {
   factors: string[]
   level: 'low' | 'moderate' | 'elevated'
+}
+
+interface RecommendationSource {
+  title: string
+  organization: string
+  url: string
+  publishedDate?: string
+  lastReviewed?: string
+  version?: string
+  gradeRationale?: string
 }
 
 interface ClinicalReviewFlag {
@@ -50,7 +64,147 @@ interface Summary {
   specialistsNeeded: string[]
 }
 
+interface TimelineRecommendation {
+  id: string
+  name: string
+  frequency: string
+  grade: string
+  primaryProvider: string
+}
+
+interface TimelineEntry {
+  id: string
+  createdAt: string
+  summary: {
+    totalScreenings: number
+    gradeACount: number
+    gradeBCount: number
+    riskLevel: "low" | "moderate" | "elevated" | "unknown"
+  }
+  recommendations: TimelineRecommendation[]
+  contextIncluded: boolean
+}
+
+const LOCAL_TIMELINE_KEY = "basehealth_screening_timeline_v1"
+const LOCAL_COMPLETED_KEY = "basehealth_completed_screenings_v1"
+
+/**
+ * Calculate the next due date for a screening based on its frequency string.
+ * Checks localStorage for last-completed dates.
+ */
+function calculateNextDueDate(screening: ScreeningRecommendation): string | undefined {
+  const freq = (screening.frequency || "").toLowerCase()
+
+  // Parse interval from frequency string
+  let intervalMonths = 12 // default annual
+
+  if (freq.includes("every 10 years")) intervalMonths = 120
+  else if (freq.includes("every 5 years")) intervalMonths = 60
+  else if (freq.includes("every 3 years")) intervalMonths = 36
+  else if (freq.includes("every 2 years")) intervalMonths = 24
+  else if (freq.includes("biennial")) intervalMonths = 24
+  else if (freq.includes("annual")) intervalMonths = 12
+  else if (freq.includes("once") || freq.includes("one-time")) return "One-time"
+  else if (freq.includes("at least once")) return "Schedule now"
+
+  // Check if we have a last-completed date in localStorage
+  const completed = readCompletedScreenings()
+  const lastCompleted = completed[screening.id]
+
+  if (lastCompleted) {
+    const lastDate = new Date(lastCompleted)
+    if (!isNaN(lastDate.getTime())) {
+      const nextDate = new Date(lastDate)
+      nextDate.setMonth(nextDate.getMonth() + intervalMonths)
+      
+      if (nextDate <= new Date()) {
+        return "Overdue"
+      }
+      return nextDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+    }
+  }
+
+  // No completion history: recommend scheduling now
+  const nextDate = new Date()
+  nextDate.setMonth(nextDate.getMonth() + 1) // Suggest within next month
+  return nextDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+}
+
+function readCompletedScreenings(): Record<string, string> {
+  if (typeof window === "undefined") return {}
+  try {
+    const raw = window.localStorage.getItem(LOCAL_COMPLETED_KEY)
+    if (!raw) return {}
+    return JSON.parse(raw)
+  } catch {
+    return {}
+  }
+}
+
+function markScreeningCompleted(screeningId: string, date?: string) {
+  if (typeof window === "undefined") return
+  try {
+    const existing = readCompletedScreenings()
+    existing[screeningId] = date || new Date().toISOString()
+    window.localStorage.setItem(LOCAL_COMPLETED_KEY, JSON.stringify(existing))
+  } catch {
+    // Ignore errors
+  }
+}
+
+function buildLocalTimelineEntry(params: {
+  recommendations: ScreeningRecommendation[]
+  summary: Summary | null
+  riskProfile: RiskProfile | null
+  contextIncluded: boolean
+  timestamp?: string
+}): TimelineEntry {
+  return {
+    id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: params.timestamp || new Date().toISOString(),
+    summary: {
+      totalScreenings: params.summary?.totalScreenings ?? params.recommendations.length,
+      gradeACount:
+        params.summary?.gradeACount ?? params.recommendations.filter((item) => item.grade === "A").length,
+      gradeBCount:
+        params.summary?.gradeBCount ?? params.recommendations.filter((item) => item.grade === "B").length,
+      riskLevel: params.riskProfile?.level ?? "unknown",
+    },
+    recommendations: params.recommendations.slice(0, 20).map((item) => ({
+      id: item.id,
+      name: item.name,
+      frequency: item.frequency,
+      grade: item.grade,
+      primaryProvider: item.primaryProvider,
+    })),
+    contextIncluded: params.contextIncluded,
+  }
+}
+
+function readLocalTimeline(): TimelineEntry[] {
+  if (typeof window === "undefined") return []
+  try {
+    const raw = window.localStorage.getItem(LOCAL_TIMELINE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((item): item is TimelineEntry => Boolean(item && item.id && item.createdAt))
+  } catch {
+    return []
+  }
+}
+
+function writeLocalTimeline(entries: TimelineEntry[]) {
+  if (typeof window === "undefined") return
+  try {
+    window.localStorage.setItem(LOCAL_TIMELINE_KEY, JSON.stringify(entries.slice(0, 10)))
+  } catch {
+    // Ignore local storage errors
+  }
+}
+
 export default function ScreeningPage() {
+  const { status: sessionStatus } = useSession()
   const [mounted, setMounted] = useState(false)
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
@@ -60,6 +214,9 @@ export default function ScreeningPage() {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [clinicalReviewFlags, setClinicalReviewFlags] = useState<ClinicalReviewFlag[]>([])
   const [personalizationNotes, setPersonalizationNotes] = useState<string[]>([])
+  const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([])
+  const [timelineLoading, setTimelineLoading] = useState(false)
+  const [timelineStatusMessage, setTimelineStatusMessage] = useState<string | null>(null)
   
   const [formData, setFormData] = useState({
     age: '',
@@ -82,6 +239,34 @@ export default function ScreeningPage() {
     setMounted(true)
   }, [])
 
+  useEffect(() => {
+    if (!mounted) return
+
+    const loadTimeline = async () => {
+      if (sessionStatus === "authenticated") {
+        setTimelineLoading(true)
+        try {
+          const response = await fetch("/api/screening/timeline?limit=6", { cache: "no-store" })
+          const data = await response.json()
+          if (response.ok && data.success && Array.isArray(data.entries)) {
+            setTimelineEntries(data.entries as TimelineEntry[])
+          }
+        } catch {
+          // Ignore timeline load issues in UI.
+        } finally {
+          setTimelineLoading(false)
+        }
+        return
+      }
+
+      if (sessionStatus === "unauthenticated") {
+        setTimelineEntries(readLocalTimeline())
+      }
+    }
+
+    loadTimeline()
+  }, [mounted, sessionStatus])
+
   // Steps: 1-4 = Form, 5 = Payment, 6 = Results
   const totalSteps = 4
 
@@ -103,6 +288,7 @@ export default function ScreeningPage() {
     setShowPaymentModal(false)
     setIsLoading(true)
     setError(null)
+    setTimelineStatusMessage(null)
 
     try {
       const response = await fetch('/api/screening/recommendations', {
@@ -114,11 +300,78 @@ export default function ScreeningPage() {
       const data = await response.json()
       
       if (data.success) {
-        setRecommendations(data.recommendations || [])
-        setRiskProfile(data.riskProfile || null)
-        setSummary(data.summary || null)
+        const rawRecommendations = Array.isArray(data.recommendations) ? (data.recommendations as ScreeningRecommendation[]) : []
+        const nextRiskProfile = (data.riskProfile as RiskProfile | null) || null
+        const nextSummary = (data.summary as Summary | null) || null
+
+        // Enrich recommendations with due dates
+        const nextRecommendations = rawRecommendations.map(rec => ({
+          ...rec,
+          nextDueDate: calculateNextDueDate(rec),
+        }))
+
+        setRecommendations(nextRecommendations)
+        setRiskProfile(nextRiskProfile)
+        setSummary(nextSummary)
         setClinicalReviewFlags(Array.isArray(data.clinicalReviewFlags) ? data.clinicalReviewFlags : [])
         setPersonalizationNotes(Array.isArray(data.personalizationNotes) ? data.personalizationNotes : [])
+
+        const localEntry = buildLocalTimelineEntry({
+          recommendations: nextRecommendations,
+          summary: nextSummary,
+          riskProfile: nextRiskProfile,
+          contextIncluded: Boolean(formData.additionalContext.trim()),
+          timestamp: typeof data.timestamp === "string" ? data.timestamp : undefined,
+        })
+
+        const persistLocalTimeline = () => {
+          const existing = readLocalTimeline()
+          const next = [localEntry, ...existing].slice(0, 10)
+          writeLocalTimeline(next)
+          setTimelineEntries(next)
+          setTimelineStatusMessage("Saved locally in this browser.")
+        }
+
+        if (sessionStatus === "authenticated") {
+          try {
+            const saveResponse = await fetch("/api/screening/timeline", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                recommendations: nextRecommendations,
+                summary: nextSummary,
+                riskProfile: nextRiskProfile,
+                contextIncluded: Boolean(formData.additionalContext.trim()),
+                assessmentInput: {
+                  age: formData.age,
+                  gender: formData.gender,
+                  smokingStatus: formData.smokingStatus,
+                  bmiCategory: formData.bmiCategory,
+                  medicalHistory: formData.medicalHistory,
+                  familyHistory: formData.familyHistory,
+                },
+              }),
+            })
+
+            if (saveResponse.ok) {
+              const timelineResponse = await fetch("/api/screening/timeline?limit=6", { cache: "no-store" })
+              const timelineData = await timelineResponse.json()
+              if (timelineResponse.ok && timelineData.success && Array.isArray(timelineData.entries)) {
+                setTimelineEntries(timelineData.entries as TimelineEntry[])
+                setTimelineStatusMessage("Saved to your account timeline.")
+              } else {
+                persistLocalTimeline()
+              }
+            } else {
+              persistLocalTimeline()
+            }
+          } catch {
+            persistLocalTimeline()
+          }
+        } else {
+          persistLocalTimeline()
+        }
+
         setStep(5) // Show results
       } else {
         setError(data.error || 'Failed to get recommendations')
@@ -160,6 +413,9 @@ export default function ScreeningPage() {
             <p className="mt-2 text-sm text-muted-foreground">
               Based on USPSTF Grade A &amp; B guidelines for your profile.
             </p>
+            {timelineStatusMessage && (
+              <p className="mt-2 text-xs text-muted-foreground">{timelineStatusMessage}</p>
+            )}
           </header>
 
           {riskProfile && (
@@ -232,6 +488,37 @@ export default function ScreeningPage() {
             </div>
           </section>
 
+          {(timelineLoading || timelineEntries.length > 0) && (
+            <section className="mb-6 rounded-xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-sm font-semibold text-foreground">Saved screening timeline</h2>
+                <span className="text-xs text-muted-foreground">
+                  {sessionStatus === "authenticated" ? "Account-synced" : "Browser-only"}
+                </span>
+              </div>
+              {timelineLoading ? (
+                <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading saved plans...
+                </div>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {timelineEntries.slice(0, 3).map((entry) => (
+                    <div key={entry.id} className="rounded-lg border border-border bg-muted/20 px-3 py-2">
+                      <p className="text-sm text-foreground">
+                        {new Date(entry.createdAt).toLocaleDateString()} • {entry.summary.totalScreenings} screenings
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Grade A: {entry.summary.gradeACount} • Grade B: {entry.summary.gradeBCount} • Risk:{" "}
+                        {entry.summary.riskLevel}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
           {recommendations.length > 0 ? (
             <section className="space-y-4">
               <h2 className="text-base font-semibold text-foreground">Recommended screenings</h2>
@@ -258,7 +545,55 @@ export default function ScreeningPage() {
                         <p className="mt-1 text-xs text-muted-foreground">{rec.providerNote}</p>
                       </div>
 
-                      <p className="text-xs text-muted-foreground">Frequency: {rec.frequency}</p>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                        <span>Frequency: {rec.frequency}</span>
+                        {rec.nextDueDate && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30 px-2 py-0.5 text-blue-700 dark:text-blue-300 font-semibold">
+                            <Calendar className="h-3 w-3" />
+                            Next due: {rec.nextDueDate}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Grade rationale */}
+                      {Array.isArray(rec.sources) && rec.sources.length > 0 && rec.sources[0].gradeRationale && (
+                        <div className="rounded-lg border border-border bg-muted/10 p-3">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            Why this grade
+                          </p>
+                          <p className="mt-1 text-xs text-foreground leading-relaxed">
+                            {rec.sources[0].gradeRationale}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Source citations with version/date */}
+                      {Array.isArray(rec.sources) && rec.sources.length > 0 && (
+                        <div className="rounded-lg border border-border bg-background p-3">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            Source citations
+                          </p>
+                          <div className="mt-2 space-y-2">
+                            {rec.sources.slice(0, 2).map((source) => (
+                              <div key={`${rec.id}-${source.url}`}>
+                                <a
+                                  href={source.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block text-xs text-foreground hover:underline underline-offset-4 font-medium"
+                                >
+                                  {source.organization}: {source.title}
+                                </a>
+                                <div className="mt-0.5 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+                                  {source.version && <span>{source.version}</span>}
+                                  {source.publishedDate && <span>Published: {source.publishedDate}</span>}
+                                  {source.lastReviewed && <span>Reviewed: {source.lastReviewed}</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex flex-col gap-2">

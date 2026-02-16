@@ -5,9 +5,16 @@
  */
 
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { CheckCircle, Mail, Clock, ArrowRight, Shield } from "lucide-react"
 
 export default function OnboardingSuccessPage() {
+  const searchParams = useSearchParams()
+  const applicationId = searchParams.get("id")
+  const statusHref = applicationId
+    ? `/onboarding/status?id=${encodeURIComponent(applicationId)}`
+    : "/onboarding/status"
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}>
       <main className="py-8 px-6">
@@ -66,12 +73,19 @@ export default function OnboardingSuccessPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-wrap gap-4 justify-center">
             <Link
               href="/"
               className="px-6 py-3 border border-border rounded text-sm hover:bg-muted/30 transition-colors text-foreground"
             >
               Return Home
+            </Link>
+            <Link
+              href={statusHref}
+              className="px-6 py-3 border border-border rounded text-sm hover:bg-muted/30 transition-colors text-foreground flex items-center gap-2"
+            >
+              Track Status
+              <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/login"

@@ -68,6 +68,20 @@ export default function JoinPage() {
           </Card>
         </div>
 
+        <div className="mt-6 rounded-xl border border-border bg-card p-5">
+          <h2 className="text-sm font-semibold text-foreground">Already applied?</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Check your application status or resume a saved draft without starting over.
+          </p>
+          <div className="mt-3">
+            <Button asChild variant="outline">
+              <Link href="/onboarding/status">
+                Track application status <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+
         <div className="mt-8 rounded-xl border border-border bg-muted/20 p-5">
           <p className="text-sm text-muted-foreground">
             Patients: use the{" "}
@@ -81,4 +95,3 @@ export default function JoinPage() {
     </div>
   )
 }
-

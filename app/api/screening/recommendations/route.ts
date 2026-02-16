@@ -23,6 +23,217 @@ function getCdcRecommendations(age: number) {
   return CDC_GUIDELINES.filter((g) => age >= g.minAge && age <= g.maxAge)
 }
 
+type RecommendationSource = {
+  title: string
+  organization: string
+  url: string
+  publishedDate?: string
+  lastReviewed?: string
+  version?: string
+  gradeRationale?: string
+}
+
+const DEFAULT_USPSTF_SOURCE: RecommendationSource = {
+  title: "USPSTF Grade A & B recommendations",
+  organization: "U.S. Preventive Services Task Force",
+  url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation-topics/uspstf-and-b-recommendations",
+  lastReviewed: "2024",
+}
+
+const SOURCES_BY_RECOMMENDATION: Record<string, RecommendationSource[]> = {
+  "bp-screening": [
+    {
+      title: "High Blood Pressure in Adults: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/high-blood-pressure-in-adults-screening",
+      publishedDate: "April 2021",
+      lastReviewed: "April 2021",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade A: High certainty that screening for hypertension in adults has substantial net benefit. Uncontrolled hypertension is a leading risk factor for cardiovascular disease.",
+    },
+  ],
+  "colorectal-cancer": [
+    {
+      title: "Colorectal Cancer: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/colorectal-cancer-screening",
+      publishedDate: "May 2021",
+      lastReviewed: "May 2021",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade A: High certainty that screening for colorectal cancer in adults aged 45-75 has substantial net benefit. Early detection significantly improves survival rates.",
+    },
+  ],
+  "cervical-cancer": [
+    {
+      title: "Cervical Cancer: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/cervical-cancer-screening",
+      publishedDate: "August 2018",
+      lastReviewed: "August 2018",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade A: High certainty that screening for cervical cancer in women aged 21-65 has substantial net benefit. Pap and HPV testing are effective in detecting precancerous lesions.",
+    },
+  ],
+  "hiv-screening": [
+    {
+      title: "HIV Infection: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/human-immunodeficiency-virus-hiv-infection-screening",
+      publishedDate: "June 2019",
+      lastReviewed: "June 2019",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade A: High certainty that screening for HIV in adolescents and adults aged 15-65 has substantial net benefit. Early treatment with antiretroviral therapy dramatically improves outcomes.",
+    },
+  ],
+  "lung-cancer": [
+    {
+      title: "Lung Cancer: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/lung-cancer-screening",
+      publishedDate: "March 2021",
+      lastReviewed: "March 2021",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: High certainty of moderate net benefit for annual low-dose CT screening in adults 50-80 with 20+ pack-year smoking history. Detects early-stage cancers when surgery is curative.",
+    },
+  ],
+  preeclampsia: [
+    {
+      title: "Aspirin Use to Prevent Preeclampsia and Related Morbidity and Mortality",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/aspirin-to-prevent-preeclampsia-and-related-morbidity-and-mortality-preventive-medication",
+      publishedDate: "September 2014",
+      lastReviewed: "October 2024",
+      version: "Final Recommendation Statement (update pending)",
+      gradeRationale: "Grade B: Moderate certainty that low-dose aspirin after 12 weeks of gestation reduces preeclampsia risk in women at high risk.",
+    },
+  ],
+  "breast-cancer": [
+    {
+      title: "Breast Cancer: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/breast-cancer-screening",
+      publishedDate: "April 2024",
+      lastReviewed: "April 2024",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty of moderate net benefit for biennial mammography screening in women aged 40-74. Early detection improves treatment options and survival.",
+    },
+  ],
+  "diabetes-screening": [
+    {
+      title: "Prediabetes and Type 2 Diabetes: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/screening-for-prediabetes-and-type-2-diabetes",
+      publishedDate: "August 2021",
+      lastReviewed: "August 2021",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty that screening for prediabetes and type 2 diabetes in adults 35-70 who are overweight/obese has moderate net benefit. Lifestyle interventions delay diabetes onset.",
+    },
+  ],
+  "depression-screening": [
+    {
+      title: "Depression and Suicide Risk in Adults: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/depression-and-suicide-risk-in-adults-screening",
+      publishedDate: "June 2023",
+      lastReviewed: "June 2023",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty that screening for depression in adults has moderate net benefit when adequate support for diagnosis, treatment, and follow-up is in place.",
+    },
+  ],
+  "statin-prevention": [
+    {
+      title: "Statin Use for the Primary Prevention of Cardiovascular Disease",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/statin-use-in-adults-preventive-medication",
+      publishedDate: "August 2022",
+      lastReviewed: "August 2022",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty that statin use for primary prevention of CVD events has moderate net benefit in adults 40-75 with 1+ CVD risk factors and 10-year CVD risk >= 10%.",
+    },
+  ],
+  osteoporosis: [
+    {
+      title: "Osteoporosis to Prevent Fractures: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/osteoporosis-screening",
+      publishedDate: "June 2018",
+      lastReviewed: "June 2018",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty that screening for osteoporosis in postmenopausal women aged 65+ prevents fractures. Bone density testing identifies those who benefit from treatment.",
+    },
+  ],
+  "abdominal-aortic": [
+    {
+      title: "Abdominal Aortic Aneurysm: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/abdominal-aortic-aneurysm-screening",
+      publishedDate: "December 2019",
+      lastReviewed: "December 2019",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty that one-time screening for AAA by ultrasonography in men aged 65-75 who have ever smoked has moderate net benefit.",
+    },
+  ],
+  "hep-c": [
+    {
+      title: "Hepatitis C Virus Infection in Adolescents and Adults: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/hepatitis-c-screening",
+      publishedDate: "March 2020",
+      lastReviewed: "March 2020",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty that screening for HCV infection in adults aged 18-79 has moderate net benefit. Direct-acting antiviral treatments achieve cure rates exceeding 95%.",
+    },
+  ],
+  "anxiety-screening": [
+    {
+      title: "Anxiety Disorders in Adults: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/anxiety-adults-screening",
+      publishedDate: "June 2023",
+      lastReviewed: "June 2023",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty that screening for anxiety disorders in adults, including pregnant and postpartum persons, has moderate net benefit.",
+    },
+  ],
+  "sti-screening": [
+    {
+      title: "Chlamydia and Gonorrhea: Screening",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/chlamydia-and-gonorrhea-screening",
+      publishedDate: "September 2014",
+      lastReviewed: "September 2021",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty that screening for chlamydia and gonorrhea in sexually active women aged 24 and younger has moderate net benefit.",
+    },
+  ],
+  "obesity-counseling": [
+    {
+      title: "Obesity in Adults: Interventions",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/obesity-in-adults-interventions",
+      publishedDate: "June 2018",
+      lastReviewed: "June 2018",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty that intensive behavioral interventions for adults with obesity (BMI >= 30) have moderate net benefit.",
+    },
+  ],
+  "lipid-screening": [
+    {
+      title: "Statin Use for the Primary Prevention of Cardiovascular Disease",
+      organization: "U.S. Preventive Services Task Force",
+      url: "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation/statin-use-in-adults-preventive-medication",
+      publishedDate: "August 2022",
+      lastReviewed: "August 2022",
+      version: "Final Recommendation Statement",
+      gradeRationale: "Grade B: Moderate certainty that statin use for primary prevention of CVD has moderate net benefit in adults 40-75 with cardiovascular risk factors.",
+    },
+  ],
+}
+
+function getRecommendationSources(recommendationId: string): RecommendationSource[] {
+  return SOURCES_BY_RECOMMENDATION[recommendationId] || [DEFAULT_USPSTF_SOURCE]
+}
+
 const USPSTF_GUIDELINES = [
   // Grade A - Strongly Recommended
   { 
@@ -278,6 +489,7 @@ type Recommendation = {
   alternativeProviders: string[]
   canBeDoneBy: "primary" | "specialist" | "either"
   providerNote: string
+  sources: RecommendationSource[]
 }
 
 type ClinicalReviewFlag = {
@@ -323,12 +535,13 @@ function getRecommendations(age: number, gender: string, riskFactors: string[]) 
     // Provider information
     primaryProvider: g.primaryProvider,
     alternativeProviders: g.alternativeProviders,
-    canBeDoneBy: g.canBeDoneBy,
+    canBeDoneBy: g.canBeDoneBy as Recommendation["canBeDoneBy"],
     providerNote: g.canBeDoneBy === 'primary' 
       ? `Your Primary Care Physician can perform this screening during a regular visit.`
       : g.canBeDoneBy === 'specialist'
       ? `This requires a specialist. Ask your PCP for a referral to a ${g.primaryProvider}.`
-      : `This can be done by your Primary Care Physician or a ${g.primaryProvider}.`
+      : `This can be done by your Primary Care Physician or a ${g.primaryProvider}.`,
+    sources: getRecommendationSources(g.id),
   }))
 }
 

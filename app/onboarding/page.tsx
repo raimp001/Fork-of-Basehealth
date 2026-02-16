@@ -202,6 +202,7 @@ function mergeDraftWithCurrent(
 ): OnboardingFormData {
   const keys = Object.keys(EMPTY_FORM_DATA) as (keyof OnboardingFormData)[]
   const merged: OnboardingFormData = { ...existingDraft }
+  const mergedMutable = merged as unknown as Record<string, string | boolean | string[]>
 
   for (const key of keys) {
     const currentValue = currentForm[key]
@@ -211,7 +212,7 @@ function mergeDraftWithCurrent(
     if (Array.isArray(currentValue)) {
       const shouldUseCurrent =
         currentValue.length > 0 || !Array.isArray(existingValue) || existingValue.length === 0
-      merged[key] = (shouldUseCurrent ? currentValue : existingValue) as OnboardingFormData[typeof key]
+      mergedMutable[key] = shouldUseCurrent ? currentValue : (existingValue as string[])
       continue
     }
 
@@ -221,7 +222,7 @@ function mergeDraftWithCurrent(
       const defaultString = typeof defaultValue === "string" ? defaultValue : ""
       const shouldUseCurrent =
         currentTrimmed.length > 0 && (currentValue !== defaultString || existingString.trim().length === 0)
-      merged[key] = (shouldUseCurrent ? currentValue : existingString) as OnboardingFormData[typeof key]
+      mergedMutable[key] = shouldUseCurrent ? currentValue : existingString
       continue
     }
 
@@ -229,7 +230,7 @@ function mergeDraftWithCurrent(
       const existingBool = typeof existingValue === "boolean" ? existingValue : false
       const defaultBool = typeof defaultValue === "boolean" ? defaultValue : false
       const shouldUseCurrent = currentValue !== defaultBool || existingBool === defaultBool
-      merged[key] = (shouldUseCurrent ? currentValue : existingBool) as OnboardingFormData[typeof key]
+      mergedMutable[key] = shouldUseCurrent ? currentValue : existingBool
     }
   }
 
@@ -274,7 +275,11 @@ function OnboardingContent() {
   const [referenceData, setReferenceData] = useState<any>({})
 
   const hydrateFromApplication = useCallback(
-    (application: Record<string, unknown>, mergeCurrent: boolean) => {
+    (
+      application: Record<string, unknown>,
+      mergeCurrent: boolean,
+      applyStep = true,
+    ) => {
       const appRole = normalizeRole(application.role)
       if (appRole) {
         setRole(appRole)
@@ -291,7 +296,7 @@ function OnboardingContent() {
       }
 
       const effectiveRole = appRole || role
-      if (effectiveRole) {
+      if (effectiveRole && applyStep) {
         setStep(clampStep(application.currentStep, effectiveRole))
       }
 
@@ -400,22 +405,55 @@ function OnboardingContent() {
     setError(null)
 
     try {
+      if (!role) {
+        setError("Please select a role")
+        return false
+      }
+
       let currentAppId = applicationId
+      let payloadRole: OnboardingRole = role
+      let payloadCountry = country
+      let payloadFormData: OnboardingFormData = formData
       
       if (!currentAppId) {
         const createRes = await fetch("/api/onboarding/application", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role, country, email: formData.email }),
+          body: JSON.stringify({ role: payloadRole, country: payloadCountry, email: formData.email }),
         })
         const createData = await createRes.json()
         
         if (!createData.success) {
           throw new Error(createData.error || "Failed to create application")
         }
-        
-        currentAppId = createData.application.id
+
+        const createdApplication =
+          createData.application && typeof createData.application === "object"
+            ? (createData.application as Record<string, unknown>)
+            : null
+
+        if (!createdApplication) {
+          throw new Error("Failed to load application details")
+        }
+
+        currentAppId = toStringValue(createdApplication.id)
+        if (!currentAppId) {
+          throw new Error("Missing application ID")
+        }
         setApplicationId(currentAppId)
+
+        const existingRole = normalizeRole(createdApplication.role)
+        if (existingRole) {
+          payloadRole = existingRole
+        }
+
+        payloadCountry = toStringValue(createdApplication.country, payloadCountry)
+
+        if (createData.resuming) {
+          payloadFormData = mergeDraftWithCurrent(mapApplicationToFormData(createdApplication), formData)
+          setFormData(payloadFormData)
+          hydrateFromApplication(createdApplication, true, false)
+        }
       }
 
       const updateRes = await fetch("/api/onboarding/application", {
@@ -424,7 +462,7 @@ function OnboardingContent() {
         body: JSON.stringify({
           applicationId: currentAppId,
           step,
-          data: { ...formData, role, country },
+          data: { ...payloadFormData, role: payloadRole, country: payloadCountry },
           submit,
         }),
       })
@@ -439,8 +477,9 @@ function OnboardingContent() {
         return false
       }
 
-      if (submit) {
-        router.push("/onboarding/success")
+      if (submit && currentAppId) {
+        const successParams = new URLSearchParams({ id: currentAppId })
+        router.push(`/onboarding/success?${successParams.toString()}`)
       }
       return true
     } catch (e) {
@@ -485,7 +524,7 @@ function OnboardingContent() {
     
     const steps = role === "PROVIDER" ? PROVIDER_STEPS : CAREGIVER_STEPS
     if (step < steps.length - 1) {
-      setStep(step + 1)
+      setStep((previous) => Math.min(previous + 1, steps.length - 1))
       setError(null)
     }
   }
@@ -558,6 +597,20 @@ function OnboardingContent() {
             </div>
           )}
 
+          {isHydrating && (
+            <div className="mb-6 p-4 rounded-lg flex items-center gap-3" style={{ backgroundColor: "rgba(148, 163, 184, 0.12)", border: "1px solid rgba(148, 163, 184, 0.25)" }}>
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Loading your saved application draft...</p>
+            </div>
+          )}
+
+          {restoredDraft && !isHydrating && (
+            <div className="mb-6 p-4 rounded-lg flex items-center gap-3" style={{ backgroundColor: "rgba(34, 197, 94, 0.10)", border: "1px solid rgba(34, 197, 94, 0.2)" }}>
+              <CheckCircle className="w-4 h-4 text-emerald-600" />
+              <p className="text-sm text-foreground">Saved draft restored. You can continue where you left off.</p>
+            </div>
+          )}
+
           {/* Content Card */}
           <div className="rounded-xl p-6" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
             
@@ -620,7 +673,7 @@ function OnboardingContent() {
                           {role === "PROVIDER" ? "Licensed states" : "Service area"}
                         </Label>
                         <div className="grid grid-cols-5 gap-2 max-h-40 overflow-y-auto p-3 border border-border rounded-lg bg-background/40">
-                          {['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'].map((state) => (
+                          {US_STATES.map((state) => (
                             <button
                               key={state}
                               onClick={() => {
@@ -876,7 +929,7 @@ function OnboardingContent() {
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent className="max-h-60">
-                        {['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'].map(s => (
+                        {US_STATES.map(s => (
                           <SelectItem key={s} value={s}>{s}</SelectItem>
                         ))}
                       </SelectContent>
@@ -1047,13 +1100,23 @@ function OnboardingContent() {
 
           {/* Save Later */}
           {step > 0 && (
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-2">
               <button 
                 onClick={() => saveApplication()}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Save and continue later
               </button>
+              {applicationId && (
+                <div>
+                  <Link
+                    href={`/onboarding/status?id=${encodeURIComponent(applicationId)}`}
+                    className="text-sm text-foreground hover:underline underline-offset-4"
+                  >
+                    Track application status
+                  </Link>
+                </div>
+              )}
             </div>
           )}
         </div>
