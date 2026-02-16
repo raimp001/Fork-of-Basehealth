@@ -1,4 +1,10 @@
 import { NextResponse } from "next/server"
+import {
+  enrichRecommendations,
+  matchPathways,
+  getGuidelineEngineInfo,
+  type PatientProfile,
+} from "@/lib/guideline-engine"
 
 // USPSTF Grade A and B Recommendations with Provider Suggestions
 
@@ -750,33 +756,58 @@ export async function POST(request: Request) {
     // Sort by grade
     recommendations.sort((a, b) => a.grade.localeCompare(b.grade))
 
+    // v2: Enrich with guideline engine (high-risk pathways, due dates, versioning)
+    const profile: PatientProfile = {
+      age: Number(age),
+      gender: gender.toLowerCase() as "male" | "female" | "other",
+      smokingStatus: smokingStatus === "current" ? "current" : smokingStatus === "former" ? "former" : "never",
+      bmiCategory: bmiCategory || "normal",
+      isPregnant: isPregnant || false,
+      sexuallyActive: sexuallyActive || false,
+      familyHistory: familyHistory || [],
+      medicalHistory: medicalHistory || [],
+      additionalContext: additionalContext || "",
+    }
+
+    const enriched = enrichRecommendations(recommendations, profile)
+    const matchedPathways = matchPathways(profile)
+
     // Summarize provider types needed
     const specialistNeeded = recommendations.filter(r => r.canBeDoneBy === 'specialist')
     const primaryCareCanDo = recommendations.filter(r => r.canBeDoneBy === 'primary')
 
     return NextResponse.json({ 
       success: true,
-      recommendations,
+      recommendations: enriched,
       cdcRecommendations,
-      count: recommendations.length,
+      count: enriched.length,
       summary: {
-        totalScreenings: recommendations.length,
-        gradeACount: recommendations.filter(r => r.grade === 'A').length,
-        gradeBCount: recommendations.filter(r => r.grade === 'B').length,
+        totalScreenings: enriched.length,
+        gradeACount: enriched.filter(r => r.grade === 'A').length,
+        gradeBCount: enriched.filter(r => r.grade === 'B').length,
         primaryCareScreenings: primaryCareCanDo.length,
         specialistReferralsNeeded: specialistNeeded.length,
-        specialistsNeeded: [...new Set(specialistNeeded.map(r => r.primaryProvider))]
+        specialistsNeeded: [...new Set(specialistNeeded.map(r => r.primaryProvider))],
+        highRiskPathwaysMatched: matchedPathways.length,
       },
       riskProfile: {
         factors: unique(riskFactors),
-        level: riskFactors.length > 3 ? 'elevated' : riskFactors.length > 0 ? 'moderate' : 'low'
+        level: matchedPathways.length > 0 ? 'elevated' : riskFactors.length > 3 ? 'elevated' : riskFactors.length > 0 ? 'moderate' : 'low'
       },
+      highRiskPathways: matchedPathways.map(p => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        referrals: p.referrals,
+        source: p.source,
+      })),
       clinicalReviewFlags: parsedContext.clinicalReviewFlags,
       personalizationNotes: parsedContext.personalizationNotes,
       contextSummary: {
         hasAdditionalContext: Boolean(String(additionalContext || "").trim()),
         extractedRiskFactors: parsedContext.extractedRiskFactors,
       },
+      engine: getGuidelineEngineInfo(),
       disclaimer:
         "This is informational screening guidance. Higher-risk details can require individualized plans; confirm timing and modality with a licensed clinician.",
       timestamp: new Date().toISOString()

@@ -31,6 +31,23 @@ interface ScreeningRecommendation {
   sources?: RecommendationSource[]
   nextDueDate?: string
   lastCompleted?: string
+  // v2 enrichment fields
+  riskLevel?: string
+  adjustedFrequency?: string
+  pathwayApplied?: string
+  pathwayNote?: string
+  isOverdue?: boolean
+  intervalMonths?: number
+  guidelineVersion?: string
+  gradeRationale?: string
+}
+
+interface HighRiskPathway {
+  id: string
+  name: string
+  description: string
+  referrals: string[]
+  source: string
 }
 
 interface RiskProfile {
@@ -214,6 +231,7 @@ export default function ScreeningPage() {
   const [summary, setSummary] = useState<Summary | null>(null)
   const [clinicalReviewFlags, setClinicalReviewFlags] = useState<ClinicalReviewFlag[]>([])
   const [personalizationNotes, setPersonalizationNotes] = useState<string[]>([])
+  const [highRiskPathways, setHighRiskPathways] = useState<HighRiskPathway[]>([])
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([])
   const [timelineLoading, setTimelineLoading] = useState(false)
   const [timelineStatusMessage, setTimelineStatusMessage] = useState<string | null>(null)
@@ -315,6 +333,7 @@ export default function ScreeningPage() {
         setSummary(nextSummary)
         setClinicalReviewFlags(Array.isArray(data.clinicalReviewFlags) ? data.clinicalReviewFlags : [])
         setPersonalizationNotes(Array.isArray(data.personalizationNotes) ? data.personalizationNotes : [])
+        setHighRiskPathways(Array.isArray(data.highRiskPathways) ? data.highRiskPathways : [])
 
         const localEntry = buildLocalTimelineEntry({
           recommendations: nextRecommendations,
@@ -464,6 +483,43 @@ export default function ScreeningPage() {
             </section>
           )}
 
+          {/* High-risk pathways matched by guideline engine v2 */}
+          {highRiskPathways.length > 0 && (
+            <section className="mb-6 rounded-xl border border-rose-500/30 bg-rose-500/5 p-5 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <Shield className="h-4 w-4 text-rose-500" />
+                <h2 className="text-sm font-semibold text-foreground">
+                  High-risk pathways identified ({highRiskPathways.length})
+                </h2>
+              </div>
+              <div className="space-y-4">
+                {highRiskPathways.map((pathway) => (
+                  <div key={pathway.id} className="rounded-lg border border-rose-500/20 bg-background/80 p-4">
+                    <h3 className="text-sm font-semibold text-foreground">{pathway.name}</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">{pathway.description}</p>
+                    {pathway.referrals.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                          Recommended referrals
+                        </p>
+                        <ul className="mt-1 space-y-0.5">
+                          {pathway.referrals.map((ref, idx) => (
+                            <li key={`${pathway.id}-ref-${idx}`} className="text-xs text-foreground">
+                              • {ref}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <p className="mt-2 text-[10px] text-muted-foreground italic">
+                      Source: {pathway.source}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section className="mb-6 rounded-xl border border-border bg-card p-5 shadow-sm">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your profile</p>
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-6">
@@ -534,9 +590,31 @@ export default function ScreeningPage() {
                         <span className="inline-flex items-center rounded-full border border-border bg-muted/30 px-2 py-0.5 text-xs font-semibold text-foreground">
                           Grade {rec.grade}
                         </span>
+                        {rec.isOverdue && (
+                          <span className="inline-flex items-center rounded-full border border-rose-300 bg-rose-50 dark:border-rose-700 dark:bg-rose-900/30 px-2 py-0.5 text-xs font-semibold text-rose-600 dark:text-rose-300">
+                            Overdue
+                          </span>
+                        )}
+                        {rec.pathwayApplied && (
+                          <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-300">
+                            High-risk pathway
+                          </span>
+                        )}
                       </div>
 
                       <p className="text-sm text-muted-foreground">{rec.description}</p>
+
+                      {/* Adjusted frequency from pathway */}
+                      {rec.adjustedFrequency && (
+                        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-2.5">
+                          <p className="text-xs text-amber-700 dark:text-amber-300">
+                            <span className="font-semibold">Modified schedule:</span> {rec.adjustedFrequency}
+                          </p>
+                          {rec.pathwayNote && (
+                            <p className="mt-1 text-[11px] text-muted-foreground">{rec.pathwayNote}</p>
+                          )}
+                        </div>
+                      )}
 
                       <div className="rounded-lg border border-border bg-muted/20 p-3">
                         <p className="text-sm text-foreground">

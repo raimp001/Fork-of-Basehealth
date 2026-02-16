@@ -205,6 +205,28 @@ export default function AdminPortalPage() {
                 </Link>
               </div>
 
+              {/* Analytics & Growth */}
+              <div className="space-y-3 mt-8">
+                <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>Analytics & Growth</p>
+                
+                <Link href="/admin/analytics">
+                  <div className="rounded-xl p-5 transition-all cursor-pointer group" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <RefreshCw className="w-5 h-5" style={{ color: 'hsl(var(--accent))' }} />
+                        <div>
+                          <p className="font-medium">Onboarding Analytics</p>
+                          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                            Funnel conversion, drop-off rates, trends
+                          </p>
+                        </div>
+                      </div>
+                      <ArrowRight className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
+                    </div>
+                  </div>
+                </Link>
+              </div>
+
               {/* Footer */}
               <div className="mt-10 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                 <div className="flex items-center justify-between text-sm">
