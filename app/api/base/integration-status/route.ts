@@ -29,6 +29,8 @@ export async function GET() {
   const openclawKey =
     process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_PASSWORD || ""
 
+  const openclawGatewayAgentId = (process.env.OPENCLAW_GATEWAY_AGENT_ID || "main").trim()
+
   const openclawGatewayUrl = (process.env.OPENCLAW_GATEWAY_URL || "https://gateway.openclaw.ai")
     .trim()
     .replace(/\/$/, "")
@@ -45,7 +47,7 @@ export async function GET() {
         headers: {
           Authorization: `Bearer ${openclawKey}`,
           "Content-Type": "application/json",
-          "x-openclaw-agent-id": "main",
+          "x-openclaw-agent-id": openclawGatewayAgentId,
         },
         body: JSON.stringify({ model: "openclaw", messages: [] }),
         cache: "no-store",

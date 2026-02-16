@@ -105,9 +105,14 @@ export function getOpenClawModel(agent: OpenClawAgentId) {
   const apiKey = process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_PASSWORD
   if (!apiKey) return null
 
+  const gatewayAgentId = (process.env.OPENCLAW_GATEWAY_AGENT_ID || "main").trim()
+
   const openclaw = createOpenAI({
     apiKey,
     baseURL: `${OPENCLAW_GATEWAY_URL}/v1`,
+    // OpenClaw Gateway uses this header (or a model prefix) to select the active agent.
+    // Keeping this set ensures compatibility when using a Gateway token/password.
+    headers: gatewayAgentId ? { "x-openclaw-agent-id": gatewayAgentId } : undefined,
   })
 
   return openclaw(resolveOpenClawModel(agent))

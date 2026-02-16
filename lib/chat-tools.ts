@@ -81,7 +81,7 @@ export function buildChatTools(options: {
 
   const searchProviders = tool({
     description:
-      "Search for healthcare providers by query, specialty, and location. Returns a short list of candidates.",
+      "Search for healthcare providers by query, specialty, and location. Use this when the user asks for provider recommendations. Ask for missing specialty/location first. Do not fabricate providers.",
     parameters: z
       .object({
         query: z.string().trim().min(1).max(160).optional(),
@@ -146,7 +146,7 @@ export function buildChatTools(options: {
 
   const getOrderStatus = tool({
     description:
-      "Look up a BaseHealth booking/payment status by orderId (booking id) or paymentId/txHash. Returns a minimal, privacy-safe status summary.",
+      "Look up a BaseHealth booking/payment status by orderId (booking id) or paymentId/txHash. Use this when the user is asking about a specific payment/booking. If you do not have an orderId/tx hash, ask for it first. Returns a minimal, privacy-safe status summary.",
     parameters: z
       .object({
         orderId: z.string().trim().min(6).max(128),
@@ -287,7 +287,7 @@ export function buildChatTools(options: {
 
   const createCheckout = tool({
     description:
-      "Prepare a one-tap Base Pay checkout configuration (no funds move until the user taps Pay). For booking payments, provide bookingId to lock the amount.",
+      "Prepare a one-tap Base Pay checkout configuration (no funds move until the user taps Pay). Only call this after confirming the purpose and amount with the user. For booking payments, provide bookingId to lock the amount.",
     parameters: z
       .object({
         bookingId: z.string().trim().min(6).max(64).optional(),
@@ -392,4 +392,3 @@ export function buildChatTools(options: {
     create_checkout: createCheckout,
   }
 }
-

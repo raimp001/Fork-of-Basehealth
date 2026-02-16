@@ -218,8 +218,10 @@ export const OPENCLAW_AGENT_CATALOG: Record<OpenClawAgentId, OpenClawAgentDefini
       workflow: [
         "Triage urgency and escalate if red flags exist.",
         "Recommend the most appropriate care setting and clinician type; explain why in plain language.",
+        "If the user wants specific provider options, collect specialty + location first, then use the `search_providers` tool and summarize the best matches.",
         "List 3-6 prep items (symptom timeline, meds, prior tests, questions).",
         "Give a simple next action (book/search) plus fallback options if availability is limited.",
+        "If the user asks to pay or needs a one-tap checkout, confirm the purpose + amount, then use `create_checkout`.",
       ],
       outputFormat: [
         "Best next step (one sentence).",
@@ -235,6 +237,10 @@ export const OPENCLAW_AGENT_CATALOG: Record<OpenClawAgentId, OpenClawAgentDefini
       safety: [
         "If severe or rapidly worsening symptoms, advise urgent in-person care.",
         "Do not request sensitive secrets or unnecessary identifying info.",
+      ],
+      troubleshooting: [
+        "If provider search returns no results, broaden the specialty terms or expand the location and try again.",
+        "If a tool returns a not-authorized error, ask the user to sign in with the Base wallet used for the order/payment.",
       ],
     },
     placeholder: "Ask about finding providers or next steps...",
@@ -281,6 +287,7 @@ export const OPENCLAW_AGENT_CATALOG: Record<OpenClawAgentId, OpenClawAgentDefini
       workflow: [
         "Confirm urgency (red flags) and recommend the right timeline for care.",
         "Suggest the best visit modality and what to prepare.",
+        "If the user wants help finding a clinician, ask for specialty + location, then use `search_providers` and present a short shortlist.",
         "Provide a short 'during visit' questions list.",
         "Provide a simple follow-up checklist with timeboxes (24h, 1 week, etc.).",
       ],
@@ -298,6 +305,9 @@ export const OPENCLAW_AGENT_CATALOG: Record<OpenClawAgentId, OpenClawAgentDefini
       safety: [
         "For serious symptoms, recommend urgent evaluation.",
         "Do not request sensitive secrets; minimize personal identifiers.",
+      ],
+      troubleshooting: [
+        "If scheduling constraints are unclear, ask for 1-2 concrete constraints (earliest date, preferred modality, travel radius).",
       ],
     },
     placeholder: "Ask about booking, prep, or follow-up timing...",
@@ -592,8 +602,10 @@ export const OPENCLAW_AGENT_CATALOG: Record<OpenClawAgentId, OpenClawAgentDefini
       ],
       workflow: [
         "Summarize what the user is trying to confirm (status, recipient, amount).",
+        "If the user provides an order ID or transaction hash, use the `get_order_status` tool and reflect the exact status back to them.",
         "Explain verification steps: confirmations, token transfer logs, recipient address, amount, timestamp.",
         "Explain likely causes if something looks wrong (wrong chain, pending confirmations, insufficient funds, rejected signature).",
+        "If the user wants to pay, confirm the purpose + amount, then use `create_checkout` to prepare a one-tap payment.",
         "Provide the next action (retry, wait, contact support, collect identifiers).",
       ],
       outputFormat: [
@@ -610,6 +622,10 @@ export const OPENCLAW_AGENT_CATALOG: Record<OpenClawAgentId, OpenClawAgentDefini
       safety: [
         "Never request seed phrases/private keys.",
         "If the user suspects fraud, advise contacting wallet support and not signing unknown messages.",
+      ],
+      troubleshooting: [
+        "If `get_order_status` returns not found, ask for the order ID or tx hash again and confirm which network it was on (Base mainnet vs Sepolia).",
+        "If `get_order_status` returns not authorized, the user likely signed in with a different wallet. Ask them to sign in with the wallet that paid.",
       ],
     },
     placeholder: "Ask about payments, wallets, and transaction details...",
@@ -656,6 +672,7 @@ export const OPENCLAW_AGENT_CATALOG: Record<OpenClawAgentId, OpenClawAgentDefini
       workflow: [
         "Identify what kind of refund this is (onchain transfer vs platform adjustment) and what can be verified.",
         "List the minimum info needed to investigate; ask 1-2 questions if missing.",
+        "If an order ID or tx hash is available, use `get_order_status` to confirm the recorded status before giving next steps.",
         "Provide step-by-step verification guidance (BaseScan) when a tx hash exists.",
         "Set expectations: timelines, what 'pending' means, and escalation path.",
       ],
@@ -673,6 +690,10 @@ export const OPENCLAW_AGENT_CATALOG: Record<OpenClawAgentId, OpenClawAgentDefini
       safety: [
         "Never request seed phrases/private keys.",
         "Encourage users not to share sensitive personal information in chat.",
+      ],
+      troubleshooting: [
+        "If `get_order_status` returns not found, ask for the order ID or tx hash and the approximate payment date/time.",
+        "If `get_order_status` returns not authorized, ask the user to sign in with the wallet used for the original payment.",
       ],
     },
     placeholder: "Ask about refunds, receipts, or payment issue resolution...",
