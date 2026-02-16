@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sendRefundNotification } from "@/lib/booking-notifications"
 import { ACTIVE_CHAIN, getTxExplorerUrl } from "@/lib/network-config"
-import { createBillingReceipt, generateMockBaseTxHash } from "@/lib/base-billing"
+import { createBillingReceipt } from "@/lib/base-billing"
 
 /**
  * Booking Refund API
@@ -17,7 +17,7 @@ export async function POST(
   try {
     const { id } = await context.params
     const body = await request.json()
-    const { reason, refundAmount } = body
+    const { reason, refundAmount, txHash } = body
 
     // Get the booking
     const booking = await prisma.booking.findUnique({
@@ -61,16 +61,24 @@ export async function POST(
 
     const amountToRefund = parsedRefundAmount
 
+    const providedTxHash = typeof txHash === "string" ? txHash.trim() : ""
+    const validTxHash = /^0x[a-fA-F0-9]{64}$/.test(providedTxHash)
+
     // Process refund based on payment provider
     let refundResult: { success: boolean; txHash?: string; error?: string } = { success: false }
 
     switch (booking.paymentProvider) {
       case 'BASE_USDC':
       case 'COINBASE_ONCHAIN':
-        // Placeholder onchain refund transaction hash (replace with signed transfer in production).
+        if (!validTxHash) {
+          return NextResponse.json(
+            { success: false, error: 'Valid onchain refund txHash is required for Base refunds.' },
+            { status: 400 }
+          )
+        }
         refundResult = {
           success: true,
-          txHash: generateMockBaseTxHash(`${id}:${Date.now()}:${amountToRefund}`),
+          txHash: providedTxHash,
         }
         break
 

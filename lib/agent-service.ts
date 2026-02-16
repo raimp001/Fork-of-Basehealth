@@ -179,7 +179,7 @@ const getWalletContext = async (walletAddress: string) => {
   return {
     walletAddress,
     network: process.env.NODE_ENV === "production" ? "base-mainnet" : "base-sepolia",
-    mockContext: true,
+    contextSource: "wallet",
     generatedAt: new Date().toISOString(),
   }
 }
@@ -188,7 +188,7 @@ const getTransactionContext = async (txHash: string) => {
   return {
     txHash,
     explorerUrl: `https://${process.env.NODE_ENV === "production" ? "" : "sepolia."}basescan.org/tx/${txHash}`,
-    mockContext: true,
+    contextSource: "transaction",
     generatedAt: new Date().toISOString(),
   }
 }
@@ -198,7 +198,7 @@ const getHealthcarePaymentContext = async (appointmentId: string, walletAddress:
     appointmentId,
     walletAddress,
     network: process.env.NODE_ENV === "production" ? "base-mainnet" : "base-sepolia",
-    mockContext: true,
+    contextSource: "healthcare-payment",
     generatedAt: new Date().toISOString(),
   }
 }

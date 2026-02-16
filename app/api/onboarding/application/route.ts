@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
-import { 
+import {
   isDatabaseAvailable,
   findApplicationByEmail,
   findApplicationById,
@@ -17,7 +17,7 @@ import {
   updateApplication as updateInMemoryApplication,
   StoredApplication
 } from "@/lib/application-store"
-import bcrypt from "bcryptjs"
+import { getPrimaryAdminEmail } from "@/lib/admin-access"
 
 // ============================================================================
 // ADMIN NOTIFICATION FUNCTION
@@ -32,7 +32,7 @@ interface NotificationData {
 }
 
 async function notifyAdminOfNewApplication(data: NotificationData): Promise<void> {
-  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL
+  const adminEmail = getPrimaryAdminEmail()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.basehealth.xyz"
   
   // Log the notification (always)

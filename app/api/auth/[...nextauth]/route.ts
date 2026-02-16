@@ -4,6 +4,7 @@ import { verifyPassword } from "@/lib/user-store"
 import { prisma } from "@/lib/prisma"
 import { ACTIVE_CHAIN } from "@/lib/network-config"
 import { verifyWalletMessageSignature } from "@/lib/wallet-signin"
+import { isAdminEmail } from "@/lib/admin-access"
 import {
   WALLET_NONCE_COOKIE_NAME,
   WALLET_SIGNIN_MESSAGE_VERSION,
@@ -29,6 +30,13 @@ const roleToEnum = (role?: string | null) => {
   if (value === "caregiver") return "CAREGIVER"
   if (value === "admin") return "ADMIN"
   return "PATIENT"
+}
+
+const normalizeRoleForEmail = (role?: string | null, email?: string | null) => {
+  const normalized = roleToEnum(role)
+  if (isAdminEmail(email)) return "ADMIN"
+  if (normalized === "ADMIN") return "PATIENT"
+  return normalized
 }
 
 const handler = NextAuth({
@@ -97,7 +105,7 @@ const handler = NextAuth({
           id: user.id,
           email: user.email || undefined,
           name: user.name || undefined,
-          role: user.role,
+          role: normalizeRoleForEmail(user.role, user.email),
           walletAddress: user.walletAddress,
           privyUserId: user.privyUserId || undefined,
         } as any
@@ -125,7 +133,7 @@ const handler = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          role: roleToEnum(user.role),
+          role: normalizeRoleForEmail(user.role, user.email),
           image: user.image
         }
       }
@@ -138,17 +146,21 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.email = (user as any).email ?? token.email
         token.id = user.id
-        token.role = (user as any).role
+        token.role = normalizeRoleForEmail((user as any).role, (user as any).email ?? (token.email as string | undefined))
         token.walletAddress = (user as any).walletAddress
         token.privyUserId = (user as any).privyUserId
+      } else {
+        token.role = normalizeRoleForEmail(token.role as string | undefined, token.email as string | undefined)
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.role = token.role as string
+        session.user.role = normalizeRoleForEmail(token.role as string | undefined, token.email as string | undefined)
+        session.user.email = (token.email as string | undefined) ?? session.user.email
         ;(session.user as any).walletAddress = (token as any).walletAddress
         ;(session.user as any).privyUserId = (token as any).privyUserId
       }

@@ -5,9 +5,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { logger } from "@/lib/logger"
-import { logAdminDecision, createAuditLog, AuditActions } from "@/lib/onboarding/audit-service"
+import { logAdminDecision } from "@/lib/onboarding/audit-service"
+import { getPrimaryAdminEmail } from "@/lib/admin-access"
 import { ApplicationStatus, ProviderStatus } from "@prisma/client"
-import bcrypt from "bcryptjs"
 
 export async function POST(
   req: NextRequest,
@@ -170,7 +170,7 @@ export async function POST(
     await logAdminDecision(
       id,
       "admin", // In real app, get from auth
-      "admin@basehealth.xyz", // In real app, get from auth
+      getPrimaryAdminEmail(),
       action as any,
       notes,
       req.headers.get("x-forwarded-for") || undefined

@@ -2,7 +2,7 @@
  * Provider "Me" API
  * 
  * Returns the currently logged-in provider
- * TODO: Replace mock auth with proper authentication middleware
+ * TODO: Replace header-token auth with proper session middleware
  */
 
 import { NextRequest, NextResponse } from "next/server"
@@ -12,8 +12,8 @@ import { logger } from "@/lib/logger"
 
 export async function GET(req: NextRequest) {
   try {
-    // TODO: Replace with proper authentication middleware
-    // For now, get token from Authorization header
+    // TODO: Replace with proper authentication middleware.
+    // Current behavior expects a provider JWT in Authorization header.
     const authHeader = req.headers.get("authorization")
     
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -99,4 +99,3 @@ export async function GET(req: NextRequest) {
     )
   }
 }
-

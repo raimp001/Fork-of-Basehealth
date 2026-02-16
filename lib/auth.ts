@@ -17,7 +17,7 @@ export interface Session {
   sessionId: string
 }
 
-// Mock session storage (in production, use a secure database)
+// In-memory session storage (development-only; replace with persistent storage in production)
 const sessions = new Map<string, Session>()
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -64,7 +64,7 @@ export async function requirePatientAuth(): Promise<User> {
   return user
 }
 
-export function createMockSession(user: User): string {
+export function createSession(user: User): string {
   const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
   
@@ -77,29 +77,8 @@ export function createMockSession(user: User): string {
   return sessionId
 }
 
-// Mock patient data for demonstration
-export const mockPatients = {
-  'patient_001': {
-    id: 'patient_001',
-    email: 'john.doe@email.com',
-    firstName: 'John',
-    lastName: 'Doe',
-    role: 'patient' as const,
-    patientId: 'patient_001'
-  },
-  'patient_002': {
-    id: 'patient_002',
-    email: 'jane.smith@email.com',
-    firstName: 'Jane',
-    lastName: 'Smith',
-    role: 'patient' as const,
-    patientId: 'patient_002'
-  }
-}
-
-export function getMockPatient(patientId: string): User | null {
-  return mockPatients[patientId as keyof typeof mockPatients] || null
-}
+// Backward-compatible alias; remove after all callers migrate.
+export const createMockSession = createSession
 
 // Access logging for security audit
 export interface AccessLog {

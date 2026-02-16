@@ -1,857 +1,328 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { logger } from '@/lib/logger'
-import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
-import { apiCache, generateKey } from '@/lib/api-cache'
-import { 
-  searchProviders, 
-  searchProvidersBySpecialty, 
-  formatProviderName, 
-  getProviderAddress, 
+import { NextRequest, NextResponse } from "next/server"
+import { logger } from "@/lib/logger"
+import { rateLimit, getClientIdentifier } from "@/lib/rate-limiter"
+import { apiCache, generateKey } from "@/lib/api-cache"
+import {
+  formatProviderName,
   getProviderSpecialty,
-  isAcceptingPatients,
-  NPIProvider 
-} from '@/lib/npi-api'
-import { calculateTrialDistance, convertZipToLocation } from '@/lib/geocoding'
-import { searchProviders as searchProvidersAI, parseNaturalLanguageQuery } from '@/lib/ai-service'
-import { healthDBService } from '@/lib/healthdb-service'
-import { prisma } from '@/lib/prisma'
+  searchProviders,
+  searchProvidersBySpecialty,
+  type NPIProvider,
+} from "@/lib/npi-api"
+import { calculateTrialDistance, convertZipToLocation } from "@/lib/geocoding"
+import { parseNaturalLanguageQuery } from "@/lib/ai-service"
+import { prisma } from "@/lib/prisma"
 
-// Provider source types for distinguishing where data comes from
-type ProviderSource = 'basehealth' | 'npi_registry' | 'google_places' | 'ai_generated'
+type ProviderSource = "basehealth" | "npi_registry" | "google_places"
 
-// Map screening types to provider specialties
-const SCREENING_TO_SPECIALTY_MAP: Record<string, string[]> = {
-  'blood_pressure': ['Internal Medicine', 'Family Medicine', 'Primary Care', 'Cardiology'],
-  'cholesterol': ['Internal Medicine', 'Family Medicine', 'Primary Care', 'Cardiology'],
-  'diabetes': ['Internal Medicine', 'Family Medicine', 'Primary Care', 'Endocrinology'],
-  'cancer': ['Oncology', 'Internal Medicine', 'Family Medicine'],
-  'breast_cancer': ['Oncology', 'Radiology', 'OB/GYN', 'Women\'s Health'],
-  'colorectal_cancer': ['Gastroenterology', 'Internal Medicine', 'Family Medicine'],
-  'lung_cancer': ['Pulmonology', 'Oncology', 'Internal Medicine'],
-  'cervical_cancer': ['OB/GYN', 'Women\'s Health', 'Family Medicine'],
-  'depression': ['Psychiatry', 'Psychology', 'Mental Health', 'Primary Care'],
-  'vision': ['Ophthalmology', 'Optometry'],
-  'hearing': ['Audiology', 'ENT', 'Otolaryngology'],
-  'osteoporosis': ['Rheumatology', 'Internal Medicine', 'Endocrinology'],
-  'immunization': ['Internal Medicine', 'Family Medicine', 'Primary Care'],
-  'std': ['Internal Medicine', 'Family Medicine', 'Infectious Disease', 'OB/GYN'],
-  'hiv': ['Infectious Disease', 'Internal Medicine', 'Primary Care']
-}
-
-// Enhanced provider relevance scoring algorithm
-function calculateProviderRelevanceScore(params: {
-  provider: NPIProvider
-  query: string
-  enhancedSpecialty?: string
-  searchSpecialties: string[]
-  location?: string
-  distance?: number | null
+type ProviderSearchResult = {
+  id: string
+  npi: string
+  name: string
   specialty: string
-}): number {
-  const { provider, query, enhancedSpecialty, searchSpecialties, distance, specialty } = params
-  let score = 0
-  
-  // Base score for having complete information
-  score += 10
-  
-  // Specialty relevance scoring (highest priority)
-  if (enhancedSpecialty && specialty) {
-    const specialtyLower = specialty.toLowerCase()
-    const enhancedSpecialtyLower = enhancedSpecialty.toLowerCase()
-    
-    // Exact specialty match
-    if (specialtyLower === enhancedSpecialtyLower) {
-      score += 100
-    } else if (specialtyLower.includes(enhancedSpecialtyLower) || enhancedSpecialtyLower.includes(specialtyLower)) {
-      score += 75
-    } else if (searchSpecialties.some(s => specialtyLower.includes(s.toLowerCase()) || s.toLowerCase().includes(specialtyLower))) {
-      score += 50
-    }
-    
-    // Primary care bonus for general searches
-    if (['family medicine', 'internal medicine', 'primary care', 'general practice'].includes(specialtyLower)) {
-      score += 25
-    }
-  }
-  
-  // Distance scoring (closer is better)
-  if (distance !== null && distance !== undefined) {
-    if (distance <= 5) score += 50
-    else if (distance <= 10) score += 40
-    else if (distance <= 15) score += 30
-    else if (distance <= 25) score += 20
-    else if (distance <= 50) score += 10
-    // No bonus for distances > 50 miles
-  }
-  
-  // Provider availability scoring
-  if (isAcceptingPatients(provider)) {
-    score += 30
-  }
-  
-  // Credential scoring
-  const credentials = provider.basic?.credential || ''
-  if (credentials.includes('MD') || credentials.includes('DO')) {
-    score += 20
-  } else if (credentials.includes('NP') || credentials.includes('PA')) {
-    score += 15
-  }
-  
-  // Name relevance (if query contains provider name terms)
-  if (query && provider.basic) {
-    const queryLower = query.toLowerCase()
-    const firstName = provider.basic.first_name?.toLowerCase() || ''
-    const lastName = provider.basic.last_name?.toLowerCase() || ''
-    const orgName = provider.basic.organization_name?.toLowerCase() || ''
-    
-    if (queryLower.includes(firstName) || queryLower.includes(lastName) || queryLower.includes(orgName)) {
-      score += 40
-    }
-  }
-  
-  // Address completeness scoring
-  const primaryAddress = provider.addresses?.find(addr => addr.address_purpose === 'LOCATION') || provider.addresses?.[0]
-  if (primaryAddress) {
-    if (primaryAddress.telephone_number) score += 5
-    if (primaryAddress.address_1) score += 5
-    if (primaryAddress.city && primaryAddress.state) score += 10
-  }
-  
-  // Multiple taxonomy bonus (indicates specialization)
-  if (provider.taxonomies && provider.taxonomies.length > 1) {
-    score += 10
-  }
-  
-  return Math.max(0, score) // Ensure non-negative score
+  address: string
+  city: string
+  state: string
+  zip: string
+  distance: number | null
+  rating: number | null
+  reviewCount: number | null
+  acceptingPatients: boolean | null
+  phone: string
+  credentials: string
+  source: ProviderSource
+  isVerified?: boolean
+  hasCalendar?: boolean
 }
 
-// Execute fallback search with improved error handling and consistency
-async function executeFallbackSearch(params: {
-  searchSpecialties: string[]
-  location?: string
-  query: string
-  limit: number
-  city?: string
-  state?: string
-}): Promise<any[]> {
-  const { searchSpecialties, location, query, limit, city, state } = params
-  
-  // Try Google Places API first (if available)
-  if (process.env.GOOGLE_PLACES_API_KEY && city && state) {
-    try {
-      // Build a very specific location query to ensure results are in the right area
-      const googleQuery = searchSpecialties.length > 0 
-        ? `${searchSpecialties[0]} doctor in ${city}, ${state}`
-        : `doctor in ${city}, ${state}`
-        
-      const googleResponse = await fetch(
-        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(googleQuery)}&key=${process.env.GOOGLE_PLACES_API_KEY}`,
-        { timeout: 5000 } as any // Add timeout
-      )
-      
-      if (googleResponse.ok) {
-        const googleData = await googleResponse.json()
-        
-        if (googleData.results && googleData.results.length > 0) {
-          logger.info(`Found ${googleData.results.length} providers from Google Places for ${city}, ${state}`)
-          
-          // Filter results to only include those in the requested state
-          const filteredResults = googleData.results.filter((place: any) => {
-            const formattedAddress = place.formatted_address || ''
-            // Check if the address contains the requested state abbreviation or full name
-            const stateUpper = state.toUpperCase()
-            return formattedAddress.toUpperCase().includes(`, ${stateUpper}`) || 
-                   formattedAddress.toUpperCase().includes(` ${stateUpper} `)
-          })
-          
-          if (filteredResults.length > 0) {
-            return filteredResults.slice(0, limit).map((place: any, index: number) => {
-              const formattedAddress = place.formatted_address || ''
-              const addressParts = formattedAddress.split(',')
-              
-              // Parse state more accurately - it's usually in format "City, ST ZIP, USA"
-              let parsedState = state
-              let parsedCity = city
-              let parsedZip = ''
-              
-              if (addressParts.length >= 3) {
-                // addressParts[0] = street address
-                // addressParts[1] = city
-                // addressParts[2] = "ST ZIP" or "State"
-                parsedCity = addressParts[1]?.trim() || city
-                const stateZipPart = addressParts[2]?.trim() || ''
-                const stateMatch = stateZipPart.match(/^([A-Z]{2})\s*(\d{5})?/)
-                if (stateMatch) {
-                  parsedState = stateMatch[1]
-                  parsedZip = stateMatch[2] || ''
-                }
-              }
-              
-              return {
-                npi: `GOOGLE_${place.place_id}`,
-                name: place.name || `Healthcare Provider ${index + 1}`,
-                specialty: searchSpecialties[0] || 'Healthcare Provider',
-                address: addressParts[0]?.trim() || 'Address not available',
-                city: parsedCity,
-                state: parsedState,
-                zip: parsedZip || formattedAddress.match(/\d{5}/)?.[0] || '',
-                distance: null, // Google doesn't provide exact distance
-                rating: place.rating || 4.0,
-                reviewCount: place.user_ratings_total || 0,
-                acceptingPatients: true,
-                phone: 'Contact for availability',
-                credentials: 'Healthcare Professional',
-                gender: 'Not specified',
-                availability: 'Contact for availability',
-                insurance: ['Most major insurance accepted'],
-                languages: ['English'],
-                source: 'Google Places'
-              }
-            })
-          }
-        }
-      }
-    } catch (googleError) {
-      logger.warn('Google Places API error', googleError)
-      // Continue to AI fallback
-    }
-  }
-  
-  // Try AI service as final fallback - but ONLY if we have a valid location
-  // Don't return AI results if they won't match the requested location
-  if (city && state) {
-    try {
-      // Build a location string that includes state for better accuracy
-      const locationQuery = `${city}, ${state}`
-        
-      const aiProviders = await searchProvidersAI(
-        locationQuery, 
-        searchSpecialties[0] || 'general practice'
-      )
-      
-      if (aiProviders && aiProviders.length > 0) {
-        logger.info(`Found ${aiProviders.length} providers from AI service for ${locationQuery}`)
-        
-        // Map AI results but FORCE the requested city/state to ensure location accuracy
-        // This prevents returning Seattle doctors when user searched Portland, OR
-        
-        // Generate realistic doctor names for the area
-        const firstNames = ['James', 'Michael', 'Sarah', 'Emily', 'David', 'Jennifer', 'Robert', 'Lisa', 'William', 'Jessica', 'John', 'Ashley', 'Daniel', 'Amanda', 'Matthew', 'Stephanie', 'Christopher', 'Nicole', 'Andrew', 'Elizabeth']
-        const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Martinez', 'Anderson', 'Taylor', 'Thomas', 'Moore', 'Jackson', 'Martin', 'Lee', 'Thompson', 'White', 'Harris', 'Clark']
-        
-        return aiProviders.slice(0, limit).map((provider, index) => {
-          // Generate a proper name if the provider name is empty or just whitespace
-          let providerName = provider.name?.trim()
-          if (!providerName || providerName.length < 3) {
-            const firstName = firstNames[index % firstNames.length]
-            const lastName = lastNames[(index * 3) % lastNames.length]
-            providerName = `Dr. ${firstName} ${lastName}`
-          }
-          
-          // Use the requested city and state - AI results are just for provider names/specialties
-          return {
-            npi: provider.id || `AI_${index}`,
-            name: providerName,
-            specialty: provider.specialty || searchSpecialties[0] || 'General Practice',
-            // Generate address in the correct location
-            address: `${1000 + Math.floor(Math.random() * 9000)} Medical Center Dr`,
-            city: city,  // Force the requested city
-            state: state, // Force the requested state
-            zip: '', // Leave blank since we don't have accurate ZIP for the forced location
-            distance: null,
-            rating: Math.min(Math.max(provider.rating || 4.0, 3.0), 5.0), // Clamp between 3-5
-            reviewCount: provider.reviewCount || Math.floor(Math.random() * 50) + 10,
-            acceptingPatients: true,
-            phone: `(503) ${100 + Math.floor(Math.random() * 900)}-${1000 + Math.floor(Math.random() * 9000)}`,
-            credentials: Array.isArray(provider.credentials) 
-              ? provider.credentials.join(', ') 
-              : provider.credentials || 'MD',
-            gender: 'Not specified',
-            availability: `Available for appointments`,
-            insurance: provider.acceptedInsurance || ['Medicare', 'Medicaid', 'Most major insurance'],
-            languages: ['English'],
-            source: 'AI Generated'
-          }
-        })
-      }
-    } catch (aiError) {
-      logger.warn('AI service error', aiError)
-    }
-  }
-  
-  return [] // Return empty array if all fallbacks fail
+function formatPhone(raw?: string | null): string {
+  const value = (raw || "").replace(/\D/g, "")
+  if (value.length === 10) return `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`
+  return raw?.trim() || "Contact for availability"
 }
 
-// Calculate relevance score for fallback results
-function calculateFallbackRelevanceScore(params: {
-  provider: any
-  query: string
-  enhancedSpecialty?: string
-  searchSpecialties: string[]
-  distance?: number | null
-}): number {
-  const { provider, query, enhancedSpecialty, searchSpecialties, distance } = params
-  let score = 0
-  
-  // Base score (lower than NPI results to prioritize real data)
-  score += 5
-  
-  // Specialty relevance
-  if (enhancedSpecialty && provider.specialty) {
-    const providerSpecialtyLower = provider.specialty.toLowerCase()
-    const enhancedSpecialtyLower = enhancedSpecialty.toLowerCase()
-    
-    if (providerSpecialtyLower === enhancedSpecialtyLower) {
-      score += 80
-    } else if (providerSpecialtyLower.includes(enhancedSpecialtyLower) || 
-               enhancedSpecialtyLower.includes(providerSpecialtyLower)) {
-      score += 60
-    } else if (searchSpecialties.some(s => 
-      providerSpecialtyLower.includes(s.toLowerCase()) || 
-      s.toLowerCase().includes(providerSpecialtyLower)
-    )) {
-      score += 40
-    }
-  }
-  
-  // Rating bonus
-  if (provider.rating >= 4.5) score += 20
-  else if (provider.rating >= 4.0) score += 15
-  else if (provider.rating >= 3.5) score += 10
-  
-  // Review count bonus
-  if (provider.reviewCount >= 50) score += 15
-  else if (provider.reviewCount >= 20) score += 10
-  else if (provider.reviewCount >= 5) score += 5
-  
-  // Source preference (Google Places over AI)
-  if (provider.source === 'Google Places') score += 10
-  else if (provider.source === 'AI Generated') score += 2
-  
-  // Address completeness
-  if (provider.address && provider.address !== 'Address not available') score += 5
-  if (provider.city && provider.state) score += 5
-  if (provider.phone && provider.phone !== 'Contact for availability') score += 5
-  
-  return Math.max(0, score)
+function getPrimaryAddress(provider: NPIProvider) {
+  return provider.addresses?.find((addr) => addr.address_purpose === "LOCATION") || provider.addresses?.[0]
 }
 
-// Search for BaseHealth verified providers (signed up on the platform)
+function computeDistanceMiles(queryLocation: string, city: string, state: string): number | null {
+  const loc = (queryLocation || "").trim()
+  if (!loc) return null
+  if (!city || !state) return null
+  try {
+    return calculateTrialDistance(loc, { city, state, country: "United States" })
+  } catch {
+    return null
+  }
+}
+
 async function searchBaseHealthProviders(params: {
   specialty?: string
-  city?: string
   state?: string
   limit: number
-}): Promise<any[]> {
+}): Promise<ProviderSearchResult[]> {
+  const { specialty, state, limit } = params
+
   try {
-    const whereClause: any = {
+    const where: any = {
       isVerified: true,
-      status: 'APPROVED',
+      status: "APPROVED",
     }
-    
-    if (params.specialty) {
-      whereClause.specialties = {
-        hasSome: [params.specialty],
-      }
+
+    if (specialty) {
+      where.specialties = { hasSome: [specialty] }
     }
-    
-    if (params.state) {
-      whereClause.licenseState = {
-        equals: params.state,
-        mode: 'insensitive',
-      }
+
+    if (state) {
+      where.licenseState = { equals: state, mode: "insensitive" as const }
     }
-    
+
     const providers = await prisma.provider.findMany({
-      where: whereClause,
+      where,
       include: { user: true },
-      take: params.limit,
-      orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
+      take: limit,
+      orderBy: [{ rating: "desc" }, { reviewCount: "desc" }],
     })
-    
-    return providers.map(p => ({
-      npi: p.npiNumber || p.id,
-      name: p.fullName || p.user?.name || 'Provider',
-      specialty: p.specialties?.[0] || 'General Practice',
-      address: p.location || '',
-      city: '', // Would need to parse from location
-      state: p.licenseState || '',
-      zip: '',
-      distance: null,
-      rating: p.rating ? Number(p.rating) : 4.5,
-      reviewCount: p.reviewCount || 0,
-      acceptingPatients: true,
-      phone: 'Schedule through platform',
-      credentials: p.professionType || 'MD',
-      gender: 'Not specified',
-      availability: 'Available for booking',
-      insurance: ['Contact provider'],
-      languages: ['English'],
-      source: 'basehealth' as ProviderSource,
-      isVerified: true,
-      hasCalendar: true, // BaseHealth providers have booking availability
-      bio: p.bio || '',
-    }))
+
+    return providers.map((p) => {
+      const npi = p.npiNumber || p.id
+      const displayName = p.fullName || p.user?.name || "Provider"
+
+      // Best-effort parse of "City, ST" from provider.location (if present).
+      let city = ""
+      let stateFromLocation = ""
+      const location = (p.location || "").trim()
+      if (location.includes(",")) {
+        const [maybeCity, maybeState] = location.split(",").map((part) => part.trim())
+        city = maybeCity || ""
+        stateFromLocation = (maybeState || "").slice(0, 2).toUpperCase()
+      }
+
+      const resolvedState = (p.licenseState || stateFromLocation || "").toUpperCase()
+
+      return {
+        id: p.id,
+        npi,
+        name: displayName,
+        specialty: p.specialties?.[0] || "General Practice",
+        address: location,
+        city,
+        state: resolvedState,
+        zip: "",
+        distance: null,
+        rating: p.rating !== null && p.rating !== undefined ? Number(p.rating) : null,
+        reviewCount: typeof p.reviewCount === "number" ? p.reviewCount : null,
+        acceptingPatients: typeof p.acceptingPatients === "boolean" ? p.acceptingPatients : null,
+        phone: p.phone || "Schedule through BaseHealth",
+        credentials: p.professionType || "",
+        source: "basehealth",
+        isVerified: true,
+        hasCalendar: false,
+      }
+    })
   } catch (error) {
-    logger.warn('BaseHealth provider search failed', error)
+    logger.warn("BaseHealth provider search failed", error)
     return []
   }
 }
 
+function mapNpiProvider(params: { provider: NPIProvider; queryLocation: string }): ProviderSearchResult {
+  const { provider, queryLocation } = params
+
+  const primaryAddress = getPrimaryAddress(provider)
+  const city = primaryAddress?.city || ""
+  const state = primaryAddress?.state || ""
+  const zip = primaryAddress?.postal_code?.substring(0, 5) || ""
+  const specialty = getProviderSpecialty(provider)
+
+  return {
+    id: provider.number,
+    npi: provider.number,
+    name: formatProviderName(provider),
+    specialty,
+    address: primaryAddress?.address_1 || "Address not available",
+    city,
+    state,
+    zip,
+    distance: computeDistanceMiles(queryLocation, city, state),
+    rating: null, // NPI does not provide rating/reviews.
+    reviewCount: null,
+    acceptingPatients: null, // Unknown without additional data sources.
+    phone: formatPhone(primaryAddress?.telephone_number),
+    credentials: provider.basic?.credential || "",
+    source: "npi_registry",
+    isVerified: false,
+    hasCalendar: false,
+  }
+}
+
+async function searchNpi(params: {
+  specialty?: string
+  location: string
+  limit: number
+}): Promise<NPIProvider[]> {
+  const { specialty, location, limit } = params
+  const trimmedLocation = location.trim()
+  const isZip = /^\d{5}(-\d{4})?$/.test(trimmedLocation)
+  const { city, state } = convertZipToLocation(trimmedLocation)
+
+  if (specialty) {
+    if (isZip) {
+      const response = await searchProviders({
+        enumeration_type: "NPI-1",
+        postal_code: trimmedLocation.slice(0, 5),
+        taxonomy_description: specialty,
+        limit,
+      })
+      return Array.isArray((response as any)?.results) ? (response as any).results : []
+    }
+
+    return await searchProvidersBySpecialty(specialty, city, state, limit)
+  }
+
+  const response = await searchProviders({
+    enumeration_type: "NPI-1",
+    ...(city ? { city } : {}),
+    ...(state ? { state } : {}),
+    ...(isZip ? { postal_code: trimmedLocation.slice(0, 5) } : {}),
+    limit,
+  })
+
+  return Array.isArray((response as any)?.results) ? (response as any).results : []
+}
+
 export async function GET(request: NextRequest) {
   try {
-    // Rate limiting
     const clientId = getClientIdentifier(request)
     const rateLimitResult = rateLimit(`provider-search:${clientId}`, {
-      windowMs: 60 * 1000, // 1 minute
-      maxRequests: 30, // 30 searches per minute
+      windowMs: 60 * 1000,
+      maxRequests: 30,
     })
 
     if (!rateLimitResult.allowed) {
-      logger.warn('Rate limit exceeded for provider search', { clientId })
       return NextResponse.json(
-        { 
+        {
+          success: false,
           error: "Too many search requests. Please try again later.",
           retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
         },
-        { 
+        {
           status: 429,
           headers: {
-            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+            "Retry-After": Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
           },
-        }
+        },
       )
     }
 
     const { searchParams } = new URL(request.url)
-    
-    // Generate cache key
+
     const cacheParams = {
-      location: searchParams.get('location') || '',
-      specialty: searchParams.get('specialty') || '',
-      screenings: searchParams.get('screenings') || '',
-      specialties: searchParams.get('specialties') || '',
-      distance: searchParams.get('distance') || '',
-      query: searchParams.get('query') || '',
-      limit: searchParams.get('limit') || '10',
+      location: searchParams.get("location") || searchParams.get("zipCode") || "",
+      specialty: searchParams.get("specialty") || "",
+      query: searchParams.get("query") || "",
+      limit: searchParams.get("limit") || "20",
     }
-    const cacheKey = generateKey('provider-search', cacheParams)
-    
-    // Check cache
+    const cacheKey = generateKey("provider-search", cacheParams)
     const cached = apiCache.get(cacheKey)
     if (cached) {
-      logger.debug('Returning cached provider search results', { cacheKey })
       return NextResponse.json(cached, {
         headers: {
-          'X-Cache': 'HIT',
-          'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+          "X-Cache": "HIT",
+          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
         },
       })
     }
-    const query = searchParams.get('query') || ''
-    const specialty = searchParams.get('specialty') || ''
-    const specialties = searchParams.get('specialties') || ''
-    let location = searchParams.get('location') || searchParams.get('zipCode') || ''
-    const distance = searchParams.get('distance') || '10'
-    const screenings = searchParams.get('screenings') || ''
-    const limit = parseInt(searchParams.get('limit') || '20')
-    
-    let providers: NPIProvider[] = []
-    let searchSpecialties: string[] = []
-    let enhancedLocation = location
-    let enhancedSpecialty = specialty
-    
-    // Process natural language query if provided
-    if (query && query.trim()) {
-      logger.debug('Processing natural language query', { query })
-      const parsedQuery = parseNaturalLanguageQuery(query)
-      logger.debug('Parsed query result', { parsedQuery })
-      
-      // Always prioritize parsed location from natural language query
-      if (parsedQuery.location) {
-        enhancedLocation = parsedQuery.location
-        logger.debug('Using parsed location', { location: enhancedLocation })
-      }
-      
-      // Always prioritize parsed specialty from natural language query  
-      if (parsedQuery.specialty) {
-        enhancedSpecialty = parsedQuery.specialty
-        logger.debug('Using parsed specialty', { specialty: enhancedSpecialty })
-      }
-      
-      // Map condition to specialty if no specialty found
-      if (parsedQuery.condition && !enhancedSpecialty) {
-        const conditionToSpecialtyMap: Record<string, string> = {
-          'cancer': 'Oncology',
-          'diabetes': 'Endocrinology',
-          'heart': 'Cardiology',
-          'alzheimer': 'Neurology',
-          'asthma': 'Pulmonology',
-          'arthritis': 'Rheumatology',
-          'depression': 'Psychiatry',
-          'obesity': 'Internal Medicine',
-          'hypertension': 'Cardiology',
-          'stroke': 'Neurology',
-          'kidney': 'Nephrology',
-          'liver': 'Hepatology',
-          'lung': 'Pulmonology',
-          'breast': 'Oncology',
-          'colon': 'Gastroenterology',
-          'skin': 'Dermatology',
-          'eye': 'Ophthalmology',
-          'ear': 'Otolaryngology',
-          'bone': 'Orthopedics',
-          'mental': 'Psychiatry'
-        }
-        enhancedSpecialty = conditionToSpecialtyMap[parsedQuery.condition] || 'Internal Medicine'
-        logger.debug('Mapped condition to specialty', { condition: parsedQuery.condition, specialty: enhancedSpecialty })
-      }
-    }
-    
-    // Determine which specialties to search for
-    if (screenings) {
-      // Map screenings to specialties
-      const screeningList = screenings.split(',').filter(Boolean)
-      const specialtySet = new Set<string>()
-      
-      screeningList.forEach(screening => {
-        const mappedSpecialties = SCREENING_TO_SPECIALTY_MAP[screening.toLowerCase()] || 
-                                 ['Internal Medicine', 'Family Medicine', 'Primary Care']
-        mappedSpecialties.forEach(s => specialtySet.add(s))
-      })
-      
-      searchSpecialties = Array.from(specialtySet)
-    } else if (specialties) {
-      searchSpecialties = specialties.split(',').filter(Boolean)
-    } else if (enhancedSpecialty && enhancedSpecialty !== 'all') {
-      searchSpecialties = [enhancedSpecialty]
-    }
-    
-    // Convert location (could be ZIP code or city, state)
-    const locationData = convertZipToLocation(enhancedLocation)
-    const city = locationData.city
-    const state = locationData.state
-    
-    logger.info('Provider search initiated', { 
-      originalLocation: location,
-      enhancedLocation,
-      city, 
-      state, 
-      originalSpecialty: specialty,
-      enhancedSpecialty,
-      searchSpecialties,
-      screenings,
-      distance,
-      query
-    })
-    
-    // Search for providers
-    if (searchSpecialties.length > 0) {
-      // Search for each specialty and combine results
-      const allProviders: NPIProvider[] = []
-      
-      for (const spec of searchSpecialties) {
-        try {
-          const specProviders = await searchProvidersBySpecialty(spec, city, state, Math.ceil(limit / searchSpecialties.length))
-          if (specProviders && Array.isArray(specProviders)) {
-            allProviders.push(...specProviders)
-          }
-        } catch (error) {
-          console.error(`Error searching for specialty ${spec}:`, error)
-        }
-      }
-      
-      // Remove duplicates based on NPI number
-      const uniqueProviders = new Map<string, NPIProvider>()
-      allProviders.forEach(p => uniqueProviders.set(p.number, p))
-      providers = Array.from(uniqueProviders.values())
-      
-    } else {
-      // General search by location
-      const npiSearchParams: any = {
-        limit,
-        enumeration_type: 'NPI-1'
-      }
-      
-      if (city) npiSearchParams.city = city
-      if (state) npiSearchParams.state = state
-      if (enhancedLocation && /^\d{5}$/.test(enhancedLocation)) {
-        npiSearchParams.postal_code = enhancedLocation
-      }
-      
-      try {
-        const searchResponse = await searchProviders(npiSearchParams)
-        providers = searchResponse?.results || []
-      } catch (error) {
-        logger.error('Error in general provider search', error)
-        providers = []
-      }
-    }
-    
-    // Transform providers with enhanced relevance scoring
-    let transformedProviders = providers.map(provider => {
-      const name = formatProviderName(provider)
-      const addressInfo = getProviderAddress(provider)
-      const providerSpecialty = getProviderSpecialty(provider)
-      const acceptingPatients = isAcceptingPatients(provider)
-      
-      // Extract detailed address information
-      const primaryAddress = provider.addresses?.find(addr => addr.address_purpose === 'LOCATION') || provider.addresses?.[0]
-      const providerCity = primaryAddress?.city || ''
-      const providerState = primaryAddress?.state || ''
-      const providerZip = primaryAddress?.postal_code?.substring(0, 5) || ''
-      
-      // Calculate distance if location is provided
-      let calculatedDistance: number | null = null
-      if (location && primaryAddress) {
-        const providerLocation = {
-          city: providerCity,
-          state: providerState,
-          country: primaryAddress.country_name || 'United States'
-        }
-        calculatedDistance = calculateTrialDistance(location, providerLocation)
-      }
-      
-      // Calculate relevance score for better ranking
-      const relevanceScore = calculateProviderRelevanceScore({
-        provider,
-        query,
-        enhancedSpecialty,
-        searchSpecialties,
-        location: enhancedLocation,
-        distance: calculatedDistance,
-        specialty: providerSpecialty
-      })
-      
-      // Get phone number
-      const phone = primaryAddress?.telephone_number?.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3') || 
-                   'Contact for availability'
-      
-      return {
-        npi: provider.number,
-        name,
-        specialty: providerSpecialty,
-        address: primaryAddress?.address_1 || addressInfo.split(',')[0] || 'Address not available',
-        city: providerCity,
-        state: providerState,
-        zip: providerZip,
-        distance: calculatedDistance,
-        rating: 4.5, // Default rating since NPI API doesn't provide ratings
-        reviewCount: 0, // NPI API doesn't provide review counts
-        acceptingPatients,
-        phone,
-        credentials: provider.basic?.credential || '',
-        gender: provider.basic?.gender || 'Not specified',
-        availability: acceptingPatients ? 'Contact for availability' : 'Not accepting new patients',
-        insurance: ['Contact provider for insurance information'],
-        languages: ['English'], // Default since NPI API doesn't provide language info
-        relevanceScore, // Add relevance score for sorting
-        // Source tracking for UI differentiation
-        source: 'npi_registry' as ProviderSource,
-        isVerified: false, // NPI providers are not verified on BaseHealth
-        hasCalendar: false, // No calendar access for NPI providers
-      }
-    })
-    
-    // Search BaseHealth verified providers first
-    const baseHealthProviders = await searchBaseHealthProviders({
-      specialty: enhancedSpecialty,
-      city,
-      state,
-      limit: Math.min(limit, 10), // Prioritize up to 10 BaseHealth providers
-    })
-    
-    // Boost BaseHealth provider relevance scores
-    const boostedBaseHealthProviders = baseHealthProviders.map(p => ({
-      ...p,
-      relevanceScore: (p.relevanceScore || 100) + 200, // High boost for signed-up providers
-    }))
-    
-    // Combine BaseHealth providers with NPI providers (BaseHealth first)
-    transformedProviders = [...boostedBaseHealthProviders, ...transformedProviders]
-    
-    // Remove duplicates (prefer BaseHealth version if same NPI)
-    const seenNpis = new Set<string>()
-    transformedProviders = transformedProviders.filter(p => {
-      if (seenNpis.has(p.npi)) return false
-      seenNpis.add(p.npi)
-      return true
-    })
-    
-    // Filter by exact location match if city and state are specified
-    if (city && state) {
-      transformedProviders = transformedProviders.filter(p => {
-        // Always include BaseHealth providers (they signed up, we trust their location)
-        if (p.source === 'basehealth') return true
-        
-        const providerState = p.state?.toUpperCase()
-        const requestedState = state.toUpperCase()
-        
-        // Must match the state exactly
-        if (providerState !== requestedState) {
-          return false
-        }
-        
-        // If city is specified, check for city match (more flexible)
-        if (city) {
-          const providerCity = p.city?.toLowerCase()
-          const requestedCity = city.toLowerCase()
-          
-          // Allow partial matches for city names (e.g., "Seattle" matches "SEATTLE")
-          return providerCity?.includes(requestedCity) || requestedCity.includes(providerCity)
-        }
-        
-        return true
-      })
-      
-      console.log(`Filtered to ${transformedProviders.length} providers matching location: ${city}, ${state}`)
-    }
-    
-    // Filter by distance if specified
-    const maxDistance = parseFloat(distance)
-    if (location && maxDistance > 0) {
-      transformedProviders = transformedProviders.filter(p => 
-        p.distance === null || p.distance <= maxDistance
+
+    const limit = Math.min(50, Math.max(1, Number.parseInt(searchParams.get("limit") || "20", 10)))
+    const rawQuery = (searchParams.get("query") || "").trim()
+    const rawLocation = (searchParams.get("location") || searchParams.get("zipCode") || "").trim()
+    const rawSpecialty = (searchParams.get("specialty") || "").trim()
+
+    if (!rawQuery && !rawLocation && !rawSpecialty) {
+      return NextResponse.json(
+        { success: false, error: "Provide at least one of: query, location/zipCode, specialty", providers: [], total: 0 },
+        { status: 400 },
       )
     }
-    
-    // Enhanced sorting by relevance score, distance, and rating
-    transformedProviders.sort((a, b) => {
-      // Primary sort by relevance score (higher is better)
-      if (a.relevanceScore !== b.relevanceScore) {
-        return (b.relevanceScore || 0) - (a.relevanceScore || 0)
+
+    const parsed = rawQuery ? parseNaturalLanguageQuery(rawQuery) : {}
+    const effectiveLocation = (parsed.location || rawLocation || "").trim()
+    const effectiveSpecialty = (parsed.specialty || rawSpecialty || "").trim()
+
+    const locationParts = effectiveLocation ? convertZipToLocation(effectiveLocation) : {}
+
+    const baseHealthProviders = await searchBaseHealthProviders({
+      specialty: effectiveSpecialty || undefined,
+      state: locationParts.state || undefined,
+      limit: Math.min(10, limit),
+    })
+
+    const npiProviders = effectiveLocation
+      ? await searchNpi({ specialty: effectiveSpecialty || undefined, location: effectiveLocation, limit })
+      : effectiveSpecialty
+        ? await searchNpi({ specialty: effectiveSpecialty, location: locationParts.state || "", limit })
+        : []
+
+    const mappedNpi = npiProviders.map((provider) => mapNpiProvider({ provider, queryLocation: effectiveLocation }))
+
+    // Combine, preferring BaseHealth entries by NPI when present.
+    const byNpi = new Map<string, ProviderSearchResult>()
+    for (const p of baseHealthProviders) byNpi.set(p.npi, p)
+    for (const p of mappedNpi) if (!byNpi.has(p.npi)) byNpi.set(p.npi, p)
+
+    const combined = Array.from(byNpi.values())
+
+    // Sort: BaseHealth first, then distance (if any), then name.
+    combined.sort((a, b) => {
+      if (a.source !== b.source) {
+        if (a.source === "basehealth") return -1
+        if (b.source === "basehealth") return 1
       }
-      
-      // Secondary sort by distance (if both have distance)
-      if (location && a.distance !== null && b.distance !== null) {
+
+      if (a.distance !== null && b.distance !== null && a.distance !== b.distance) {
         return a.distance - b.distance
       }
-      
-      // Tertiary sort by patient acceptance (accepting patients first)
-      if (a.acceptingPatients !== b.acceptingPatients) {
-        return b.acceptingPatients ? 1 : -1
-      }
-      
-      // Final sort by rating
-      return (b.rating || 0) - (a.rating || 0)
-    })
-    
-    // Limit results
-    transformedProviders = transformedProviders.slice(0, limit)
-    
-    // Enhanced fallback system with better error handling and consistent formatting
-    if (transformedProviders.length === 0) {
-      logger.info('No providers found from NPI API, initiating enhanced fallback sequence')
-      
-      const fallbackResults = await executeFallbackSearch({
-        searchSpecialties,
-        location: enhancedLocation,
-        query,
-        limit,
-        city,
-        state
-      })
-      
-      if (fallbackResults.length > 0) {
-        // Filter fallback results by state to ensure location accuracy
-        let filteredFallback = fallbackResults
-        if (state) {
-          const requestedState = state.toUpperCase()
-          filteredFallback = fallbackResults.filter(p => {
-            const providerState = p.state?.toUpperCase()
-            return providerState === requestedState
-          })
-          
-          // If no results match the state, keep original but log warning
-          if (filteredFallback.length === 0) {
-            logger.warn('No fallback results match the requested state', { state, totalResults: fallbackResults.length })
-            // Still use filtered to empty array - don't show wrong location results
-            filteredFallback = []
-          }
-        }
-        
-        // Apply consistent formatting and scoring to fallback results
-        transformedProviders = filteredFallback.map(provider => ({
-          ...provider,
-          relevanceScore: calculateFallbackRelevanceScore({
-            provider,
-            query,
-            enhancedSpecialty,
-            searchSpecialties,
-            distance: provider.distance
-          })
-        }))
-        
-        // Sort fallback results using the same algorithm
-        transformedProviders.sort((a, b) => {
-          if (a.relevanceScore !== b.relevanceScore) {
-            return (b.relevanceScore || 0) - (a.relevanceScore || 0)
-          }
-          if (a.distance !== null && b.distance !== null) {
-            return a.distance - b.distance
-          }
-          return (b.rating || 0) - (a.rating || 0)
-        })
-      }
-    }
+      if (a.distance !== null && b.distance === null) return -1
+      if (a.distance === null && b.distance !== null) return 1
 
-    // Enhance results with HealthDB recommendations if available
-    if (transformedProviders.length > 0 && searchSpecialties.length > 0) {
-      try {
-        const healthDBResponse = await healthDBService.getProviderRecommendations(
-          searchSpecialties[0], 
-          location,
-          searchSpecialties[0]
-        )
-        
-        if (healthDBResponse.success) {
-          // Add HealthDB insights to provider data
-          transformedProviders = transformedProviders.map(provider => ({
-            ...provider,
-            healthDBScore: Math.random() * 100, // Placeholder for real scoring
-            recommendationReason: 'Matches your condition and location preferences'
-          }))
-        }
-      } catch (healthDBError) {
-        logger.warn('HealthDB enhancement failed', healthDBError)
-        // Continue with original results if HealthDB fails
-      }
-    }
+      return a.name.localeCompare(b.name)
+    })
+
+    const providers = combined.slice(0, limit)
 
     const responseData = {
       success: true,
-      providers: transformedProviders,
-      total: transformedProviders.length,
+      providers,
+      total: providers.length,
       location: {
-        searched: location,
-        city,
-        state
+        searched: effectiveLocation || rawLocation,
+        city: locationParts.city,
+        state: locationParts.state,
       },
-      specialties: searchSpecialties,
-      screenings: screenings ? screenings.split(',') : [],
-      enhanced: true,
-      timestamp: new Date().toISOString()
+      specialty: effectiveSpecialty || undefined,
+      usedAI: false,
+      usedMockData: false,
+      timestamp: new Date().toISOString(),
     }
-    
-    // Cache successful responses for 5 minutes
+
     apiCache.set(cacheKey, responseData, 5 * 60 * 1000)
-    
+
     return NextResponse.json(responseData, {
       headers: {
-        'X-Cache': 'MISS',
-        'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-        'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+        "X-Cache": "MISS",
+        "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+        "X-RateLimit-Reset": rateLimitResult.resetTime.toString(),
       },
     })
-    
   } catch (error) {
-    logger.error('Provider search error', error)
-    
+    logger.error("Provider search error", error)
     return NextResponse.json({
       success: false,
-      error: 'Provider search temporarily unavailable. Please try again later.',
+      error: "Provider search temporarily unavailable. Please try again later.",
       providers: [],
-      total: 0
+      total: 0,
     })
   }
 }
+

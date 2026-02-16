@@ -84,7 +84,7 @@ function getNetworkConfig() {
 function getAttestationSigner(): ethers.Wallet | null {
   const privateKey = process.env.ATTESTATION_PRIVATE_KEY
   if (!privateKey) {
-    console.warn('ATTESTATION_PRIVATE_KEY not set - attestations will be simulated')
+    console.warn('ATTESTATION_PRIVATE_KEY not set - attestations are disabled')
     return null
   }
   
@@ -123,23 +123,12 @@ export async function createProviderAttestation(
   const config = getNetworkConfig()
   const signer = getAttestationSigner()
   
-  // If no signer, return simulated result
+  // Without signer configuration, do not fabricate attestations.
   if (!signer) {
-    const simulatedUid = ethers.keccak256(
-      ethers.toUtf8Bytes(`${verification.npi}-${Date.now()}`)
-    )
-    
-    console.log('Simulated attestation created:', {
-      uid: simulatedUid,
-      provider: providerAddress,
-      verification,
-    })
-    
     return {
-      success: true,
-      uid: simulatedUid,
-      txHash: 'simulated-no-private-key',
-      explorerUrl: `${config.easScanBase}/attestation/view/${simulatedUid}`,
+      success: false,
+      error: 'ATTESTATION_PRIVATE_KEY is required to create on-chain attestations',
+      explorerUrl: `${config.easScanBase}`,
     }
   }
   
@@ -200,14 +189,14 @@ export async function createProviderAttestation(
 export async function revokeProviderAttestation(
   attestationUid: string
 ): Promise<AttestationResult> {
-  const config = getNetworkConfig()
+  void getNetworkConfig()
   const signer = getAttestationSigner()
   
   if (!signer) {
     return {
-      success: true,
+      success: false,
       uid: attestationUid,
-      txHash: 'simulated-revocation',
+      error: 'ATTESTATION_PRIVATE_KEY is required to revoke on-chain attestations',
     }
   }
   

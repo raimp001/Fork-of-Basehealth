@@ -1,4 +1,5 @@
 import type { Application, ReviewAction } from "@/types/admin"
+import { getPrimaryAdminEmail } from "@/lib/admin-access"
 
 export interface NotificationTemplate {
   subject: string
@@ -279,6 +280,8 @@ export function generateNotificationVariables(
 
 // Mock notification service
 export class NotificationService {
+  private readonly adminEmail = getPrimaryAdminEmail()
+
   async sendNotification(
     recipient: string,
     template: NotificationTemplate,
@@ -338,7 +341,7 @@ export class NotificationService {
     // Send internal notification
     if (templates.internal) {
       results.internalNotified = await this.sendNotification(
-        'admin@basehealth.com', // In real app, get from config
+        this.adminEmail,
         templates.internal,
         variables
       )

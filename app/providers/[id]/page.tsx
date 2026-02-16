@@ -28,8 +28,8 @@ interface ProviderData {
   name: string
   specialty: string
   credentials: string
-  rating: number
-  reviewCount: number
+  rating: number | null
+  reviewCount: number | null
   address: string
   phone: string
   email: string
@@ -40,12 +40,12 @@ interface ProviderData {
   languages: string[]
   insurance: string[]
   availability: string
-  acceptingPatients: boolean
-  yearsOfExperience: number
+  acceptingPatients: boolean | null
+  yearsOfExperience: number | null
   npi: string
   isVerified?: boolean
   attestationUid?: string
-  source?: 'basehealth' | 'npi_registry' | 'google_places' | 'ai_generated'
+  source?: 'basehealth' | 'npi_registry' | 'google_places'
 }
 
 export default function ProviderProfilePage() {
@@ -57,8 +57,8 @@ export default function ProviderProfilePage() {
     name: 'Loading...',
     specialty: '',
     credentials: '',
-    rating: 0,
-    reviewCount: 0,
+    rating: null,
+    reviewCount: null,
     address: '',
     phone: '',
     email: '',
@@ -69,8 +69,8 @@ export default function ProviderProfilePage() {
     languages: ['English'],
     insurance: [],
     availability: '',
-    acceptingPatients: true,
-    yearsOfExperience: 0,
+    acceptingPatients: null,
+    yearsOfExperience: null,
     npi: providerId
   })
   
@@ -89,8 +89,8 @@ export default function ProviderProfilePage() {
               name: p.name || 'Provider',
               specialty: p.specialty || 'Healthcare Provider',
               credentials: Array.isArray(p.credentials) ? p.credentials.join(', ') : (p.credentials || ''),
-              rating: p.rating || 0,
-              reviewCount: p.reviewCount || 0,
+              rating: typeof p.rating === "number" ? p.rating : null,
+              reviewCount: typeof p.reviewCount === "number" ? p.reviewCount : null,
               address: typeof p.address === 'object' 
                 ? `${p.address.street || ''}, ${p.address.city || ''}, ${p.address.state || ''} ${p.address.zipCode || ''}`.replace(/^, |, $/g, '')
                 : (p.address || ''),
@@ -103,9 +103,9 @@ export default function ProviderProfilePage() {
               languages: p.languages || ['English'],
               insurance: p.acceptedInsurance || [],
               availability: p.availability?.days?.join(', ') || '',
-              acceptingPatients: p.acceptingPatients !== false,
-              yearsOfExperience: p.yearsOfExperience || 0,
-              npi: p.npiNumber || providerId
+              acceptingPatients: typeof p.acceptingPatients === "boolean" ? p.acceptingPatients : null,
+              yearsOfExperience: typeof p.yearsOfExperience === "number" ? p.yearsOfExperience : null,
+              npi: p.npi || p.npiNumber || providerId
             })
           }
         }
@@ -210,8 +210,18 @@ export default function ProviderProfilePage() {
                       {/* Rating */}
                       <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-lg">
                         <Star className="h-5 w-5 text-amber-500 fill-current" />
-                        <span className="font-bold text-amber-700 text-lg">{provider.rating}</span>
-                        <span className="text-amber-600">({provider.reviewCount} reviews)</span>
+                        {typeof provider.rating === "number" && provider.rating > 0 ? (
+                          <>
+                            <span className="font-bold text-amber-700 text-lg">{provider.rating.toFixed(1)}</span>
+                            {typeof provider.reviewCount === "number" && provider.reviewCount > 0 ? (
+                              <span className="text-amber-600">({provider.reviewCount} reviews)</span>
+                            ) : (
+                              <span className="text-amber-600">(rating)</span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-amber-700 font-semibold">No public rating</span>
+                        )}
                       </div>
                     </div>
 
@@ -226,9 +236,15 @@ export default function ProviderProfilePage() {
                         }`}
                       >
                         <div className={`w-2 h-2 rounded-full mr-2 ${provider.acceptingPatients ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
-                        {provider.acceptingPatients ? 'Accepting New Patients' : 'Not Accepting Patients'}
+                        {provider.acceptingPatients === true
+                          ? 'Accepting New Patients'
+                          : provider.acceptingPatients === false
+                            ? 'Not Accepting New Patients'
+                            : 'Availability Unknown'}
                       </Badge>
-                      <span className="text-sm text-slate-600">{provider.yearsOfExperience} years of experience</span>
+                      {typeof provider.yearsOfExperience === "number" && provider.yearsOfExperience > 0 ? (
+                        <span className="text-sm text-slate-600">{provider.yearsOfExperience} years of experience</span>
+                      ) : null}
                     </div>
                   </div>
                 </div>

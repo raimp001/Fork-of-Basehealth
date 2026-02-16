@@ -640,10 +640,10 @@ export async function GET(request: NextRequest) {
         studyType: design.studyType || '',
         enrollment: design.enrollmentInfo?.count || 0,
         eligibilityCriteria: eligibility.eligibilityCriteria || '',
-        // Add HealthDB enhancement if available
-        eligibilityScore: study.eligibilityScore || 0,
-        eligibilityReasons: study.eligibilityReasons || [],
-        recommendationLevel: study.recommendationLevel || 'medium',
+        // Preserve only upstream-provided eligibility fields (no fabricated defaults)
+        eligibilityScore: typeof study.eligibilityScore === 'number' ? study.eligibilityScore : undefined,
+        eligibilityReasons: Array.isArray(study.eligibilityReasons) ? study.eligibilityReasons : undefined,
+        recommendationLevel: typeof study.recommendationLevel === 'string' ? study.recommendationLevel : undefined,
         // Add location priority for sorting
         locationPriority
       }
@@ -661,9 +661,16 @@ export async function GET(request: NextRequest) {
           // Merge HealthDB insights with transformed studies
           transformedStudies.forEach((study, index) => {
             if (healthDBResponse.data[index]) {
-              study.eligibilityScore = healthDBResponse.data[index].eligibilityScore || study.eligibilityScore
-              study.eligibilityReasons = healthDBResponse.data[index].eligibilityReasons || study.eligibilityReasons
-              study.recommendationLevel = healthDBResponse.data[index].recommendationLevel || study.recommendationLevel
+              const insight = healthDBResponse.data[index]
+              if (typeof insight.eligibilityScore === 'number') {
+                study.eligibilityScore = insight.eligibilityScore
+              }
+              if (Array.isArray(insight.eligibilityReasons)) {
+                study.eligibilityReasons = insight.eligibilityReasons
+              }
+              if (typeof insight.recommendationLevel === 'string') {
+                study.recommendationLevel = insight.recommendationLevel
+              }
             }
           })
         }
@@ -675,14 +682,21 @@ export async function GET(request: NextRequest) {
 
     enhancedStudies = transformedStudies
 
-    // Sort by location priority (local trials first) and then by eligibility score
+    // Sort by location priority (local trials first) and then by eligibility score when available
     enhancedStudies.sort((a, b) => {
       // First sort by location priority (higher is better)
       if (a.locationPriority !== b.locationPriority) {
         return b.locationPriority - a.locationPriority
       }
-      // Then by eligibility score (higher is better)
-      return (b.eligibilityScore || 0) - (a.eligibilityScore || 0)
+
+      const aScore = typeof a.eligibilityScore === 'number' ? a.eligibilityScore : null
+      const bScore = typeof b.eligibilityScore === 'number' ? b.eligibilityScore : null
+      if (aScore !== null && bScore !== null && aScore !== bScore) {
+        return bScore - aScore
+      }
+      if (aScore !== null && bScore === null) return -1
+      if (aScore === null && bScore !== null) return 1
+      return 0
     })
 
     return NextResponse.json({

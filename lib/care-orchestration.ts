@@ -54,25 +54,16 @@ import { CARE_AGENTS, buildAgentPlan } from "@/lib/agent-mesh"
 const ACTION_LOG: Array<{ id: string; type: string; createdAt: string; payload?: Record<string, unknown>; openCloudResult?: string; routedTasks?: number }> = []
 const MAX_ACTION_LOG_ENTRIES = 500
 
-export async function getCareSnapshot(patientId = "demo-patient"): Promise<CareSnapshot> {
+export async function getCareSnapshot(patientId?: string): Promise<CareSnapshot> {
+  // NOTE: Do not return mock/demo patient data. This endpoint is intended to surface
+  // real operational signals once integrations exist (billing, prior auth, labs, etc.).
+  void patientId
+
   return {
-    partners: [
-      { id: "ph-1", name: "CityCare Pharmacy", type: "pharmacy", address: "120 Main St", phone: "(555) 100-2001", acceptsEScripts: true },
-      { id: "lab-1", name: "Precision Labs", type: "lab", address: "89 Clinic Ave", phone: "(555) 100-3333", turnaround: "24-48h" },
-      { id: "img-1", name: "Radiant Imaging Center", type: "imaging", address: "42 Health Blvd", phone: "(555) 100-4444", turnaround: "Same week" },
-    ],
-    priorAuth: [
-      { id: "pa-1", patientId, medicationOrService: "GLP-1 medication", status: "submitted", payer: "Aetna" },
-      { id: "pa-2", patientId, medicationOrService: "MRI lumbar spine", status: "draft", payer: "BCBS" },
-    ],
-    receipts: [
-      { id: "rcpt-1", patientId, amountUsd: 145, status: "paid", description: "Telehealth follow-up", createdAt: new Date().toISOString() },
-      { id: "rcpt-2", patientId, amountUsd: 85, status: "pending", description: "Lab coordination fee", createdAt: new Date().toISOString() },
-    ],
-    updates: [
-      { id: "up-1", title: "USPSTF update: Hypertension screening", summary: "Annual blood pressure screening remains a high-priority preventive recommendation.", audience: "provider", publishedAt: new Date().toISOString() },
-      { id: "up-2", title: "Patient article: Sleep and heart health", summary: "How sleep consistency reduces long-term cardiovascular risk.", audience: "patient", publishedAt: new Date().toISOString() },
-    ],
+    partners: [],
+    priorAuth: [],
+    receipts: [],
+    updates: [],
     openCloud: getOpenCloudStatus(),
     agents: {
       enabled: true,

@@ -1,6 +1,8 @@
 // Email service for provider and admin notifications
 // In production, this would integrate with services like SendGrid, AWS SES, or similar
 
+import { getPrimaryAdminEmail } from "@/lib/admin-access"
+
 export interface EmailTemplate {
   to: string
   subject: string
@@ -27,10 +29,12 @@ export interface AdminNotificationData {
 export class EmailService {
   private apiKey: string
   private fromEmail: string
+  private adminEmail: string
 
   constructor(apiKey: string = '', fromEmail: string = 'noreply@basehealth.app') {
     this.apiKey = apiKey
     this.fromEmail = fromEmail
+    this.adminEmail = getPrimaryAdminEmail()
   }
 
   // Provider notification emails
@@ -70,7 +74,7 @@ export class EmailService {
   // Admin notification emails
   async sendNewApplicationNotification(data: AdminNotificationData): Promise<boolean> {
     const email: EmailTemplate = {
-      to: 'admin@basehealth.app', // In production, this would be configurable
+      to: this.adminEmail,
       subject: `New Provider Application - ${data.providerName}`,
       html: this.generateAdminNotificationHTML(data),
       text: this.generateAdminNotificationText(data)

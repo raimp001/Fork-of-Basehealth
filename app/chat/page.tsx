@@ -11,13 +11,11 @@ import { BasePayCheckout } from "@/components/checkout/base-pay-checkout"
 import { useMiniApp } from "@/components/providers/miniapp-provider"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   OPENCLAW_AGENT_CATALOG,
-  OPENCLAW_AGENT_IDS,
   normalizeOpenClawAgent,
   type OpenClawAgentId,
 } from "@/lib/openclaw-agent-catalog"
@@ -75,8 +73,6 @@ export default function ChatPage() {
   } | null>(null)
   const [pinnedAgent, setPinnedAgent] = useState<OpenClawAgentId | null>(null)
   const [hasSentMessage, setHasSentMessage] = useState(false)
-  const [actingWallet, setActingWallet] = useState("")
-  const [opsMode, setOpsMode] = useState(false)
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
   const [passOrderId, setPassOrderId] = useState(() => `assistant-pass-chat-${Date.now()}`)
@@ -237,67 +233,16 @@ export default function ChatPage() {
     refreshPassStatus().catch(() => null)
   }, [refreshPassStatus])
 
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("basehealth_acting_wallet") || ""
-      if (saved) {
-        setActingWallet(saved)
-        return
-      }
-      if (accessWallet) {
-        setActingWallet(accessWallet)
-      }
-    } catch {
-      if (accessWallet) setActingWallet(accessWallet)
-    }
-  }, [accessWallet])
-
-  useEffect(() => {
-    try {
-      const value = actingWallet.trim()
-      if (!value) {
-        window.localStorage.removeItem("basehealth_acting_wallet")
-      } else {
-        window.localStorage.setItem("basehealth_acting_wallet", value)
-      }
-    } catch {
-      // ignore
-    }
-  }, [actingWallet])
-
-  useEffect(() => {
-    const opsParam = searchParams.get("ops")
-    const agentParam = searchParams.get("agent")
-
-    try {
-      if (opsParam === "1" || agentParam) {
-        window.localStorage.setItem("basehealth_ops", "1")
-        setOpsMode(true)
-        return
-      }
-
-      if (opsParam === "0") {
-        window.localStorage.removeItem("basehealth_ops")
-        setOpsMode(false)
-        return
-      }
-
-      setOpsMode(window.localStorage.getItem("basehealth_ops") === "1")
-    } catch {
-      setOpsMode(opsParam === "1" || !!agentParam)
-    }
-  }, [searchParams])
-
-  const effectivePinnedAgent = opsMode ? pinnedAgent : null
+  const effectivePinnedAgent = pinnedAgent
 
   const requestBody = useMemo(() => {
     const body: Record<string, unknown> = {
-      walletAddress: (actingWallet || accessWallet || "").trim() || undefined,
+      walletAddress: (accessWallet || "").trim() || undefined,
       accessWalletAddress: (accessWallet || "").trim() || undefined,
     }
     if (effectivePinnedAgent) body.agent = effectivePinnedAgent
     return body
-  }, [actingWallet, effectivePinnedAgent, accessWallet])
+  }, [effectivePinnedAgent, accessWallet])
 
   const {
     messages,
@@ -330,18 +275,7 @@ export default function ChatPage() {
 
     const requestedAgent = normalizeOpenClawAgent(searchParams.get("agent"))
     const starterQuestion = searchParams.get("q")
-    const allowOps =
-      searchParams.get("ops") === "1" ||
-      !!searchParams.get("agent") ||
-      (() => {
-        try {
-          return window.localStorage.getItem("basehealth_ops") === "1"
-        } catch {
-          return false
-        }
-      })()
-
-    if (requestedAgent && allowOps) {
+    if (requestedAgent) {
       setPinnedAgent(requestedAgent)
     }
 
@@ -402,14 +336,6 @@ export default function ChatPage() {
             <Link href="/feedback" className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
               Send feedback
             </Link>
-            {opsMode && (
-              <>
-                <span className="text-muted-foreground/40">•</span>
-                <Link href="/agents" className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
-                  Operator hub
-                </Link>
-              </>
-            )}
           </div>
         </div>
 
@@ -434,11 +360,7 @@ export default function ChatPage() {
               ) : (
                 <>
                   <p className="text-sm text-muted-foreground">
-                    Admin: open{" "}
-                    <Link href="/admin/integrations" className="text-foreground hover:underline underline-offset-4">
-                      Integrations
-                    </Link>{" "}
-                    and set <code className="font-mono">OPENCLAW_API_KEY</code> (recommended) or{" "}
+                    Assistant configuration missing. Set <code className="font-mono">OPENCLAW_API_KEY</code> (recommended) or{" "}
                     <code className="font-mono">OPENCLAW_GATEWAY_TOKEN</code> or{" "}
                     <code className="font-mono">OPENCLAW_GATEWAY_PASSWORD</code> or{" "}
                     <code className="font-mono">OPENAI_API_KEY</code>, then redeploy.
@@ -568,69 +490,6 @@ export default function ChatPage() {
               )}
             </CardContent>
           </Card>
-        )}
-
-        {opsMode && (
-          <details className="mb-6 rounded-2xl border border-border bg-background p-5 shadow-sm">
-            <summary className="cursor-pointer select-none text-sm font-semibold text-foreground">
-              Operator tools (optional)
-            </summary>
-            <div className="mt-4 space-y-4">
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-foreground">Wallet context (optional)</p>
-                <p className="text-xs text-muted-foreground">
-                  Used to load wallet context (receipts, balances). Helpful for operators acting for clients. This does
-                  not change your sign-in.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-                  <Input
-                    value={actingWallet}
-                    onChange={(e) => setActingWallet(e.target.value)}
-                    placeholder="0x… (wallet address)"
-                    className="sm:w-[360px]"
-                  />
-                  {accessWallet && (
-                    <Button type="button" variant="outline" size="sm" onClick={() => setActingWallet(accessWallet)}>
-                      Use my wallet
-                    </Button>
-                  )}
-                  <Button type="button" variant="outline" size="sm" onClick={() => setActingWallet("")}>
-                    Clear
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-foreground">Pin a specialist (optional)</p>
-                <p className="text-xs text-muted-foreground">
-                  Leave this on Auto for patients. Pinning is useful when running a focused ops workflow.
-                </p>
-                <select
-                  value={pinnedAgent || ""}
-                  onChange={(e) => setPinnedAgent((normalizeOpenClawAgent(e.target.value) as OpenClawAgentId) || null)}
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="">Auto route (recommended)</option>
-                  {OPENCLAW_AGENT_IDS.map((agentId) => (
-                    <option key={agentId} value={agentId}>
-                      {OPENCLAW_AGENT_CATALOG[agentId].label}
-                    </option>
-                  ))}
-                </select>
-                {pinnedAgent && (
-                  <div className="flex items-start gap-2 rounded-xl border border-border bg-muted/20 p-3">
-                    <Badge variant="secondary">
-                      Pinned
-                    </Badge>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{OPENCLAW_AGENT_CATALOG[pinnedAgent].label}</p>
-                      <p className="text-xs text-muted-foreground">{OPENCLAW_AGENT_CATALOG[pinnedAgent].description}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </details>
         )}
 
         <Card className="border-border shadow-sm overflow-hidden bg-background">

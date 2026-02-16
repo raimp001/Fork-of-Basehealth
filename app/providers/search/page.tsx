@@ -7,7 +7,7 @@
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Search, MapPin, Star, X, ArrowRight, Loader2, CheckCircle, Navigation, AlertCircle, BadgeCheck, Phone, ExternalLink } from "lucide-react"
+import { Search, MapPin, Star, X, ArrowRight, Loader2, Navigation, AlertCircle, BadgeCheck, Phone, ExternalLink } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
 
@@ -20,12 +20,12 @@ interface Provider {
   state: string
   zip: string
   distance: number | null
-  rating: number
-  reviewCount: number
-  acceptingPatients: boolean
+  rating: number | null
+  reviewCount: number | null
+  acceptingPatients: boolean | null
   phone: string
   credentials: string
-  source?: 'basehealth' | 'npi_registry' | 'google_places' | 'ai_generated'
+  source?: 'basehealth' | 'npi_registry' | 'google_places'
   isVerified?: boolean
   hasCalendar?: boolean
 }
@@ -403,6 +403,12 @@ function SearchPageContent() {
                 {providers.map((provider, index) => {
                   const isBaseHealth = provider.source === 'basehealth'
                   const isNpiRegistry = provider.source === 'npi_registry' || !provider.source
+                  const isRealNpi = /^\d{10}$/.test(provider.npi)
+                  const hasRating =
+                    typeof provider.rating === "number" &&
+                    Number.isFinite(provider.rating) &&
+                    provider.rating > 0 &&
+                    (typeof provider.reviewCount !== "number" || provider.reviewCount > 0)
                   
                   return (
                   <div 
@@ -448,33 +454,36 @@ function SearchPageContent() {
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-                      <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4" style={{ color: 'hsl(var(--accent))', fill: 'hsl(var(--accent))' }} />
-                        <span className="text-sm font-medium">{provider.rating.toFixed(1)}</span>
-                        {provider.reviewCount > 0 && (
-                          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>({provider.reviewCount})</span>
-                        )}
-                      </div>
-                      {provider.acceptingPatients && (
-                        <span className="flex items-center gap-1 text-xs" style={{ color: '#6b9b6b' }}>
-                          <CheckCircle className="h-3 w-3" />
-                          Accepting
+                      {hasRating ? (
+                        <div className="flex items-center gap-2">
+                          <Star className="h-4 w-4" style={{ color: 'hsl(var(--accent))', fill: 'hsl(var(--accent))' }} />
+                          <span className="text-sm font-medium">{provider.rating!.toFixed(1)}</span>
+                          {typeof provider.reviewCount === "number" && provider.reviewCount > 0 ? (
+                            <span className="text-sm" style={{ color: 'var(--text-muted)' }}>({provider.reviewCount})</span>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                          Rating not available
                         </span>
                       )}
+                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                        {isRealNpi ? "NPI" : "ID"}: {provider.npi}
+                      </span>
                     </div>
 
                     {/* Different actions based on provider source */}
                     {isBaseHealth ? (
-                      // BaseHealth verified provider - can book directly
+                      // BaseHealth provider - profile + assistant for coordination
                       <Link 
-                        href={`/appointment/book/${provider.npi}`}
+                        href={`/providers/${provider.npi}`}
                         className="mt-4 w-full py-2.5 rounded-lg text-sm text-center transition-colors flex items-center justify-center gap-2"
                         style={{ 
                           backgroundColor: 'var(--text-primary)',
                           color: 'var(--bg-primary)'
                         }}
                       >
-                        Book Appointment
+                        View Profile
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     ) : (

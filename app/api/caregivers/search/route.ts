@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     // Try database first
     try {
       const whereClause: any = {
-        status: "APPROVED",
+        status: "AVAILABLE",
         verified: true,
         isMock: false,
       }

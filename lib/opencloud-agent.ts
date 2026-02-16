@@ -2,7 +2,7 @@ import { logger } from './logger'
 
 export type OpenCloudTaskResult = {
   ok: boolean
-  provider: 'opencloud' | 'mock'
+  provider: 'opencloud'
   taskType: string
   message: string
 }
@@ -11,7 +11,7 @@ export type OpenCloudStatus = {
   enabled: boolean
   version: string
   capabilities: string[]
-  mode: 'live' | 'mock'
+  mode: 'live' | 'disabled'
 }
 
 const DEFAULT_CAPABILITIES = ['scheduling', 'billing follow-up', 'prior auth reminders', 'care logistics']
@@ -29,10 +29,10 @@ export function getOpenCloudStatus(): OpenCloudStatus {
   const live = !!(cfg.apiUrl && cfg.apiKey)
 
   return {
-    enabled: true,
+    enabled: live,
     version: cfg.version,
     capabilities: DEFAULT_CAPABILITIES,
-    mode: live ? 'live' : 'mock',
+    mode: live ? 'live' : 'disabled',
   }
 }
 
@@ -41,10 +41,10 @@ export async function runOpenCloudTask(taskType: string, payload: Record<string,
 
   if (!cfg.apiUrl || !cfg.apiKey) {
     return {
-      ok: true,
-      provider: 'mock',
+      ok: false,
+      provider: 'opencloud',
       taskType,
-      message: `Mock OpenCloud task completed for ${taskType}`,
+      message: 'OpenCloud is not configured',
     }
   }
 

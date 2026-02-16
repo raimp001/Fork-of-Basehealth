@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { ACTIVE_CHAIN, PAYMENT_CONFIG } from "@/lib/network-config"
+import { getPrimaryAdminEmail } from "@/lib/admin-access"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -267,11 +268,11 @@ export async function GET() {
       checks: [
         {
           id: "admin-email",
-          label: "Admin notification email configured",
-          env: "ADMIN_EMAIL",
+          label: "Admin notification routing enabled",
+          env: "PRIMARY_ADMIN_EMAIL",
           required: false,
-          passed: Boolean(process.env.ADMIN_EMAIL),
-          help: "Recommended to monitor refunds and booking exceptions.",
+          passed: Boolean(getPrimaryAdminEmail()),
+          help: "Application and operations notifications route to the primary admin mailbox.",
         },
         {
           id: "attestation-key",

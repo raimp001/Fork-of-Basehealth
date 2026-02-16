@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { logger } from "@/lib/logger"
+import { getPrimaryAdminEmail } from "@/lib/admin-access"
 
 // GET - List all caregiver applications
 export async function GET(req: NextRequest) {
@@ -78,7 +79,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json()
-    const { applicationId, action, reviewNotes, adminEmail } = body
+    const { applicationId, action, reviewNotes } = body
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.basehealth.xyz"
 
     if (!applicationId || !action) {
@@ -150,7 +151,7 @@ export async function PATCH(req: NextRequest) {
       data: {
         status: newStatus,
         reviewedAt: new Date(),
-        reviewedBy: adminEmail || "admin",
+        reviewedBy: getPrimaryAdminEmail(),
         reviewNotes: reviewNotes || null,
       },
     })

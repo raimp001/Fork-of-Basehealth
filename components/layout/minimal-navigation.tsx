@@ -14,15 +14,10 @@ import {
   Activity, 
   Search, 
   FlaskConical, 
-  Heart,
   Home,
   User,
   Settings,
-  Brain,
-  DollarSign,
   CreditCard,
-  Bell,
-  Wallet,
   Bookmark,
   Bot,
   LifeBuoy,
@@ -39,25 +34,14 @@ const navigationItems = [
   { href: '/clinical-trials', label: 'Clinical trials', icon: FlaskConical },
   { href: '/support', label: 'Support', icon: LifeBuoy },
   { href: '/feedback', label: 'Feedback', icon: MessageSquare },
-  { href: '/agents', label: 'Ops', icon: Brain, badge: 'Ops', opsOnly: true },
 ]
 
 const userMenuItems = [
   { href: '/patient-portal', label: 'Portal', icon: User },
   { href: '/billing', label: 'Billing', icon: CreditCard },
-  { href: '/wallet', label: 'Wallet', icon: DollarSign },
-  { href: '/payment/base', label: 'Payments', icon: Wallet, badge: 'New' },
   { href: '/support', label: 'Support', icon: LifeBuoy },
   { href: '/feedback', label: 'Feedback', icon: MessageSquare },
   { href: '/settings', label: 'Settings', icon: Settings },
-]
-
-const adminMenuItems = [
-  { href: '/admin/applications', label: 'Application Reviews', icon: Bell, badge: 'Admin', opsOnly: true },
-  { href: '/admin/providers', label: 'Provider Management', icon: User, opsOnly: true },
-  { href: '/admin/integrations', label: 'Integrations', icon: Settings, opsOnly: true },
-  { href: '/admin/analytics', label: 'Analytics', icon: Activity, opsOnly: true },
-  { href: '/treasury', label: 'Treasury', icon: DollarSign, badge: 'Ops', opsOnly: true },
 ]
 
 const quickActions = [
@@ -70,7 +54,6 @@ const desktopNavigationItems = [
   { href: '/providers/search', label: 'Find care' },
   { href: '/clinical-trials', label: 'Clinical trials' },
   { href: '/chat', label: 'Assistant' },
-  { href: '/agents', label: 'Ops', opsOnly: true },
 ]
 
 const mobileBottomItems = [
@@ -85,7 +68,6 @@ export function MinimalNavigation() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [opsMode, setOpsMode] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -96,30 +78,9 @@ export function MinimalNavigation() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
-    try {
-      const opsParam = new URLSearchParams(window.location.search).get("ops")
-      if (opsParam === "1") {
-        window.localStorage.setItem("basehealth_ops", "1")
-        setOpsMode(true)
-        return
-      }
-      if (opsParam === "0") {
-        window.localStorage.removeItem("basehealth_ops")
-        setOpsMode(false)
-        return
-      }
-
-      setOpsMode(window.localStorage.getItem("basehealth_ops") === "1")
-    } catch {
-      // ignore
-    }
-  }, [pathname])
-
-  const visibleNavigationItems = navigationItems.filter((item) => !item.opsOnly || opsMode)
-  const visibleQuickActions = quickActions.filter((item) => !item.opsOnly || opsMode)
-  const visibleDesktopNavigationItems = desktopNavigationItems.filter((item) => !item.opsOnly || opsMode)
-  const visibleAdminMenuItems = adminMenuItems.filter((item) => !item.opsOnly || opsMode)
+  const visibleNavigationItems = navigationItems
+  const visibleQuickActions = quickActions
+  const visibleDesktopNavigationItems = desktopNavigationItems
 
   return (
     <>
@@ -291,34 +252,6 @@ export function MinimalNavigation() {
                         </div>
                       </div>
 
-                      {/* Admin Section */}
-                      {visibleAdminMenuItems.length > 0 && (
-                        <div className="px-4 pt-6 border-t border-border">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                            Administration
-                          </p>
-                          <div className="space-y-1">
-                            {visibleAdminMenuItems.map((item) => (
-                              <Link
-                                key={item.href}
-                                href={item.href}
-                                onClick={() => setIsOpen(false)}
-                                className="flex items-center justify-between px-4 py-3 rounded-xl text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-all duration-200"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <item.icon className="h-5 w-5 text-muted-foreground" />
-                                  <span className="font-medium text-foreground">{item.label}</span>
-                                </div>
-                                {item.badge && (
-                                  <Badge variant="secondary" className="bg-card/60 text-foreground border border-border/60 text-xs font-semibold">
-                                    {item.badge}
-                                  </Badge>
-                                )}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </nav>
                   

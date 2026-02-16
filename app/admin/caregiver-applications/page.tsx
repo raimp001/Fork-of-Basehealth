@@ -96,7 +96,6 @@ export default function AdminCaregiverApplicationsPage() {
           applicationId,
           action,
           reviewNotes,
-          adminEmail: "admin@basehealth.xyz", // Would come from auth session
         }),
       })
 

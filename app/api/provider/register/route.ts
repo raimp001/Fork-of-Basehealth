@@ -11,6 +11,7 @@ import bcrypt from "bcryptjs"
 import { logger } from "@/lib/logger"
 import { rateLimit, getClientIdentifier } from "@/lib/rate-limiter"
 import { sanitizeText, validateEmail, validateNPI } from "@/lib/sanitize"
+import { notifyAdminApplicationSubmitted } from "@/lib/admin-application-notifier"
 
 interface ProviderRegistrationData {
   type: "PHYSICIAN" | "APP"
@@ -349,6 +350,20 @@ export async function POST(req: NextRequest) {
       type: provider.type,
     })
 
+    notifyAdminApplicationSubmitted({
+      applicationId: provider.id,
+      role: "PROVIDER",
+      applicantName: provider.fullName || provider.organizationName || "Unknown",
+      applicantEmail: provider.email,
+      specialty: Array.isArray(provider.specialties) ? provider.specialties[0] : null,
+      source: "provider-register",
+    }).catch((notifyError) => {
+      logger.error("Failed to send provider admin notification", {
+        providerId: provider.id,
+        error: notifyError instanceof Error ? notifyError.message : String(notifyError),
+      })
+    })
+
     // Return sanitized provider data (no password)
     return NextResponse.json({
       success: true,
@@ -426,4 +441,3 @@ export async function POST(req: NextRequest) {
     )
   }
 }
-

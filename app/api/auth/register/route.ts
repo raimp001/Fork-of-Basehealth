@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import bcrypt from 'bcryptjs'
 import { findUserByEmail, addUser } from '@/lib/user-store'
+import { isAdminEmail } from '@/lib/admin-access'
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password, name, role = 'patient' } = await request.json()
+    const normalizedEmail = String(email || '').trim().toLowerCase()
+    const requestedRole = String(role || 'patient').trim().toLowerCase()
+    const normalizedRole =
+      requestedRole === 'admin'
+        ? (isAdminEmail(normalizedEmail) ? 'admin' : 'patient')
+        : (requestedRole === 'provider' || requestedRole === 'caregiver' ? requestedRole : 'patient')
 
     // Validate input
     if (!email || !password || !name) {
@@ -32,8 +39,8 @@ export async function POST(request: NextRequest) {
       email,
       password: hashedPassword,
       name,
-      role: role as 'patient' | 'provider' | 'caregiver' | 'admin',
-      image: '/placeholder.svg'
+      role: normalizedRole as 'patient' | 'provider' | 'caregiver' | 'admin',
+      image: '/icon-192.png'
     })
 
     // Return user without password

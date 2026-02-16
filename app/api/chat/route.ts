@@ -90,7 +90,7 @@ export async function POST(req: Request) {
       response.headers.set("x-basehealth-agent-mesh", "none")
       response.headers.set(
         "x-basehealth-ai-help",
-        "Admin: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
+        "Configuration missing: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
       )
       return response
     }
@@ -214,7 +214,7 @@ export async function POST(req: Request) {
       response.headers.set("x-basehealth-agent-mesh", "none")
       response.headers.set(
         "x-basehealth-ai-help",
-        "Admin: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
+        "Configuration missing: set OPENCLAW_API_KEY (recommended) or OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD or OPENAI_API_KEY or GROQ_API_KEY in the deployment environment, then redeploy.",
       )
       return response
     }

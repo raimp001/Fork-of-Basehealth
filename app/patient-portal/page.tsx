@@ -4,96 +4,126 @@
  * Patient Portal Dashboard - Claude.ai Design
  */
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { 
-  ArrowRight, Calendar, FileText, 
-  ClipboardList, FlaskConical, Users, Bell, Settings,
-  TrendingUp, Shield, Pill, TestTube2, ScanLine, Receipt, Newspaper, MessageCircle, CreditCard
+  ArrowRight,
+  Shield,
+  ClipboardList,
+  Users,
+  MessageCircle,
+  CreditCard,
 } from "lucide-react"
+import { useMiniApp } from "@/components/providers/miniapp-provider"
 
-type CareSnapshot = {
-  partners: Array<{ id: string; name: string; type: "pharmacy" | "lab" | "imaging"; address: string; phone: string }>
-  priorAuth: Array<{ id: string; medicationOrService: string; status: "draft" | "submitted" | "approved" }>
-  receipts: Array<{ id: string; amountUsd: number; status: "paid" | "pending"; description: string }>
-  updates: Array<{ id: string; title: string; summary: string; audience: "patient" | "provider" }>
-  openCloud: { enabled: boolean; version: string; capabilities: string[] }
+type BillingReceipt = {
+  receiptId: string
+  bookingId: string
+  amount: string
+  currency: string
+  bookingStatus: string
+  paymentStatus: string
+  paymentProvider: string
+  issuedAt: string
+  paidAt?: string
+  providerName?: string
+  paymentTxHash?: string
+  paymentExplorerUrl?: string
 }
 
 export default function PatientPortalPage() {
   const [mounted, setMounted] = useState(false)
   const { data: session } = useSession()
-  const [careSnapshot, setCareSnapshot] = useState<CareSnapshot | null>(null)
-  const [careActionMessage, setCareActionMessage] = useState("")
+  const { user: miniAppUser } = useMiniApp()
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [receipts, setReceipts] = useState<BillingReceipt[]>([])
+  const [receiptsLoading, setReceiptsLoading] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    const loadCareSnapshot = async () => {
-      const patientId = session?.user?.email || "demo-patient"
-      const response = await fetch(`/api/care-orchestration?patientId=${encodeURIComponent(patientId)}`)
-      if (!response.ok) return
-      const data = await response.json()
-      setCareSnapshot(data)
+    const sessionWallet = (session?.user as any)?.walletAddress
+    if (typeof sessionWallet === "string" && /^0x[a-fA-F0-9]{40}$/.test(sessionWallet.trim())) {
+      setWalletAddress((prev) => prev || sessionWallet.trim())
+    }
+  }, [session])
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("basehealth_wallet_address") || ""
+      if (saved && /^0x[a-fA-F0-9]{40}$/.test(saved.trim())) {
+        setWalletAddress((prev) => prev || saved.trim())
+      }
+    } catch {
+      // ignore
     }
 
-    loadCareSnapshot()
-  }, [session?.user?.email])
-
-  const requestPrimaryCareFollowUp = async () => {
-    const response = await fetch('/api/care-orchestration/actions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'primary-care-follow-up',
-        payload: {
-          patientId: session?.user?.email || 'demo-patient',
-          reason: 'Patient requested follow-up',
-        },
-      }),
-    })
-
-    if (response.ok) {
-      setCareActionMessage('Primary care follow-up requested. Your care team will follow up with next steps.')
+    const handler = (event: any) => {
+      const addr = (event?.detail?.address || "").trim()
+      if (!addr) {
+        setWalletAddress(null)
+        return
+      }
+      if (/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+        setWalletAddress(addr)
+      }
     }
-  }
 
-  const userName = session?.user?.name 
-    ? session.user.name.split(' ')[0] 
-    : "there"
+    window.addEventListener("basehealth:wallet", handler)
+    return () => window.removeEventListener("basehealth:wallet", handler)
+  }, [])
 
-  const userInitials = session?.user?.name
-    ? session.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : "?"
+  useEffect(() => {
+    const loadReceipts = async () => {
+      if (!walletAddress) {
+        setReceipts([])
+        return
+      }
+
+      setReceiptsLoading(true)
+      try {
+        const response = await fetch(
+          `/api/billing/receipts?walletAddress=${encodeURIComponent(walletAddress)}&limit=5`,
+          { cache: "no-store" },
+        )
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok || !data?.success) {
+          setReceipts([])
+          return
+        }
+        setReceipts(Array.isArray(data.receipts) ? data.receipts : [])
+      } catch {
+        setReceipts([])
+      } finally {
+        setReceiptsLoading(false)
+      }
+    }
+
+    loadReceipts()
+  }, [walletAddress])
+
+  const miniUser: any = miniAppUser as any
+  const sessionName = (session?.user as any)?.name as string | undefined
+  const displayName =
+    (typeof miniUser?.displayName === "string" && miniUser.displayName.trim()) ||
+    (typeof miniUser?.username === "string" && miniUser.username.trim()) ||
+    (typeof sessionName === "string" && sessionName.trim()) ||
+    "there"
+
+  const avatarUrl =
+    (typeof miniUser?.pfpUrl === "string" && miniUser.pfpUrl.trim()) ||
+    (typeof miniUser?.avatarUrl === "string" && miniUser.avatarUrl.trim()) ||
+    ((session?.user as any)?.image as string | undefined) ||
+    ""
 
   const quickActions = [
     { title: 'Health Screening', description: 'Get personalized recommendations', icon: ClipboardList, href: '/screening' },
     { title: 'Find Providers', description: 'Search doctors & specialists', icon: Users, href: '/providers/search' },
-    { title: 'Clinical Trials', description: 'Browse active studies', icon: FlaskConical, href: '/clinical-trials' },
     { title: 'Assistant', description: 'Chat with specialists', icon: MessageCircle, href: '/chat' },
     { title: 'Billing & Receipts', description: 'View payments and receipts', icon: CreditCard, href: '/billing' },
-  ]
-
-  const upcomingAppointments = [
-    { provider: 'Dr. Sarah Chen', specialty: 'Primary Care', date: 'Jan 15, 2026', time: '10:00 AM', type: 'Virtual' },
-    { provider: 'Dr. Michael Torres', specialty: 'Cardiology', date: 'Jan 22, 2026', time: '2:30 PM', type: 'In-Person' },
-  ]
-
-  const healthMetrics = [
-    { label: 'Screenings Due', value: '3', trend: 'Schedule now' },
-    { label: 'Active Providers', value: '4', trend: '+1 this month' },
-    { label: 'Health Score', value: '85', trend: '+5 from last' },
-  ]
-
-  const easyActionPlan = [
-    'No urgent alerts today. Keep your current routine.',
-    'Review screenings due and schedule anything outstanding.',
-    careSnapshot?.priorAuth?.some((item) => item.status !== 'approved')
-      ? 'You have pending prior authorizations. We are tracking them for you.'
-      : 'No pending prior auth tasks right now.',
   ]
 
   return (
@@ -103,54 +133,11 @@ export default function PatientPortalPage() {
           {/* Header */}
           <div className={`mb-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h1 className="text-3xl md:text-4xl font-normal tracking-tight mb-2">
-              Welcome back, <span style={{ color: 'var(--text-secondary)' }}>{userName}</span>
+              Welcome back, <span style={{ color: 'var(--text-secondary)' }}>{displayName.split(" ")[0]}</span>
             </h1>
             <p style={{ color: 'var(--text-secondary)' }}>
               Your health dashboard at a glance.
             </p>
-          </div>
-
-          {/* Easy Today Plan */}
-          <section className={`mb-8 ${mounted ? 'animate-fade-in-up delay-100' : 'opacity-0'}`}>
-            <div className="rounded-xl border p-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
-              <h2 className="text-lg font-medium mb-2">Your simple plan for today</h2>
-              <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>We turned everything into 3 easy steps.</p>
-              <ol className="space-y-2 list-decimal pl-5">
-                {easyActionPlan.map((item, index) => (
-                  <li key={index} className="text-sm" style={{ color: 'var(--text-secondary)' }}>{item}</li>
-                ))}
-              </ol>
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={requestPrimaryCareFollowUp}
-                  className="text-sm px-3 py-2 rounded-lg border"
-                  style={{ backgroundColor: 'rgba(212, 165, 116, 0.10)', borderColor: 'var(--border-subtle)' }}
-                >
-                  One-tap: Request PCP follow-up
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* Health Metrics */}
-          <div className={`grid md:grid-cols-3 gap-4 mb-10 ${mounted ? 'animate-fade-in-up delay-100' : 'opacity-0'}`}>
-            {healthMetrics.map((metric) => (
-              <div 
-                key={metric.label} 
-                className="p-5 rounded-xl border"
-                style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}
-              >
-                <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>{metric.label}</p>
-                <div className="flex items-end justify-between">
-                  <span className="text-3xl font-normal">{metric.value}</span>
-                  <span className="text-sm flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
-                    <TrendingUp className="h-4 w-4" style={{ color: '#6b9b6b' }} />
-                    {metric.trend}
-                  </span>
-                </div>
-              </div>
-            ))}
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6">
@@ -180,133 +167,92 @@ export default function PatientPortalPage() {
                 </div>
               </section>
 
-              {/* Recent Activity */}
+              {/* Receipts Preview */}
               <section className={`${mounted ? 'animate-fade-in-up delay-300' : 'opacity-0'}`}>
-                <h2 className="text-lg font-medium mb-4">Recent Activity</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-medium">Receipts</h2>
+                  <Link href="/billing" className="text-sm transition-colors" style={{ color: 'var(--text-muted)' }}>
+                    View all
+                  </Link>
+                </div>
+
                 <div className="rounded-xl border p-5" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-4 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-                      <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(107, 155, 107, 0.1)' }}>
-                        <ClipboardList className="h-4 w-4" style={{ color: '#6b9b6b' }} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Health screening completed</p>
-                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>3 new recommendations</p>
-                      </div>
-                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>2h ago</span>
+                  {!walletAddress ? (
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      Connect your Base wallet to see receipts.
+                    </p>
+                  ) : receiptsLoading ? (
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      Loading receipts…
+                    </p>
+                  ) : receipts.length === 0 ? (
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      No receipts yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {receipts.map((receipt) => (
+                        <div
+                          key={receipt.receiptId}
+                          className="p-3 rounded-lg flex items-start justify-between gap-3"
+                          style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {receipt.providerName || "Receipt"} • ${receipt.amount} {receipt.currency}
+                            </p>
+                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                              {new Date(receipt.issuedAt).toLocaleString(undefined, {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}{" "}
+                              • {receipt.paymentStatus.toLowerCase()}
+                            </p>
+                          </div>
+
+                          {receipt.paymentExplorerUrl ? (
+                            <a
+                              href={receipt.paymentExplorerUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs whitespace-nowrap"
+                              style={{ color: 'var(--text-muted)' }}
+                            >
+                              View
+                            </a>
+                          ) : null}
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex items-center gap-4 p-3 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-                      <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(212, 165, 116, 0.1)' }}>
-                        <Calendar className="h-4 w-4" style={{ color: 'hsl(var(--accent))' }} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Appointment scheduled</p>
-                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Dr. Sarah Chen - Jan 15</p>
-                      </div>
-                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Yesterday</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </section>
             </div>
 
             {/* Sidebar */}
             <div className="space-y-4">
-              {/* Upcoming Appointments */}
-              <section className={`${mounted ? 'animate-fade-in-up delay-300' : 'opacity-0'}`}>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-medium">Upcoming</h2>
-                  <Link href="/appointment/book" className="text-sm transition-colors" style={{ color: 'var(--text-muted)' }}>
-                    Book
-                  </Link>
-                </div>
-                <div className="space-y-3">
-                  {upcomingAppointments.map((apt, i) => (
-                    <div 
-                      key={i}
-                      className="p-4 rounded-xl border"
-                      style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium text-sm">{apt.provider}</h3>
-                        <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-                          {apt.type}
-                        </span>
-                      </div>
-                      <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>{apt.specialty}</p>
-                      <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        <Calendar className="h-3 w-3" />
-                        {apt.date} at {apt.time}
-                      </div>
+              {/* Profile */}
+              <section className={`${mounted ? 'animate-fade-in-up delay-400' : 'opacity-0'}`}>
+                <div className="p-4 rounded-xl border" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full overflow-hidden border" style={{ borderColor: 'var(--border-subtle)' }}>
+                      {avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-sm" style={{ color: 'var(--text-muted)' }}>
+                          {displayName.slice(0, 1).toUpperCase()}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* Care Coordination */}
-              <section className={`${mounted ? 'animate-fade-in-up delay-400' : 'opacity-0'}`}>
-                <div className="p-4 rounded-xl border" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
-                  <h2 className="font-medium text-sm mb-3">Care Coordination</h2>
-
-                  <div className="grid grid-cols-1 gap-2 mb-3">
-                    {(careSnapshot?.partners || []).map((partner) => (
-                      <div key={partner.id} className="p-2 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-                        <p className="text-xs font-medium flex items-center gap-2">
-                          {partner.type === 'pharmacy' ? <Pill className="h-3 w-3" /> : partner.type === 'lab' ? <TestTube2 className="h-3 w-3" /> : <ScanLine className="h-3 w-3" />}
-                          {partner.name}
-                        </p>
-                        <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{partner.address} • {partner.phone}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={requestPrimaryCareFollowUp}
-                    className="w-full text-xs p-2 rounded-lg border"
-                    style={{ backgroundColor: 'rgba(212, 165, 116, 0.10)', borderColor: 'var(--border-subtle)' }}
-                  >
-                    Request primary care follow-up
-                  </button>
-                  {careActionMessage && <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)' }}>{careActionMessage}</p>}
-                </div>
-              </section>
-
-              {/* Billing & Prior Auth */}
-              <section className={`${mounted ? 'animate-fade-in-up delay-400' : 'opacity-0'}`}>
-                <div className="p-4 rounded-xl border" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
-                  <h2 className="font-medium text-sm mb-3">Billing, Receipts & Prior Auth</h2>
-                  <div className="space-y-2 mb-2">
-                    {(careSnapshot?.receipts || []).slice(0, 2).map((receipt) => (
-                      <div key={receipt.id} className="text-xs p-2 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-                        <p className="font-medium flex items-center gap-1"><Receipt className="h-3 w-3" /> ${receipt.amountUsd} • {receipt.status}</p>
-                        <p style={{ color: 'var(--text-muted)' }}>{receipt.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="space-y-2">
-                    {(careSnapshot?.priorAuth || []).slice(0, 2).map((item) => (
-                      <p key={item.id} className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                        Prior auth: {item.medicationOrService} ({item.status})
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{displayName}</p>
+                      <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+                        {walletAddress ? "Wallet connected" : "Not connected"}
                       </p>
-                    ))}
-                  </div>
-                </div>
-              </section>
-
-              {/* Updates */}
-              <section className={`${mounted ? 'animate-fade-in-up delay-400' : 'opacity-0'}`}>
-                <div className="p-4 rounded-xl border" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
-                  <h2 className="font-medium text-sm mb-3">Articles & Updates</h2>
-                  {(careSnapshot?.updates || []).map((update) => (
-                    <div key={update.id} className="text-xs p-2 rounded-lg mb-2" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-                      <p className="font-medium flex items-center gap-1"><Newspaper className="h-3 w-3" /> {update.title}</p>
-                      <p style={{ color: 'var(--text-muted)' }}>{update.summary}</p>
                     </div>
-                  ))}
-                  <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                    OpenCloud agent: {careSnapshot?.openCloud?.enabled ? `enabled (${careSnapshot.openCloud.version})` : 'disabled'}
-                  </p>
+                  </div>
                 </div>
               </section>
 

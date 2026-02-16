@@ -426,15 +426,17 @@ export async function checkUsdcBalance(
   walletAddress: string,
   requiredAmount: number
 ): Promise<{ sufficient: boolean; balance: string }> {
+  void walletAddress
+  void requiredAmount
   try {
-    // In production, query the USDC contract for balance
-    // For now, return a simulated check
-    
+    // Live USDC balance checks are not wired here yet. Return a safe default
+    // instead of simulated positive balances.
     return {
-      sufficient: true,
-      balance: '1000000000', // 1000 USDC
+      sufficient: false,
+      balance: '0',
     }
   } catch (error) {
+    void error
     return {
       sufficient: false,
       balance: '0',

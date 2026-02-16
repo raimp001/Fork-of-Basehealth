@@ -170,14 +170,10 @@ export async function attestProviderCredential(
   const easConfig = getEAS()
   
   if (!easConfig) {
-    // Return mock attestation for development
-    const mockUid = `0x${Buffer.from(data.npiNumber).toString('hex').padEnd(64, '0')}`
-    logger.info('Mock attestation created (no attestor key)', { npi: data.npiNumber })
     return {
-      success: true,
-      uid: mockUid,
-      txHash: '0x' + '0'.repeat(64),
-      explorerUrl: `${EXPLORER_BASE}/attestation/view/${mockUid}`,
+      success: false,
+      error: 'ATTESTOR_PRIVATE_KEY not configured',
+      explorerUrl: EXPLORER_BASE,
     }
   }
   
@@ -241,12 +237,10 @@ export async function attestVisitCompletion(
   const easConfig = getEAS()
   
   if (!easConfig) {
-    const mockUid = `0x${Buffer.from(data.visitId).toString('hex').padEnd(64, '0')}`
     return {
-      success: true,
-      uid: mockUid,
-      txHash: '0x' + '0'.repeat(64),
-      explorerUrl: `${EXPLORER_BASE}/attestation/view/${mockUid}`,
+      success: false,
+      error: 'ATTESTOR_PRIVATE_KEY not configured',
+      explorerUrl: EXPLORER_BASE,
     }
   }
   
@@ -306,12 +300,10 @@ export async function attestReview(
   const easConfig = getEAS()
   
   if (!easConfig) {
-    const mockUid = `0x${Date.now().toString(16).padEnd(64, '0')}`
     return {
-      success: true,
-      uid: mockUid,
-      txHash: '0x' + '0'.repeat(64),
-      explorerUrl: `${EXPLORER_BASE}/attestation/view/${mockUid}`,
+      success: false,
+      error: 'ATTESTOR_PRIVATE_KEY not configured',
+      explorerUrl: EXPLORER_BASE,
     }
   }
   
@@ -369,12 +361,10 @@ export async function attestScreeningCompletion(
   const easConfig = getEAS()
   
   if (!easConfig) {
-    const mockUid = `0x${Buffer.from(data.screeningId).toString('hex').padEnd(64, '0')}`
     return {
-      success: true,
-      uid: mockUid,
-      txHash: '0x' + '0'.repeat(64),
-      explorerUrl: `${EXPLORER_BASE}/attestation/view/${mockUid}`,
+      success: false,
+      error: 'ATTESTOR_PRIVATE_KEY not configured',
+      explorerUrl: EXPLORER_BASE,
     }
   }
   
@@ -433,8 +423,9 @@ export async function revokeAttestation(
   
   if (!easConfig) {
     return {
-      success: true,
+      success: false,
       uid: attestationUid,
+      error: 'ATTESTOR_PRIVATE_KEY not configured',
     }
   }
   
@@ -473,15 +464,10 @@ export async function revokeAttestation(
 export async function verifyAttestation(
   attestationUid: string
 ): Promise<{ valid: boolean; revoked: boolean; data?: any }> {
-  const easConfig = getEAS()
-  
-  if (!easConfig) {
-    return { valid: true, revoked: false }
-  }
-  
-  const { eas } = easConfig
-  
   try {
+    const provider = new ethers.JsonRpcProvider(RPC_URL)
+    const eas = new EAS(EAS_CONTRACT_ADDRESS)
+    eas.connect(provider)
     const attestation = await eas.getAttestation(attestationUid)
     
     return {

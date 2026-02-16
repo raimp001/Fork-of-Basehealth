@@ -1,7 +1,6 @@
 import type { Provider } from "@/types/user"
-import db from "@/lib/mock-db"
 import npiService from "@/lib/npi-service"
-import { searchProviders as searchProvidersNpi } from "@/lib/ai-service"
+import { searchNPIProviders } from "@/lib/npi-service"
 import { prisma } from "@/lib/prisma"
 
 /**
@@ -71,13 +70,7 @@ export async function getProviderById(providerId: string): Promise<Provider | nu
     console.log("Prisma lookup failed, trying other sources:", error)
   }
 
-  // 2. Try the in-memory database
-  const mockProvider = await db.getProviderById(providerId)
-  if (mockProvider) {
-    return mockProvider
-  }
-
-  // 3. Try NPI registry lookup
+  // 2. Try NPI registry lookup
   try {
     // Handle both "npi-XXXXXXXX" format and raw NPI numbers
     let npiNumber = providerId
@@ -106,6 +99,8 @@ export async function searchProviders(options: {
   radius?: number
 }): Promise<Provider[]> {
   const results: Provider[] = []
+  void options.coordinates
+  void options.radius
   
   // 1. First, search registered providers in database
   try {
@@ -168,9 +163,14 @@ export async function searchProviders(options: {
     console.log("Database search failed:", error)
   }
   
-  // 2. Also search NPI registry
+  // 2. Also search NPI registry (real registry data only)
   try {
-    const npiResults = await searchProvidersNpi(options.zipCode || "", options.specialty)
+    const npiResponse = await searchNPIProviders({
+      zip: options.zipCode,
+      taxonomy_description: options.specialty,
+      limit: 20,
+    })
+    const npiResults = (npiResponse.results || []).map((provider) => npiService.convertToAppProvider(provider))
     results.push(...npiResults)
   } catch (error) {
     console.log("NPI search failed:", error)

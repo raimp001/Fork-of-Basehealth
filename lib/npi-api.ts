@@ -376,7 +376,8 @@ export function getProviderSpecialty(provider: NPIProvider): string {
 
 // Check if provider is accepting new patients (this would need additional data source)
 export function isAcceptingPatients(provider: NPIProvider): boolean {
-  // This is a placeholder - in reality, you'd need to integrate with additional APIs
-  // or databases that track provider availability
-  return Math.random() > 0.3 // 70% chance of accepting patients for demo
+  // The NPI registry does not include availability/accepting-new-patients.
+  // Return false by default to avoid presenting guessed data as fact.
+  void provider
+  return false
 } 

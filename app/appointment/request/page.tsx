@@ -1,28 +1,7 @@
-import { Suspense } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent } from "@/components/ui/card"
-import AppointmentRequestClient from "./client"
+import { redirect } from "next/navigation"
 
-export default function OnDemandRequestPage() {
-  return (
-    <div className="container py-6 max-w-4xl">
-      <h1 className="text-2xl font-bold mb-6">Request On-Demand Healthcare</h1>
-      <Suspense
-        fallback={
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-20 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-2/3" />
-              </div>
-            </CardContent>
-          </Card>
-        }
-      >
-        <AppointmentRequestClient />
-      </Suspense>
-    </div>
-  )
+export default function AppointmentRequestPage() {
+  // On-demand appointment flows are not launched; route to the assistant instead.
+  redirect("/chat?q=Help%20me%20find%20the%20right%20provider%20and%20next%20steps%20for%20booking%20care.")
 }
+

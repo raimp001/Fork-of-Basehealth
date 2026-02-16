@@ -1,344 +1,225 @@
 "use client"
 
-import { EnhancedBillingDashboard } from "@/components/billing/enhanced-billing-dashboard"
-import { SmartBillingInsights } from "@/components/billing/smart-billing-insights"
-import { CMSCompliantBilling } from "@/components/billing/cms-compliant-billing"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { StandardizedButton, PrimaryActionButton } from "@/components/ui/standardized-button"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { components } from "@/lib/design-system"
-import { FunctionAgentCTA } from "@/components/agents/function-agent-cta"
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Lightbulb, 
-  Shield, 
-  Wallet,
-  CreditCard,
-  BarChart3,
-  Target,
-  ArrowRight,
-  FileText,
-  Gavel,
-  ExternalLink,
-  CheckCircle,
-  Eye,
-  ArrowLeft,
-  Sparkles
-} from "lucide-react"
+import { useSession } from "next-auth/react"
+import { CreditCard, ExternalLink, Receipt } from "lucide-react"
+import { useMiniApp } from "@/components/providers/miniapp-provider"
+
+type BillingReceipt = {
+  receiptId: string
+  bookingId: string
+  amount: string
+  currency: string
+  bookingStatus: string
+  paymentStatus: string
+  paymentProvider: string
+  issuedAt: string
+  paidAt?: string
+  providerName?: string
+  paymentTxHash?: string
+  paymentExplorerUrl?: string
+}
 
 export default function BillingPage() {
-  // In a real app, this would come from user session/auth
-  const patientId = "patient_123"
-  const providerId = "provider_456"
+  const { data: session } = useSession()
+  const { user: miniAppUser } = useMiniApp()
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [receipts, setReceipts] = useState<BillingReceipt[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const sessionWallet = (session?.user as any)?.walletAddress
+    if (typeof sessionWallet === "string" && /^0x[a-fA-F0-9]{40}$/.test(sessionWallet.trim())) {
+      setWalletAddress((prev) => prev || sessionWallet.trim())
+    }
+  }, [session])
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("basehealth_wallet_address") || ""
+      if (saved && /^0x[a-fA-F0-9]{40}$/.test(saved.trim())) {
+        setWalletAddress((prev) => prev || saved.trim())
+      }
+    } catch {
+      // ignore
+    }
+
+    const handler = (event: any) => {
+      const addr = (event?.detail?.address || "").trim()
+      if (!addr) {
+        setWalletAddress(null)
+        return
+      }
+      if (/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+        setWalletAddress(addr)
+      }
+    }
+
+    window.addEventListener("basehealth:wallet", handler)
+    return () => window.removeEventListener("basehealth:wallet", handler)
+  }, [])
+
+  useEffect(() => {
+    const loadReceipts = async () => {
+      if (!walletAddress) {
+        setReceipts([])
+        return
+      }
+
+      setLoading(true)
+      setError(null)
+
+      try {
+        const response = await fetch(
+          `/api/billing/receipts?walletAddress=${encodeURIComponent(walletAddress)}&limit=20`,
+          { cache: "no-store" },
+        )
+        const data = await response.json().catch(() => ({}))
+
+        if (!response.ok || !data?.success) {
+          setReceipts([])
+          setError(typeof data?.error === "string" ? data.error : "Failed to load receipts.")
+          return
+        }
+
+        setReceipts(Array.isArray(data.receipts) ? data.receipts : [])
+      } catch {
+        setReceipts([])
+        setError("Failed to load receipts.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadReceipts()
+  }, [walletAddress])
+
+  const miniUser: any = miniAppUser as any
+  const sessionName = (session?.user as any)?.name as string | undefined
+  const displayName =
+    (typeof miniUser?.displayName === "string" && miniUser.displayName.trim()) ||
+    (typeof miniUser?.username === "string" && miniUser.username.trim()) ||
+    (typeof sessionName === "string" && sessionName.trim()) ||
+    "Wallet"
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-50 via-white to-stone-50">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}>
       <main className="py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          {/* Header */}
-          <div className="mb-10">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-800 text-white text-sm font-semibold mb-6 shadow-md">
-              <DollarSign className="h-4 w-4" />
-              Healthcare Billing
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="mb-8">
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border"
+              style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-subtle)" }}
+            >
+              <CreditCard className="h-4 w-4" style={{ color: "hsl(var(--accent))" }} />
+              <span className="text-sm font-medium">Billing & Receipts</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-stone-900 mb-4 tracking-tight">
-              Billing & Payments
-            </h1>
-            <p className="text-lg text-stone-600 leading-relaxed">
-              CMS-compliant billing management with smart insights
+
+            <h1 className="mt-4 text-3xl md:text-4xl font-normal tracking-tight">Receipts</h1>
+            <p className="mt-2 text-sm md:text-base" style={{ color: "var(--text-secondary)" }}>
+              View your BaseHealth payment receipts for <span className="font-medium">{displayName}</span>.
             </p>
           </div>
 
-          <FunctionAgentCTA
-            agentId="billing-guide"
-            title="Billing Guide Agent"
-            prompt="Help me pay with Base, find my receipts, and understand refunds."
-            className="mb-6"
-          />
-
-          {/* Regulatory Alert */}
-          <Alert className="border-amber-200 bg-amber-50 mb-6">
-            <Gavel className="h-5 w-5 text-amber-600" />
-            <AlertDescription className="text-amber-800">
-              <strong>2024 CMS Updates:</strong> New billing requirements for telehealth services and updated fee schedules are now in effect.{" "}
-              <a href="https://www.cms.gov" target="_blank" rel="noopener noreferrer" className="underline inline-flex items-center gap-1 hover:text-amber-900 transition-colors">
-                View CMS Guidelines <ExternalLink className="h-3 w-3" />
-              </a>
-            </AlertDescription>
-          </Alert>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="p-6 border-gray-100 hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-sky-100 to-cyan-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                    <Target className="h-6 w-6 text-sky-600" />
-                  </div>
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-200">On Track</Badge>
+          {!walletAddress ? (
+            <div
+              className="rounded-2xl border p-6"
+              style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-subtle)" }}
+            >
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                Connect your Base wallet to view receipts.
+              </p>
+              <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
+                Tip: you can explore the app without signing in. Receipts require a connected wallet.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {error ? (
+                <div
+                  className="rounded-2xl border p-4 text-sm"
+                  style={{ backgroundColor: "rgba(220, 38, 38, 0.06)", borderColor: "rgba(220, 38, 38, 0.2)", color: "#b91c1c" }}
+                >
+                  {error}
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Monthly Budget</p>
-                  <p className="text-3xl font-bold text-gray-900">$750</p>
-                </div>
-              </CardContent>
-            </Card>
+              ) : null}
 
-            <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-emerald-100 to-green-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="h-6 w-6 text-emerald-600" />
-                  </div>
-                  <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">62% used</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">This Month</p>
-                  <p className="text-3xl font-bold text-gray-900">$285</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-violet-100 to-purple-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                    <Wallet className="h-6 w-6 text-violet-600" />
-                  </div>
-                  <Badge variant="secondary" className="bg-violet-100 text-violet-700 border-violet-200">2.5% discount</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Crypto Savings</p>
-                  <p className="text-3xl font-bold text-gray-900">$47.50</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="bg-gradient-to-br from-emerald-100 to-teal-100 w-12 h-12 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="h-6 w-6 text-emerald-600" />
-                  </div>
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-200">Approval Rate</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Claims Status</p>
-                  <p className="text-3xl font-bold text-gray-900">98%</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Main Content */}
-          <Tabs defaultValue="dashboard" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-4 h-14 bg-white p-1 border border-gray-200">
-              <TabsTrigger value="dashboard" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Billing Dashboard
-              </TabsTrigger>
-              <TabsTrigger value="insights" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Smart Insights
-              </TabsTrigger>
-              <TabsTrigger value="compliance" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                CMS Compliance
-              </TabsTrigger>
-              <TabsTrigger value="documentation" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white h-12 font-medium flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Documentation
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="dashboard" className="space-y-6">
-              <EnhancedBillingDashboard patientId={patientId} />
-            </TabsContent>
-
-            <TabsContent value="insights" className="space-y-6">
-              <SmartBillingInsights patientId={patientId} />
-            </TabsContent>
-
-            <TabsContent value="compliance" className="space-y-6">
-              <CMSCompliantBilling patientId={patientId} providerId={providerId} />
-            </TabsContent>
-
-            <TabsContent value="documentation" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Good Faith Estimates */}
-                <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-sky-100 to-cyan-100 w-10 h-10 rounded-lg flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-sky-600" />
-                      </div>
-                      Good Faith Estimates
-                    </CardTitle>
-                    <CardDescription>
-                      Required estimates for uninsured patients per No Surprise Billing Act
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="p-4 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
-                      <h4 className="font-medium mb-2 text-gray-900">Cardiology Consultation</h4>
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <p>CPT Code: 99213 - $112.00</p>
-                        <p>Facility Fee: $85.00</p>
-                        <p className="font-medium text-gray-900">Total Estimate: $197.00</p>
-                      </div>
-                      <StandardizedButton size="sm" variant="secondary" className="mt-3">
-                        Generate Estimate
-                      </StandardizedButton>
-                    </div>
-                    <div className="p-4 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
-                      <h4 className="font-medium mb-2 text-gray-900">Lab Work Panel</h4>
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <p>Multiple CPT Codes</p>
-                        <p className="font-medium text-gray-900">Total Estimate: $125.00 - $185.00</p>
-                      </div>
-                      <StandardizedButton size="sm" variant="secondary" className="mt-3">
-                        Generate Estimate
-                      </StandardizedButton>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Prior Authorization */}
-                <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-green-100 to-emerald-100 w-10 h-10 rounded-lg flex items-center justify-center">
-                        <Shield className="h-5 w-5 text-emerald-600" />
-                      </div>
-                      Prior Authorization Status
-                    </CardTitle>
-                    <CardDescription>
-                      Track prior authorization requirements and approvals
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="p-4 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-gray-900">Chronic Care Management</h4>
-                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Approved</Badge>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <p>CPT Code: 99490</p>
-                        <p>Authorization #: PA-2024-001</p>
-                        <p>Valid through: 12/31/2024</p>
-                      </div>
-                    </div>
-                    <div className="p-4 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-gray-900">Advanced Imaging</h4>
-                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Pending</Badge>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <p>Request submitted: 01/15/2024</p>
-                        <p>Expected response: 01/22/2024</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Quality Measures */}
-                <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-violet-100 to-purple-100 w-10 h-10 rounded-lg flex items-center justify-center">
-                        <BarChart3 className="h-5 w-5 text-violet-600" />
-                      </div>
-                      Quality Measure Tracking
-                    </CardTitle>
-                    <CardDescription>
-                      CQM and MIPS quality measure compliance
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
-                        <span className="font-medium text-gray-900">CQM-68: Documentation of BP</span>
-                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">95%</Badge>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
-                        <span className="font-medium text-gray-900">CQM-22: Preventive Care Screening</span>
-                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">88%</Badge>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
-                        <span className="font-medium text-gray-900">CQM-90: Chronic Care Management</span>
-                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">72%</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Audit Preparation */}
-                <Card className="border-0 shadow-xl bg-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-3">
-                      <div className="bg-gradient-to-br from-orange-100 to-red-100 w-10 h-10 rounded-lg flex items-center justify-center">
-                        <Eye className="h-5 w-5 text-orange-600" />
-                      </div>
-                      Audit Readiness
-                    </CardTitle>
-                    <CardDescription>
-                      Documentation and compliance audit preparation
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
-                        <span className="font-medium text-gray-900">Medical Necessity Documentation</span>
-                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Complete</Badge>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
-                        <span className="font-medium text-gray-900">Billing Code Accuracy</span>
-                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Verified</Badge>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-white/40 backdrop-blur-sm border border-white/20 rounded-lg">
-                        <span className="font-medium text-gray-900">Patient Consent Forms</span>
-                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Review Needed</Badge>
-                      </div>
-                    </div>
-                    <StandardizedButton variant="secondary" className="w-full">
-                      Generate Audit Report
-                    </StandardizedButton>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {/* Enhanced Compliance Footer */}
-          <Card className="border-0 shadow-xl bg-gradient-to-r from-sky-50/80 to-cyan-50/80 backdrop-blur-sm">
-            <CardContent className="p-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-4 bg-gradient-to-br from-sky-100 to-cyan-100 rounded-xl">
-                    <Shield className="h-8 w-8 text-sky-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-xl text-gray-900 mb-2">CMS Compliance & Security</h3>
-                    <p className="text-gray-600">
-                      Full compliance with Medicare & Medicaid billing requirements, HIPAA, and No Surprise Billing Act
+              <div
+                className="rounded-2xl border p-5"
+                style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-subtle)" }}
+              >
+                {loading ? (
+                  <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                    Loading receipts…
+                  </p>
+                ) : receipts.length === 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                      No receipts yet.
+                    </p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                      Receipts appear after a payment is confirmed.
                     </p>
                   </div>
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">CMS Certified</Badge>
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-200">HIPAA Compliant</Badge>
-                  <Badge variant="secondary" className="bg-violet-100 text-violet-700 border-violet-200">No Surprise Billing</Badge>
-                  <Badge variant="secondary" className="bg-sky-100 text-sky-700 border-sky-200">Quality Reporting</Badge>
-                </div>
+                ) : (
+                  <div className="space-y-3">
+                    {receipts.map((receipt) => (
+                      <div
+                        key={receipt.receiptId}
+                        className="flex items-start justify-between gap-3 p-4 rounded-xl border"
+                        style={{ backgroundColor: "var(--bg-tertiary)", borderColor: "var(--border-subtle)" }}
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {receipt.providerName || "Receipt"} • ${receipt.amount} {receipt.currency}
+                          </p>
+                          <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                            {new Date(receipt.issuedAt).toLocaleString(undefined, {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}{" "}
+                            • {receipt.paymentStatus.toLowerCase()}
+                          </p>
+                        </div>
+
+                        {receipt.paymentExplorerUrl ? (
+                          <a
+                            href={receipt.paymentExplorerUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs whitespace-nowrap"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            Explorer <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+                            <Receipt className="h-3 w-3" /> {receipt.paymentProvider}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/chat?q=Help%20me%20find%20my%20receipts%2C%20track%20a%20refund%2C%20or%20understand%20a%20charge."
+                  className="text-sm underline underline-offset-4"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Ask the assistant about billing
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
   )
-} 
+}
+

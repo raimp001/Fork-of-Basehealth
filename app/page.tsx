@@ -286,16 +286,15 @@ export default function HomePage() {
                     Dashboard
                   </Link>
                 </li>
-                <li>
-                  <Link href="/admin" className="hover:text-foreground transition-colors">
-                    Admin
-                  </Link>
-                </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-sm font-semibold text-foreground">Company</h4>
+              <h4 className="text-sm font-semibold text-foreground">
+                <Link href="/company" className="hover:text-primary transition-colors">
+                  Company
+                </Link>
+              </h4>
               <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
                 <li>
                   <Link href="/privacy" className="hover:text-foreground transition-colors">
@@ -328,4 +327,3 @@ export default function HomePage() {
     </div>
   )
 }
-

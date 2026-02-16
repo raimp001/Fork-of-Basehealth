@@ -1,22 +1,25 @@
 /**
  * Stripe Payment Intent Creation API
- * 
+ *
  * Creates a Stripe payment intent for credit card payments.
- * Supports demo mode when Stripe is not configured.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createPaymentIntent, isStripeDemoMode, getStripeStatus } from '@/lib/stripe'
+import { createPaymentIntent, getStripeStatus, stripe } from '@/lib/stripe'
 
 export async function POST(request: NextRequest) {
   try {
+    if (!stripe) {
+      return NextResponse.json(
+        { success: false, error: 'Stripe is not configured.' },
+        { status: 503 }
+      )
+    }
+
     const body = await request.json()
-    const { 
-      amount, 
-      currency = 'usd', 
-      metadata = {},
-      customerId,
-      description,
+    const {
+      amount,
+      currency = 'usd',
     } = body
     
     // Validate amount
@@ -27,7 +30,7 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Create payment intent (real or demo)
+    // Create payment intent
     const paymentIntent = await createPaymentIntent(amount, currency.toLowerCase())
     
     return NextResponse.json({
@@ -36,10 +39,6 @@ export async function POST(request: NextRequest) {
       clientSecret: paymentIntent.client_secret,
       amount: amount,
       currency: currency.toUpperCase(),
-      demoMode: isStripeDemoMode,
-      ...(isStripeDemoMode && {
-        notice: 'This is a demo payment. No real charges will be made.',
-      }),
     })
     
   } catch (error) {

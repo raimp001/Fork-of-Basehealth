@@ -4,7 +4,10 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { logger } from '@/lib/logger'
 import { rateLimit, getClientIdentifier } from '@/lib/rate-limiter'
-import { getAllApplications, getApplicationById, updateApplicationStatus, addApplication } from '@/lib/caregiver-applications'
+import { getAllApplications, getApplicationById, addApplication } from '@/lib/caregiver-applications'
+import { notifyAdminApplicationSubmitted } from '@/lib/admin-application-notifier'
+import { getToken } from 'next-auth/jwt'
+import { isAdminEmail } from '@/lib/admin-access'
 
 export async function POST(request: NextRequest) {
   try {
@@ -143,6 +146,20 @@ export async function POST(request: NextRequest) {
       email: applicationData.email,
       documentsUploaded: Object.keys(uploadedFiles)
     })
+
+    notifyAdminApplicationSubmitted({
+      applicationId: applicationData.id,
+      role: 'CAREGIVER',
+      applicantName: `${applicationData.firstName || ''} ${applicationData.lastName || ''}`.trim() || 'Unknown',
+      applicantEmail: String(applicationData.email || ''),
+      specialty: String(applicationData.primarySpecialty || ''),
+      source: 'caregiver-signup',
+    }).catch((notifyError) => {
+      logger.error('Failed to send caregiver admin notification', {
+        applicationId: applicationData.id,
+        error: notifyError instanceof Error ? notifyError.message : String(notifyError),
+      })
+    })
     
     return NextResponse.json({
       success: true,
@@ -166,6 +183,18 @@ export async function POST(request: NextRequest) {
 // GET endpoint to retrieve application status
 export async function GET(request: NextRequest) {
   try {
+    const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET })
+    const tokenEmail = typeof token?.email === 'string' ? token.email : ''
+    if (!isAdminEmail(tokenEmail)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Admin access required'
+        },
+        { status: 403 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const applicationId = searchParams.get('id')
     const email = searchParams.get('email')
@@ -217,4 +246,3 @@ export async function GET(request: NextRequest) {
     }, { status: 500 })
   }
 }
-

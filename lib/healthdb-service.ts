@@ -1,8 +1,9 @@
 /**
  * HealthDB.ai Integration Service
- * 
- * This service integrates with HealthDB.ai for enhanced medical data retrieval,
- * clinical decision support, and medical record analysis.
+ *
+ * Production-only behavior: no mock/simulated medical data.
+ * If HealthDB is not configured or requests fail, methods return
+ * `success: false` with an explicit error.
  */
 
 interface HealthDBConfig {
@@ -57,243 +58,200 @@ class HealthDBService {
   constructor() {
     this.config = {
       apiKey: process.env.HEALTHDB_API_KEY || '',
-      baseUrl: process.env.HEALTHDB_BASE_URL || 'https://api.healthdb.ai',
-      version: 'v1'
+      baseUrl: (process.env.HEALTHDB_BASE_URL || 'https://api.healthdb.ai').replace(/\/$/, ''),
+      version: process.env.HEALTHDB_API_VERSION || 'v1',
+    }
+  }
+
+  private isConfigured(): boolean {
+    return Boolean(this.config.apiKey)
+  }
+
+  private failure<T>(data: T, error: string): HealthDBResponse<T> {
+    return {
+      success: false,
+      data,
+      error,
+      metadata: {
+        confidence: 0,
+        sources: ['HealthDB.ai'],
+        timestamp: new Date().toISOString(),
+      },
+    }
+  }
+
+  private success<T>(data: T, source = 'HealthDB.ai', confidence = 0.8): HealthDBResponse<T> {
+    return {
+      success: true,
+      data,
+      metadata: {
+        confidence,
+        sources: [source],
+        timestamp: new Date().toISOString(),
+      },
     }
   }
 
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<HealthDBResponse<T>> {
+    if (!this.isConfigured()) {
+      return this.failure<T>(null as T, 'HealthDB integration is not configured')
+    }
+
     try {
       const response = await fetch(`${this.config.baseUrl}/${this.config.version}${endpoint}`, {
+        method: options.method || 'GET',
         headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
+          Authorization: `Bearer ${this.config.apiKey}`,
           'Content-Type': 'application/json',
           'User-Agent': 'BaseHealth/1.0',
-          ...options.headers
+          ...(options.headers || {}),
         },
-        ...options
+        body: options.body,
       })
 
       if (!response.ok) {
-        throw new Error(`HealthDB API error: ${response.status} ${response.statusText}`)
+        const text = await response.text().catch(() => '')
+        return this.failure<T>(null as T, `HealthDB API error (${response.status}): ${text || response.statusText}`)
       }
 
-      const data = await response.json()
-      return {
-        success: true,
-        data,
-        metadata: {
-          confidence: data.confidence || 0.8,
-          sources: data.sources || ['HealthDB.ai'],
-          timestamp: new Date().toISOString()
-        }
-      }
+      const payload = await response.json()
+      return this.success<T>(payload as T)
     } catch (error) {
-      console.error('HealthDB API error:', error)
-      return {
-        success: false,
-        data: null as any,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }
+      return this.failure<T>(
+        null as T,
+        error instanceof Error ? error.message : 'HealthDB request failed',
+      )
     }
   }
 
-  /**
-   * Search for medical conditions based on symptoms or condition name
-   */
-  async searchConditions(query: string, options?: {
-    includeSymptoms?: boolean
-    includeTreatments?: boolean
-    limit?: number
-  }): Promise<HealthDBResponse<MedicalCondition[]>> {
-    // Simulate API call for demo - replace with real HealthDB.ai integration
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    const mockConditions: MedicalCondition[] = [
-      {
-        id: 'diabetes-t2',
-        name: 'Type 2 Diabetes',
-        description: 'A chronic condition that affects how your body processes blood sugar (glucose)',
-        symptoms: ['increased thirst', 'frequent urination', 'hunger', 'fatigue', 'blurred vision'],
-        treatments: ['metformin', 'lifestyle changes', 'insulin therapy', 'glucose monitoring'],
-        specialists: ['Endocrinologist', 'Primary Care Physician', 'Diabetes Educator'],
-        urgency: 'medium',
-        relatedConditions: ['prediabetes', 'metabolic syndrome', 'cardiovascular disease']
-      },
-      {
-        id: 'hypertension',
-        name: 'Hypertension',
-        description: 'High blood pressure that can lead to serious health complications',
-        symptoms: ['headaches', 'shortness of breath', 'nosebleeds', 'chest pain'],
-        treatments: ['ACE inhibitors', 'lifestyle modifications', 'diuretics', 'calcium channel blockers'],
-        specialists: ['Cardiologist', 'Primary Care Physician', 'Nephrologist'],
-        urgency: 'medium',
-        relatedConditions: ['diabetes', 'kidney disease', 'heart disease']
-      }
-    ]
-
-    const filteredConditions = mockConditions.filter(condition =>
-      condition.name.toLowerCase().includes(query.toLowerCase()) ||
-      condition.symptoms.some(symptom => symptom.toLowerCase().includes(query.toLowerCase()))
-    )
-
-    return {
-      success: true,
-      data: filteredConditions.slice(0, options?.limit || 10),
-      metadata: {
-        confidence: 0.85,
-        sources: ['HealthDB.ai', 'Medical Literature', 'Clinical Guidelines'],
-        timestamp: new Date().toISOString()
-      }
-    }
+  private normalizeArray<T>(value: unknown): T[] {
+    if (Array.isArray(value)) return value as T[]
+    if (Array.isArray((value as any)?.results)) return (value as any).results as T[]
+    if (Array.isArray((value as any)?.items)) return (value as any).items as T[]
+    return []
   }
 
-  /**
-   * Get clinical guidelines for a specific condition
-   */
+  async searchConditions(
+    query: string,
+    options?: {
+      includeSymptoms?: boolean
+      includeTreatments?: boolean
+      limit?: number
+    },
+  ): Promise<HealthDBResponse<MedicalCondition[]>> {
+    if (!query?.trim()) {
+      return this.success<MedicalCondition[]>([])
+    }
+
+    const params = new URLSearchParams({
+      q: query.trim(),
+      limit: String(options?.limit || 10),
+      includeSymptoms: String(Boolean(options?.includeSymptoms)),
+      includeTreatments: String(Boolean(options?.includeTreatments)),
+    })
+
+    const response = await this.makeRequest<unknown>(`/conditions/search?${params.toString()}`)
+    if (!response.success) {
+      return this.failure<MedicalCondition[]>([], response.error || 'Condition search failed')
+    }
+
+    return this.success<MedicalCondition[]>(this.normalizeArray<MedicalCondition>(response.data))
+  }
+
   async getClinicalGuidelines(condition: string): Promise<HealthDBResponse<ClinicalGuideline[]>> {
-    // Simulate API call for demo
-    await new Promise(resolve => setTimeout(resolve, 300))
-
-    const mockGuidelines: ClinicalGuideline[] = [
-      {
-        id: 'ada-diabetes-2024',
-        title: 'Standards of Medical Care in Diabetes—2024',
-        organization: 'American Diabetes Association',
-        condition: 'diabetes',
-        recommendations: [
-          'HbA1c target <7% for most adults',
-          'Blood pressure target <140/90 mmHg',
-          'Annual comprehensive foot examination',
-          'Annual ophthalmologic examination'
-        ],
-        evidenceLevel: 'A',
-        lastUpdated: '2024-01-01'
-      }
-    ]
-
-    return {
-      success: true,
-      data: mockGuidelines.filter(g => g.condition.toLowerCase().includes(condition.toLowerCase())),
-      metadata: {
-        confidence: 0.95,
-        sources: ['Clinical Practice Guidelines', 'Medical Societies'],
-        timestamp: new Date().toISOString()
-      }
+    if (!condition?.trim()) {
+      return this.success<ClinicalGuideline[]>([])
     }
+
+    const params = new URLSearchParams({ condition: condition.trim() })
+    const response = await this.makeRequest<unknown>(`/guidelines?${params.toString()}`)
+    if (!response.success) {
+      return this.failure<ClinicalGuideline[]>([], response.error || 'Guideline lookup failed')
+    }
+
+    return this.success<ClinicalGuideline[]>(this.normalizeArray<ClinicalGuideline>(response.data))
   }
 
-  /**
-   * Check for drug interactions
-   */
   async checkDrugInteractions(medications: string[]): Promise<HealthDBResponse<DrugInteraction[]>> {
-    // Simulate API call for demo
-    await new Promise(resolve => setTimeout(resolve, 400))
-
-    const mockInteractions: DrugInteraction[] = [
-      {
-        drug1: 'warfarin',
-        drug2: 'aspirin',
-        severity: 'major',
-        description: 'Increased risk of bleeding when used together',
-        management: 'Monitor INR closely and watch for signs of bleeding'
-      }
-    ]
-
-    const interactions = mockInteractions.filter(interaction =>
-      medications.includes(interaction.drug1.toLowerCase()) && medications.includes(interaction.drug2.toLowerCase())
-    )
-
-    return {
-      success: true,
-      data: interactions,
-      metadata: {
-        confidence: 0.92,
-        sources: ['Drug Interaction Databases', 'Clinical Pharmacology'],
-        timestamp: new Date().toISOString()
-      }
+    const meds = (medications || []).map((m) => m.trim()).filter(Boolean)
+    if (meds.length < 2) {
+      return this.success<DrugInteraction[]>([])
     }
+
+    const response = await this.makeRequest<unknown>('/drug-interactions/check', {
+      method: 'POST',
+      body: JSON.stringify({ medications: meds }),
+    })
+
+    if (!response.success) {
+      return this.failure<DrugInteraction[]>([], response.error || 'Drug interaction check failed')
+    }
+
+    return this.success<DrugInteraction[]>(this.normalizeArray<DrugInteraction>(response.data))
   }
 
-  /**
-   * Get enhanced provider recommendations based on condition and location
-   */
-  async getProviderRecommendations(condition: string, location: string, specialty?: string): Promise<HealthDBResponse<any[]>> {
-    // Integrate with existing provider search but enhance with HealthDB insights
-    await new Promise(resolve => setTimeout(resolve, 600))
-
-    return {
-      success: true,
-      data: [],
-      metadata: {
-        confidence: 0.8,
-        sources: ['HealthDB.ai', 'Provider Networks'],
-        timestamp: new Date().toISOString()
-      }
+  async getProviderRecommendations(
+    condition: string,
+    location: string,
+    specialty?: string,
+  ): Promise<HealthDBResponse<any[]>> {
+    if (!condition?.trim() && !specialty?.trim()) {
+      return this.success<any[]>([])
     }
+
+    const response = await this.makeRequest<unknown>('/providers/recommendations', {
+      method: 'POST',
+      body: JSON.stringify({ condition, location, specialty }),
+    })
+
+    if (!response.success) {
+      return this.failure<any[]>([], response.error || 'Provider recommendation lookup failed')
+    }
+
+    return this.success<any[]>(this.normalizeArray<any>(response.data))
   }
 
-  /**
-   * Analyze clinical trial eligibility based on patient profile
-   */
   async analyzeClinicalTrialEligibility(patientProfile: any, trials: any[]): Promise<HealthDBResponse<any[]>> {
-    // Enhance clinical trial matching with AI analysis
-    await new Promise(resolve => setTimeout(resolve, 800))
-
-    return {
-      success: true,
-      data: trials.map(trial => ({
-        ...trial,
-        eligibilityScore: Math.random() * 100,
-        eligibilityReasons: ['Age criteria met', 'Condition matches', 'Location accessible'],
-        recommendationLevel: 'high'
-      })),
-      metadata: {
-        confidence: 0.88,
-        sources: ['HealthDB.ai', 'Clinical Trial Databases'],
-        timestamp: new Date().toISOString()
-      }
+    const safeTrials = Array.isArray(trials) ? trials : []
+    if (safeTrials.length === 0) {
+      return this.success<any[]>([])
     }
+
+    const response = await this.makeRequest<unknown>('/clinical-trials/eligibility', {
+      method: 'POST',
+      body: JSON.stringify({ patientProfile, trials: safeTrials }),
+    })
+
+    if (!response.success) {
+      return this.failure<any[]>([], response.error || 'Clinical trial eligibility analysis failed')
+    }
+
+    return this.success<any[]>(this.normalizeArray<any>(response.data))
   }
 
-  /**
-   * Get symptom checker results
-   */
-  async analyzeSymptoms(symptoms: string[], patientInfo?: {
-    age?: number
-    gender?: string
-    medicalHistory?: string[]
-  }): Promise<HealthDBResponse<any>> {
-    // Simulate comprehensive symptom analysis
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    return {
-      success: true,
-      data: {
-        possibleConditions: [
-          {
-            name: 'Common Cold',
-            probability: 0.65,
-            urgency: 'low',
-            nextSteps: ['Rest', 'Increase fluids', 'Monitor symptoms']
-          },
-          {
-            name: 'Viral Upper Respiratory Infection',
-            probability: 0.25,
-            urgency: 'low',
-            nextSteps: ['Supportive care', 'Symptom management']
-          }
-        ],
-        redFlags: [],
-        recommendations: ['Monitor symptoms for 7-10 days', 'Seek care if fever >101.5°F'],
-        confidence: 0.82
-      },
-      metadata: {
-        confidence: 0.82,
-        sources: ['HealthDB.ai', 'Clinical Decision Support'],
-        timestamp: new Date().toISOString()
-      }
+  async analyzeSymptoms(
+    symptoms: string[],
+    patientInfo?: {
+      age?: number
+      gender?: string
+      medicalHistory?: string[]
+    },
+  ): Promise<HealthDBResponse<any>> {
+    const safeSymptoms = (symptoms || []).map((s) => s.trim()).filter(Boolean)
+    if (safeSymptoms.length === 0) {
+      return this.success<any>({})
     }
+
+    const response = await this.makeRequest<any>('/symptoms/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ symptoms: safeSymptoms, patientInfo }),
+    })
+
+    if (!response.success) {
+      return this.failure<any>({}, response.error || 'Symptom analysis failed')
+    }
+
+    return response
   }
 }
 
@@ -305,5 +263,5 @@ export type {
   MedicalCondition,
   ClinicalGuideline,
   DrugInteraction,
-  HealthDBResponse
+  HealthDBResponse,
 }

@@ -5,8 +5,10 @@
  * Uses Resend for email delivery if available, otherwise logs to console.
  */
 
+import { getPrimaryAdminEmail } from "@/lib/admin-access"
+
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@basehealth.xyz'
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@basehealth.xyz'
+const ADMIN_EMAIL = getPrimaryAdminEmail()
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.basehealth.xyz'
 
 // Dynamically import Resend to avoid build errors if not installed
