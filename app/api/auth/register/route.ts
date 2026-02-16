@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import bcrypt from 'bcryptjs'
-import { findUserByEmail, addUser } from '@/lib/user-store'
 import { isAdminEmail } from '@/lib/admin-access'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,8 +22,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already exists using shared store
-    const existingUser = findUserByEmail(email)
+    // Check if user already exists in database
+    const existingUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true }
+    })
     if (existingUser) {
       return NextResponse.json(
         { error: 'User already exists' },
@@ -34,25 +37,63 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create new user using shared store
-    const newUser = addUser({
-      email,
-      password: hashedPassword,
-      name,
-      role: normalizedRole as 'patient' | 'provider' | 'caregiver' | 'admin',
-      image: '/icon-192.png'
-    })
+    const roleEnum =
+      normalizedRole === 'admin'
+        ? 'ADMIN'
+        : normalizedRole === 'provider'
+          ? 'PROVIDER'
+          : normalizedRole === 'caregiver'
+            ? 'CAREGIVER'
+            : 'PATIENT'
 
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = newUser
+    const userName = String(name).trim()
+
+    // Create new user in database
+    const newUser = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          email: normalizedEmail,
+          password: hashedPassword,
+          name: userName,
+          role: roleEnum as any,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          walletAddress: true,
+          createdAt: true,
+        }
+      })
+
+      if (roleEnum === 'PATIENT') {
+        await tx.patient.create({
+          data: {
+            userId: created.id,
+            allergies: [],
+            conditions: [],
+            medications: [],
+          },
+        })
+      }
+
+      return created
+    })
 
     return NextResponse.json({
       success: true,
-      user: userWithoutPassword
+      user: newUser
     })
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Registration error', error)
+    if (error?.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'User already exists' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json(
       { error: 'Failed to register user' },
       { status: 500 }

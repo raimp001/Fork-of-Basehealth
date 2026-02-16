@@ -267,6 +267,32 @@ const USPSTF_GUIDELINES = [
   },
 ]
 
+type Recommendation = {
+  id: string
+  name: string
+  description: string
+  frequency: string
+  grade: string
+  importance: string
+  primaryProvider: string
+  alternativeProviders: string[]
+  canBeDoneBy: "primary" | "specialist" | "either"
+  providerNote: string
+}
+
+type ClinicalReviewFlag = {
+  id: string
+  title: string
+  why: string
+  nextStep: string
+}
+
+type ContextExtraction = {
+  extractedRiskFactors: string[]
+  clinicalReviewFlags: ClinicalReviewFlag[]
+  personalizationNotes: string[]
+}
+
 function getRecommendations(age: number, gender: string, riskFactors: string[]) {
   const normalizedGender = gender.toLowerCase()
   const normalizedRisks = riskFactors.map(r => r.toLowerCase())
@@ -304,6 +330,102 @@ function getRecommendations(age: number, gender: string, riskFactors: string[]) 
       ? `This requires a specialist. Ask your PCP for a referral to a ${g.primaryProvider}.`
       : `This can be done by your Primary Care Physician or a ${g.primaryProvider}.`
   }))
+}
+
+function unique(values: string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))]
+}
+
+function addRecommendationIfMissing(
+  recommendations: Recommendation[],
+  next: Recommendation[],
+  recommendationId: string,
+): Recommendation[] {
+  if (recommendations.some((item) => item.id === recommendationId)) return recommendations
+  const candidate = next.find((item) => item.id === recommendationId)
+  if (!candidate) return recommendations
+  return [...recommendations, candidate]
+}
+
+function parseAdditionalContext(additionalContext: string): ContextExtraction {
+  const text = String(additionalContext || "").trim()
+  if (!text) {
+    return {
+      extractedRiskFactors: [],
+      clinicalReviewFlags: [],
+      personalizationNotes: [],
+    }
+  }
+
+  const lower = text.toLowerCase()
+  const extractedRiskFactors: string[] = []
+  const clinicalReviewFlags: ClinicalReviewFlag[] = []
+  const personalizationNotes: string[] = []
+
+  const hasHereditaryBreastSignal =
+    /(brca1|brca2|brca|hereditary breast|hereditary ovarian|first[- ]degree|mother|sister|daughter)/i.test(lower) &&
+    /(breast|ovarian|cancer)/i.test(lower)
+
+  if (hasHereditaryBreastSignal) {
+    extractedRiskFactors.push("family history of breast cancer", "possible hereditary breast/ovarian cancer risk")
+    clinicalReviewFlags.push({
+      id: "hereditary-breast-risk",
+      title: "Possible hereditary breast/ovarian cancer risk",
+      why: "You mentioned BRCA/family-history details that can change routine screening intervals.",
+      nextStep:
+        "Review with a PCP, OB/GYN, or genetics specialist for individualized timing and whether MRI/genetic counseling is appropriate.",
+    })
+    personalizationNotes.push(
+      "People with hereditary breast/ovarian risk may need earlier or more intensive screening than average-risk USPSTF schedules.",
+    )
+  }
+
+  const hasChestRadiationSignal = /(chest radiation|mantle radiation|mediastinal radiation|hodgkin)/i.test(lower)
+  if (hasChestRadiationSignal) {
+    extractedRiskFactors.push("prior chest radiation")
+    clinicalReviewFlags.push({
+      id: "prior-chest-radiation",
+      title: "Prior chest radiation history",
+      why: "Prior chest radiation can place patients into a higher-risk breast screening pathway.",
+      nextStep:
+        "Discuss timeline-based breast screening with your clinician (often different from standard-risk schedules).",
+    })
+    personalizationNotes.push(
+      "A prior chest-radiation history may justify earlier and/or modality-adjusted breast screening after clinician review.",
+    )
+  }
+
+  const hasHereditaryColonSignal = /(lynch|fap|familial adenomatous|hereditary colorectal|multiple relatives)/i.test(lower)
+  if (hasHereditaryColonSignal) {
+    extractedRiskFactors.push("family history of colorectal cancer", "possible hereditary colorectal cancer risk")
+    clinicalReviewFlags.push({
+      id: "hereditary-colorectal-risk",
+      title: "Possible hereditary colorectal cancer risk",
+      why: "You included hereditary colorectal history terms that can change colon screening start age and cadence.",
+      nextStep:
+        "Review with PCP/GI/genetics for personalized colorectal screening intervals and potential genetic evaluation.",
+    })
+    personalizationNotes.push(
+      "Hereditary colorectal risk often requires earlier and more frequent screening than average-risk guidance.",
+    )
+  }
+
+  const hasImmunosuppressionSignal = /(immunosupp|transplant|hiv|on chemo|long[- ]term steroid|biologic)/i.test(lower)
+  if (hasImmunosuppressionSignal) {
+    extractedRiskFactors.push("possible immunocompromised status")
+    clinicalReviewFlags.push({
+      id: "immunocompromised",
+      title: "Possible immunocompromised status",
+      why: "Immunocompromise can alter preventive screening and vaccine strategy.",
+      nextStep: "Confirm medication/condition details with your clinician to personalize your prevention plan.",
+    })
+  }
+
+  return {
+    extractedRiskFactors: unique(extractedRiskFactors),
+    clinicalReviewFlags,
+    personalizationNotes: unique(personalizationNotes),
+  }
 }
 
 export async function GET(request: Request) {
@@ -357,7 +479,8 @@ export async function POST(request: Request) {
       familyHistory = [], 
       bmiCategory,
       isPregnant,
-      sexuallyActive
+      sexuallyActive,
+      additionalContext = "",
     } = body
 
     if (!age || !gender) {
@@ -394,7 +517,21 @@ export async function POST(request: Request) {
     if (familyHistory.includes('diabetes')) riskFactors.push('family history of diabetes')
     if (familyHistory.includes('heart-disease')) riskFactors.push('cardiovascular disease')
 
-    const recommendations = getRecommendations(Number(age), gender, riskFactors)
+    const parsedContext = parseAdditionalContext(String(additionalContext || ""))
+    riskFactors.push(...parsedContext.extractedRiskFactors)
+
+    let recommendations = getRecommendations(Number(age), gender, riskFactors)
+
+    // High-risk context can require guideline pathways not fully captured by baseline USPSTF-only filters.
+    // We include baseline breast/colorectal items as anchors for clinician review when those flags appear.
+    const baselineRecommendations = getRecommendations(Number(age), gender, [])
+    if (parsedContext.clinicalReviewFlags.some((flag) => flag.id === "hereditary-breast-risk" || flag.id === "prior-chest-radiation")) {
+      recommendations = addRecommendationIfMissing(recommendations, baselineRecommendations, "breast-cancer")
+    }
+    if (parsedContext.clinicalReviewFlags.some((flag) => flag.id === "hereditary-colorectal-risk")) {
+      recommendations = addRecommendationIfMissing(recommendations, baselineRecommendations, "colorectal-cancer")
+    }
+
     const cdcRecommendations = getCdcRecommendations(Number(age))
     
     // Sort by grade
@@ -418,9 +555,17 @@ export async function POST(request: Request) {
         specialistsNeeded: [...new Set(specialistNeeded.map(r => r.primaryProvider))]
       },
       riskProfile: {
-        factors: riskFactors,
+        factors: unique(riskFactors),
         level: riskFactors.length > 3 ? 'elevated' : riskFactors.length > 0 ? 'moderate' : 'low'
       },
+      clinicalReviewFlags: parsedContext.clinicalReviewFlags,
+      personalizationNotes: parsedContext.personalizationNotes,
+      contextSummary: {
+        hasAdditionalContext: Boolean(String(additionalContext || "").trim()),
+        extractedRiskFactors: parsedContext.extractedRiskFactors,
+      },
+      disclaimer:
+        "This is informational screening guidance. Higher-risk details can require individualized plans; confirm timing and modality with a licensed clinician.",
       timestamp: new Date().toISOString()
     })
 

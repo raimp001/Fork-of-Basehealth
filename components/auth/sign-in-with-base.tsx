@@ -191,7 +191,7 @@ export function SignInWithBase({
       }
 
       const accounts = await provider.request({ method: "eth_requestAccounts" })
-      const nextAddress = accounts?.[0]
+      const nextAddress = typeof accounts?.[0] === "string" ? accounts[0].trim() : ""
       if (!nextAddress) {
         onAuthError?.("No accounts found. Please create an account in your wallet.")
         return null
@@ -227,7 +227,7 @@ export function SignInWithBase({
       }
 
       setWalletAddress(nextAddress)
-      return nextAddress as string
+      return nextAddress
     } catch (error: any) {
       console.error("Wallet connect error:", error)
       onAuthError?.(error.message || "Wallet connect failed")
@@ -246,12 +246,21 @@ export function SignInWithBase({
         const provider = await getProvider()
         if (!provider) throw new Error("Wallet provider unavailable")
 
-        // Some providers (including mini app wrappers) require calling eth_requestAccounts before signing.
-        // Calling it here is safe and keeps the auth flow robust even if getProvider() returns a fresh instance.
-        try {
-          await provider.request({ method: "eth_requestAccounts" })
-        } catch {
-          // ignore
+        // Ensure account permissions are granted before signing.
+        // Some mini app providers throw "Must call eth_requestAccounts before other methods".
+        const requestedAccounts = await provider.request({ method: "eth_requestAccounts" })
+        const providerAddress =
+          typeof requestedAccounts?.[0] === "string" && isWalletAddress(requestedAccounts[0])
+            ? requestedAccounts[0].trim()
+            : null
+
+        let signingAddress = (address || "").trim()
+        if (providerAddress) {
+          signingAddress = providerAddress
+          setWalletAddress(providerAddress)
+        }
+        if (!isWalletAddress(signingAddress)) {
+          throw new Error("Wallet permission is required. Please connect your wallet and try again.")
         }
 
         const nonceResponse = await fetch("/api/auth/wallet/nonce", { cache: "no-store" })
@@ -265,7 +274,7 @@ export function SignInWithBase({
         const message = buildWalletSignInMessage({
           domain: window.location.host,
           uri: window.location.origin,
-          address,
+          address: signingAddress,
           chainId,
           nonce: nonceJson.nonce,
           issuedAt: new Date().toISOString(),
@@ -276,12 +285,12 @@ export function SignInWithBase({
         try {
           signature = await provider.request({
             method: "personal_sign",
-            params: [message, address],
+            params: [message, signingAddress],
           })
         } catch {
           signature = await provider.request({
             method: "personal_sign",
-            params: [address, message],
+            params: [signingAddress, message],
           })
         }
 
@@ -289,7 +298,7 @@ export function SignInWithBase({
 
         const result = await signIn("wallet", {
           redirect: false,
-          address,
+          address: signingAddress,
           message,
           signature,
         })
@@ -298,7 +307,7 @@ export function SignInWithBase({
           throw new Error(result.error)
         }
 
-        onAuthSuccess?.(address)
+        onAuthSuccess?.(signingAddress)
       } catch (error: any) {
         console.error("Wallet sign-in error:", error)
         onAuthError?.(error.message || "Sign in failed")

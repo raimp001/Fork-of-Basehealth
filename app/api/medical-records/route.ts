@@ -7,7 +7,7 @@ import { requirePatientAuth, logAccess } from '@/lib/auth'
 export async function GET(request: NextRequest) {
   try {
     // Require patient authentication
-    const user = await requirePatientAuth()
+    const user = await requirePatientAuth(request)
     
     // Get client IP and user agent for logging
     const clientIP = request.headers.get('x-forwarded-for') || 
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
 // Secure endpoint to get a specific medical record
 export async function POST(request: NextRequest) {
   try {
-    const user = await requirePatientAuth()
+    const user = await requirePatientAuth(request)
     const { recordId } = await request.json()
     
     if (!recordId) {

@@ -7,6 +7,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import { ArrowRight, Loader2, Eye, EyeOff, Check } from "lucide-react"
 
 export default function RegisterPage() {
@@ -49,10 +50,35 @@ export default function RegisterPage() {
     setError(null)
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password,
+          name: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
+          role: "patient",
+        }),
+      })
+
+      const data = await response.json().catch(() => null)
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || "Registration failed")
+      }
+
+      const auth = await signIn("credentials", {
+        redirect: false,
+        email: formData.email.trim(),
+        password: formData.password,
+      })
+
+      if (auth?.error) {
+        throw new Error("Account created, but sign-in failed. Please log in manually.")
+      }
+
       router.push('/patient-portal')
-    } catch (err) {
-      setError('Registration failed. Please try again.')
+    } catch (err: any) {
+      setError(err?.message || 'Registration failed. Please try again.')
     } finally {
       setIsLoading(false)
     }

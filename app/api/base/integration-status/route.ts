@@ -169,9 +169,9 @@ export async function GET() {
           id: "openclaw-reachable",
           label: "OpenClaw gateway reachable",
           env: "OPENCLAW_GATEWAY_URL + (OPENCLAW_API_KEY | OPENCLAW_GATEWAY_TOKEN | OPENCLAW_GATEWAY_PASSWORD)",
-          required: Boolean(openclawKey),
+          required: false,
           passed: openclawKey ? Boolean(openclawGatewayReachable) : true,
-          help: "If using OpenClaw, the gateway must be reachable from your deployment. For self-hosted gateways, ensure the OpenAI-compatible Chat Completions endpoint is enabled and your URL does not include /v1.",
+          help: "Diagnostic check only. If using OpenClaw, gateway reachability can fail temporarily; chat should still be allowed when an AI provider key is configured.",
         },
         {
           id: "openai",

@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { User, Calendar, Pill, FileText, Stethoscope } from "lucide-react"
@@ -21,44 +23,65 @@ interface Provider {
 }
 
 export default function ProviderDashboard() {
+  const router = useRouter()
+  const { status: sessionStatus } = useSession()
   const [provider, setProvider] = useState<Provider | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Get token from localStorage or cookie
-    const token = localStorage.getItem("providerToken")
-
-    if (!token) {
-      setError("Please log in to access your dashboard")
-      setLoading(false)
+    if (sessionStatus === "loading") {
       return
     }
 
-    fetch("/api/provider/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
+    if (sessionStatus !== "authenticated") {
+      router.replace(`/login?redirect=${encodeURIComponent("/provider/dashboard")}`)
+      return
+    }
+
+    let cancelled = false
+
+    const loadProvider = async () => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        const res = await fetch("/api/provider/me", { cache: "no-store" })
+        const data = await res.json().catch(() => null)
+
+        if (!res.ok || !data?.success) {
+          const errorMessage = data?.error || "Failed to load provider data"
+          if (!cancelled) {
+            setError(errorMessage)
+            logger.warn("Failed to load provider data", { error: errorMessage })
+          }
+          return
+        }
+
+        if (!cancelled) {
           setProvider(data.provider)
         } else {
-          const errorMessage = data.error || "Failed to load provider data"
-          setError(errorMessage)
-          logger.warn('Failed to load provider data', { error: errorMessage })
+          return
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         const errorMessage = "Failed to load provider data"
-        setError(errorMessage)
-        logger.error('Error fetching provider data', err)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
-  }, [])
+        if (!cancelled) {
+          setError(errorMessage)
+        }
+        logger.error("Error fetching provider data", err)
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadProvider()
+
+    return () => {
+      cancelled = true
+    }
+  }, [sessionStatus, router])
 
   if (loading) {
     return (

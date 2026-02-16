@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -71,6 +73,21 @@ interface BillingReceipt {
 }
 
 export default function SettingsPage() {
+  const { status: sessionStatus } = useSession()
+  const searchParams = useSearchParams()
+  const [activeTab, setActiveTab] = useState("account")
+
+  const [accountProfile, setAccountProfile] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    location: "",
+  })
+  const [accountLoading, setAccountLoading] = useState(false)
+  const [accountSaving, setAccountSaving] = useState(false)
+  const [accountMessage, setAccountMessage] = useState<string | null>(null)
+  const [accountError, setAccountError] = useState<string | null>(null)
+
   const [notifications, setNotifications] = useState({
     appointments: true,
     trials: true,
@@ -95,6 +112,14 @@ export default function SettingsPage() {
   const [receiptsError, setReceiptsError] = useState<string | null>(null)
 
   useEffect(() => {
+    const requested = (searchParams.get("tab") || "").trim().toLowerCase()
+    const allowed = new Set(["account", "notifications", "privacy", "preferences", "payments"])
+    if (allowed.has(requested)) {
+      setActiveTab(requested)
+    }
+  }, [searchParams])
+
+  useEffect(() => {
     const loadIntegrationStatus = async () => {
       setIntegrationLoading(true)
       setIntegrationError(null)
@@ -117,6 +142,64 @@ export default function SettingsPage() {
 
     loadIntegrationStatus()
   }, [])
+
+  useEffect(() => {
+    if (sessionStatus !== "authenticated") return
+
+    const loadAccountProfile = async () => {
+      setAccountLoading(true)
+      setAccountError(null)
+
+      try {
+        const response = await fetch("/api/account/profile", { cache: "no-store" })
+        const data = await response.json()
+        if (!response.ok || !data?.success) {
+          throw new Error(data?.error || "Failed to load account profile")
+        }
+
+        setAccountProfile({
+          fullName: data.profile?.fullName || "",
+          email: data.profile?.email || "",
+          phone: data.profile?.phone || "",
+          location: data.profile?.location || "",
+        })
+      } catch (error) {
+        setAccountError(error instanceof Error ? error.message : "Failed to load profile")
+      } finally {
+        setAccountLoading(false)
+      }
+    }
+
+    loadAccountProfile()
+  }, [sessionStatus])
+
+  const saveAccountProfile = async () => {
+    setAccountMessage(null)
+    setAccountError(null)
+
+    if (!accountProfile.fullName.trim()) {
+      setAccountError("Full name is required.")
+      return
+    }
+
+    setAccountSaving(true)
+    try {
+      const response = await fetch("/api/account/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accountProfile),
+      })
+      const data = await response.json()
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to save account profile")
+      }
+      setAccountMessage("Saved successfully.")
+    } catch (error) {
+      setAccountError(error instanceof Error ? error.message : "Failed to save profile")
+    } finally {
+      setAccountSaving(false)
+    }
+  }
 
   const loadReceipts = async () => {
     setReceiptsError(null)
@@ -166,7 +249,7 @@ export default function SettingsPage() {
         />
 
         {/* Settings Tabs */}
-        <Tabs defaultValue="account" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="w-full justify-start bg-white border border-gray-200 p-1">
             <TabsTrigger value="account" className="data-[state=active]:bg-gray-100">
               <User className="h-4 w-4 mr-2" />
@@ -195,12 +278,21 @@ export default function SettingsPage() {
             <Card className="p-6 border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900 mb-6">Account Information</h2>
               <div className="space-y-4">
+                {accountError ? <p className="text-sm text-red-600">{accountError}</p> : null}
+                {accountMessage ? <p className="text-sm text-emerald-600">{accountMessage}</p> : null}
                 <div>
                   <Label htmlFor="name" className="text-sm text-gray-700">Full Name</Label>
                   <Input 
                     id="name"
                     placeholder="John Doe"
+                    value={accountProfile.fullName}
+                    onChange={(event) => {
+                      setAccountMessage(null)
+                      setAccountError(null)
+                      setAccountProfile((prev) => ({ ...prev, fullName: event.target.value }))
+                    }}
                     className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
+                    disabled={accountLoading || sessionStatus !== "authenticated"}
                   />
                 </div>
                 <div>
@@ -209,7 +301,14 @@ export default function SettingsPage() {
                     id="email"
                     type="email"
                     placeholder="john@example.com"
+                    value={accountProfile.email}
+                    onChange={(event) => {
+                      setAccountMessage(null)
+                      setAccountError(null)
+                      setAccountProfile((prev) => ({ ...prev, email: event.target.value }))
+                    }}
                     className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
+                    disabled={accountLoading || sessionStatus !== "authenticated"}
                   />
                 </div>
                 <div>
@@ -218,7 +317,14 @@ export default function SettingsPage() {
                     id="phone"
                     type="tel"
                     placeholder="+1 (555) 123-4567"
+                    value={accountProfile.phone}
+                    onChange={(event) => {
+                      setAccountMessage(null)
+                      setAccountError(null)
+                      setAccountProfile((prev) => ({ ...prev, phone: event.target.value }))
+                    }}
                     className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
+                    disabled={accountLoading || sessionStatus !== "authenticated"}
                   />
                 </div>
                 <div>
@@ -226,11 +332,22 @@ export default function SettingsPage() {
                   <Input 
                     id="location"
                     placeholder="City, State"
+                    value={accountProfile.location}
+                    onChange={(event) => {
+                      setAccountMessage(null)
+                      setAccountError(null)
+                      setAccountProfile((prev) => ({ ...prev, location: event.target.value }))
+                    }}
                     className="mt-1 border-gray-200 focus:border-gray-400 focus:ring-gray-100"
+                    disabled={accountLoading || sessionStatus !== "authenticated"}
                   />
                 </div>
-                <Button className="bg-gray-900 hover:bg-gray-800 text-white">
-                  Save Changes
+                <Button
+                  className="bg-gray-900 hover:bg-gray-800 text-white"
+                  onClick={saveAccountProfile}
+                  disabled={accountLoading || accountSaving || sessionStatus !== "authenticated"}
+                >
+                  {accountSaving ? "Saving…" : "Save Changes"}
                 </Button>
               </div>
             </Card>

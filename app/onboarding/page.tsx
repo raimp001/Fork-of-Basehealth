@@ -5,7 +5,7 @@
  * Clean, minimal, sophisticated
  */
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -56,6 +56,186 @@ const CAREGIVER_STEPS: StepConfig[] = [
   { id: 3, title: "Review", description: "Confirm & submit", estimatedTime: "1 min" },
 ]
 
+type OnboardingRole = "PROVIDER" | "CAREGIVER"
+
+interface OnboardingFormData {
+  regions: string[]
+  email: string
+  password: string
+  phone: string
+  firstName: string
+  lastName: string
+  fullName: string
+  providerType: string
+  professionType: string
+  specialty: string
+  organizationName: string
+  servicesOffered: string[]
+  experienceYears: string
+  bio: string
+  hasTransport: boolean
+  certifications: string[]
+  languages: string[]
+  npiNumber: string
+  licenseNumber: string
+  licenseState: string
+  licenseExpiry: string
+  attestedAccuracy: boolean
+  attestedLicenseScope: boolean
+  consentToVerification: boolean
+  consentToBackgroundCheck: boolean
+  walletAddress: string
+  payoutPreference: string
+}
+
+const US_STATES = [
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
+  "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
+  "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY",
+]
+
+const EMPTY_FORM_DATA: OnboardingFormData = {
+  regions: [],
+  email: "",
+  password: "",
+  phone: "",
+  firstName: "",
+  lastName: "",
+  fullName: "",
+  providerType: "PHYSICIAN",
+  professionType: "",
+  specialty: "",
+  organizationName: "",
+  servicesOffered: [],
+  experienceYears: "",
+  bio: "",
+  hasTransport: false,
+  certifications: [],
+  languages: [],
+  npiNumber: "",
+  licenseNumber: "",
+  licenseState: "",
+  licenseExpiry: "",
+  attestedAccuracy: false,
+  attestedLicenseScope: false,
+  consentToVerification: false,
+  consentToBackgroundCheck: false,
+  walletAddress: "",
+  payoutPreference: "USDC_DIRECT",
+}
+
+function normalizeRole(value: unknown): OnboardingRole | null {
+  if (value === "PROVIDER" || value === "CAREGIVER") return value
+  return null
+}
+
+function toStringValue(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback
+}
+
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((item) => String(item || "").trim())
+    .filter(Boolean)
+}
+
+function toBoolean(value: unknown, fallback = false): boolean {
+  return typeof value === "boolean" ? value : fallback
+}
+
+function toDateInput(value: unknown): string {
+  if (!value) return ""
+  const parsed = new Date(String(value))
+  if (Number.isNaN(parsed.getTime())) return ""
+  return parsed.toISOString().slice(0, 10)
+}
+
+function maxStepForRole(role: OnboardingRole): number {
+  return role === "PROVIDER" ? PROVIDER_STEPS.length - 1 : CAREGIVER_STEPS.length - 1
+}
+
+function clampStep(stepValue: unknown, role: OnboardingRole): number {
+  const parsed =
+    typeof stepValue === "number"
+      ? stepValue
+      : Number.parseInt(String(stepValue ?? "0"), 10)
+  if (Number.isNaN(parsed)) return 0
+  return Math.min(Math.max(parsed, 0), maxStepForRole(role))
+}
+
+function mapApplicationToFormData(application: Record<string, unknown>): OnboardingFormData {
+  return {
+    regions: toStringArray(application.regions),
+    email: toStringValue(application.email),
+    password: "",
+    phone: toStringValue(application.phone),
+    firstName: toStringValue(application.firstName),
+    lastName: toStringValue(application.lastName),
+    fullName: toStringValue(application.fullName),
+    providerType: toStringValue(application.providerType, EMPTY_FORM_DATA.providerType),
+    professionType: toStringValue(application.professionType),
+    specialty: toStringValue(application.specialty),
+    organizationName: toStringValue(application.organizationName),
+    servicesOffered: toStringArray(application.servicesOffered),
+    experienceYears: toStringValue(application.experienceYears),
+    bio: toStringValue(application.bio),
+    hasTransport: toBoolean(application.hasTransport),
+    certifications: toStringArray(application.certifications),
+    languages: toStringArray(application.languages),
+    npiNumber: toStringValue(application.npiNumber),
+    licenseNumber: toStringValue(application.licenseNumber),
+    licenseState: toStringValue(application.licenseState),
+    licenseExpiry: toDateInput(application.licenseExpiry),
+    attestedAccuracy: toBoolean(application.attestedAccuracy),
+    attestedLicenseScope: toBoolean(application.attestedLicenseScope),
+    consentToVerification: toBoolean(application.consentToVerification),
+    consentToBackgroundCheck: toBoolean(application.consentToBackgroundCheck),
+    walletAddress: toStringValue(application.walletAddress),
+    payoutPreference: toStringValue(application.payoutPreference, EMPTY_FORM_DATA.payoutPreference),
+  }
+}
+
+function mergeDraftWithCurrent(
+  existingDraft: OnboardingFormData,
+  currentForm: OnboardingFormData,
+): OnboardingFormData {
+  const keys = Object.keys(EMPTY_FORM_DATA) as (keyof OnboardingFormData)[]
+  const merged: OnboardingFormData = { ...existingDraft }
+
+  for (const key of keys) {
+    const currentValue = currentForm[key]
+    const existingValue = existingDraft[key]
+    const defaultValue = EMPTY_FORM_DATA[key]
+
+    if (Array.isArray(currentValue)) {
+      const shouldUseCurrent =
+        currentValue.length > 0 || !Array.isArray(existingValue) || existingValue.length === 0
+      merged[key] = (shouldUseCurrent ? currentValue : existingValue) as OnboardingFormData[typeof key]
+      continue
+    }
+
+    if (typeof currentValue === "string") {
+      const currentTrimmed = currentValue.trim()
+      const existingString = typeof existingValue === "string" ? existingValue : ""
+      const defaultString = typeof defaultValue === "string" ? defaultValue : ""
+      const shouldUseCurrent =
+        currentTrimmed.length > 0 && (currentValue !== defaultString || existingString.trim().length === 0)
+      merged[key] = (shouldUseCurrent ? currentValue : existingString) as OnboardingFormData[typeof key]
+      continue
+    }
+
+    if (typeof currentValue === "boolean") {
+      const existingBool = typeof existingValue === "boolean" ? existingValue : false
+      const defaultBool = typeof defaultValue === "boolean" ? defaultValue : false
+      const shouldUseCurrent = currentValue !== defaultBool || existingBool === defaultBool
+      merged[key] = (shouldUseCurrent ? currentValue : existingBool) as OnboardingFormData[typeof key]
+    }
+  }
+
+  return merged
+}
+
 // ============================================================================
 // INNER COMPONENT
 // ============================================================================
@@ -65,15 +245,20 @@ function OnboardingContent() {
   const searchParams = useSearchParams()
   
   const [step, setStep] = useState(0)
-  const [role, setRole] = useState<"PROVIDER" | "CAREGIVER" | null>(null)
+  const [role, setRole] = useState<OnboardingRole | null>(null)
   const [country, setCountry] = useState("US")
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [applicationId, setApplicationId] = useState<string | null>(null)
+  const [isHydrating, setIsHydrating] = useState(false)
+  const [restoredDraft, setRestoredDraft] = useState(false)
   
   // NPI lookup state
   const [npiSearching, setNpiSearching] = useState(false)
   const [npiResult, setNpiResult] = useState<any>(null)
+
+  // Form data
+  const [formData, setFormData] = useState<OnboardingFormData>(EMPTY_FORM_DATA)
 
   // Handle role from URL query parameter
   useEffect(() => {
@@ -84,41 +269,79 @@ function OnboardingContent() {
       setRole("CAREGIVER")
     }
   }, [searchParams])
-  
-  // Form data
-  const [formData, setFormData] = useState({
-    regions: [] as string[],
-    email: "",
-    password: "",
-    phone: "",
-    firstName: "",
-    lastName: "",
-    fullName: "",
-    providerType: "PHYSICIAN",
-    professionType: "",
-    specialty: "",
-    organizationName: "",
-    servicesOffered: [] as string[],
-    experienceYears: "",
-    bio: "",
-    hasTransport: false,
-    certifications: [] as string[],
-    languages: [] as string[],
-    npiNumber: "",
-    licenseNumber: "",
-    licenseState: "",
-    licenseExpiry: "",
-    attestedAccuracy: false,
-    attestedLicenseScope: false,
-    consentToVerification: false,
-    consentToBackgroundCheck: false,
-    // Payment settings for USDC settlements
-    walletAddress: "",
-    payoutPreference: "USDC_DIRECT",
-  })
 
   // Reference data
   const [referenceData, setReferenceData] = useState<any>({})
+
+  const hydrateFromApplication = useCallback(
+    (application: Record<string, unknown>, mergeCurrent: boolean) => {
+      const appRole = normalizeRole(application.role)
+      if (appRole) {
+        setRole(appRole)
+      }
+
+      const nextCountry = toStringValue(application.country, country || "US")
+      if (nextCountry) {
+        setCountry(nextCountry)
+      }
+
+      const nextApplicationId = toStringValue(application.id)
+      if (nextApplicationId) {
+        setApplicationId(nextApplicationId)
+      }
+
+      const effectiveRole = appRole || role
+      if (effectiveRole) {
+        setStep(clampStep(application.currentStep, effectiveRole))
+      }
+
+      const draftForm = mapApplicationToFormData(application)
+      setFormData((prev) => (mergeCurrent ? mergeDraftWithCurrent(draftForm, prev) : draftForm))
+      setRestoredDraft(true)
+    },
+    [country, role],
+  )
+
+  useEffect(() => {
+    const resumeId = searchParams.get("applicationId") || searchParams.get("id")
+    const resumeEmail = searchParams.get("email")
+    if (!resumeId && !resumeEmail) return
+
+    let active = true
+
+    const fetchDraft = async () => {
+      setIsHydrating(true)
+      setError(null)
+      try {
+        const query = resumeId
+          ? `id=${encodeURIComponent(resumeId)}`
+          : `email=${encodeURIComponent(resumeEmail as string)}`
+        const response = await fetch(`/api/onboarding/application?${query}`)
+        const data = await response.json()
+        if (!active) return
+
+        if (data.success && data.application && typeof data.application === "object") {
+          hydrateFromApplication(data.application as Record<string, unknown>, false)
+        } else if (response.status !== 404) {
+          setError(data.error || "Unable to load existing application")
+        }
+      } catch {
+        if (active) {
+          setError("Unable to load application draft")
+        }
+      } finally {
+        if (active) {
+          setIsHydrating(false)
+        }
+      }
+    }
+
+    fetchDraft()
+
+    return () => {
+      active = false
+    }
+  }, [hydrateFromApplication, searchParams])
 
   useEffect(() => {
     if (role && country) {

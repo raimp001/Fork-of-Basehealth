@@ -4,44 +4,19 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, FileText, MessageSquare, Calendar, Shield } from "lucide-react"
-import { useEffect, useState } from "react"
-import { createClient } from "@supabase/supabase-js"
+import { useEffect } from "react"
+import { useSession } from "next-auth/react"
 
 export default function MedicalProfilePage() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const { status } = useSession()
 
   useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
-    try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      const supabase = createClient(supabaseUrl, supabaseKey)
-
-      const { data: { session }, error } = await supabase.auth.getSession()
-      
-      if (error) throw error
-      
-      if (session) {
-        setIsAuthenticated(true)
-        setUser(session.user)
-      } else {
-        // Redirect to login if not authenticated
-        window.location.href = `/login?redirect=${encodeURIComponent('/medical-profile')}`
-      }
-    } catch (error) {
-      console.error('Auth error:', error)
-      window.location.href = `/login?redirect=${encodeURIComponent('/medical-profile')}`
-    } finally {
-      setIsLoading(false)
+    if (status === "unauthenticated") {
+      window.location.href = `/login?redirect=${encodeURIComponent("/medical-profile")}`
     }
-  }
+  }, [status])
 
-  if (isLoading) {
+  if (status === "loading") {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -52,8 +27,8 @@ export default function MedicalProfilePage() {
     )
   }
 
-  if (!isAuthenticated) {
-    return null // Will redirect in useEffect
+  if (status !== "authenticated") {
+    return null
   }
 
   return (

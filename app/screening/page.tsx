@@ -34,6 +34,13 @@ interface RiskProfile {
   level: 'low' | 'moderate' | 'elevated'
 }
 
+interface ClinicalReviewFlag {
+  id: string
+  title: string
+  why: string
+  nextStep: string
+}
+
 interface Summary {
   totalScreenings: number
   gradeACount: number
@@ -51,6 +58,8 @@ export default function ScreeningPage() {
   const [recommendations, setRecommendations] = useState<ScreeningRecommendation[]>([])
   const [riskProfile, setRiskProfile] = useState<RiskProfile | null>(null)
   const [summary, setSummary] = useState<Summary | null>(null)
+  const [clinicalReviewFlags, setClinicalReviewFlags] = useState<ClinicalReviewFlag[]>([])
+  const [personalizationNotes, setPersonalizationNotes] = useState<string[]>([])
   
   const [formData, setFormData] = useState({
     age: '',
@@ -61,6 +70,7 @@ export default function ScreeningPage() {
     sexuallyActive: false,
     medicalHistory: [] as string[],
     familyHistory: [] as string[],
+    additionalContext: '',
   })
   
   // Payment state - fee required before showing recommendations
@@ -107,6 +117,8 @@ export default function ScreeningPage() {
         setRecommendations(data.recommendations || [])
         setRiskProfile(data.riskProfile || null)
         setSummary(data.summary || null)
+        setClinicalReviewFlags(Array.isArray(data.clinicalReviewFlags) ? data.clinicalReviewFlags : [])
+        setPersonalizationNotes(Array.isArray(data.personalizationNotes) ? data.personalizationNotes : [])
         setStep(5) // Show results
       } else {
         setError(data.error || 'Failed to get recommendations')
@@ -162,6 +174,37 @@ export default function ScreeningPage() {
                   Identified factors: {riskProfile.factors.slice(0, 5).join(", ")}
                 </p>
               )}
+            </section>
+          )}
+
+          {clinicalReviewFlags.length > 0 && (
+            <section className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-5 shadow-sm">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <h2 className="text-sm font-semibold text-foreground">Needs clinician review</h2>
+              </div>
+              <div className="mt-3 space-y-3">
+                {clinicalReviewFlags.map((flag) => (
+                  <div key={flag.id} className="rounded-lg border border-amber-500/30 bg-background/80 p-3">
+                    <p className="text-sm font-semibold text-foreground">{flag.title}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{flag.why}</p>
+                    <p className="mt-1 text-xs text-foreground">{flag.nextStep}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {personalizationNotes.length > 0 && (
+            <section className="mb-6 rounded-xl border border-border bg-card p-5 shadow-sm">
+              <h2 className="text-sm font-semibold text-foreground">Personalization notes</h2>
+              <div className="mt-3 space-y-2">
+                {personalizationNotes.map((note, idx) => (
+                  <p key={`${note}-${idx}`} className="text-sm text-muted-foreground">
+                    • {note}
+                  </p>
+                ))}
+              </div>
             </section>
           )}
 
@@ -479,7 +522,7 @@ export default function ScreeningPage() {
 	              </div>
 	            )}
 
-	            {/* Step 4: Family History */}
+	            {/* Step 4: Family History + Additional Context */}
 	            {step === 4 && (
 	              <div className="rounded-xl border border-border bg-card p-5 space-y-4 shadow-sm">
 	                <div className="flex items-start gap-3 mb-2">
@@ -524,6 +567,21 @@ export default function ScreeningPage() {
 	                <p className="text-sm text-center text-muted-foreground">
 	                  Select all that apply, or skip if none
 	                </p>
+
+                  <div className="border-t border-border pt-4">
+                    <label className="block text-sm font-semibold text-foreground mb-2">Additional context (optional)</label>
+                    <textarea
+                      value={formData.additionalContext}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, additionalContext: e.target.value }))}
+                      rows={5}
+                      maxLength={1200}
+                      placeholder="Example: My sister tested BRCA1 positive. I had chest radiation for Hodgkin lymphoma at age 22. Prior abnormal mammogram in 2023."
+                      className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-ring"
+                    />
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Add anything important that might change screening timing or modality. We will flag items for clinician review.
+                    </p>
+                  </div>
 
 	                {/* Payment notice */}
 	                <div className="rounded-lg border border-border bg-muted/20 p-4">

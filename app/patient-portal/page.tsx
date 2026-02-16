@@ -34,11 +34,12 @@ type BillingReceipt = {
 
 export default function PatientPortalPage() {
   const [mounted, setMounted] = useState(false)
-  const { data: session } = useSession()
+  const { data: session, status: sessionStatus } = useSession()
   const { user: miniAppUser } = useMiniApp()
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [receipts, setReceipts] = useState<BillingReceipt[]>([])
   const [receiptsLoading, setReceiptsLoading] = useState(false)
+  const [storedProfileName, setStoredProfileName] = useState("")
 
   useEffect(() => {
     setMounted(true)
@@ -105,11 +106,36 @@ export default function PatientPortalPage() {
     loadReceipts()
   }, [walletAddress])
 
+  useEffect(() => {
+    if (sessionStatus !== "authenticated") return
+    let cancelled = false
+
+    const loadProfileName = async () => {
+      try {
+        const response = await fetch("/api/account/profile", { cache: "no-store" })
+        const data = await response.json().catch(() => null)
+        if (!response.ok || !data?.success) return
+        const fullName = String(data?.profile?.fullName || "").trim()
+        if (!cancelled && fullName) {
+          setStoredProfileName(fullName)
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    loadProfileName()
+    return () => {
+      cancelled = true
+    }
+  }, [sessionStatus])
+
   const miniUser: any = miniAppUser as any
   const sessionName = (session?.user as any)?.name as string | undefined
   const displayName =
     (typeof miniUser?.displayName === "string" && miniUser.displayName.trim()) ||
     (typeof miniUser?.username === "string" && miniUser.username.trim()) ||
+    storedProfileName ||
     (typeof sessionName === "string" && sessionName.trim()) ||
     "there"
 

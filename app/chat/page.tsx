@@ -121,12 +121,20 @@ export default function ChatPage() {
     return () => window.removeEventListener("basehealth:wallet", handler as EventListener)
   }, [])
 
-  const userAvatarUrl = miniAppUser?.pfpUrl || null
+  const sessionName =
+    typeof session?.user?.name === "string" && session.user.name.trim() ? session.user.name.trim() : null
+  const sessionEmail =
+    typeof session?.user?.email === "string" && session.user.email.trim() ? session.user.email.trim() : null
+  const sessionHandle = sessionEmail ? `@${sessionEmail.split("@")[0]}` : null
+
+  const userAvatarUrl = miniAppUser?.pfpUrl || ((session?.user as any)?.image as string | undefined) || null
   const userDisplayName =
     (miniAppUser?.displayName && miniAppUser.displayName.trim()) ||
     (miniAppUser?.username ? `@${miniAppUser.username}` : null) ||
+    sessionName ||
+    sessionHandle ||
     null
-  const userFallback = (miniAppUser?.displayName || miniAppUser?.username || "U")
+  const userFallback = (miniAppUser?.displayName || miniAppUser?.username || sessionName || sessionHandle || "U")
     .trim()
     .slice(0, 1)
     .toUpperCase()
@@ -391,7 +399,7 @@ export default function ChatPage() {
             <CardContent>
               <div className="space-y-2">
                 <SignInWithBase
-                  mode="connect"
+                  mode="signin"
                   onWalletConnected={(address) => {
                     setAuthError(null)
                     setConnectedWallet(address)
