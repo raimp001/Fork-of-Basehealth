@@ -26,6 +26,39 @@ function sectionReady(section: Section): boolean {
 export async function GET() {
   const chatPaywallEnabled = (process.env.BASEHEALTH_CHAT_PAYWALL || "false").toLowerCase() === "true"
 
+  const openclawKey =
+    process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_PASSWORD || ""
+
+  const openclawGatewayUrl = (process.env.OPENCLAW_GATEWAY_URL || "https://gateway.openclaw.ai")
+    .trim()
+    .replace(/\/$/, "")
+    .replace(/\/v1$/, "")
+
+  const openclawGatewayReachable = await (async () => {
+    if (!openclawKey) return null
+    try {
+      // Probe the OpenAI-compatible Chat Completions endpoint without incurring model costs.
+      // We intentionally send an invalid request body (empty messages) so the gateway can
+      // reject it quickly after auth/route checks.
+      const res = await fetch(`${openclawGatewayUrl}/v1/chat/completions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openclawKey}`,
+          "Content-Type": "application/json",
+          "x-openclaw-agent-id": "main",
+        },
+        body: JSON.stringify({ model: "openclaw", messages: [] }),
+        cache: "no-store",
+        // Keep the integrations page snappy even if the gateway is down.
+        signal: AbortSignal.timeout(2500),
+      })
+      if (res.status === 401 || res.status === 404) return false
+      return true
+    } catch {
+      return false
+    }
+  })()
+
   const aiProvider =
     process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_PASSWORD
       ? "openclaw"
@@ -128,6 +161,14 @@ export async function GET() {
           required: false,
           passed: Boolean(process.env.OPENCLAW_API_KEY || process.env.OPENCLAW_GATEWAY_TOKEN || process.env.OPENCLAW_GATEWAY_PASSWORD),
           help: "Enables multi-agent routing with provider-managed models (supports OPENCLAW_API_KEY or OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD).",
+        },
+        {
+          id: "openclaw-reachable",
+          label: "OpenClaw gateway reachable",
+          env: "OPENCLAW_GATEWAY_URL + (OPENCLAW_API_KEY | OPENCLAW_GATEWAY_TOKEN | OPENCLAW_GATEWAY_PASSWORD)",
+          required: Boolean(openclawKey),
+          passed: openclawKey ? Boolean(openclawGatewayReachable) : true,
+          help: "If using OpenClaw, the gateway must be reachable from your deployment. For self-hosted gateways, ensure the OpenAI-compatible Chat Completions endpoint is enabled and your URL does not include /v1.",
         },
         {
           id: "openai",

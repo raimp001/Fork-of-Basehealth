@@ -15,10 +15,11 @@ type AgentDefinition = (typeof OPENCLAW_AGENT_CATALOG)[OpenClawAgentId]
 
 const OPENCLAW_AGENTS = OPENCLAW_AGENT_CATALOG
 
-const OPENCLAW_GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL || "https://gateway.openclaw.ai").replace(
-  /\/$/,
-  "",
-)
+// OPENCLAW_GATEWAY_URL should be the gateway origin (no trailing /v1). We append /v1 below.
+const OPENCLAW_GATEWAY_URL = (process.env.OPENCLAW_GATEWAY_URL || "https://gateway.openclaw.ai")
+  .trim()
+  .replace(/\/$/, "")
+  .replace(/\/v1$/, "")
 
 function scoreMessageForAgent(content: string, agent: OpenClawAgentId): number {
   const lower = content.toLowerCase()
