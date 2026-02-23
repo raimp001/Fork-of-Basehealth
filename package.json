@@ -19,7 +19,7 @@
     "e2e:headed": "playwright test --headed"
   },
   "dependencies": {
-    "@ai-sdk/groq": "^1.0.8",
+    "@ai-sdk/groq": "^3.0.24",
     "@ai-sdk/openai": "^1.2.12",
     "@auth/prisma-adapter": "^2.10.0",
     "@base-org/account": "^2.5.1",
