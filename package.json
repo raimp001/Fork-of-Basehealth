@@ -120,7 +120,7 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.17",
     "typescript": "^5",
-    "vitest": "^1.2.0"
+    "vitest": "^4.0.18"
   },
   "optionalDependencies": {
     "@solana-program/system": "^0.10.0",
